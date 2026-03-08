@@ -133,9 +133,6 @@ const EliminationStage: React.FC<EliminationStageProps> = ({ matches, teams }) =
         className="absolute"
         style={{ left: pos.x, top: pos.y }}
       >
-        <div className="mb-1 text-xs text-gray-500 font-mono ml-1 h-4">
-          {displayMatch.startTime ? formatDateTime(displayMatch.startTime) : ''}
-        </div>
         <BracketMatchCard
           match={displayMatch}
           teams={teams}
@@ -199,9 +196,6 @@ const EliminationStage: React.FC<EliminationStageProps> = ({ matches, teams }) =
         {renderMatch(g1, positions.g1, g1Ref, 1)}
         {renderMatch(g2, positions.g2, g2Ref, 2)}
 
-        <div className="absolute left-[20px] top-[300px] text-gray-500 font-bold text-sm tracking-widest border-l-4 border-gray-700 pl-2">
-          败者组
-        </div>
 
         {renderMatch(g3, positions.g3, g3Ref, 3)}
         {renderMatch(g4, positions.g4, g4Ref, 4)}

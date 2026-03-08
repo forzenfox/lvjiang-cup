@@ -1,7 +1,8 @@
 import React from 'react';
 import { Match, Team } from '@/types';
 import { Card } from '@/components/ui/card';
-import { BarChart2 } from 'lucide-react';
+import { BarChart2, Clock } from 'lucide-react';
+import { formatDateTime } from '@/utils/datetime';
 
 interface BracketMatchCardProps {
   match: Match;
@@ -31,7 +32,10 @@ const BracketMatchCard = React.forwardRef<HTMLDivElement, BracketMatchCardProps>
       >
         {/* Header: Date & Status */}
         <div className="bg-gray-900/50 px-3 py-1 flex justify-between items-center border-b border-gray-700">
-          <span className="text-xs text-gray-400">{match.round}</span>
+          <div className="flex items-center gap-1 text-xs text-gray-400">
+            <Clock className="w-3 h-3" />
+            <span>{match.startTime ? formatDateTime(match.startTime) : '待定'}</span>
+          </div>
           {isGrandFinals && <span className="text-xs text-yellow-500 font-bold">总决赛</span>}
         </div>
 
