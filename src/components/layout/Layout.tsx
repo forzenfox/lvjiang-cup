@@ -42,8 +42,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
       <footer className="bg-black/50 py-8 border-t border-white/10">
         <div className="container mx-auto px-4 text-center text-gray-400">
-          <p>&copy; 2025 驴酱公会. 保留所有权利.</p>
-          <p className="text-sm mt-2">由斗鱼直播平台提供支持</p>
+          <p>&copy; 2026 驴酱公会. 保留所有权利.</p>
+          <p className="text-sm mt-2">粉丝自制项目</p>
         </div>
       </footer>
     </div>
