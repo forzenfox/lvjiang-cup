@@ -26,7 +26,7 @@ const AdminStream: React.FC = () => {
     try {
       await mockService.updateStreamInfo(streamInfo);
       setMessage('直播信息更新成功！');
-    } catch (error) {
+    } catch {
       setMessage('更新直播信息失败。');
     } finally {
       setLoading(false);

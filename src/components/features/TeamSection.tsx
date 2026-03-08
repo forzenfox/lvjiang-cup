@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { mockService } from '../../mock/service';
-import { Team, Player } from '../../types';
+import { Team } from '../../types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui/card';
-import { cn } from '../../lib/utils';
 import { User, Shield, Sword, Target, Crosshair, Zap } from 'lucide-react';
 
 const PositionIcon: React.FC<{ position: string }> = ({ position }) => {
