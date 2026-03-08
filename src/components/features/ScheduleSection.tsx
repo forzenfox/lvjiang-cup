@@ -13,6 +13,25 @@ const ScheduleSection: React.FC = () => {
 
   useEffect(() => {
     loadData();
+
+    // 轮询机制：每5秒刷新一次数据
+    const interval = setInterval(() => {
+      loadData();
+    }, 5000);
+
+    // 页面可见性检测：切换回页面时立即刷新
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        loadData();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    // 清理函数
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, []);
 
   const loadData = async () => {

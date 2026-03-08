@@ -1,7 +1,7 @@
 import React from 'react';
 import { Match, Team } from '@/types';
 import { Card } from '@/components/ui/card';
-import { Trophy, Medal, XCircle, ArrowRight } from 'lucide-react';
+import { Trophy, Medal, XCircle, ArrowRight, Clock } from 'lucide-react';
 
 interface SwissStageProps {
   matches: Match[];
@@ -21,6 +21,18 @@ const TeamLogo: React.FC<{ team?: Team }> = ({ team }) => {
   return <img src={team.logo} alt={team.name} className="w-5 h-5 rounded-full object-cover" />;
 };
 
+// 格式化比赛时间为本地时间字符串
+const formatMatchTime = (startTime: string): string => {
+  const date = new Date(startTime);
+  return date.toLocaleString('zh-CN', {
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false
+  });
+};
+
 const MatchCard: React.FC<{ match: Match; teams: Team[]; isBo3?: boolean }> = ({ match, teams, isBo3 }) => {
   const teamA = teams.find(t => t.id === match.teamAId);
   const teamB = teams.find(t => t.id === match.teamBId);
@@ -28,12 +40,19 @@ const MatchCard: React.FC<{ match: Match; teams: Team[]; isBo3?: boolean }> = ({
 
   return (
     <Card className="bg-gray-800/80 border-gray-700 p-2.5 hover:bg-gray-800 transition-colors group relative overflow-hidden">
+      {/* 时间显示 - 左上角 */}
+      {match.startTime && (
+        <div className="absolute top-0 left-0 bg-gray-700/50 text-gray-400 text-[10px] px-1.5 py-0.5 rounded-br flex items-center gap-1">
+          <Clock className="w-3 h-3" />
+          <span>{formatMatchTime(match.startTime)}</span>
+        </div>
+      )}
       {isBo3 && (
         <div className="absolute top-0 right-0 bg-blue-600/20 text-blue-400 text-[10px] px-1.5 py-0.5 rounded-bl font-mono">
           BO3
         </div>
       )}
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-2 pt-4">
         {/* Team A */}
         <div className={`flex items-center justify-between ${match.winnerId === match.teamAId ? 'opacity-100' : isFinished ? 'opacity-50' : 'opacity-100'}`}>
           <div className="flex items-center gap-2">
