@@ -2,6 +2,7 @@ import React from 'react';
 import { Match, Team } from '@/types';
 import { Card } from '@/components/ui/card';
 import { Trophy, Medal, XCircle, ArrowRight, Clock } from 'lucide-react';
+import { formatDateTime } from '@/utils/datetime';
 
 interface SwissStageProps {
   matches: Match[];
@@ -21,18 +22,6 @@ const TeamLogo: React.FC<{ team?: Team }> = ({ team }) => {
   return <img src={team.logo} alt={team.name} className="w-5 h-5 rounded-full object-cover" />;
 };
 
-// 格式化比赛时间为本地时间字符串
-const formatMatchTime = (startTime: string): string => {
-  const date = new Date(startTime);
-  return date.toLocaleString('zh-CN', {
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false
-  });
-};
-
 const MatchCard: React.FC<{ match: Match; teams: Team[]; isBo3?: boolean }> = ({ match, teams, isBo3 }) => {
   const teamA = teams.find(t => t.id === match.teamAId);
   const teamB = teams.find(t => t.id === match.teamBId);
@@ -44,7 +33,7 @@ const MatchCard: React.FC<{ match: Match; teams: Team[]; isBo3?: boolean }> = ({
       {match.startTime && (
         <div className="absolute top-0 left-0 bg-gray-700/50 text-gray-400 text-[10px] px-1.5 py-0.5 rounded-br flex items-center gap-1">
           <Clock className="w-3 h-3" />
-          <span>{formatMatchTime(match.startTime)}</span>
+          <span>{formatDateTime(match.startTime)}</span>
         </div>
       )}
       {isBo3 && (

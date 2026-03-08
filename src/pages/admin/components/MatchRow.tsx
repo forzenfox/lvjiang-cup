@@ -3,6 +3,7 @@ import { Match, Team, MatchStatus } from '../../../types';
 import { Button } from '../../../components/ui/button';
 import { ConfirmDialog } from '../../../components/ui/confirm-dialog';
 import { Save, X, Edit, Check, PlayCircle, Trophy, Crown, ArrowRight, RotateCcw } from 'lucide-react';
+import { formatDateTime, toDateTimeLocal, fromDateTimeLocal } from '../../../utils/datetime';
 
 interface MatchRowProps {
   match: Match;
@@ -98,14 +99,7 @@ const MatchRow: React.FC<MatchRowProps> = ({ match, teams, onUpdate, loading, fi
     setShowConfirmDialog(false);
   };
 
-  const formatTime = (isoString: string) => {
-    try {
-      const date = new Date(isoString);
-      return date.toLocaleString('zh-CN', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-    } catch {
-      return isoString;
-    }
-  };
+
 
   // Helper to get team name
   const getTeamName = (id: string) => teams.find(t => t.id === id)?.name || 'TBD';
@@ -118,8 +112,8 @@ const MatchRow: React.FC<MatchRowProps> = ({ match, teams, onUpdate, loading, fi
           <div className="md:col-span-3 space-y-2">
             <input
               type="datetime-local"
-              value={formData.startTime ? new Date(formData.startTime).toISOString().slice(0, 16) : ''}
-              onChange={(e) => handleChange('startTime', new Date(e.target.value).toISOString())}
+              value={formData.startTime ? toDateTimeLocal(formData.startTime) : ''}
+              onChange={(e) => handleChange('startTime', fromDateTimeLocal(e.target.value))}
               className="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-sm text-white
                 [color-scheme:dark]
                 [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert-[0.6]
@@ -237,7 +231,7 @@ const MatchRow: React.FC<MatchRowProps> = ({ match, teams, onUpdate, loading, fi
       <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
         {/* Time */}
         <div className="md:col-span-3 text-sm">
-          <div className="text-gray-300 font-medium">{formatTime(match.startTime)}</div>
+          <div className="text-gray-300 font-medium">{formatDateTime(match.startTime)}</div>
           {match.stage === 'swiss' && match.swissRecord && !fixedSwissRecord && (
             <div className="mt-1">
               <span className="text-xs px-1.5 py-0.5 rounded bg-blue-900/40 text-blue-400 border border-blue-800">

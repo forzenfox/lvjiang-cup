@@ -1,21 +1,12 @@
 import React, { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Match, Team } from '@/types';
 import BracketMatchCard from './BracketMatchCard';
+import { formatDateTime } from '@/utils/datetime';
 
 interface EliminationStageProps {
   matches: Match[];
   teams: Team[];
 }
-
-// 格式化时间为 "X月X日 XX:XX"
-const formatDateTime = (dateString: string): string => {
-  const date = new Date(dateString);
-  const month = date.getMonth() + 1;
-  const day = date.getDate();
-  const hours = date.getHours().toString().padStart(2, '0');
-  const minutes = date.getMinutes().toString().padStart(2, '0');
-  return `${month}月${day}日 ${hours}:${minutes}`;
-};
 
 const BOARD_WIDTH = 1200;
 const BOARD_HEIGHT = 650;
