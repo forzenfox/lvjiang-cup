@@ -42,7 +42,7 @@ const AdminTeams: React.FC = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this team?')) {
+    if (window.confirm('确定要删除这个战队吗？')) {
       await mockService.deleteTeam(id);
       loadTeams();
     }
@@ -58,15 +58,15 @@ const AdminTeams: React.FC = () => {
   return (
     <AdminLayout>
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-white">Team Management</h1>
+        <h1 className="text-3xl font-bold text-white">战队管理</h1>
         <Button onClick={() => setEditingTeam({
           id: `team-${Date.now()}`,
-          name: 'New Team',
+          name: '新战队',
           logo: '',
           description: '',
           players: []
         })}>
-          <Plus className="w-4 h-4 mr-2" /> Add Team
+          <Plus className="w-4 h-4 mr-2" /> 添加战队
         </Button>
       </div>
 
@@ -74,7 +74,7 @@ const AdminTeams: React.FC = () => {
         <Card className="mb-8 bg-gray-800 border-gray-700">
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-white">
-              {teams.find(t => t.id === editingTeam.id) ? 'Edit Team' : 'New Team'}
+              {teams.find(t => t.id === editingTeam.id) ? '编辑战队' : '新建战队'}
             </CardTitle>
             <Button variant="ghost" size="icon" onClick={() => setEditingTeam(null)}>
               <X className="w-4 h-4 text-gray-400" />
@@ -83,7 +83,7 @@ const AdminTeams: React.FC = () => {
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm text-gray-400 mb-1">Team Name</label>
+                <label className="block text-sm text-gray-400 mb-1">战队名称</label>
                 <input
                   value={editingTeam.name}
                   onChange={(e) => setEditingTeam({ ...editingTeam, name: e.target.value })}
@@ -91,7 +91,7 @@ const AdminTeams: React.FC = () => {
                 />
               </div>
               <div>
-                <label className="block text-sm text-gray-400 mb-1">Logo URL</label>
+                <label className="block text-sm text-gray-400 mb-1">队标链接</label>
                 <input
                   value={editingTeam.logo}
                   onChange={(e) => setEditingTeam({ ...editingTeam, logo: e.target.value })}
@@ -99,7 +99,7 @@ const AdminTeams: React.FC = () => {
                 />
               </div>
               <div className="col-span-2">
-                <label className="block text-sm text-gray-400 mb-1">Description</label>
+                <label className="block text-sm text-gray-400 mb-1">战队简介</label>
                 <textarea
                   value={editingTeam.description}
                   onChange={(e) => setEditingTeam({ ...editingTeam, description: e.target.value })}
@@ -109,25 +109,25 @@ const AdminTeams: React.FC = () => {
             </div>
 
             <div className="mt-6">
-              <h3 className="text-lg font-semibold text-white mb-2">Players</h3>
+              <h3 className="text-lg font-semibold text-white mb-2">队员列表</h3>
               {editingTeam.players.map((player, idx) => (
                 <div key={player.id} className="grid grid-cols-3 gap-2 mb-2 p-2 bg-gray-900/50 rounded">
                   <input
                     value={player.name}
                     onChange={(e) => handlePlayerChange(idx, 'name', e.target.value)}
-                    placeholder="Name"
+                    placeholder="姓名"
                     className="px-2 py-1 bg-gray-700 rounded text-white text-sm"
                   />
                   <input
                     value={player.position}
                     onChange={(e) => handlePlayerChange(idx, 'position', e.target.value)}
-                    placeholder="Position"
+                    placeholder="位置"
                     className="px-2 py-1 bg-gray-700 rounded text-white text-sm"
                   />
                    <input
                     value={player.avatar}
                     onChange={(e) => handlePlayerChange(idx, 'avatar', e.target.value)}
-                    placeholder="Avatar URL"
+                    placeholder="头像链接"
                     className="px-2 py-1 bg-gray-700 rounded text-white text-sm"
                   />
                 </div>
@@ -139,22 +139,22 @@ const AdminTeams: React.FC = () => {
                   ...editingTeam,
                   players: [...editingTeam.players, {
                     id: `p-${Date.now()}`,
-                    name: 'New Player',
-                    position: 'Top',
+                    name: '新队员',
+                    position: '上单',
                     avatar: '',
                     description: '',
                     teamId: editingTeam.id
                   }]
                 })}
               >
-                <Plus className="w-3 h-3 mr-1" /> Add Player
+                <Plus className="w-3 h-3 mr-1" /> 添加队员
               </Button>
             </div>
 
             <div className="flex justify-end gap-2 mt-4">
-              <Button variant="ghost" onClick={() => setEditingTeam(null)}>Cancel</Button>
+              <Button variant="ghost" onClick={() => setEditingTeam(null)}>取消</Button>
               <Button onClick={handleSave} disabled={loading} className="bg-secondary text-secondary-foreground">
-                <Save className="w-4 h-4 mr-2" /> Save Team
+                <Save className="w-4 h-4 mr-2" /> 保存战队
               </Button>
             </div>
           </CardContent>
@@ -181,7 +181,7 @@ const AdminTeams: React.FC = () => {
             <CardContent>
               <p className="text-sm text-gray-400 mb-4">{team.description}</p>
               <div className="text-sm text-gray-500">
-                {team.players.length} Players
+                {team.players.length} 名队员
               </div>
             </CardContent>
           </Card>

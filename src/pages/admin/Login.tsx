@@ -15,7 +15,7 @@ const AdminLogin: React.FC = () => {
       localStorage.setItem('isAdmin', 'true');
       navigate('/admin/dashboard');
     } else {
-      setError('Invalid password');
+      setError('密码错误');
     }
   };
 
@@ -26,8 +26,8 @@ const AdminLogin: React.FC = () => {
           <div className="flex justify-center mb-4">
             <Trophy className="h-12 w-12 text-secondary" />
           </div>
-          <CardTitle className="text-2xl text-white">Admin Login</CardTitle>
-          <CardDescription>Enter your password to access the dashboard</CardDescription>
+          <CardTitle className="text-2xl text-white">管理员登录</CardTitle>
+          <CardDescription>请输入密码访问管理后台</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
@@ -36,13 +36,13 @@ const AdminLogin: React.FC = () => {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Password"
+                placeholder="密码"
                 className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-secondary"
               />
               {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
             </div>
             <Button type="submit" className="w-full bg-secondary text-secondary-foreground hover:bg-secondary/90">
-              Login
+              登录
             </Button>
           </form>
         </CardContent>

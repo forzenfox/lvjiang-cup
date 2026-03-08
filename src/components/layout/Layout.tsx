@@ -20,17 +20,17 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center space-x-2 cursor-pointer" onClick={() => scrollToSection('hero')}>
             <Trophy className="h-8 w-8 text-secondary" />
-            <span className="text-xl font-bold tracking-wider text-white">LvMao Cup</span>
+            <span className="text-xl font-bold tracking-wider text-white">驴酱杯</span>
           </div>
           <nav className="hidden md:flex items-center space-x-8">
             <button onClick={() => scrollToSection('schedule')} className="text-sm font-medium text-gray-300 hover:text-secondary transition-colors">
-              Schedule
+              赛程
             </button>
             <button onClick={() => scrollToSection('teams')} className="text-sm font-medium text-gray-300 hover:text-secondary transition-colors">
-              Teams
+              战队
             </button>
             <Link to="/admin" className="text-sm font-medium text-gray-300 hover:text-secondary transition-colors">
-              Admin
+              管理
             </Link>
           </nav>
         </div>
@@ -42,8 +42,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
       <footer className="bg-black/50 py-8 border-t border-white/10">
         <div className="container mx-auto px-4 text-center text-gray-400">
-          <p>&copy; 2025 LvMao Guild. All rights reserved.</p>
-          <p className="text-sm mt-2">Powered by DouYu Streaming Platform</p>
+          <p>&copy; 2025 驴酱公会. 保留所有权利.</p>
+          <p className="text-sm mt-2">由斗鱼直播平台提供支持</p>
         </div>
       </footer>
     </div>

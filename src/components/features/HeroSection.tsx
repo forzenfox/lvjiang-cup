@@ -32,10 +32,10 @@ const HeroSection: React.FC = () => {
       {/* Content */}
       <div className="relative z-10 text-center px-4 max-w-4xl mx-auto">
         <h1 className="text-6xl md:text-8xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-yellow-500 to-yellow-300 animate-shine mb-6 tracking-tight drop-shadow-lg">
-          LVMAO CUP
+          驴酱杯
         </h1>
         <p className="text-xl md:text-2xl text-gray-200 mb-8 font-light tracking-wide">
-          The Ultimate Showdown of LvMao Guild
+          驴酱公会终极对决
         </p>
         
         {streamInfo?.isLive ? (
@@ -47,16 +47,16 @@ const HeroSection: React.FC = () => {
               onClick={handleWatchLive}
             >
               <Play className="mr-3 h-6 w-6 fill-current" />
-              WATCH LIVE
+              观看直播
             </Button>
             <p className="text-yellow-400 font-semibold animate-pulse">
-              🔴 Live Now on {streamInfo.platform}
+              🔴 正在直播：{streamInfo.platform}
             </p>
           </div>
         ) : (
           <div className="bg-black/50 backdrop-blur-sm p-6 rounded-xl border border-white/10">
-            <p className="text-xl text-gray-300">Tournament starts soon</p>
-            <p className="text-sm text-gray-400 mt-2">Check the schedule below</p>
+            <p className="text-xl text-gray-300">比赛即将开始</p>
+            <p className="text-sm text-gray-400 mt-2">查看下方赛程安排</p>
           </div>
         )}
       </div>

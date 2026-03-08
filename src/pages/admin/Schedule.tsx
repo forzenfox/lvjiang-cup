@@ -51,7 +51,7 @@ const AdminSchedule: React.FC = () => {
 
   return (
     <AdminLayout>
-      <h1 className="text-3xl font-bold text-white mb-6">Schedule Management</h1>
+      <h1 className="text-3xl font-bold text-white mb-6">赛程管理</h1>
       
       <div className="space-y-4">
         {matches.map(match => (
@@ -64,7 +64,7 @@ const AdminSchedule: React.FC = () => {
                     value={match.round}
                     onChange={(e) => handleInputChange(match.id, 'round', e.target.value)}
                     className="w-full px-2 py-1 bg-gray-700 rounded text-white text-sm"
-                    placeholder="Round Name"
+                    placeholder="轮次名称"
                   />
                   <input
                     type="datetime-local"
@@ -77,9 +77,9 @@ const AdminSchedule: React.FC = () => {
                     onChange={(e) => handleInputChange(match.id, 'status', e.target.value)}
                     className="w-full px-2 py-1 bg-gray-700 rounded text-white text-sm"
                   >
-                    <option value="upcoming">Upcoming</option>
-                    <option value="ongoing">Ongoing</option>
-                    <option value="finished">Finished</option>
+                    <option value="upcoming">未开始</option>
+                    <option value="ongoing">进行中</option>
+                    <option value="finished">已结束</option>
                   </select>
                 </div>
 
@@ -92,7 +92,7 @@ const AdminSchedule: React.FC = () => {
                       onChange={(e) => handleInputChange(match.id, 'teamAId', e.target.value)}
                       className="w-full px-2 py-1 bg-gray-700 rounded text-white text-sm"
                     >
-                      <option value="">Select Team</option>
+                      <option value="">选择战队</option>
                       {teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
                     </select>
                     <input
@@ -131,7 +131,7 @@ const AdminSchedule: React.FC = () => {
                     disabled={loading}
                     className="bg-secondary text-secondary-foreground hover:bg-secondary/90"
                   >
-                    <Save className="w-4 h-4 mr-2" /> Update
+                    <Save className="w-4 h-4 mr-2" /> 更新
                   </Button>
                 </div>
               </div>

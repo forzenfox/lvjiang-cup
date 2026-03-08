@@ -29,7 +29,7 @@ const MatchCard: React.FC<{ match: Match; isFinal?: boolean }> = ({ match, isFin
             {match.teamA?.logo && (
               <img src={match.teamA.logo} alt={match.teamA.name} className="w-8 h-8 rounded bg-gray-800" />
             )}
-            <span>{match.teamA?.name || 'TBD'}</span>
+            <span>{match.teamA?.name || '待定'}</span>
           </div>
           <span className="text-xl font-mono">{match.scoreA}</span>
         </div>
@@ -44,7 +44,7 @@ const MatchCard: React.FC<{ match: Match; isFinal?: boolean }> = ({ match, isFin
             {match.teamB?.logo && (
               <img src={match.teamB.logo} alt={match.teamB.name} className="w-8 h-8 rounded bg-gray-800" />
             )}
-            <span>{match.teamB?.name || 'TBD'}</span>
+            <span>{match.teamB?.name || '待定'}</span>
           </div>
           <span className="text-xl font-mono">{match.scoreB}</span>
         </div>
@@ -68,7 +68,7 @@ const ScheduleSection: React.FC = () => {
     <section id="schedule" className="min-h-screen py-20 bg-background relative flex flex-col items-center">
       <div className="container mx-auto px-4">
         <h2 className="text-4xl md:text-5xl font-bold text-center mb-16 text-white uppercase tracking-wider">
-          Tournament Schedule
+          赛程安排
         </h2>
 
         <div className="flex flex-col md:flex-row justify-center items-center gap-12 md:gap-24 relative">
