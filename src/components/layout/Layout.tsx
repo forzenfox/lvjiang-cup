@@ -22,14 +22,14 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             <Trophy className="h-8 w-8 text-secondary" />
             <span className="text-xl font-bold tracking-wider text-white">驴酱杯</span>
           </div>
-          <nav className="hidden md:flex items-center space-x-8">
-            <button onClick={() => scrollToSection('schedule')} className="text-sm font-medium text-gray-300 hover:text-secondary transition-colors">
-              赛程
-            </button>
-            <button onClick={() => scrollToSection('teams')} className="text-sm font-medium text-gray-300 hover:text-secondary transition-colors">
+          <nav className="flex items-center space-x-2 md:space-x-8">
+            <button onClick={() => scrollToSection('teams')} className="text-xs md:text-sm font-medium text-gray-300 hover:text-secondary transition-colors">
               战队
             </button>
-            <Link to="/admin" className="text-sm font-medium text-gray-300 hover:text-secondary transition-colors">
+            <button onClick={() => scrollToSection('schedule')} className="text-xs md:text-sm font-medium text-gray-300 hover:text-secondary transition-colors">
+              赛程
+            </button>
+            <Link to="/admin" className="text-xs md:text-sm font-medium text-gray-300 hover:text-secondary transition-colors">
               管理
             </Link>
           </nav>

@@ -2,11 +2,26 @@ import { Team, Match, StreamInfo } from '../types';
 import { initialTeams, initialMatches, initialStreamInfo } from './data';
 
 const DELAY = 500;
+const CLEAR_FLAG = 'data_cleared';
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 // 从 localStorage 加载数据，如果不存在则使用初始数据
 const loadFromStorage = <T>(key: string, initialData: T): T => {
+  // 如果数据被清空过，不使用初始数据
+  if (localStorage.getItem(CLEAR_FLAG) === 'true') {
+    const stored = localStorage.getItem(key);
+    if (!stored) {
+      // 返回空数组或空对象
+      return Array.isArray(initialData) ? [] as T : {} as T;
+    }
+    try {
+      return JSON.parse(stored);
+    } catch (e) {
+      return Array.isArray(initialData) ? [] as T : {} as T;
+    }
+  }
+
   const stored = localStorage.getItem(key);
   if (!stored) return initialData;
 
@@ -100,12 +115,12 @@ export const mockService = {
     return streamInfo;
   },
 
-  // 重置所有数据到初始状态
+  // 加载Mock数据 - 使用data.ts中的初始数据覆盖localStorage
   resetAllData: async (): Promise<void> => {
     await delay(DELAY);
-    localStorage.removeItem('teams');
-    localStorage.removeItem('matches');
-    localStorage.removeItem('streamInfo');
+    // 移除清空标志，允许使用初始数据
+    localStorage.removeItem(CLEAR_FLAG);
+    // 使用初始数据覆盖
     teams = [...initialTeams];
     matches = [...initialMatches];
     streamInfo = { ...initialStreamInfo };
@@ -121,6 +136,8 @@ export const mockService = {
     localStorage.removeItem('teams');
     localStorage.removeItem('matches');
     localStorage.removeItem('streamInfo');
+    // 设置清空标志，防止自动加载初始数据
+    localStorage.setItem(CLEAR_FLAG, 'true');
     teams = [];
     matches = [];
     streamInfo = {} as StreamInfo;
