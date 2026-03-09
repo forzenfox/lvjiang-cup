@@ -44,3 +44,27 @@ export interface StreamInfo {
   url: string;
   isLive: boolean;
 }
+
+// 瑞士轮晋级结果
+export interface SwissAdvancementResult {
+  winners2_0: string[];      // 2-0战绩晋级胜者组
+  winners2_1: string[];      // 2-1战绩晋级胜者组
+  losersBracket: string[];   // 晋级败者组
+  eliminated3rd: string[];   // 积分第三淘汰
+  eliminated0_3: string[];   // 0-3战绩淘汰
+}
+
+// 晋级名单分类类型
+export type AdvancementCategory =
+  | 'winners2_0'
+  | 'winners2_1'
+  | 'losersBracket'
+  | 'eliminated3rd'
+  | 'eliminated0_3';
+
+// 晋级名单状态
+export interface AdvancementState {
+  advancement: SwissAdvancementResult;
+  lastUpdated: string;
+  updatedBy: string;
+}

@@ -6,6 +6,7 @@ import AdminDashboard from './pages/admin/Dashboard';
 import AdminStream from './pages/admin/Stream';
 import AdminTeams from './pages/admin/Teams';
 import AdminSchedule from './pages/admin/Schedule';
+import AdvancementManager from './pages/admin/AdvancementManager';
 import ProtectedRoute from './components/layout/ProtectedRoute';
 
 function App() {
@@ -14,7 +15,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/admin" element={<AdminLogin />} />
-        
+
         {/* Protected Routes */}
         <Route path="/admin/dashboard" element={
           <ProtectedRoute>
@@ -34,6 +35,11 @@ function App() {
         <Route path="/admin/schedule" element={
           <ProtectedRoute>
             <AdminSchedule />
+          </ProtectedRoute>
+        } />
+        <Route path="/admin/advancement" element={
+          <ProtectedRoute>
+            <AdvancementManager />
           </ProtectedRoute>
         } />
       </Routes>

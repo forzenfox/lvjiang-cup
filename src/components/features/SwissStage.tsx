@@ -1,13 +1,15 @@
 import React from 'react';
 import { Match, Team } from '@/types';
 import { Card } from '@/components/ui/card';
-import { Trophy, Medal, XCircle, ArrowRight, Clock } from 'lucide-react';
+import { Clock, Settings } from 'lucide-react';
 import { formatDateTime } from '@/utils/datetime';
+import { useAdvancementStore } from '@/store/advancementStore';
+import { Link } from 'react-router-dom';
 
 interface SwissStageProps {
   matches: Match[];
   teams: Team[];
-  advancement: {
+  advancement?: {
     winners2_0: string[];
     winners2_1: string[];
     losersBracket: string[];
@@ -132,7 +134,11 @@ const TeamList: React.FC<{ teams: Team[]; ids: string[] }> = ({ teams, ids }) =>
   );
 };
 
-const SwissStage: React.FC<SwissStageProps> = ({ matches, teams, advancement }) => {
+const SwissStage: React.FC<SwissStageProps> = ({ matches, teams, advancement: propAdvancement }) => {
+  // 从 store 获取晋级名单（如果没有传入 props）
+  const storeAdvancement = useAdvancementStore(state => state.advancement);
+  const advancement = propAdvancement || storeAdvancement;
+
   // Group matches by Record
   const round1Matches = matches.filter(m => m.swissRecord === '0-0');
   const round2High = matches.filter(m => m.swissRecord === '1-0');
@@ -143,6 +149,16 @@ const SwissStage: React.FC<SwissStageProps> = ({ matches, teams, advancement }) 
 
   return (
     <div className="w-full overflow-x-auto">
+      {/* 管理入口 */}
+      <div className="flex justify-end mb-4 px-4">
+        <Link
+          to="/admin/advancement"
+          className="flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors"
+        >
+          <Settings className="w-4 h-4" />
+          管理晋级名单
+        </Link>
+      </div>
       <div className="flex gap-8 min-w-[1000px] p-4">
         {/* Round 1 (0-0) */}
         <div className="flex flex-col gap-4 w-64">
