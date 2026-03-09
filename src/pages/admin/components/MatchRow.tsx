@@ -9,12 +9,15 @@ interface MatchRowProps {
   match: Match;
   teams: Team[];
   onUpdate: (updatedMatch: Match) => void;
+  onAdd?: (newMatch: Omit<Match, 'id'>) => void;
+  onCancel?: () => void;
   loading?: boolean;
   fixedSwissRecord?: string;
+  isNew?: boolean;
 }
 
-const MatchRow: React.FC<MatchRowProps> = ({ match, teams, onUpdate, loading, fixedSwissRecord }) => {
-  const [isEditing, setIsEditing] = useState(false);
+const MatchRow: React.FC<MatchRowProps> = ({ match, teams, onUpdate, onAdd, onCancel, loading, fixedSwissRecord, isNew }) => {
+  const [isEditing, setIsEditing] = useState(isNew || false);
   const [formData, setFormData] = useState<Match>(match);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
@@ -41,7 +44,13 @@ const MatchRow: React.FC<MatchRowProps> = ({ match, teams, onUpdate, loading, fi
       else if (updated.scoreB > updated.scoreA) updated.winnerId = updated.teamBId;
     }
 
-    onUpdate(updated);
+    if (isNew && onAdd) {
+      // For new matches, call onAdd without id
+      const { id, ...newMatch } = updated;
+      onAdd(newMatch);
+    } else {
+      onUpdate(updated);
+    }
     setIsEditing(false);
   };
 
@@ -82,7 +91,10 @@ const MatchRow: React.FC<MatchRowProps> = ({ match, teams, onUpdate, loading, fi
   };
 
   const handleCancel = () => {
-    if (hasUnsavedChanges()) {
+    if (isNew && onCancel) {
+      // For new matches, just call onCancel without confirmation
+      onCancel();
+    } else if (hasUnsavedChanges()) {
       setShowConfirmDialog(true);
     } else {
       setIsEditing(false);

@@ -2,15 +2,16 @@ import React, { useEffect, useState } from 'react';
 import { mockService } from '../../mock/service';
 import { Team } from '../../types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui/card';
-import { User, Shield, Sword, Target, Crosshair, Zap } from 'lucide-react';
+import { User } from 'lucide-react';
+import { TopIcon, JungleIcon, MidIcon, AdcIcon, SupportIcon } from '../icons/PositionIcons';
 
 const PositionIcon: React.FC<{ position: string }> = ({ position }) => {
   switch (position.toLowerCase()) {
-    case 'top': return <Shield className="w-4 h-4 text-blue-400" />;
-    case 'jungle': return <Sword className="w-4 h-4 text-green-400" />;
-    case 'mid': return <Zap className="w-4 h-4 text-yellow-400" />;
-    case 'adc': return <Target className="w-4 h-4 text-red-400" />;
-    case 'support': return <Crosshair className="w-4 h-4 text-purple-400" />;
+    case '上单': return <TopIcon className="w-4 h-4" />;
+    case '打野': return <JungleIcon className="w-4 h-4" />;
+    case '中单': return <MidIcon className="w-4 h-4" />;
+    case 'adc': return <AdcIcon className="w-4 h-4" />;
+    case '辅助': return <SupportIcon className="w-4 h-4" />;
     default: return <User className="w-4 h-4 text-gray-400" />;
   }
 };

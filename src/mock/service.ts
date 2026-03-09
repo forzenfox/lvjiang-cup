@@ -66,6 +66,14 @@ export const mockService = {
     return updatedMatch;
   },
 
+  addMatch: async (newMatch: Omit<Match, 'id'>): Promise<Match> => {
+    await delay(DELAY);
+    const match: Match = { ...newMatch, id: `match-${Date.now()}` };
+    matches.push(match);
+    saveToStorage('matches', matches);
+    return match;
+  },
+
   // Stream APIs
   getStreamInfo: async (): Promise<StreamInfo> => {
     await delay(DELAY);

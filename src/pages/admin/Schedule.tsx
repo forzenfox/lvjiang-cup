@@ -82,6 +82,20 @@ const AdminSchedule: React.FC = () => {
     }
   };
 
+  const handleAddMatch = async (newMatch: Omit<Match, 'id'>) => {
+    setLoading(true);
+    try {
+      await mockService.addMatch(newMatch);
+      toast.success('比赛添加成功');
+      await loadData(); // 刷新列表
+    } catch (error) {
+      console.error('Failed to add match', error);
+      toast.error('添加失败');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const swissMatches = matches.filter(m => m.stage === 'swiss');
   const eliminationMatches = matches.filter(m => m.stage === 'elimination');
 
@@ -117,6 +131,7 @@ const AdminSchedule: React.FC = () => {
                   matches={swissMatches}
                   teams={teams}
                   onUpdate={handleMatchUpdate}
+                  onAddMatch={handleAddMatch}
                   loading={loading}
                 />
               </TabsContent>
@@ -126,6 +141,7 @@ const AdminSchedule: React.FC = () => {
                   matches={eliminationMatches}
                   teams={teams}
                   onUpdate={handleMatchUpdate}
+                  onAddMatch={handleAddMatch}
                   loading={loading}
                 />
               </TabsContent>
