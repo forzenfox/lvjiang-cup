@@ -9,6 +9,7 @@ interface SwissStageEditorProps {
   teams: Team[];
   onUpdate: (match: Match) => void;
   onAddMatch: (match: Omit<Match, 'id'>) => void;
+  onDeleteMatch: (matchId: string) => void;
   loading: boolean;
 }
 
@@ -18,7 +19,7 @@ interface TempMatch {
   match: Match;
 }
 
-const SwissStageEditor: React.FC<SwissStageEditorProps> = ({ matches, teams, onUpdate, onAddMatch, loading }) => {
+const SwissStageEditor: React.FC<SwissStageEditorProps> = ({ matches, teams, onUpdate, onAddMatch, onDeleteMatch, loading }) => {
   const [searchTerm, setSearchTerm] = useState('');
   // 存储各分组的临时新增比赛项
   const [tempMatches, setTempMatches] = useState<Record<string, TempMatch[]>>({
@@ -140,6 +141,7 @@ const SwissStageEditor: React.FC<SwissStageEditorProps> = ({ matches, teams, onU
                 match={match}
                 teams={teams}
                 onUpdate={onUpdate}
+                onDelete={onDeleteMatch}
                 loading={loading}
                 fixedSwissRecord={fixedRecord}
               />

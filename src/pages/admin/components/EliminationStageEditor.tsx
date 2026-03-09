@@ -9,6 +9,7 @@ interface EliminationStageEditorProps {
   teams: Team[];
   onUpdate: (match: Match) => void;
   onAddMatch: (match: Omit<Match, 'id'>) => void;
+  onDeleteMatch: (matchId: string) => void;
   loading: boolean;
 }
 
@@ -18,7 +19,7 @@ interface TempMatch {
   match: Match;
 }
 
-const EliminationStageEditor: React.FC<EliminationStageEditorProps> = ({ matches, teams, onUpdate, onAddMatch, loading }) => {
+const EliminationStageEditor: React.FC<EliminationStageEditorProps> = ({ matches, teams, onUpdate, onAddMatch, onDeleteMatch, loading }) => {
   const [searchTerm, setSearchTerm] = useState('');
   // 存储各分组的临时新增比赛项
   const [tempMatches, setTempMatches] = useState<Record<string, TempMatch[]>>({
@@ -135,6 +136,7 @@ const EliminationStageEditor: React.FC<EliminationStageEditorProps> = ({ matches
                 match={match}
                 teams={teams}
                 onUpdate={onUpdate}
+                onDelete={onDeleteMatch}
                 loading={loading}
               />
             ))

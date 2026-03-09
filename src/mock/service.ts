@@ -102,6 +102,12 @@ export const mockService = {
     return match;
   },
 
+  deleteMatch: async (id: string): Promise<void> => {
+    await delay(DELAY);
+    matches = matches.filter(m => m.id !== id);
+    saveToStorage('matches', matches);
+  },
+
   // Stream APIs
   getStreamInfo: async (): Promise<StreamInfo> => {
     await delay(DELAY);

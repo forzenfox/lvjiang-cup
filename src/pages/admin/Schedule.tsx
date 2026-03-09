@@ -96,6 +96,20 @@ const AdminSchedule: React.FC = () => {
     }
   };
 
+  const handleDeleteMatch = async (matchId: string) => {
+    setLoading(true);
+    try {
+      await mockService.deleteMatch(matchId);
+      toast.success('比赛已删除');
+      await loadData(); // 刷新列表
+    } catch (error) {
+      console.error('Failed to delete match', error);
+      toast.error('删除失败');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const swissMatches = matches.filter(m => m.stage === 'swiss');
   const eliminationMatches = matches.filter(m => m.stage === 'elimination');
 
@@ -132,6 +146,7 @@ const AdminSchedule: React.FC = () => {
                   teams={teams}
                   onUpdate={handleMatchUpdate}
                   onAddMatch={handleAddMatch}
+                  onDeleteMatch={handleDeleteMatch}
                   loading={loading}
                 />
               </TabsContent>
@@ -142,6 +157,7 @@ const AdminSchedule: React.FC = () => {
                   teams={teams}
                   onUpdate={handleMatchUpdate}
                   onAddMatch={handleAddMatch}
+                  onDeleteMatch={handleDeleteMatch}
                   loading={loading}
                 />
               </TabsContent>

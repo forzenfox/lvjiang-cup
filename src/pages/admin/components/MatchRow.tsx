@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Match, Team, MatchStatus } from '../../../types';
 import { Button } from '../../../components/ui/button';
 import { ConfirmDialog } from '../../../components/ui/confirm-dialog';
-import { Save, X, Edit, Check, PlayCircle, Trophy, Crown, ArrowRight, RotateCcw } from 'lucide-react';
+import { Save, X, Edit, Check, PlayCircle, Trophy, Crown, ArrowRight, RotateCcw, Trash2 } from 'lucide-react';
 import { formatDateTime, toDateTimeLocal, fromDateTimeLocal } from '../../../utils/datetime';
 
 interface MatchRowProps {
@@ -11,15 +11,17 @@ interface MatchRowProps {
   onUpdate: (updatedMatch: Match) => void;
   onAdd?: (newMatch: Omit<Match, 'id'>) => void;
   onCancel?: () => void;
+  onDelete?: (matchId: string) => void;
   loading?: boolean;
   fixedSwissRecord?: string;
   isNew?: boolean;
 }
 
-const MatchRow: React.FC<MatchRowProps> = ({ match, teams, onUpdate, onAdd, onCancel, loading, fixedSwissRecord, isNew }) => {
+const MatchRow: React.FC<MatchRowProps> = ({ match, teams, onUpdate, onAdd, onCancel, onDelete, loading, fixedSwissRecord, isNew }) => {
   const [isEditing, setIsEditing] = useState(isNew || false);
   const [formData, setFormData] = useState<Match>(match);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   // Sync formData when match prop changes (e.g. external update)
   useEffect(() => {
@@ -109,6 +111,21 @@ const MatchRow: React.FC<MatchRowProps> = ({ match, teams, onUpdate, onAdd, onCa
 
   const handleDismissDialog = () => {
     setShowConfirmDialog(false);
+  };
+
+  const handleDeleteClick = () => {
+    setShowDeleteDialog(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (onDelete) {
+      onDelete(match.id);
+    }
+    setShowDeleteDialog(false);
+  };
+
+  const handleDismissDeleteDialog = () => {
+    setShowDeleteDialog(false);
   };
 
 
@@ -318,8 +335,25 @@ const MatchRow: React.FC<MatchRowProps> = ({ match, teams, onUpdate, onAdd, onCa
           <Button size="sm" variant="ghost" onClick={() => setIsEditing(true)} title="Edit">
             <Edit className="w-4 h-4 text-blue-400" />
           </Button>
+
+          {onDelete && (
+            <Button size="sm" variant="ghost" onClick={handleDeleteClick} title="Delete" className="text-red-400 hover:text-red-300 hover:bg-red-900/20">
+              <Trash2 className="w-4 h-4" />
+            </Button>
+          )}
         </div>
       </div>
+
+      {/* 删除确认弹框 */}
+      <ConfirmDialog
+        isOpen={showDeleteDialog}
+        title="删除比赛"
+        message={`确定要删除这场比赛吗？\n${getTeamName(match.teamAId)} vs ${getTeamName(match.teamBId)}`}
+        confirmText="删除"
+        cancelText="取消"
+        onConfirm={handleConfirmDelete}
+        onCancel={handleDismissDeleteDialog}
+      />
     </div>
   );
 };
