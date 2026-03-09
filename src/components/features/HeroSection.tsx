@@ -50,7 +50,7 @@ const HeroSection: React.FC = () => {
               观看直播
             </Button>
             <p className="text-yellow-400 font-semibold animate-pulse">
-              🔴 正在直播：{streamInfo.platform}
+              🔴 正在直播：{streamInfo.title}
             </p>
           </div>
         ) : (

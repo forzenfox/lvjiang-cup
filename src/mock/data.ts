@@ -510,6 +510,5 @@ export const swissAdvancement = {
 export const initialStreamInfo: StreamInfo = {
   title: '驴酱杯 2025 - 总决赛',
   url: 'https://www.douyu.com/138243',
-  platform: '斗鱼直播',
   isLive: true
 };

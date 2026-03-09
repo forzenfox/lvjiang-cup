@@ -46,6 +46,5 @@ export interface Match {
 export interface StreamInfo {
   title: string;
   url: string;
-  platform: string;
   isLive: boolean;
 }

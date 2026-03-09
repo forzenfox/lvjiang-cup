@@ -22,3 +22,11 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Test results and reports
+test-results/
+playwright-report/
+coverage/
+**/tests/reports/
+*.test-results.json
+*.test-report.html

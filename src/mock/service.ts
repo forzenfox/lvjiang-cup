@@ -8,7 +8,20 @@ const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 // 从 localStorage 加载数据，如果不存在则使用初始数据
 const loadFromStorage = <T>(key: string, initialData: T): T => {
   const stored = localStorage.getItem(key);
-  return stored ? JSON.parse(stored) : initialData;
+  if (!stored) return initialData;
+
+  try {
+    const parsed = JSON.parse(stored);
+    // 检查数组是否为空
+    if (Array.isArray(parsed) && parsed.length === 0) {
+      console.log(`[MockService] ${key} 为空数组，使用初始数据`);
+      return initialData;
+    }
+    return parsed;
+  } catch (e) {
+    console.error(`[MockService] 解析 ${key} 失败，使用初始数据`, e);
+    return initialData;
+  }
 };
 
 // 保存数据到 localStorage
@@ -96,5 +109,20 @@ export const mockService = {
     teams = [...initialTeams];
     matches = [...initialMatches];
     streamInfo = { ...initialStreamInfo };
+    // 保存到 localStorage
+    saveToStorage('teams', teams);
+    saveToStorage('matches', matches);
+    saveToStorage('streamInfo', streamInfo);
+  },
+
+  // 清空所有数据（不重置为初始值）
+  clearAllData: async (): Promise<void> => {
+    await delay(DELAY);
+    localStorage.removeItem('teams');
+    localStorage.removeItem('matches');
+    localStorage.removeItem('streamInfo');
+    teams = [];
+    matches = [];
+    streamInfo = {} as StreamInfo;
   }
 };

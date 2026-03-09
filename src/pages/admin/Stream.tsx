@@ -9,7 +9,6 @@ const AdminStream: React.FC = () => {
   const [streamInfo, setStreamInfo] = useState<StreamInfo>({
     title: '',
     url: '',
-    platform: '',
     isLive: false
   });
   const [loading, setLoading] = useState(false);
@@ -59,18 +58,6 @@ const AdminStream: React.FC = () => {
                 onChange={(e) => setStreamInfo({ ...streamInfo, url: e.target.value })}
                 className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-secondary"
               />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1">直播平台</label>
-              <select
-                value={streamInfo.platform}
-                onChange={(e) => setStreamInfo({ ...streamInfo, platform: e.target.value })}
-                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-secondary"
-              >
-                <option value="DouYu">斗鱼直播</option>
-                <option value="Huya">虎牙直播</option>
-                <option value="Bilibili">哔哩哔哩</option>
-              </select>
             </div>
             <div className="flex items-center space-x-2">
               <input
