@@ -37,10 +37,6 @@ export interface Match {
   swissDay?: number; // 瑞士轮第几天
   eliminationBracket?: EliminationBracket; // 淘汰赛分组
   eliminationGameNumber?: number; // 淘汰赛比赛编号
-  // 树状图连接关系
-  nextMatchId?: string; // 晋级后的下一场比赛ID
-  nextMatchSlot?: 'teamA' | 'teamB'; // 晋级后进入哪个位置
-  previousMatchIds?: string[]; // 来源比赛ID（用于败者组）
 }
 
 export interface StreamInfo {

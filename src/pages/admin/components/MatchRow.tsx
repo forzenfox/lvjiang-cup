@@ -274,14 +274,6 @@ const MatchRow: React.FC<MatchRowProps> = ({ match, teams, onUpdate, onAdd, onCa
               <span>
                 {match.eliminationBracket === 'winners' ? '胜者组' : match.eliminationBracket === 'losers' ? '败者组' : '总决赛'}
               </span>
-              {match.nextMatchId && (
-                <>
-                  <ArrowRight className="w-3 h-3" />
-                  <span className="underline decoration-dashed decoration-yellow-500/50">
-                    {match.nextMatchId}
-                  </span>
-                </>
-              )}
             </div>
           )}
         </div>

@@ -36,42 +36,11 @@ const AdminSchedule: React.FC = () => {
   const handleMatchUpdate = async (updatedMatch: Match) => {
     setLoading(true);
     try {
-      // 1. Update the current match
+      // Update the current match
       await mockService.updateMatch(updatedMatch);
       toast.success('比赛信息已更新');
 
-      // 2. Check for Auto-Advance (Elimination Bracket)
-      if (
-        updatedMatch.stage === 'elimination' &&
-        updatedMatch.status === 'finished' &&
-        updatedMatch.winnerId &&
-        updatedMatch.nextMatchId
-      ) {
-        // Find next match
-        const nextMatch = matches.find(m => m.id === updatedMatch.nextMatchId);
-        const winner = teams.find(t => t.id === updatedMatch.winnerId);
-
-        if (nextMatch) {
-          // Determine which slot to fill
-          const slotField = updatedMatch.nextMatchSlot === 'teamA' ? 'teamAId' :
-            updatedMatch.nextMatchSlot === 'teamB' ? 'teamBId' : null;
-
-          if (slotField) {
-            // Check if slot is empty or needs update
-            if (nextMatch[slotField] !== updatedMatch.winnerId) {
-              const newNextMatch = { ...nextMatch, [slotField]: updatedMatch.winnerId };
-              await mockService.updateMatch(newNextMatch);
-              console.log(`Auto-advanced winner ${updatedMatch.winnerId} to match ${nextMatch.id} slot ${slotField}`);
-
-              if (winner) {
-                toast.info(`已自动晋级: ${winner.name} -> ${nextMatch.id}`);
-              }
-            }
-          }
-        }
-      }
-
-      // 3. Reload data to reflect changes
+      // Reload data to reflect changes
       await loadData();
 
     } catch (error) {

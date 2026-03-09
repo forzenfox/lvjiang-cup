@@ -15,7 +15,7 @@
 - **战队管理**：添加、编辑、删除战队及队员信息
 - **赛程管理**：
   - 瑞士轮赛程管理（支持战绩记录）
-  - 淘汰赛赛程管理（支持自动晋级逻辑）
+  - 淘汰赛赛程管理
   - 比赛结果录入和更新
 - **直播配置**：配置直播标题、链接、平台和直播状态
 
@@ -161,8 +161,6 @@ interface Match {
   swissRecord?: string;      // 瑞士轮战绩
   swissDay?: number;         // 瑞士轮天数
   eliminationBracket?: 'winners' | 'losers' | 'grand_finals';
-  nextMatchId?: string;      // 晋级后的下一场比赛
-  nextMatchSlot?: 'teamA' | 'teamB';
 }
 ```
 
@@ -184,7 +182,6 @@ interface Match {
 ### 淘汰赛阶段
 - 双败淘汰制
 - 包含胜者组、败者组和总决赛
-- 支持自动晋级逻辑：比赛结束后自动将胜者推进到下一轮
 
 ## 开发指南
 

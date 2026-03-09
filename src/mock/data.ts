@@ -363,9 +363,7 @@ export const eliminationMatches: Match[] = [
     startTime: '2025-11-17T18:00:00Z',
     stage: 'elimination',
     eliminationBracket: 'winners',
-    eliminationGameNumber: 1,
-    nextMatchId: 'elim-g5',
-    nextMatchSlot: 'teamA'
+    eliminationGameNumber: 1
   },
   {
     id: 'elim-g2',
@@ -379,11 +377,9 @@ export const eliminationMatches: Match[] = [
     startTime: '2025-11-18T18:00:00Z',
     stage: 'elimination',
     eliminationBracket: 'winners',
-    eliminationGameNumber: 2,
-    nextMatchId: 'elim-g5',
-    nextMatchSlot: 'teamB'
+    eliminationGameNumber: 2
   },
-  
+
   // Lower Bracket Round 1
   {
     id: 'elim-g3',
@@ -397,10 +393,7 @@ export const eliminationMatches: Match[] = [
     startTime: '2025-11-19T18:00:00Z',
     stage: 'elimination',
     eliminationBracket: 'losers',
-    eliminationGameNumber: 3,
-    nextMatchId: 'elim-g6',
-    nextMatchSlot: 'teamA',
-    previousMatchIds: ['elim-g1']
+    eliminationGameNumber: 3
   },
   {
     id: 'elim-g4',
@@ -414,10 +407,7 @@ export const eliminationMatches: Match[] = [
     startTime: '2025-11-20T18:00:00Z',
     stage: 'elimination',
     eliminationBracket: 'losers',
-    eliminationGameNumber: 4,
-    nextMatchId: 'elim-g6',
-    nextMatchSlot: 'teamB',
-    previousMatchIds: ['elim-g2']
+    eliminationGameNumber: 4
   },
 
   // Upper Bracket Final
@@ -433,10 +423,7 @@ export const eliminationMatches: Match[] = [
     startTime: '2025-11-21T18:00:00Z',
     stage: 'elimination',
     eliminationBracket: 'winners',
-    eliminationGameNumber: 5,
-    nextMatchId: 'elim-g8',
-    nextMatchSlot: 'teamA',
-    previousMatchIds: ['elim-g1', 'elim-g2']
+    eliminationGameNumber: 5
   },
 
   // Lower Bracket Round 2
@@ -452,10 +439,7 @@ export const eliminationMatches: Match[] = [
     startTime: '2025-11-21T20:00:00Z',
     stage: 'elimination',
     eliminationBracket: 'losers',
-    eliminationGameNumber: 6,
-    nextMatchId: 'elim-g7',
-    nextMatchSlot: 'teamA',
-    previousMatchIds: ['elim-g3', 'elim-g4']
+    eliminationGameNumber: 6
   },
 
   // Lower Bracket Final
@@ -471,10 +455,7 @@ export const eliminationMatches: Match[] = [
     startTime: '2025-11-22T18:00:00Z',
     stage: 'elimination',
     eliminationBracket: 'losers',
-    eliminationGameNumber: 7,
-    nextMatchId: 'elim-g8',
-    nextMatchSlot: 'teamB',
-    previousMatchIds: ['elim-g6', 'elim-g5']
+    eliminationGameNumber: 7
   },
 
   // Grand Final
@@ -490,8 +471,7 @@ export const eliminationMatches: Match[] = [
     startTime: '2025-11-23T18:00:00Z',
     stage: 'elimination',
     eliminationBracket: 'grand_finals',
-    eliminationGameNumber: 8,
-    previousMatchIds: ['elim-g5', 'elim-g7']
+    eliminationGameNumber: 8
   }
 ];
 
