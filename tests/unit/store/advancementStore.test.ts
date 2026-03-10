@@ -1,5 +1,5 @@
-import { describe, it, expect, beforeEach } from 'vitest';
-import { useAdvancementStore, categoryConfig, categoryOrder } from '../advancementStore';
+import { describe, it, expect, beforeEach } from "vitest";
+import { useAdvancementStore, categoryConfig, categoryOrder } from "@/store/advancementStore";
 import type { SwissAdvancementResult } from '@/types';
 
 // 清理 localStorage 和 store 状态

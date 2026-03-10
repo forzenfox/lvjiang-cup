@@ -1,3 +1,12 @@
+/* ========================================================================
+   TODO [废弃] 旧版列表编辑模式 - 请使用可视化编辑器 EliminationStageVisualEditor
+   废弃时间: 2024-03-10
+   计划移除时间: v2.0
+   
+   此组件暂时保留以便后续迁移，默认已切换到可视化编辑器
+   如需切换回旧版，请在 Schedule.tsx 中将 eliminationViewMode 改为 'list'
+   ======================================================================== */
+
 import React from 'react';
 import { Match, Team, MatchStatus, EliminationBracket } from '../../../types';
 import { MatchSection } from './MatchSection';

@@ -6,7 +6,8 @@ import AdminDashboard from './pages/admin/Dashboard';
 import AdminStream from './pages/admin/Stream';
 import AdminTeams from './pages/admin/Teams';
 import AdminSchedule from './pages/admin/Schedule';
-import AdvancementManager from './pages/admin/AdvancementManager';
+// [REMOVE] 晋级名单管理页面已废弃
+// import AdvancementManager from './pages/admin/AdvancementManager';
 import ProtectedRoute from './components/layout/ProtectedRoute';
 
 function App() {
@@ -37,11 +38,13 @@ function App() {
             <AdminSchedule />
           </ProtectedRoute>
         } />
+        {/* [REMOVE] 晋级名单管理页面已废弃
         <Route path="/admin/advancement" element={
           <ProtectedRoute>
             <AdvancementManager />
           </ProtectedRoute>
         } />
+        */}
       </Routes>
     </Router>
   );

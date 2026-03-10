@@ -4,13 +4,17 @@ import { mockService } from '../../mock/service';
 import { Match, Team } from '../../types';
 import { Toaster, toast } from 'sonner';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../components/ui/tabs';
-import SwissStageEditor from './components/SwissStageEditor';
-import EliminationStageEditor from './components/EliminationStageEditor';
+import SwissStageVisualEditor from './SwissStageVisualEditor';
+import EliminationStage from '@/components/features/EliminationStage';
+import { useAdvancementStore } from '@/store/advancementStore';
 
 const AdminSchedule: React.FC = () => {
   const [matches, setMatches] = useState<Match[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
   const [loading, setLoading] = useState(false);
+  
+  const advancement = useAdvancementStore(state => state.advancement);
+  const setAdvancement = useAdvancementStore(state => state.setAdvancement);
 
   useEffect(() => {
     loadData();
@@ -36,13 +40,9 @@ const AdminSchedule: React.FC = () => {
   const handleMatchUpdate = async (updatedMatch: Match) => {
     setLoading(true);
     try {
-      // Update the current match
       await mockService.updateMatch(updatedMatch);
       toast.success('比赛信息已更新');
-
-      // Reload data to reflect changes
       await loadData();
-
     } catch (error) {
       console.error('Failed to update match', error);
       toast.error('更新失败');
@@ -51,32 +51,23 @@ const AdminSchedule: React.FC = () => {
     }
   };
 
-  const handleAddMatch = async (newMatch: Omit<Match, 'id'>) => {
+  const handleMatchCreate = async (newMatch: Omit<Match, 'id'>) => {
     setLoading(true);
     try {
       await mockService.addMatch(newMatch);
       toast.success('比赛添加成功');
-      await loadData(); // 刷新列表
+      await loadData();
     } catch (error) {
-      console.error('Failed to add match', error);
+      console.error('Failed to create match', error);
       toast.error('添加失败');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleDeleteMatch = async (matchId: string) => {
-    setLoading(true);
-    try {
-      await mockService.deleteMatch(matchId);
-      toast.success('比赛已删除');
-      await loadData(); // 刷新列表
-    } catch (error) {
-      console.error('Failed to delete match', error);
-      toast.error('删除失败');
-    } finally {
-      setLoading(false);
-    }
+  const handleAdvancementUpdate = (newAdvancement: typeof advancement) => {
+    setAdvancement(newAdvancement, 'admin');
+    toast.success('晋级名单已更新');
   };
 
   const swissMatches = matches.filter(m => m.stage === 'swiss');
@@ -110,24 +101,22 @@ const AdminSchedule: React.FC = () => {
               </TabsList>
 
               <TabsContent value="swiss" className="mt-0">
-                <SwissStageEditor
+                <SwissStageVisualEditor
                   matches={swissMatches}
                   teams={teams}
-                  onUpdate={handleMatchUpdate}
-                  onAddMatch={handleAddMatch}
-                  onDeleteMatch={handleDeleteMatch}
-                  loading={loading}
+                  advancement={advancement}
+                  onMatchUpdate={handleMatchUpdate}
+                  onMatchCreate={handleMatchCreate}
+                  onAdvancementUpdate={handleAdvancementUpdate}
                 />
               </TabsContent>
 
               <TabsContent value="elimination" className="mt-0">
-                <EliminationStageEditor
+                <EliminationStage
                   matches={eliminationMatches}
                   teams={teams}
-                  onUpdate={handleMatchUpdate}
-                  onAddMatch={handleAddMatch}
-                  onDeleteMatch={handleDeleteMatch}
-                  loading={loading}
+                  editable={true}
+                  onMatchUpdate={handleMatchUpdate}
                 />
               </TabsContent>
             </Tabs>

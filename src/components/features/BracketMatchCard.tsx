@@ -1,5 +1,5 @@
 import React from 'react';
-import { Match, Team } from '@/types';
+import { Match, Team, MatchStatus } from '@/types';
 import { Card } from '@/components/ui/card';
 import { BarChart2, Clock } from 'lucide-react';
 import { formatDateTime } from '@/utils/datetime';
@@ -8,6 +8,20 @@ interface BracketMatchCardProps {
   match: Match;
   teams: Team[];
 }
+
+const BracketStatusBadge: React.FC<{ status: MatchStatus }> = ({ status }) => {
+  const styles = {
+    upcoming: 'bg-blue-900/40 text-blue-400 border-blue-700/30',
+    ongoing: 'bg-green-900/50 text-green-400 border-green-700/30 animate-pulse',
+    finished: 'bg-gray-700/50 text-gray-400 border-gray-600/30'
+  };
+  
+  return (
+    <span className={`absolute top-0 right-0 px-1.5 py-0.5 text-[10px] rounded-bl border ${styles[status]}`}>
+      {status === 'upcoming' ? '未开始' : status === 'ongoing' ? '进行中' : '已结束'}
+    </span>
+  );
+};
 
 const BracketMatchCard = React.forwardRef<HTMLDivElement, BracketMatchCardProps>(({ match, teams }, ref) => {
   const teamA = teams.find(t => t.id === match.teamAId);
@@ -30,6 +44,8 @@ const BracketMatchCard = React.forwardRef<HTMLDivElement, BracketMatchCardProps>
           z-10
         `}
       >
+        {/* 状态徽章 */}
+        <BracketStatusBadge status={match.status} />
         {/* Header: Date & Status */}
         <div className="bg-gray-900/50 px-3 py-1 flex justify-between items-center border-b border-gray-700">
           <div className="flex items-center gap-1 text-xs text-gray-400">

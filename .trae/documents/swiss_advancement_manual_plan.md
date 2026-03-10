@@ -1,406 +1,467 @@
-# 瑞士轮晋级/淘汰名单手动管理方案
+# 赛程管理页面UI优化方案
 
-## 1. 项目概述
+## 需求概述
+将主页面的UI(水平卡片布局)复刻到管理页面，使管理员能够直观地看到比赛状态，并支持直接在UI上进行操作。同时将晋级淘汰名单的管理也整合到同一个可视化UI中。
 
-### 目标
-为管理员提供一个直观的手动管理界面，完全控制瑞士轮晋级/淘汰名单的设置。
-
-### 核心功能
-- 可视化展示当前晋级/淘汰名单
-- 拖拽调整队伍分类
-- 保存/重置操作
-- 操作历史记录
+## 反馈调整
+根据用户反馈：
+1. **废弃现有编辑模式** - 不再使用垂直列表+表单编辑模式，改用可视化UI
+2. **瑞士轮的晋级淘汰名单也设计成UI上直接编辑** - 整合赛程和晋级名单管理
+3. **废弃代码使用TODO标记并采用注释的方式进行屏蔽** - 不直接删除，便于恢复
+4. **使用TDD开发** - 测试驱动开发，确保80%+覆盖率
 
 ---
 
-## 2. 技术架构
+## TDD开发流程
+
+本项目将遵循TDD原则，按照以下流程开发：
+
+```
+编写测试 → 运行测试(失败) → 编写代码 → 运行测试(通过) → 重构 → 验证覆盖率
+```
+
+### 测试类型
+
+1. **单元测试** - 组件逻辑、工具函数、纯函数
+2. **集成测试** - API端点、服务交互
+3. **E2E测试** - 关键用户流程、UI交互
+
+### 覆盖率要求
+
+- 最低 80% 覆盖率（单元 + 集成 + E2E）
+- 所有边缘情况需要覆盖
+- 错误场景需要测试
+- 边界条件需要验证
+
+---
+
+## 问题分析
+
+### 1. 比赛状态在公开UI上没有体现
+- `SwissStage.tsx` 的 MatchCard 组件只展示：时间、队伍名、比分
+- `BracketMatchCard.tsx` 淘汰赛卡片也没有状态标识
+
+### 2. 管理页面与公开页面UI不一致
+- **公开页面**: 水平卡片布局，按瑞士轮战绩分组
+- **管理页面**: 垂直列表+表单编辑模式，缺乏直观性
+
+### 3. 晋级名单管理独立于赛程管理
+- 当前晋级名单在独立的 AdvancementManager 页面管理（拖拽方式）
+
+---
+
+## 修改方案
+
+### 核心思路
+创建统一的**可视化赛程管理页面**，包含：
+1. 瑞士轮/淘汰赛的可视化卡片布局（与公开页面一致）
+2. 点击卡片直接编辑比赛信息
+3. 比赛结果自动更新晋级状态（或提供快捷操作）
+
+---
+
+### 改动详情
+
+#### 1. 在 MatchCard 组件中添加比赛状态显示 (SwissStage.tsx)
+
+```tsx
+// 新增状态徽章
+const StatusBadge: React.FC<{ status: MatchStatus }> = ({ status }) => {
+  const styles = {
+    upcoming: 'bg-blue-900/40 text-blue-400 border-blue-700/30',
+    ongoing: 'bg-green-900/50 text-green-400 border-green-700/30 animate-pulse',
+    finished: 'bg-gray-700/50 text-gray-400 border-gray-600/30'
+  };
+  
+  return (
+    <span className={`absolute top-0 right-0 px-1.5 py-0.5 text-[10px] rounded-bl border ${styles[status]}`}>
+      {status === 'upcoming' ? '未开始' : status === 'ongoing' ? '进行中' : '已结束'}
+    </span>
+  );
+};
+```
+
+#### 2. 在 BracketMatchCard 组件中添加比赛状态显示 (BracketMatchCard.tsx)
+
+#### 3. 创建统一编辑弹窗组件
+
+**新增文件**: `src/pages/admin/components/MatchEditDialog.tsx`
+
+#### 4. 创建可编辑版本的 MatchCard 组件
+
+**新增文件**: `src/components/features/EditableMatchCard.tsx`
+
+#### 5. 创建可编辑版本的 BracketMatchCard 组件
+
+**新增文件**: `src/components/features/EditableBracketMatchCard.tsx`
+
+#### 6. 创建可视化赛程管理页面
+
+**新增文件**: `src/pages/admin/SwissStageVisualEditor.tsx`
+**新增文件**: `src/pages/admin/EliminationStageVisualEditor.tsx`
+
+#### 7. 整合晋级名单管理到可视化UI
+
+在瑞士轮可视化编辑器中，直接在各个战绩分组区域显示晋级的队伍。
+
+#### 8. 废弃现有编辑模式
+
+使用TODO标记和注释屏蔽现有代码。
+
+---
+
+## TDD实现步骤
+
+### 第一阶段：测试准备
+
+#### 步骤1：设置测试环境
+- 确认测试框架配置（Jest/Vitest）
+- 配置覆盖率阈值
+- 设置测试目录结构
+
+#### 步骤2：编写用户旅程
+
+**用户旅程1：管理员查看赛程**
+```
+作为管理员，我希望看到直观的赛程布局，
+以便快速了解比赛状态和晋级情况
+```
+
+**用户旅程2：管理员编辑比赛**
+```
+作为管理员，我希望点击比赛卡片直接编辑，
+以便快速更新比分和比赛状态
+```
+
+**用户旅程3：管理员管理晋级名单**
+```
+作为管理员，我希望在同一界面管理晋级名单，
+以便直观地调整各队晋级状态
+```
+
+### 第二阶段：UI组件增强
+
+#### 步骤3：为 MatchCard 编写测试 (TDD)
+
+```typescript
+// src/components/features/__tests__/MatchCard.test.tsx
+
+describe('MatchCard Component', () => {
+  it('renders match with upcoming status', () => {
+    // Test upcoming status badge
+  })
+
+  it('renders match with ongoing status with pulse animation', () => {
+    // Test ongoing status with animate-pulse
+  })
+
+  it('renders match with finished status', () => {
+    // Test finished status badge
+  })
+
+  it('displays correct team names and scores', () => {
+    // Test team display
+  })
+
+  it('handles missing team data gracefully', () => {
+    // Test TBD case
+  })
+})
+```
+
+#### 步骤4：运行测试（应该失败）
+```bash
+npm test
+# Tests should fail - status badge not implemented yet
+```
+
+#### 步骤5：实现 MatchCard 状态徽章
+根据测试实现代码，使测试通过。
+
+#### 步骤6：为 BracketMatchCard 编写测试并实现
+重复TDD流程。
+
+### 第三阶段：编辑功能
+
+#### 步骤7：为 MatchEditDialog 编写测试
+
+```typescript
+// src/pages/admin/components/__tests__/MatchEditDialog.test.tsx
+
+describe('MatchEditDialog', () => {
+  it('opens when edit button clicked', () => {
+    // Test dialog opens
+  })
+
+  it('displays team selection dropdowns', () => {
+    // Test team selectors
+  })
+
+  it('allows score input', () => {
+    // Test score editing
+  })
+
+  it('provides quick status change buttons', () => {
+    // Test start/end match buttons
+  })
+
+  it('saves match on confirm', () => {
+    // Test save functionality
+  })
+
+  it('validates required fields', () => {
+    // Test validation
+  })
+
+  it('handles BO3 matches correctly', () => {
+    // Test BO3 score handling
+  })
+})
+```
+
+#### 步骤8：实现 MatchEditDialog
+运行测试，通过后继续。
+
+#### 步骤9：为 EditableMatchCard 编写测试
+
+```typescript
+// src/components/features/__tests__/EditableMatchCard.test.tsx
+
+describe('EditableMatchCard', () => {
+  it('opens edit dialog on click', () => {
+    // Test click handler
+  })
+
+  it('displays current status visually', () => {
+    // Test status display
+  })
+
+  it('updates match data from dialog', () => {
+    // Test data update
+  })
+})
+```
+
+### 第四阶段：可视化编辑器
+
+#### 步骤10：为 SwissStageVisualEditor 编写测试
+
+```typescript
+// src/pages/admin/__tests__/SwissStageVisualEditor.test.tsx
+
+describe('SwissStageVisualEditor', () => {
+  it('renders all round columns', () => {
+    // Test round layout
+  })
+
+  it('displays advancement list in correct positions', () => {
+    // Test advancement display
+  })
+
+  it('allows editing match on click', () => {
+    // Test edit flow
+  })
+
+  it('updates advancement when match finishes', () => {
+    // Test advancement update (auto mode)
+  })
+
+  it('allows manual advancement adjustment', () => {
+    // Test manual mode
+  })
+
+  it('handles empty matches gracefully', () => {
+    // Test empty state
+  })
+
+  it('displays correct match counts per round', () => {
+    // Test match count
+  })
+})
+```
+
+#### 步骤11：实现 SwissStageVisualEditor
+
+#### 步骤12：为 EliminationStageVisualEditor 编写测试并实现
+
+### 第五阶段：整合与测试
+
+#### 步骤13：集成测试 - Schedule页面
+
+```typescript
+// src/pages/admin/__tests__/Schedule.test.tsx
+
+describe('Schedule Admin Page', () => {
+  it('switches between visual and list view', () => {
+    // Test view switching
+  })
+
+  it('loads matches and teams data', () => {
+    // Test data loading
+  })
+
+  it('updates match through visual editor', () => {
+    // Test full update flow
+  })
+})
+```
+
+#### 步骤14：E2E测试 - 赛程管理流程
+
+```typescript
+// src/e2e/schedule-management.spec.ts
+
+test('admin can manage schedule visually', async ({ page }) => {
+  // Navigate to admin schedule
+  await page.goto('/admin/schedule')
+
+  // Verify visual layout displayed
+  await expect(page.locator('text=Round 1')).toBeVisible()
+
+  // Click match card to edit
+  await page.click('[data-match-card]')
+
+  // Update score
+  await page.fill('[data-score-a]', '2')
+  await page.fill('[data-score-b]', '0')
+
+  // End match
+  await page.click('button:has-text("结束比赛")')
+
+  // Verify advancement updated
+  await expect(page.locator('text=2-0 晋级')).toContainText('TeamA')
+})
+
+test('admin can manually adjust advancement', async ({ page }) => {
+  // Navigate to visual editor
+  await page.goto('/admin/schedule')
+
+  // Click on advancement badge
+  await page.click('[data-advancement-badge="winners2_0"]')
+
+  // Add team to advancement
+  await page.click('[data-add-team]')
+
+  // Verify team added
+  await expect(page.locator('[data-team="TeamA"]')).toBeVisible()
+})
+```
+
+#### 步骤15：运行完整测试套件
+
+```bash
+npm test
+# All tests should pass
+```
+
+#### 步骤16：验证覆盖率
+
+```bash
+npm run test:coverage
+# Verify 80%+ coverage
+```
+
+### 第六阶段：废弃旧代码
+
+#### 步骤17：为旧组件添加TODO标记
+
+在 SwissStageEditor.tsx 和 EliminationStageEditor.tsx 中添加废弃注释。
+
+### 第七阶段：重构与优化
+
+#### 步骤18：重构代码
+
+在保持测试通过的情况下优化代码质量。
+
+#### 步骤19：最终验证
+
+运行所有测试，确认功能正常。
+
+---
+
+## 文件变更清单
+
+### 测试文件（新增）
+- `src/components/features/__tests__/MatchCard.test.tsx`
+- `src/components/features/__tests__/BracketMatchCard.test.tsx`
+- `src/components/features/__tests__/EditableMatchCard.test.tsx`
+- `src/components/features/__tests__/EditableBracketMatchCard.test.tsx`
+- `src/pages/admin/components/__tests__/MatchEditDialog.test.tsx`
+- `src/pages/admin/__tests__/SwissStageVisualEditor.test.tsx`
+- `src/pages/admin/__tests__/EliminationStageVisualEditor.test.tsx`
+- `src/pages/admin/__tests__/Schedule.test.tsx`
+- `src/e2e/schedule-management.spec.ts`
+
+### 新增文件
+- `src/components/features/EditableMatchCard.tsx`
+- `src/components/features/EditableBracketMatchCard.tsx`
+- `src/pages/admin/components/MatchEditDialog.tsx`
+- `src/pages/admin/SwissStageVisualEditor.tsx`
+- `src/pages/admin/EliminationStageVisualEditor.tsx`
+
+### 修改文件
+- `src/components/features/SwissStage.tsx` - 添加状态徽章
+- `src/components/features/BracketMatchCard.tsx` - 添加状态徽章
+- `src/pages/admin/Schedule.tsx` - 添加视图切换
+
+### 废弃文件（TODO标记）
+- `src/pages/admin/components/SwissStageEditor.tsx`
+- `src/pages/admin/components/EliminationStageEditor.tsx`
+
+---
+
+## 预期效果
+
+### 公开页面
+- 每场比赛卡片右上角显示状态标签
+- 未开始：蓝色标签
+- 进行中：绿色脉冲标签
+- 已结束：灰色标签
+
+### 管理页面
+- 默认显示"可视化视图"，布局与公开页面一致
+- 点击任意比赛卡片，弹出编辑窗口
+- 弹窗内可快速修改比分、切换状态
+- 快捷按钮：一键开始、一键结束
+- 晋级名单直接显示在各战绩分组区域
+- 管理员可以直接在UI上调整晋级名单
+
+---
+
+## 覆盖率目标
+
+| 测试类型 | 覆盖率目标 | 关键指标 |
+|---------|-----------|---------|
+| 单元测试 | 80%+ | 组件逻辑、工具函数 |
+| 集成测试 | 80%+ | API交互、数据流 |
+| E2E测试 | 关键流程覆盖 | 完整用户旅程 |
+
+---
+
+## 测试文件组织
 
 ```
 src/
-├── store/
-│   └── advancementStore.ts       # 状态管理
-├── pages/admin/
-│   └── AdvancementManager.tsx    # 管理员界面（新）
-├── components/features/
-│   └── SwissStage.tsx            # 修改：从store读取数据
-└── types/
-    └── index.ts                  # 扩展类型定义
+├── components/
+│   ├── features/
+│   │   ├── MatchCard.tsx
+│   │   ├── __tests__/
+│   │   │   └── MatchCard.test.tsx
+│   │   ├── EditableMatchCard.tsx
+│   │   └── __tests__/
+│   │       └── EditableMatchCard.test.tsx
+│   └── ...
+├── pages/
+│   └── admin/
+│       ├── Schedule.tsx
+│       ├── SwissStageVisualEditor.tsx
+│       ├── __tests__/
+│       │   ├── SwissStageVisualEditor.test.tsx
+│       │   └── Schedule.test.tsx
+│       └── components/
+│           ├── MatchEditDialog.tsx
+│           └── __tests__/
+│               └── MatchEditDialog.test.tsx
+└── e2e/
+    └── schedule-management.spec.ts
 ```
-
----
-
-## 3. 开发步骤
-
-### 步骤 1: 扩展类型定义
-**文件**: `src/types/index.ts`
-
-添加：
-```typescript
-export interface SwissAdvancementResult {
-  winners2_0: string[];      // 2-0战绩晋级胜者组
-  winners2_1: string[];      // 2-1战绩晋级胜者组
-  losersBracket: string[];   // 晋级败者组
-  eliminated3rd: string[];   // 积分第三淘汰
-  eliminated0_3: string[];   // 0-3战绩淘汰
-}
-
-export interface AdvancementState {
-  advancement: SwissAdvancementResult;
-  lastUpdated: string;
-  updatedBy: string;
-}
-```
-
-### 步骤 2: 创建状态管理
-**文件**: `src/store/advancementStore.ts`
-
-使用 Zustand 管理：
-- 当前生效的晋级名单
-- 最后更新时间和操作人
-- 持久化到 localStorage
-
-初始化数据使用现有的 `swissAdvancement`。
-
-### 步骤 3: 开发管理员界面
-**文件**: `src/pages/admin/AdvancementManager.tsx`
-
-界面功能：
-
-#### 3.1 队伍列表区域
-- 显示所有8支队伍
-- 每支队伍显示名称、logo
-- 支持拖拽
-
-#### 3.2 分类区域（5个分类）
-1. **2-0 晋级（胜者组）** - 绿色标识
-2. **2-1 晋级（胜者组）** - 绿色标识
-3. **晋级败者组** - 橙色标识
-4. **积分第三淘汰** - 红色标识
-5. **0-3 淘汰** - 红色标识
-
-每个分类区域：
-- 显示标题和说明
-- 可放置队伍
-- 显示当前队伍数量
-
-#### 3.3 操作按钮
-- **保存** - 保存当前配置
-- **重置** - 恢复到上次保存的状态
-- **恢复默认** - 恢复到初始数据
-
-#### 3.4 状态显示
-- 最后更新时间
-- 操作人
-- 未保存变更提示
-
-### 步骤 4: 更新 SwissStage 组件
-**文件**: `src/components/features/SwissStage.tsx`
-
-修改：
-- 从 advancementStore 读取数据
-- 移除对静态 `swissAdvancement` 的依赖
-- 添加"管理名单"按钮链接
-
-### 步骤 5: 添加路由
-**文件**: 路由配置文件
-
-添加：
-- `/admin/advancement` - 晋级名单管理页面
-- 在管理后台导航中添加入口
-
-### 步骤 6: 编写测试
-**文件**: `src/store/__tests__/advancementStore.test.ts`
-
-测试：
-- 状态更新
-- 持久化
-- 重置功能
-
----
-
-## 4. 界面设计
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│  晋级名单管理                                    [保存] [重置] │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│  最后更新: 2025-11-16 20:30    操作人: admin    ⚠️ 有未保存变更 │
-│                                                             │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│  ┌──────────────────┐    ┌─────────────────────────────────┐│
-│  │  待分配队伍       │    │         分类区域                 ││
-│  ├──────────────────┤    ├─────────────────────────────────┤│
-│  │ • 驴酱           │    │  ┌──────────┐  ┌──────────┐     ││
-│  │ • IC             │    │  │ 2-0晋级   │  │ 2-1晋级   │     ││
-│  │ • PLG            │    │  │ 🟢       │  │ 🟢       │     ││
-│  │ • 小熊           │    │  │ • 驴酱   │  │ • 小熊   │     ││
-│  │ • 搓搓鸟         │    │  │ • IC     │  │ • 雨酱   │     ││
-│  │ • 100J           │    │  └──────────┘  └──────────┘     ││
-│  │ • 69             │    │                                  ││
-│  │ • 雨酱           │    │  ┌──────────┐  ┌──────────┐     ││
-│  └──────────────────┘    │  │ 败者组    │  │ 积分第三  │     ││
-│                          │  │ 🟠       │  │ 淘汰 🔴  │     ││
-│  [拖拽队伍到右侧分类]      │  │ • PLG    │  │ • 搓搓鸟 │     ││
-│                          │  │ • 69     │  └──────────┘     ││
-│                          │  └──────────┘  ┌──────────┐     ││
-│                          │                  │ 0-3淘汰   │     ││
-│                          │                  │ 🔴       │     ││
-│                          │                  │ • 100J   │     ││
-│                          │                  └──────────┘     ││
-│                          └─────────────────────────────────┘│
-│                                                             │
-│  ┌─────────────────────────────────────────────────────────┐│
-│  │ 说明:                                                    ││
-│  │ • 2-0和2-1战绩的队伍晋级胜者组                            ││
-│  │ • 1-2战绩中积分前2名晋级败者组，第3名淘汰                  ││
-│  │ • 0-3战绩的队伍直接淘汰                                   ││
-│  └─────────────────────────────────────────────────────────┘│
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
-```
-
----
-
-## 5. 数据结构
-
-### Store 结构
-```typescript
-interface AdvancementStore {
-  // 当前生效的名单
-  advancement: SwissAdvancementResult;
-  
-  // 元数据
-  lastUpdated: string;
-  updatedBy: string;
-  
-  // 操作方法
-  setAdvancement: (data: SwissAdvancementResult, user: string) => void;
-  moveTeam: (teamId: string, from: Category, to: Category) => void;
-  reset: () => void;
-  restoreDefault: () => void;
-}
-
-// 分类类型
-type Category = 
-  | 'winners2_0' 
-  | 'winners2_1' 
-  | 'losersBracket' 
-  | 'eliminated3rd' 
-  | 'eliminated0_3';
-```
-
-### 初始数据
-使用现有的 `swissAdvancement` 作为默认值：
-```typescript
-const defaultAdvancement: SwissAdvancementResult = {
-  winners2_0: ['team1', 'team2'],
-  winners2_1: ['team4', 'team8'],
-  losersBracket: ['team3', 'team7'],
-  eliminated3rd: ['team5'],
-  eliminated0_3: ['team6']
-};
-```
-
----
-
-## 6. 交互流程
-
-### 6.1 调整名单流程
-1. 管理员进入晋级名单管理页面
-2. 拖拽队伍从一个分类到另一个分类
-3. 系统实时显示变更
-4. 点击"保存"按钮
-5. 数据保存到 store 和 localStorage
-6. 前端展示自动更新
-
-### 6.2 重置流程
-1. 管理员进行了一些调整但未保存
-2. 点击"重置"按钮
-3. 确认对话框弹出
-4. 确认后恢复到上次保存的状态
-
-### 6.3 恢复默认流程
-1. 点击"恢复默认"按钮
-2. 确认对话框弹出（警告会覆盖当前配置）
-3. 确认后恢复到初始数据
-
----
-
-## 7. 核心代码实现
-
-### 7.1 Store 实现
-```typescript
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-
-interface AdvancementStore {
-  advancement: SwissAdvancementResult;
-  lastUpdated: string;
-  updatedBy: string;
-  setAdvancement: (data: SwissAdvancementResult, user: string) => void;
-  moveTeam: (teamId: string, from: Category, to: Category) => void;
-  reset: () => void;
-  restoreDefault: () => void;
-}
-
-const defaultAdvancement: SwissAdvancementResult = {
-  winners2_0: ['team1', 'team2'],
-  winners2_1: ['team4', 'team8'],
-  losersBracket: ['team3', 'team7'],
-  eliminated3rd: ['team5'],
-  eliminated0_3: ['team6']
-};
-
-export const useAdvancementStore = create<AdvancementStore>()(
-  persist(
-    (set, get) => ({
-      advancement: defaultAdvancement,
-      lastUpdated: new Date().toISOString(),
-      updatedBy: 'system',
-      
-      setAdvancement: (data, user) => set({
-        advancement: data,
-        lastUpdated: new Date().toISOString(),
-        updatedBy: user
-      }),
-      
-      moveTeam: (teamId, from, to) => {
-        const { advancement } = get();
-        const newAdvancement = { ...advancement };
-        
-        // 从原分类移除
-        newAdvancement[from] = newAdvancement[from].filter(id => id !== teamId);
-        
-        // 添加到新分类
-        newAdvancement[to] = [...newAdvancement[to], teamId];
-        
-        set({ advancement: newAdvancement });
-      },
-      
-      reset: () => {
-        // 从 localStorage 重新加载
-        const persisted = localStorage.getItem('advancement-storage');
-        if (persisted) {
-          const data = JSON.parse(persisted);
-          set({
-            advancement: data.state.advancement,
-            lastUpdated: data.state.lastUpdated,
-            updatedBy: data.state.updatedBy
-          });
-        }
-      },
-      
-      restoreDefault: () => set({
-        advancement: defaultAdvancement,
-        lastUpdated: new Date().toISOString(),
-        updatedBy: 'system'
-      })
-    }),
-    {
-      name: 'advancement-storage'
-    }
-  )
-);
-```
-
-### 7.2 拖拽功能
-使用 `@dnd-kit/core` 实现拖拽：
-
-```typescript
-import {
-  DndContext,
-  DragOverlay,
-  useDraggable,
-  useDroppable
-} from '@dnd-kit/core';
-
-// DraggableTeam 组件
-function DraggableTeam({ team }: { team: Team }) {
-  const { attributes, listeners, setNodeRef, transform } = useDraggable({
-    id: team.id,
-    data: { team }
-  });
-  
-  return (
-    <div
-      ref={setNodeRef}
-      {...listeners}
-      {...attributes}
-      style={{ transform: CSS.Transform.toString(transform) }}
-    >
-      {team.name}
-    </div>
-  );
-}
-
-// DroppableCategory 组件
-function DroppableCategory({ 
-  category, 
-  teams 
-}: { 
-  category: Category; 
-  teams: Team[];
-}) {
-  const { setNodeRef, isOver } = useDroppable({
-    id: category
-  });
-  
-  return (
-    <div
-      ref={setNodeRef}
-      className={isOver ? 'bg-blue-100' : ''}
-    >
-      {teams.map(team => <DraggableTeam key={team.id} team={team} />)}
-    </div>
-  );
-}
-```
-
----
-
-## 8. 测试策略
-
-### 8.1 单元测试
-- Store 状态管理
-- 拖拽逻辑
-- 持久化功能
-
-### 8.2 集成测试
-- 组件渲染
-- 用户交互
-- 数据流
-
-### 8.3 手动测试清单
-- [ ] 可以拖拽队伍到不同分类
-- [ ] 保存后数据持久化
-- [ ] 重置功能正常
-- [ ] 恢复默认功能正常
-- [ ] 前端展示同步更新
-
----
-
-## 9. 验收标准
-
-- [ ] 管理员界面可以正常访问
-- [ ] 可以拖拽调整队伍分类
-- [ ] 保存后数据持久化
-- [ ] 前端展示使用 store 数据
-- [ ] 有未保存变更时给出提示
-- [ ] 操作有确认对话框
-- [ ] TypeScript 类型检查通过
-
----
-
-## 10. 开发时间估算
-
-| 任务 | 预估时间 |
-|------|----------|
-| 类型定义扩展 | 30分钟 |
-| Store 实现 | 1小时 |
-| 管理员界面开发 | 3小时 |
-| SwissStage 更新 | 30分钟 |
-| 路由配置 | 30分钟 |
-| 测试 | 1小时 |
-| **总计** | **约6.5小时** |

@@ -9,9 +9,9 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "check": "tsc -b --noEmit",
-    "test": "vitest",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "test:ui": "vitest --ui",
-    "test:run": "vitest run",
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {

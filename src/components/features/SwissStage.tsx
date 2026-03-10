@@ -1,10 +1,13 @@
 import React from 'react';
-import { Match, Team } from '@/types';
+import { Match, Team, MatchStatus } from '@/types';
 import { Card } from '@/components/ui/card';
-import { Clock, Settings } from 'lucide-react';
+import { Clock } from 'lucide-react';
+// [REMOVE] 晋级名单管理页面已废弃
+// import { Settings } from 'lucide-react';
 import { formatDateTime } from '@/utils/datetime';
 import { useAdvancementStore } from '@/store/advancementStore';
-import { Link } from 'react-router-dom';
+// [REMOVE] 晋级名单管理页面已废弃
+// import { Link } from 'react-router-dom';
 
 interface SwissStageProps {
   matches: Match[];
@@ -18,29 +21,40 @@ interface SwissStageProps {
   };
 }
 
+const MatchStatusBadge: React.FC<{ status: MatchStatus }> = ({ status }) => {
+  const styles = {
+    upcoming: 'bg-blue-900/40 text-blue-400 border-blue-700/30',
+    ongoing: 'bg-green-900/50 text-green-400 border-green-700/30 animate-pulse',
+    finished: 'bg-gray-700/50 text-gray-400 border-gray-600/30'
+  };
+  
+  return (
+    <span className={`absolute top-0 right-0 px-1.5 py-0.5 text-[10px] rounded-bl border ${styles[status]}`}>
+      {status === 'upcoming' ? '未开始' : status === 'ongoing' ? '进行中' : '已结束'}
+    </span>
+  );
+};
+
 // Helper: Get team logo or placeholder
 const TeamLogo: React.FC<{ team?: Team }> = ({ team }) => {
   if (!team?.logo) return <div className="w-5 h-5 rounded-full bg-gray-700" />;
   return <img src={team.logo} alt={team.name} className="w-5 h-5 rounded-full object-cover" />;
 };
 
-const MatchCard: React.FC<{ match: Match; teams: Team[]; isBo3?: boolean }> = ({ match, teams, isBo3 }) => {
+const MatchCard: React.FC<{ match: Match; teams: Team[] }> = ({ match, teams }) => {
   const teamA = teams.find(t => t.id === match.teamAId);
   const teamB = teams.find(t => t.id === match.teamBId);
   const isFinished = match.status === 'finished';
 
   return (
     <Card className="bg-gray-800/80 border-gray-700 p-2.5 hover:bg-gray-800 transition-colors group relative overflow-hidden">
+      {/* 状态徽章 */}
+      <MatchStatusBadge status={match.status} />
       {/* 时间显示 - 左上角 */}
       {match.startTime && (
         <div className="absolute top-0 left-0 bg-gray-700/50 text-gray-400 text-[10px] px-1.5 py-0.5 rounded-br flex items-center gap-1">
           <Clock className="w-3 h-3" />
           <span>{formatDateTime(match.startTime)}</span>
-        </div>
-      )}
-      {isBo3 && (
-        <div className="absolute top-0 right-0 bg-blue-600/20 text-blue-400 text-[10px] px-1.5 py-0.5 rounded-bl font-mono">
-          BO3
         </div>
       )}
       <div className="flex flex-col gap-2 pt-4">
@@ -75,22 +89,29 @@ const MatchCard: React.FC<{ match: Match; teams: Team[]; isBo3?: boolean }> = ({
 };
 
 const RoundColumn: React.FC<{
-  title: string;
+  roundName: string;
+  isBo3: boolean;
   matches: Match[];
   teams: Team[];
   className?: string;
-  isBo3?: boolean;
-}> = ({ title, matches, teams, className, isBo3 }) => {
+}> = ({ roundName, isBo3, matches, teams, className }) => {
   // Always render the container to preserve layout, even if matches is empty
   return (
     <div className={`flex flex-col gap-3 min-w-[200px] ${className}`}>
       <div className="text-center pb-2 border-b border-gray-800">
-        <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider">{title}</h3>
+        <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider">{roundName}</h3>
+        <div className="flex items-center justify-center mt-1">
+          <span className={`text-[10px] px-1.5 py-0.5 rounded font-mono ${
+            isBo3 ? 'bg-blue-600/20 text-blue-400' : 'bg-green-600/20 text-green-400'
+          }`}>
+            {isBo3 ? 'BO3' : 'BO1'}
+          </span>
+        </div>
       </div>
       <div className="flex flex-col gap-3 min-h-[60px]">
         {matches.length > 0 ? (
           matches.map(match => (
-            <MatchCard key={match.id} match={match} teams={teams} isBo3={isBo3} />
+            <MatchCard key={match.id} match={match} teams={teams} />
           ))
         ) : (
           <div className="flex items-center justify-center h-20 border border-dashed border-gray-800 rounded bg-gray-900/30 text-xs text-gray-600">
@@ -149,7 +170,7 @@ const SwissStage: React.FC<SwissStageProps> = ({ matches, teams, advancement: pr
 
   return (
     <div className="w-full overflow-x-auto">
-      {/* 管理入口 */}
+      {/* [REMOVE] 晋级名单管理页面已废弃
       <div className="flex justify-end mb-4 px-4">
         <Link
           to="/admin/advancement"
@@ -159,16 +180,17 @@ const SwissStage: React.FC<SwissStageProps> = ({ matches, teams, advancement: pr
           管理晋级名单
         </Link>
       </div>
+      */}
       <div className="flex gap-8 min-w-[1000px] p-4">
         {/* Round 1 (0-0) */}
         <div className="flex flex-col gap-4 w-64">
-          <RoundColumn title="Round 1 (0-0)" matches={round1Matches} teams={teams} />
+          <RoundColumn roundName="Round 1" isBo3={false} matches={round1Matches} teams={teams} />
         </div>
 
         {/* Round 2 (1-0 & 0-1) */}
         <div className="flex flex-col gap-8 w-64 mt-8">
-          <RoundColumn title="Round 2 High (1-0)" matches={round2High} teams={teams} isBo3 />
-          <RoundColumn title="Round 2 Low (0-1)" matches={round2Low} teams={teams} isBo3 />
+          <RoundColumn roundName="Round 2 High" isBo3={true} matches={round2High} teams={teams} />
+          <RoundColumn roundName="Round 2 Low" isBo3={true} matches={round2Low} teams={teams} />
         </div>
 
         {/* Round 3 (1-1 & 0-2) + 2-0 Advancement */}
@@ -179,10 +201,10 @@ const SwissStage: React.FC<SwissStageProps> = ({ matches, teams, advancement: pr
             <TeamList teams={teams} ids={advancement.winners2_0} />
           </div>
 
-          <RoundColumn title="Round 3 Mid (1-1)" matches={round3Mid} teams={teams} isBo3 />
+          <RoundColumn roundName="Round 3 Mid" isBo3={true} matches={round3Mid} teams={teams} />
 
           <div className="mt-4">
-            <RoundColumn title="Round 3 Low (0-2)" matches={round3Low} teams={teams} isBo3 />
+            <RoundColumn roundName="Round 3 Low" isBo3={true} matches={round3Low} teams={teams} />
             <div className="mt-2">
               <StatusBadge type="eliminated">0-3 淘汰</StatusBadge>
               <TeamList teams={teams} ids={advancement.eliminated0_3} />
@@ -197,7 +219,7 @@ const SwissStage: React.FC<SwissStageProps> = ({ matches, teams, advancement: pr
             <TeamList teams={teams} ids={advancement.winners2_1} />
           </div>
 
-          <RoundColumn title="Last Chance (1-2)" matches={round4Last} teams={teams} isBo3 />
+          <RoundColumn roundName="Last Chance" isBo3={true} matches={round4Last} teams={teams} />
 
           <div className="flex flex-col gap-4 mt-4">
             <div className="flex flex-col gap-2">

@@ -1,6 +1,8 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Radio, Users, Calendar, LogOut, Home, Trophy } from 'lucide-react';
+import { LayoutDashboard, Radio, Users, Calendar, LogOut, Home } from 'lucide-react';
+// [REMOVE] 晋级名单管理页面已废弃
+// import { Trophy } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { Button } from '../ui/button';
 
@@ -22,7 +24,8 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
     { path: '/admin/stream', label: '直播配置', icon: Radio },
     { path: '/admin/teams', label: '战队管理', icon: Users },
     { path: '/admin/schedule', label: '赛程管理', icon: Calendar },
-    { path: '/admin/advancement', label: '晋级名单', icon: Trophy },
+    // [REMOVE] 晋级名单管理页面已废弃
+    // { path: '/admin/advancement', label: '晋级名单', icon: Trophy },
   ];
 
   return (
