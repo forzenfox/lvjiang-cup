@@ -17,7 +17,6 @@ const EditableBracketMatchCard = forwardRef<HTMLDivElement, EditableBracketMatch
     
     const teamA = teams.find(t => t.id === match.teamAId);
     const teamB = teams.find(t => t.id === match.teamBId);
-    const isGrandFinals = match.eliminationBracket === 'grand_finals';
 
     const teamAWon = match.winnerId === match.teamAId;
     const teamBWon = match.winnerId === match.teamBId;
@@ -49,13 +48,13 @@ const EditableBracketMatchCard = forwardRef<HTMLDivElement, EditableBracketMatch
         <div className="flex flex-col gap-1 relative group cursor-pointer" onClick={handleClick}>
           <Card 
             ref={ref}
-            className={`
+            className="
               relative overflow-hidden transition-all duration-300
-              ${isGrandFinals ? 'w-56 border-yellow-500/50 bg-gradient-to-br from-yellow-900/30 to-gray-800' : 'w-48'}
+              w-48
               bg-gray-800/90 border-gray-700
               hover:shadow-lg hover:shadow-yellow-500/10 hover:border-blue-500/50
               z-10
-            `}
+            "
           >
             {getStatusBadge(match.status)}
 
@@ -64,7 +63,6 @@ const EditableBracketMatchCard = forwardRef<HTMLDivElement, EditableBracketMatch
                 <Clock className="w-3 h-3" />
                 <span>{match.startTime ? formatDateTime(match.startTime) : '待定'}</span>
               </div>
-              {isGrandFinals && <span className="text-xs text-yellow-500 font-bold">总决赛</span>}
             </div>
 
             <div 

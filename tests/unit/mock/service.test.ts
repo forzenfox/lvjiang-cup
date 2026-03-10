@@ -27,6 +27,21 @@ describe('mockService', () => {
       expect(localStorage.getItem('matches')).toBeTruthy();
       expect(localStorage.getItem('streamInfo')).toBeTruthy();
     });
+
+    it('应该清除 advancement-storage', async () => {
+      // 先设置一些数据到 advancement-storage
+      localStorage.setItem('advancement-storage', JSON.stringify({
+        state: {
+          advancement: { winners2_0: [], winners2_1: [], losersBracket: [], eliminated3rd: [], eliminated0_3: [] },
+          lastUpdated: new Date().toISOString(),
+          updatedBy: 'test'
+        }
+      }));
+
+      await mockService.resetAllData();
+
+      expect(localStorage.getItem('advancement-storage')).toBeNull();
+    });
   });
 
   describe('clearAllData', () => {

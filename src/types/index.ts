@@ -35,8 +35,8 @@ export interface Match {
   stage: MatchStage;
   swissRecord?: string; // 瑞士轮战绩，如 "0-0", "1-0", "0-1", "1-1", "0-2", "1-2", "2-0", "2-1"
   swissDay?: number; // 瑞士轮第几天
-  eliminationBracket?: EliminationBracket; // 淘汰赛分组
   eliminationGameNumber?: number; // 淘汰赛比赛编号
+  eliminationBracket?: EliminationBracket; // 淘汰赛分组
 }
 
 export interface StreamInfo {

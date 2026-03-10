@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Match, Team, MatchStatus, EliminationBracket } from '@/types';
+import { Match, Team, MatchStatus } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Save, X, PlayCircle, CheckCircle } from 'lucide-react';
@@ -165,40 +165,6 @@ const MatchEditDialog: React.FC<MatchEditDialogProps> = ({
               />
             </div>
           </div>
-
-          {match.stage === 'swiss' && (
-            <div>
-              <label className="block text-sm text-gray-400 mb-1">瑞士轮战绩</label>
-              <select
-                value={formData.swissRecord || ''}
-                onChange={(e) => handleChange('swissRecord', e.target.value)}
-                className="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded text-white text-sm"
-              >
-                <option value="">选择战绩</option>
-                <option value="0-0">0-0</option>
-                <option value="1-0">1-0</option>
-                <option value="0-1">0-1</option>
-                <option value="1-1">1-1</option>
-                <option value="0-2">0-2</option>
-                <option value="1-2">1-2</option>
-              </select>
-            </div>
-          )}
-
-          {match.stage === 'elimination' && (
-            <div>
-              <label className="block text-sm text-gray-400 mb-1">淘汰赛赛道</label>
-              <select
-                value={formData.eliminationBracket || 'winners'}
-                onChange={(e) => handleChange('eliminationBracket', e.target.value as EliminationBracket)}
-                className="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded text-white text-sm"
-              >
-                <option value="winners">胜者组</option>
-                <option value="losers">败者组</option>
-                <option value="grand_finals">总决赛</option>
-              </select>
-            </div>
-          )}
 
           <div className="flex justify-end gap-2 pt-4 border-t border-gray-700">
             <Button variant="outline" onClick={onClose} className="border-gray-600 text-gray-300">

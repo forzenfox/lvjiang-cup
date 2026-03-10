@@ -134,6 +134,9 @@ export const mockService = {
     saveToStorage('teams', teams);
     saveToStorage('matches', matches);
     saveToStorage('streamInfo', streamInfo);
+
+    // 重置晋级名单数据 - 清除 advancement-storage 让 store 使用默认值
+    localStorage.removeItem('advancement-storage');
   },
 
   // 清空所有数据（不重置为初始值）

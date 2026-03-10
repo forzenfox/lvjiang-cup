@@ -4,6 +4,7 @@ import { Card } from '@/components/ui/card';
 import { Clock } from 'lucide-react';
 import { formatDateTime } from '@/utils/datetime';
 import { swissRoundSlots, SwissRoundSlot, getRoundFormat } from './swissRoundSlots';
+import MatchEditDialog from '@/pages/admin/components/MatchEditDialog';
 
 interface SwissAdvancement {
   winners2_0: string[];
@@ -60,190 +61,121 @@ interface FixedSlotMatchCardProps {
 }
 
 const FixedSlotMatchCard: React.FC<FixedSlotMatchCardProps> = ({ match, teams, slot, slotIndex, onUpdate, onCreate }) => {
-  const [isEditing, setIsEditing] = useState(false);
-  const [formData, setFormData] = useState<Partial<Match>>({
-    teamAId: match?.teamAId || '',
-    teamBId: match?.teamBId || '',
-    scoreA: match?.scoreA || 0,
-    scoreB: match?.scoreB || 0,
-    winnerId: match?.winnerId || null,
-    status: match?.status || 'upcoming',
-    startTime: match?.startTime || '',
-  });
-
-  const teamA = teams.find(t => t.id === formData.teamAId);
-  const teamB = teams.find(t => t.id === formData.teamBId);
-  const isFinished = formData.status === 'finished';
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const isEmpty = !match;
 
+  // 获取显示用的队伍信息
+  const displayMatch = match || {
+    id: `new-${slot.swissRecord}-${slotIndex}`,
+    teamAId: '',
+    teamBId: '',
+    scoreA: 0,
+    scoreB: 0,
+    winnerId: null,
+    round: slot.roundName,
+    status: 'upcoming' as const,
+    startTime: '',
+    stage: 'swiss' as const,
+    swissRecord: slot.swissRecord,
+  };
+
+  const teamA = teams.find(t => t.id === displayMatch.teamAId);
+  const teamB = teams.find(t => t.id === displayMatch.teamBId);
+  const isFinished = displayMatch.status === 'finished';
+
   const handleClick = () => {
-    if (isEmpty && onCreate) {
-      // 空槽位：创建新比赛
-      setIsEditing(true);
-    } else if (!isEmpty) {
-      // 已有比赛：编辑现有比赛
-      setIsEditing(true);
+    if (isEmpty && !onCreate) {
+      // 空槽位但没有创建回调，不执行任何操作
+      return;
     }
+    setIsDialogOpen(true);
   };
 
-  const handleSave = () => {
-    if (!formData.teamAId || !formData.teamBId) return;
-
-    const newMatch: Match = {
-      id: match?.id || `new-${slot.swissRecord}-${slotIndex}`,
-      teamAId: formData.teamAId!,
-      teamBId: formData.teamBId!,
-      scoreA: formData.scoreA || 0,
-      scoreB: formData.scoreB || 0,
-      winnerId: formData.status === 'finished' 
-        ? (formData.scoreA! > formData.scoreB! ? formData.teamAId : formData.teamBId)
-        : null,
-      round: slot.roundName,
-      status: formData.status || 'upcoming',
-      startTime: formData.startTime || '',
-      stage: 'swiss',
-      swissRecord: slot.swissRecord,
-    };
-
+  const handleSave = (updatedMatch: Match) => {
     if (match) {
-      onUpdate(newMatch);
+      onUpdate(updatedMatch);
     } else if (onCreate) {
-      onCreate(newMatch);
+      onCreate(updatedMatch);
     }
-    setIsEditing(false);
+    setIsDialogOpen(false);
   };
 
-  const handleCancel = () => {
-    setIsEditing(false);
-    setFormData({
-      teamAId: match?.teamAId || '',
-      teamBId: match?.teamBId || '',
-      scoreA: match?.scoreA || 0,
-      scoreB: match?.scoreB || 0,
-      status: match?.status || 'upcoming',
-      startTime: match?.startTime || '',
-    });
+  const handleClose = () => {
+    setIsDialogOpen(false);
   };
 
-  if (isEmpty && !isEditing) {
+  if (isEmpty) {
     return (
-      <div 
-        className="bg-gray-800/40 border-2 border-dashed border-gray-700 rounded-lg p-2.5 cursor-pointer hover:border-blue-500/50 hover:bg-gray-800/60 transition-colors min-h-[80px] flex items-center justify-center"
-        onClick={handleClick}
-      >
-        <div className="text-center text-gray-500 text-sm">
-          <span className="block text-lg mb-1">+</span>
-          等待对阵
-        </div>
-      </div>
-    );
-  }
-
-  if (isEditing) {
-    return (
-      <Card className="bg-gray-800 border-gray-700 p-2.5">
-        <div className="flex flex-col gap-2">
-          <select
-            value={formData.teamAId}
-            onChange={(e) => setFormData(prev => ({ ...prev, teamAId: e.target.value }))}
-            className="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white text-sm"
-          >
-            <option value="">选择队伍A</option>
-            {teams.map(t => (
-              <option key={t.id} value={t.id} disabled={t.id === formData.teamBId}>
-                {t.name}
-              </option>
-            ))}
-          </select>
-          
-          <div className="flex items-center gap-2">
-            <input
-              type="number"
-              min="0"
-              value={formData.scoreA}
-              onChange={(e) => setFormData(prev => ({ ...prev, scoreA: parseInt(e.target.value) || 0 }))}
-              className="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white text-sm text-center"
-            />
-            <span className="text-gray-500">:</span>
-            <input
-              type="number"
-              min="0"
-              value={formData.scoreB}
-              onChange={(e) => setFormData(prev => ({ ...prev, scoreB: parseInt(e.target.value) || 0 }))}
-              className="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white text-sm text-center"
-            />
-          </div>
-
-          <select
-            value={formData.teamBId}
-            onChange={(e) => setFormData(prev => ({ ...prev, teamBId: e.target.value }))}
-            className="w-full px-2 py-1 bg-gray-900 border border-gray-700 rounded text-white text-sm"
-          >
-            <option value="">选择队伍B</option>
-            {teams.map(t => (
-              <option key={t.id} value={t.id} disabled={t.id === formData.teamAId}>
-                {t.name}
-              </option>
-            ))}
-          </select>
-
-          <div className="flex gap-1 mt-1">
-            <button
-              onClick={handleSave}
-              className="flex-1 px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
-            >
-              保存
-            </button>
-            <button
-              onClick={handleCancel}
-              className="flex-1 px-2 py-1 bg-gray-600 hover:bg-gray-700 text-white text-xs rounded"
-            >
-              取消
-            </button>
+      <>
+        <div 
+          className="bg-gray-800/40 border-2 border-dashed border-gray-700 rounded-lg p-2.5 cursor-pointer hover:border-blue-500/50 hover:bg-gray-800/60 transition-colors min-h-[80px] flex items-center justify-center"
+          onClick={handleClick}
+        >
+          <div className="text-center text-gray-500 text-sm">
+            <span className="block text-lg mb-1">+</span>
+            等待对阵
           </div>
         </div>
-      </Card>
+        {onCreate && (
+          <MatchEditDialog
+            match={displayMatch}
+            teams={teams}
+            isOpen={isDialogOpen}
+            onClose={handleClose}
+            onSave={handleSave}
+          />
+        )}
+      </>
     );
   }
 
   return (
-    <Card
-      className="bg-gray-800/80 border-gray-700 p-2.5 hover:bg-gray-800 transition-colors group relative overflow-hidden cursor-pointer hover:border-blue-500/50"
-      onClick={handleClick}
-    >
-      <MatchStatusBadge status={match?.status || 'upcoming'} />
-      {match?.startTime && (
-        <div className="absolute top-0 left-0 bg-gray-700/50 text-gray-400 text-[10px] px-1.5 py-0.5 rounded-br flex items-center gap-1">
-          <Clock className="w-3 h-3" />
-          <span>{formatDateTime(match.startTime)}</span>
-        </div>
-      )}
-      <div className="flex flex-col gap-2 pt-4">
-        <div className={`flex items-center justify-between ${match?.winnerId === match?.teamAId ? 'opacity-100' : isFinished ? 'opacity-50' : 'opacity-100'}`}>
-          <div className="flex items-center gap-2">
-            <TeamLogo team={teamA} />
-            <span className={`text-sm font-medium ${match?.winnerId === match?.teamAId ? 'text-yellow-400' : 'text-gray-300'}`}>
-              {teamA?.name || '待定'}
+    <>
+      <Card
+        className="bg-gray-800/80 border-gray-700 p-2.5 hover:bg-gray-800 transition-colors group relative overflow-hidden cursor-pointer hover:border-blue-500/50"
+        onClick={handleClick}
+      >
+        <MatchStatusBadge status={match.status} />
+        {match.startTime && (
+          <div className="absolute top-0 left-0 bg-gray-700/50 text-gray-400 text-[10px] px-1.5 py-0.5 rounded-br flex items-center gap-1">
+            <Clock className="w-3 h-3" />
+            <span>{formatDateTime(match.startTime)}</span>
+          </div>
+        )}
+        <div className="flex flex-col gap-2 pt-4">
+          <div className={`flex items-center justify-between ${match.winnerId === match.teamAId ? 'opacity-100' : isFinished ? 'opacity-50' : 'opacity-100'}`}>
+            <div className="flex items-center gap-2">
+              <TeamLogo team={teamA} />
+              <span className={`text-sm font-medium ${match.winnerId === match.teamAId ? 'text-yellow-400' : 'text-gray-300'}`}>
+                {teamA?.name || '待定'}
+              </span>
+            </div>
+            <span className={`text-sm font-bold ${match.winnerId === match.teamAId ? 'text-yellow-400' : 'text-gray-500'}`}>
+              {match.scoreA}
             </span>
           </div>
-          <span className={`text-sm font-bold ${match?.winnerId === match?.teamAId ? 'text-yellow-400' : 'text-gray-500'}`}>
-            {match?.scoreA ?? 0}
-          </span>
-        </div>
 
-        <div className={`flex items-center justify-between ${match?.winnerId === match?.teamBId ? 'opacity-100' : isFinished ? 'opacity-50' : 'opacity-100'}`}>
-          <div className="flex items-center gap-2">
-            <TeamLogo team={teamB} />
-            <span className={`text-sm font-medium ${match?.winnerId === match?.teamBId ? 'text-yellow-400' : 'text-gray-300'}`}>
-              {teamB?.name || '待定'}
+          <div className={`flex items-center justify-between ${match.winnerId === match.teamBId ? 'opacity-100' : isFinished ? 'opacity-50' : 'opacity-100'}`}>
+            <div className="flex items-center gap-2">
+              <TeamLogo team={teamB} />
+              <span className={`text-sm font-medium ${match.winnerId === match.teamBId ? 'text-yellow-400' : 'text-gray-300'}`}>
+                {teamB?.name || '待定'}
+              </span>
+            </div>
+            <span className={`text-sm font-bold ${match.winnerId === match.teamBId ? 'text-yellow-400' : 'text-gray-500'}`}>
+              {match.scoreB}
             </span>
           </div>
-          <span className={`text-sm font-bold ${match?.winnerId === match?.teamBId ? 'text-yellow-400' : 'text-gray-500'}`}>
-            {match?.scoreB ?? 0}
-          </span>
         </div>
-      </div>
-    </Card>
+      </Card>
+      <MatchEditDialog
+        match={match}
+        teams={teams}
+        isOpen={isDialogOpen}
+        onClose={handleClose}
+        onSave={handleSave}
+      />
+    </>
   );
 };
 
