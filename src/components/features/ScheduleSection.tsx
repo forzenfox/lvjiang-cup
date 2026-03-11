@@ -5,11 +5,12 @@ import { Match, Team } from '@/types';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import SwissStage from './SwissStage';
 import EliminationStage from './EliminationStage';
-import { swissAdvancement } from '@/mock/data';
+import { useAdvancementStore } from '@/store/advancementStore';
 
 const ScheduleSection: React.FC = () => {
   const [matches, setMatches] = useState<Match[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
+  const advancement = useAdvancementStore(state => state.advancement);
 
   useEffect(() => {
     loadData();
@@ -74,7 +75,7 @@ const ScheduleSection: React.FC = () => {
               <SwissStage 
                 matches={swissMatches} 
                 teams={teams}
-                advancement={swissAdvancement}
+                advancement={advancement}
               />
             </motion.div>
           </TabsContent>
