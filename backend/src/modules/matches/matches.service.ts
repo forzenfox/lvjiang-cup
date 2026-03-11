@@ -1,0 +1,308 @@
+import { Injectable, NotFoundException, Logger } from '@nestjs/common';
+import { DatabaseService } from '../../database/database.service';
+import { CacheService } from '../../cache/cache.service';
+import { UpdateMatchDto } from './dto/update-match.dto';
+import { Team } from '../teams/teams.service';
+
+export interface Match {
+  id: string;
+  teamAId?: string;
+  teamBId?: string;
+  teamA?: Team;
+  teamB?: Team;
+  scoreA: number;
+  scoreB: number;
+  winnerId?: string;
+  round: string;
+  status: 'upcoming' | 'ongoing' | 'finished';
+  startTime?: string;
+  stage: 'swiss' | 'elimination';
+  swissRecord?: string;
+  swissDay?: number;
+  eliminationBracket?: 'winners' | 'losers' | 'grand_finals';
+  eliminationGameNumber?: number;
+}
+
+@Injectable()
+export class MatchesService {
+  private readonly logger = new Logger(MatchesService.name);
+  private readonly CACHE_KEY_ALL = 'matches:all';
+  private readonly CACHE_KEY_PREFIX = 'match:';
+
+  constructor(
+    private databaseService: DatabaseService,
+    private cacheService: CacheService,
+  ) {}
+
+  async findAll(stage?: string): Promise<Match[]> {
+    const cacheKey = stage ? `${this.CACHE_KEY_ALL}:${stage}` : this.CACHE_KEY_ALL;
+    
+    // 尝试从缓存获取
+    const cached = this.cacheService.get<Match[]>(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
+    // 构建查询
+    let query = 'SELECT * FROM matches';
+    const params: any[] = [];
+    
+    if (stage) {
+      query += ' WHERE stage = ?';
+      params.push(stage);
+    }
+    
+    query += ' ORDER BY created_at ASC';
+    
+    const matches = await this.databaseService.all<any>(query, params);
+
+    // 获取所有战队信息用于关联
+    const teams = await this.databaseService.all<any>('SELECT id, name, logo FROM teams');
+    const teamsMap = new Map(teams.map((t) => [t.id, t]));
+
+    const result: Match[] = matches.map((match) => ({
+      id: match.id,
+      teamAId: match.team_a_id,
+      teamBId: match.team_b_id,
+      teamA: match.team_a_id ? teamsMap.get(match.team_a_id) : undefined,
+      teamB: match.team_b_id ? teamsMap.get(match.team_b_id) : undefined,
+      scoreA: match.score_a,
+      scoreB: match.score_b,
+      winnerId: match.winner_id,
+      round: match.round,
+      status: match.status,
+      startTime: match.start_time,
+      stage: match.stage,
+      swissRecord: match.swiss_record,
+      swissDay: match.swiss_day,
+      eliminationBracket: match.elimination_bracket,
+      eliminationGameNumber: match.elimination_game_number,
+    }));
+
+    // 写入缓存
+    this.cacheService.set(cacheKey, result);
+
+    return result;
+  }
+
+  async findOne(id: string): Promise<Match> {
+    const cacheKey = `${this.CACHE_KEY_PREFIX}${id}`;
+    
+    // 尝试从缓存获取
+    const cached = this.cacheService.get<Match>(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
+    // 获取比赛
+    const match = await this.databaseService.get<any>('SELECT * FROM matches WHERE id = ?', [id]);
+
+    if (!match) {
+      throw new NotFoundException(`Match with id ${id} not found`);
+    }
+
+    // 获取战队信息
+    let teamA, teamB;
+    if (match.team_a_id) {
+      teamA = await this.databaseService.get<any>('SELECT id, name, logo FROM teams WHERE id = ?', [match.team_a_id]);
+    }
+    if (match.team_b_id) {
+      teamB = await this.databaseService.get<any>('SELECT id, name, logo FROM teams WHERE id = ?', [match.team_b_id]);
+    }
+
+    const result: Match = {
+      id: match.id,
+      teamAId: match.team_a_id,
+      teamBId: match.team_b_id,
+      teamA,
+      teamB,
+      scoreA: match.score_a,
+      scoreB: match.score_b,
+      winnerId: match.winner_id,
+      round: match.round,
+      status: match.status,
+      startTime: match.start_time,
+      stage: match.stage,
+      swissRecord: match.swiss_record,
+      swissDay: match.swiss_day,
+      eliminationBracket: match.elimination_bracket,
+      eliminationGameNumber: match.elimination_game_number,
+    };
+
+    // 写入缓存
+    this.cacheService.set(cacheKey, result);
+
+    return result;
+  }
+
+  async update(id: string, updateMatchDto: UpdateMatchDto): Promise<Match> {
+    // 检查比赛是否存在
+    const existing = await this.databaseService.get<any>('SELECT id FROM matches WHERE id = ?', [id]);
+    if (!existing) {
+      throw new NotFoundException(`Match with id ${id} not found`);
+    }
+
+    // 构建更新语句
+    const updates: string[] = [];
+    const values: any[] = [];
+
+    if (updateMatchDto.teamAId !== undefined) {
+      updates.push('team_a_id = ?');
+      values.push(updateMatchDto.teamAId);
+    }
+    if (updateMatchDto.teamBId !== undefined) {
+      updates.push('team_b_id = ?');
+      values.push(updateMatchDto.teamBId);
+    }
+    if (updateMatchDto.scoreA !== undefined) {
+      updates.push('score_a = ?');
+      values.push(updateMatchDto.scoreA);
+    }
+    if (updateMatchDto.scoreB !== undefined) {
+      updates.push('score_b = ?');
+      values.push(updateMatchDto.scoreB);
+    }
+    if (updateMatchDto.winnerId !== undefined) {
+      updates.push('winner_id = ?');
+      values.push(updateMatchDto.winnerId);
+    }
+    if (updateMatchDto.status !== undefined) {
+      updates.push('status = ?');
+      values.push(updateMatchDto.status);
+    }
+    if (updateMatchDto.startTime !== undefined) {
+      updates.push('start_time = ?');
+      values.push(updateMatchDto.startTime);
+    }
+
+    if (updates.length > 0) {
+      updates.push('updated_at = CURRENT_TIMESTAMP');
+      values.push(id);
+      
+      await this.databaseService.run(
+        `UPDATE matches SET ${updates.join(', ')} WHERE id = ?`,
+        values,
+      );
+    }
+
+    this.logger.log(`Match updated: ${id}`);
+    
+    // 清除缓存
+    this.cacheService.del(this.CACHE_KEY_ALL);
+    this.cacheService.del(`${this.CACHE_KEY_PREFIX}${id}`);
+
+    return this.findOne(id);
+  }
+
+  async clearScores(id: string): Promise<Match> {
+    // 检查比赛是否存在
+    const existing = await this.databaseService.get<any>('SELECT id FROM matches WHERE id = ?', [id]);
+    if (!existing) {
+      throw new NotFoundException(`Match with id ${id} not found`);
+    }
+
+    // 清空比分
+    await this.databaseService.run(
+      `UPDATE matches SET score_a = 0, score_b = 0, winner_id = NULL, status = 'upcoming', updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
+      [id],
+    );
+
+    this.logger.log(`Match scores cleared: ${id}`);
+    
+    // 清除缓存
+    this.cacheService.del(this.CACHE_KEY_ALL);
+    this.cacheService.del(`${this.CACHE_KEY_PREFIX}${id}`);
+
+    return this.findOne(id);
+  }
+
+  // 初始化比赛槽位
+  async initSlots(): Promise<void> {
+    // 检查是否已初始化
+    const result = await this.databaseService.get<{ count: number }>('SELECT COUNT(*) as count FROM matches');
+    
+    if (result.count > 0) {
+      this.logger.log('Match slots already initialized');
+      return;
+    }
+
+    // 瑞士轮槽位（14场）
+    const swissSlots = [
+      // Round 1 - 0-0 (4场 BO1)
+      { id: 'swiss-r1-1', round: 'Round 1', stage: 'swiss', swissRecord: '0-0', swissDay: 1 },
+      { id: 'swiss-r1-2', round: 'Round 1', stage: 'swiss', swissRecord: '0-0', swissDay: 1 },
+      { id: 'swiss-r1-3', round: 'Round 1', stage: 'swiss', swissRecord: '0-0', swissDay: 1 },
+      { id: 'swiss-r1-4', round: 'Round 1', stage: 'swiss', swissRecord: '0-0', swissDay: 1 },
+      // Round 2 High - 1-0 (2场 BO3)
+      { id: 'swiss-r2h-1', round: 'Round 2 High', stage: 'swiss', swissRecord: '1-0', swissDay: 1 },
+      { id: 'swiss-r2h-2', round: 'Round 2 High', stage: 'swiss', swissRecord: '1-0', swissDay: 1 },
+      // Round 2 Low - 0-1 (2场 BO3)
+      { id: 'swiss-r2l-1', round: 'Round 2 Low', stage: 'swiss', swissRecord: '0-1', swissDay: 1 },
+      { id: 'swiss-r2l-2', round: 'Round 2 Low', stage: 'swiss', swissRecord: '0-1', swissDay: 1 },
+      // Round 3 Mid - 1-1 (2场 BO3)
+      { id: 'swiss-r3m-1', round: 'Round 3 Mid', stage: 'swiss', swissRecord: '1-1', swissDay: 2 },
+      { id: 'swiss-r3m-2', round: 'Round 3 Mid', stage: 'swiss', swissRecord: '1-1', swissDay: 2 },
+      // Round 3 Low - 0-2 (2场 BO3)
+      { id: 'swiss-r3l-1', round: 'Round 3 Low', stage: 'swiss', swissRecord: '0-2', swissDay: 2 },
+      { id: 'swiss-r3l-2', round: 'Round 3 Low', stage: 'swiss', swissRecord: '0-2', swissDay: 2 },
+      // Round 4 - 1-2 (2场 BO3)
+      { id: 'swiss-r4-1', round: 'Round 4', stage: 'swiss', swissRecord: '1-2', swissDay: 2 },
+      { id: 'swiss-r4-2', round: 'Round 4', stage: 'swiss', swissRecord: '1-2', swissDay: 2 },
+    ];
+
+    // 淘汰赛槽位（8场）
+    const eliminationSlots = [
+      // 胜者组半决赛 (2场)
+      { id: 'elim-winners-1', round: '胜者组半决赛', stage: 'elimination', eliminationBracket: 'winners', eliminationGameNumber: 1 },
+      { id: 'elim-winners-2', round: '胜者组半决赛', stage: 'elimination', eliminationBracket: 'winners', eliminationGameNumber: 2 },
+      // 败者组第一轮 (2场)
+      { id: 'elim-losers-3', round: '败者组第一轮', stage: 'elimination', eliminationBracket: 'losers', eliminationGameNumber: 3 },
+      { id: 'elim-losers-4', round: '败者组第一轮', stage: 'elimination', eliminationBracket: 'losers', eliminationGameNumber: 4 },
+      // 胜者组决赛 (1场)
+      { id: 'elim-winners-5', round: '胜者组决赛', stage: 'elimination', eliminationBracket: 'winners', eliminationGameNumber: 5 },
+      // 败者组第二轮 (1场)
+      { id: 'elim-losers-6', round: '败者组第二轮', stage: 'elimination', eliminationBracket: 'losers', eliminationGameNumber: 6 },
+      // 败者组决赛 (1场)
+      { id: 'elim-losers-7', round: '败者组决赛', stage: 'elimination', eliminationBracket: 'losers', eliminationGameNumber: 7 },
+      // 总决赛 (1场)
+      { id: 'elim-grand-8', round: '总决赛', stage: 'elimination', eliminationBracket: 'grand_finals', eliminationGameNumber: 8 },
+    ];
+
+    // 插入瑞士轮槽位
+    for (const slot of swissSlots) {
+      await this.databaseService.run(
+        `INSERT INTO matches (id, round, stage, status, swiss_record, swiss_day, elimination_bracket, elimination_game_number) VALUES (?, ?, ?, 'upcoming', ?, ?, ?, ?)`,
+        [
+          slot.id,
+          slot.round,
+          slot.stage,
+          (slot as any).swissRecord || null,
+          (slot as any).swissDay || null,
+          (slot as any).eliminationBracket || null,
+          (slot as any).eliminationGameNumber || null,
+        ],
+      );
+    }
+
+    // 插入淘汰赛槽位
+    for (const slot of eliminationSlots) {
+      await this.databaseService.run(
+        `INSERT INTO matches (id, round, stage, status, swiss_record, swiss_day, elimination_bracket, elimination_game_number) VALUES (?, ?, ?, 'upcoming', ?, ?, ?, ?)`,
+        [
+          slot.id,
+          slot.round,
+          slot.stage,
+          null,
+          null,
+          slot.eliminationBracket,
+          slot.eliminationGameNumber,
+        ],
+      );
+    }
+
+    this.logger.log(`Initialized ${swissSlots.length + eliminationSlots.length} match slots`);
+    
+    // 清除缓存
+    this.cacheService.del(this.CACHE_KEY_ALL);
+  }
+}
