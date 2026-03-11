@@ -296,11 +296,12 @@ const AdvancementEditor: React.FC<AdvancementEditorProps> = ({ teams, advancemen
   const [selectedTeam, setSelectedTeam] = useState<string>('');
 
   const handleAddTeam = (field: keyof SwissAdvancement) => {
-    if (!selectedTeam || advancement[field].includes(selectedTeam)) return;
-    onUpdate({
-      ...advancement,
-      [field]: [...advancement[field], selectedTeam]
-    });
+    if (selectedTeam && !advancement[field].includes(selectedTeam)) {
+      onUpdate({
+        ...advancement,
+        [field]: [...advancement[field], selectedTeam]
+      });
+    }
     setEditingField(null);
     setSelectedTeam('');
   };
