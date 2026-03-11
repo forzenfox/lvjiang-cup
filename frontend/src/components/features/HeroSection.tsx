@@ -1,21 +1,121 @@
 import React, { useEffect, useState } from 'react';
-import { Play } from 'lucide-react';
+import { Play, Radio, Loader2 } from 'lucide-react';
 import { Button } from '../ui/button';
-import { mockService } from '../../mock/service';
-import { StreamInfo } from '../../types';
+import { streamService } from '../../services';
+import type { Stream } from '../../api/types';
 
-const HeroSection: React.FC = () => {
-  const [streamInfo, setStreamInfo] = useState<StreamInfo | null>(null);
+interface HeroSectionProps {
+  /** 自动刷新间隔（毫秒），默认 30000ms (30秒) */
+  refreshInterval?: number;
+}
 
-  useEffect(() => {
-    mockService.getStreamInfo().then(setStreamInfo);
-  }, []);
+const HeroSection: React.FC<HeroSectionProps> = ({ refreshInterval = 30000 }) => {
+  const [streamInfo, setStreamInfo] = useState<Stream | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleWatchLive = () => {
-    if (streamInfo?.url) {
-      window.open(streamInfo.url, '_blank');
+  // 获取直播信息
+  const fetchStreamInfo = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const stream = await streamService.get();
+      setStreamInfo(stream);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : '获取直播信息失败';
+      setError(errorMessage);
+      console.error('[HeroSection] 获取直播信息失败:', err);
+    } finally {
+      setLoading(false);
     }
   };
+
+  useEffect(() => {
+    // 初始加载
+    fetchStreamInfo();
+
+    // 设置自动刷新
+    const interval = setInterval(() => {
+      fetchStreamInfo();
+    }, refreshInterval);
+
+    // 页面可见性检测：切换回页面时立即刷新
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        fetchStreamInfo();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    // 清理函数
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [refreshInterval]);
+
+  const handleWatchLive = () => {
+    if (streamInfo?.streamUrl) {
+      window.open(streamInfo.streamUrl, '_blank');
+    }
+  };
+
+  // 加载状态
+  if (loading && !streamInfo) {
+    return (
+      <section id="hero" className="relative h-screen flex items-center justify-center overflow-hidden">
+        {/* Background Image with Overlay */}
+        <div className="absolute inset-0 z-0">
+          <img 
+            src="https://coresg-normal.trae.ai/api/ide/v1/text_to_image?prompt=league+of+legends+champions+battle+epic+scene+blue+and+gold+theme&image_size=landscape_16_9" 
+            alt="Hero Background" 
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-background"></div>
+        </div>
+
+        {/* Loading Content */}
+        <div className="relative z-10 text-center px-4 max-w-4xl mx-auto">
+          <div className="flex flex-col items-center space-y-6">
+            <Loader2 className="w-12 h-12 text-yellow-400 animate-spin" />
+            <p className="text-xl text-gray-300">正在加载直播信息...</p>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // 错误状态
+  if (error && !streamInfo) {
+    return (
+      <section id="hero" className="relative h-screen flex items-center justify-center overflow-hidden">
+        {/* Background Image with Overlay */}
+        <div className="absolute inset-0 z-0">
+          <img 
+            src="https://coresg-normal.trae.ai/api/ide/v1/text_to_image?prompt=league+of+legends+champions+battle+epic+scene+blue+and+gold+theme&image_size=landscape_16_9" 
+            alt="Hero Background" 
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-background"></div>
+        </div>
+
+        {/* Error Content */}
+        <div className="relative z-10 text-center px-4 max-w-4xl mx-auto">
+          <div className="bg-black/50 backdrop-blur-sm p-8 rounded-xl border border-red-500/30">
+            <p className="text-xl text-red-400 mb-4">加载失败</p>
+            <p className="text-gray-300 mb-6">{error}</p>
+            <Button 
+              variant="outline" 
+              onClick={fetchStreamInfo}
+              className="border-yellow-400 text-yellow-400 hover:bg-yellow-400/10"
+            >
+              重试
+            </Button>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section id="hero" className="relative h-screen flex items-center justify-center overflow-hidden">
@@ -38,7 +138,7 @@ const HeroSection: React.FC = () => {
           驴酱公会终极对决
         </p>
         
-        {streamInfo?.isLive ? (
+        {streamInfo?.isActive ? (
           <div className="flex flex-col items-center space-y-4">
             <Button 
               variant="cta" 
@@ -49,14 +149,30 @@ const HeroSection: React.FC = () => {
               <Play className="mr-3 h-6 w-6 fill-current" />
               观看直播
             </Button>
-            <p className="text-yellow-400 font-semibold animate-pulse">
-              🔴 正在直播：{streamInfo.title}
-            </p>
+            <div className="flex items-center space-x-2">
+              <Radio className="w-4 h-4 text-red-500 animate-pulse" />
+              <p className="text-yellow-400 font-semibold">
+                正在直播：{streamInfo.title}
+              </p>
+            </div>
+            {streamInfo.viewersCount !== undefined && streamInfo.viewersCount > 0 && (
+              <p className="text-sm text-gray-400">
+                {streamInfo.viewersCount.toLocaleString()} 人正在观看
+              </p>
+            )}
           </div>
         ) : (
           <div className="bg-black/50 backdrop-blur-sm p-6 rounded-xl border border-white/10">
             <p className="text-xl text-gray-300">比赛即将开始</p>
             <p className="text-sm text-gray-400 mt-2">查看下方赛程安排</p>
+          </div>
+        )}
+
+        {/* 刷新指示器 */}
+        {loading && (
+          <div className="mt-4 flex items-center justify-center space-x-2 text-gray-400">
+            <Loader2 className="w-4 h-4 animate-spin" />
+            <span className="text-sm">更新中...</span>
           </div>
         )}
       </div>

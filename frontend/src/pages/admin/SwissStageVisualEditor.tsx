@@ -1,25 +1,32 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Match, Team, MatchStatus } from '@/types';
 import { Card } from '@/components/ui/card';
-import { Clock } from 'lucide-react';
+import { Clock, GripVertical, Save, RotateCcw, Check } from 'lucide-react';
 import { formatDateTime } from '@/utils/datetime';
 import { swissRoundSlots, SwissRoundSlot, getRoundFormat } from './swissRoundSlots';
 import MatchEditDialog from '@/pages/admin/components/MatchEditDialog';
-
-interface SwissAdvancement {
-  winners2_0: string[];
-  winners2_1: string[];
-  losersBracket: string[];
-  eliminated3rd: string[];
-  eliminated0_3: string[];
-}
+import { useAdvancementStore, categoryConfig, categoryOrder } from '@/store/advancementStore';
+import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
 
 interface SwissStageVisualEditorProps {
   matches: Match[];
   teams: Team[];
-  advancement: SwissAdvancement;
+  advancement: {
+    winners2_0: string[];
+    winners2_1: string[];
+    losersBracket: string[];
+    eliminated3rd: string[];
+    eliminated0_3: string[];
+  };
   onMatchUpdate: (match: Match) => void;
-  onAdvancementUpdate: (advancement: SwissAdvancement) => void;
+  onAdvancementUpdate: (advancement: {
+    winners2_0: string[];
+    winners2_1: string[];
+    losersBracket: string[];
+    eliminated3rd: string[];
+    eliminated0_3: string[];
+  }) => void;
   onMatchCreate?: (match: Omit<Match, 'id'>) => void;
   onMatchDelete?: (matchId: string) => void;
 }
@@ -85,7 +92,6 @@ const FixedSlotMatchCard: React.FC<FixedSlotMatchCardProps> = ({ match, teams, s
 
   const handleClick = () => {
     if (isEmpty && !onCreate) {
-      // 空槽位但没有创建回调，不执行任何操作
       return;
     }
     setIsDialogOpen(true);
@@ -228,199 +234,97 @@ const RoundColumn: React.FC<RoundColumnProps> = ({ slot, matches, teams, classNa
   );
 };
 
-interface StatusBadgeProps {
-  type: 'qualified' | 'eliminated' | 'danger';
-  children: React.ReactNode;
-  onClick?: () => void;
+interface DraggableTeamItemProps {
+  team: Team;
+  category: string;
+  onDragStart: (e: React.DragEvent, teamId: string, fromCategory: string) => void;
+  onRemove: (teamId: string, category: string) => void;
 }
 
-const StatusBadge: React.FC<StatusBadgeProps> = ({ type, children, onClick }) => {
-  const styles = {
-    qualified: 'bg-green-500/10 text-green-400 border-green-500/20 hover:bg-green-500/20 cursor-pointer',
-    eliminated: 'bg-red-500/10 text-red-400 border-red-500/20 hover:bg-red-500/20 cursor-pointer',
-    danger: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20 hover:bg-yellow-500/20 cursor-pointer'
-  };
-
+const DraggableTeamItem: React.FC<DraggableTeamItemProps> = ({ team, category, onDragStart, onRemove }) => {
   return (
-    <div 
-      className={`px-3 py-1.5 rounded border text-xs font-medium text-center ${styles[type]}`}
-      onClick={onClick}
+    <div
+      draggable
+      onDragStart={(e) => onDragStart(e, team.id, category)}
+      className="flex items-center justify-between text-sm text-gray-300 bg-gray-800/50 p-2 rounded border border-gray-700 cursor-move hover:bg-gray-800 hover:border-gray-600 transition-colors group"
     >
-      {children}
+      <div className="flex items-center gap-2">
+        <GripVertical className="w-4 h-4 text-gray-600" />
+        {team.logo ? (
+          <img src={team.logo} alt={team.name} className="w-5 h-5 rounded-full object-cover" />
+        ) : (
+          <div className="w-5 h-5 rounded-full bg-gray-700" />
+        )}
+        <span className="font-medium">{team.name}</span>
+      </div>
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          onRemove(team.id, category);
+        }}
+        className="opacity-0 group-hover:opacity-100 text-gray-500 hover:text-red-400 transition-opacity px-1"
+        title="移除"
+      >
+        ×
+      </button>
     </div>
   );
 };
 
-interface TeamListProps {
+interface AdvancementCategoryCardProps {
+  category: string;
+  teamIds: string[];
   teams: Team[];
-  ids: string[];
-  onRemove?: (id: string) => void;
+  config: { label: string; color: string; description: string };
+  onDragOver: (e: React.DragEvent) => void;
+  onDrop: (e: React.DragEvent, category: string) => void;
+  onDragStart: (e: React.DragEvent, teamId: string, fromCategory: string) => void;
+  onRemove: (teamId: string, category: string) => void;
 }
 
-const TeamList: React.FC<TeamListProps> = ({ teams, ids, onRemove }) => {
-  if (ids.length === 0) return null;
+const AdvancementCategoryCard: React.FC<AdvancementCategoryCardProps> = ({
+  category,
+  teamIds,
+  teams,
+  config,
+  onDragOver,
+  onDrop,
+  onDragStart,
+  onRemove,
+}) => {
+  const categoryTeams = teamIds
+    .map(id => teams.find(t => t.id === id))
+    .filter((t): t is Team => t !== undefined);
+
   return (
-    <div className="flex flex-col gap-1.5 mt-2">
-      {ids.map(id => {
-        const team = teams.find(t => t.id === id);
-        if (!team) return null;
-        return (
-          <div key={id} className="flex items-center justify-between text-sm text-gray-300 bg-gray-800/50 p-1.5 rounded group">
-            <div className="flex items-center gap-2">
-              <TeamLogo team={team} />
-              <span>{team.name}</span>
-            </div>
-            {onRemove && (
-              <button 
-                onClick={(e) => { e.stopPropagation(); onRemove(id); }}
-                className="opacity-0 group-hover:opacity-100 text-gray-500 hover:text-red-400 transition-opacity"
-              >
-                ×
-              </button>
-            )}
+    <div
+      className="bg-gray-900/50 rounded-lg border border-gray-700 overflow-hidden"
+      onDragOver={onDragOver}
+      onDrop={(e) => onDrop(e, category)}
+    >
+      <div className={`px-3 py-2 border-b border-gray-700 ${config.color.replace('bg-', 'bg-opacity-20 bg-')}`}>
+        <div className="flex items-center gap-2">
+          <div className={`w-2 h-2 rounded-full ${config.color}`} />
+          <h4 className="text-sm font-semibold text-white">{config.label}</h4>
+          <span className="text-xs text-gray-500 ml-auto">{categoryTeams.length}</span>
+        </div>
+        <p className="text-xs text-gray-500 mt-0.5">{config.description}</p>
+      </div>
+      <div className="p-2 space-y-1 min-h-[60px]">
+        {categoryTeams.length === 0 ? (
+          <div className="text-center py-4 text-gray-600 text-xs">
+            拖拽队伍到此处
           </div>
-        );
-      })}
-    </div>
-  );
-};
-
-interface AdvancementEditorProps {
-  teams: Team[];
-  advancement: SwissAdvancement;
-  onUpdate: (advancement: SwissAdvancement) => void;
-}
-
-const AdvancementEditor: React.FC<AdvancementEditorProps> = ({ teams, advancement, onUpdate }) => {
-  const [editingField, setEditingField] = useState<string | null>(null);
-  const [selectedTeam, setSelectedTeam] = useState<string>('');
-
-  const handleAddTeam = (field: keyof SwissAdvancement) => {
-    if (selectedTeam && !advancement[field].includes(selectedTeam)) {
-      onUpdate({
-        ...advancement,
-        [field]: [...advancement[field], selectedTeam]
-      });
-    }
-    setEditingField(null);
-    setSelectedTeam('');
-  };
-
-  const handleRemoveTeam = (field: keyof SwissAdvancement, teamId: string) => {
-    onUpdate({
-      ...advancement,
-      [field]: advancement[field].filter(id => id !== teamId)
-    });
-  };
-
-  const availableTeams = teams.filter(t => 
-    !Object.values(advancement).flat().includes(t.id)
-  );
-
-  return (
-    <div className="space-y-4">
-      <div className="flex flex-col gap-2">
-        <StatusBadge type="qualified" onClick={() => setEditingField('winners2_0')}>
-          2-0 晋级 (胜者组)
-        </StatusBadge>
-        <TeamList teams={teams} ids={advancement.winners2_0} onRemove={(id) => handleRemoveTeam('winners2_0', id)} />
-        {editingField === 'winners2_0' && (
-          <select
-            value={selectedTeam}
-            onChange={(e) => setSelectedTeam(e.target.value)}
-            onBlur={() => handleAddTeam('winners2_0')}
-            className="mt-2 px-2 py-1 bg-gray-900 border border-gray-700 rounded text-sm text-white"
-            autoFocus
-          >
-            <option value="">选择队伍</option>
-            {availableTeams.map(t => (
-              <option key={t.id} value={t.id}>{t.name}</option>
-            ))}
-          </select>
-        )}
-      </div>
-
-      <div className="flex flex-col gap-2">
-        <StatusBadge type="qualified" onClick={() => setEditingField('winners2_1')}>
-          2-1 晋级 (胜者组)
-        </StatusBadge>
-        <TeamList teams={teams} ids={advancement.winners2_1} onRemove={(id) => handleRemoveTeam('winners2_1', id)} />
-        {editingField === 'winners2_1' && (
-          <select
-            value={selectedTeam}
-            onChange={(e) => setSelectedTeam(e.target.value)}
-            onBlur={() => handleAddTeam('winners2_1')}
-            className="mt-2 px-2 py-1 bg-gray-900 border border-gray-700 rounded text-sm text-white"
-            autoFocus
-          >
-            <option value="">选择队伍</option>
-            {availableTeams.map(t => (
-              <option key={t.id} value={t.id}>{t.name}</option>
-            ))}
-          </select>
-        )}
-      </div>
-
-      <div className="flex flex-col gap-2">
-        <StatusBadge type="danger" onClick={() => setEditingField('losersBracket')}>
-          晋级败者组
-        </StatusBadge>
-        <TeamList teams={teams} ids={advancement.losersBracket} onRemove={(id) => handleRemoveTeam('losersBracket', id)} />
-        {editingField === 'losersBracket' && (
-          <select
-            value={selectedTeam}
-            onChange={(e) => setSelectedTeam(e.target.value)}
-            onBlur={() => handleAddTeam('losersBracket')}
-            className="mt-2 px-2 py-1 bg-gray-900 border border-gray-700 rounded text-sm text-white"
-            autoFocus
-          >
-            <option value="">选择队伍</option>
-            {availableTeams.map(t => (
-              <option key={t.id} value={t.id}>{t.name}</option>
-            ))}
-          </select>
-        )}
-      </div>
-
-      <div className="flex flex-col gap-2">
-        <StatusBadge type="eliminated" onClick={() => setEditingField('eliminated3rd')}>
-          积分第三淘汰
-        </StatusBadge>
-        <TeamList teams={teams} ids={advancement.eliminated3rd} onRemove={(id) => handleRemoveTeam('eliminated3rd', id)} />
-        {editingField === 'eliminated3rd' && (
-          <select
-            value={selectedTeam}
-            onChange={(e) => setSelectedTeam(e.target.value)}
-            onBlur={() => handleAddTeam('eliminated3rd')}
-            className="mt-2 px-2 py-1 bg-gray-900 border border-gray-700 rounded text-sm text-white"
-            autoFocus
-          >
-            <option value="">选择队伍</option>
-            {availableTeams.map(t => (
-              <option key={t.id} value={t.id}>{t.name}</option>
-            ))}
-          </select>
-        )}
-      </div>
-
-      <div className="flex flex-col gap-2">
-        <StatusBadge type="eliminated" onClick={() => setEditingField('eliminated0_3')}>
-          0-3 淘汰
-        </StatusBadge>
-        <TeamList teams={teams} ids={advancement.eliminated0_3} onRemove={(id) => handleRemoveTeam('eliminated0_3', id)} />
-        {editingField === 'eliminated0_3' && (
-          <select
-            value={selectedTeam}
-            onChange={(e) => setSelectedTeam(e.target.value)}
-            onBlur={() => handleAddTeam('eliminated0_3')}
-            className="mt-2 px-2 py-1 bg-gray-900 border border-gray-700 rounded text-sm text-white"
-            autoFocus
-          >
-            <option value="">选择队伍</option>
-            {availableTeams.map(t => (
-              <option key={t.id} value={t.id}>{t.name}</option>
-            ))}
-          </select>
+        ) : (
+          categoryTeams.map(team => (
+            <DraggableTeamItem
+              key={team.id}
+              team={team}
+              category={category}
+              onDragStart={onDragStart}
+              onRemove={onRemove}
+            />
+          ))
         )}
       </div>
     </div>
@@ -435,14 +339,158 @@ const SwissStageVisualEditor: React.FC<SwissStageVisualEditorProps> = ({
   onAdvancementUpdate,
   onMatchCreate,
 }) => {
+  const [localAdvancement, setLocalAdvancement] = useState(advancement);
+  const [hasChanges, setHasChanges] = useState(false);
+  const [draggedTeam, setDraggedTeam] = useState<{ teamId: string; fromCategory: string } | null>(null);
+  
+  const moveTeam = useAdvancementStore(state => state.moveTeam);
+
+  // 当外部 advancement 变化时更新本地状态
+  useEffect(() => {
+    setLocalAdvancement(advancement);
+  }, [advancement]);
+
+  // 检测是否有未保存的更改
+  useEffect(() => {
+    const changed = 
+      JSON.stringify(localAdvancement) !== JSON.stringify(advancement);
+    setHasChanges(changed);
+  }, [localAdvancement, advancement]);
+
   const matchesByRecord = swissRoundSlots.reduce((acc, slot) => {
     acc[slot.swissRecord] = matches.filter(m => m.swissRecord === slot.swissRecord);
     return acc;
   }, {} as Record<string, Match[]>);
 
+  // 拖拽开始
+  const handleDragStart = (e: React.DragEvent, teamId: string, fromCategory: string) => {
+    setDraggedTeam({ teamId, fromCategory });
+    e.dataTransfer.effectAllowed = 'move';
+    // 设置拖拽图像
+    const team = teams.find(t => t.id === teamId);
+    if (team) {
+      e.dataTransfer.setData('text/plain', JSON.stringify({ teamId, fromCategory }));
+    }
+  };
+
+  // 拖拽经过
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  // 放置
+  const handleDrop = (e: React.DragEvent, toCategory: string) => {
+    e.preventDefault();
+    if (!draggedTeam) return;
+
+    const { teamId, fromCategory } = draggedTeam;
+    
+    // 如果拖放到同一分类，不做任何操作
+    if (fromCategory === toCategory) {
+      setDraggedTeam(null);
+      return;
+    }
+
+    // 更新本地状态
+    setLocalAdvancement(prev => {
+      const newAdvancement = { ...prev };
+      
+      // 从原分类移除
+      if (fromCategory && newAdvancement[fromCategory as keyof typeof newAdvancement]) {
+        newAdvancement[fromCategory as keyof typeof newAdvancement] = 
+          newAdvancement[fromCategory as keyof typeof newAdvancement].filter(id => id !== teamId);
+      }
+      
+      // 添加到新分类（如果不存在）
+      if (!newAdvancement[toCategory as keyof typeof newAdvancement].includes(teamId)) {
+        newAdvancement[toCategory as keyof typeof newAdvancement] = [
+          ...newAdvancement[toCategory as keyof typeof newAdvancement],
+          teamId
+        ];
+      }
+      
+      return newAdvancement;
+    });
+
+    setDraggedTeam(null);
+    toast.success('队伍已移动，记得保存更改');
+  };
+
+  // 移除队伍
+  const handleRemoveTeam = (teamId: string, category: string) => {
+    setLocalAdvancement(prev => ({
+      ...prev,
+      [category]: prev[category as keyof typeof prev].filter(id => id !== teamId)
+    }));
+    toast.info('队伍已移除，记得保存更改');
+  };
+
+  // 保存更改
+  const handleSave = () => {
+    onAdvancementUpdate(localAdvancement);
+    setHasChanges(false);
+    toast.success('晋级名单已保存');
+  };
+
+  // 重置更改
+  const handleReset = () => {
+    setLocalAdvancement(advancement);
+    toast.info('已重置为上次保存的状态');
+  };
+
+  // 获取未分配的队伍
+  const getUnassignedTeams = () => {
+    const assignedIds = Object.values(localAdvancement).flat();
+    return teams.filter(t => !assignedIds.includes(t.id));
+  };
+
+  const unassignedTeams = getUnassignedTeams();
+
   return (
-    <div className="w-full overflow-x-auto">
-      <div className="flex gap-8 min-w-[1400px] p-4">
+    <div className="w-full">
+      {/* 操作栏 */}
+      <div className="flex justify-between items-center mb-4 p-3 bg-gray-800/50 rounded-lg border border-gray-700">
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-gray-400">
+            {hasChanges ? (
+              <span className="text-yellow-400 flex items-center gap-1">
+                <span className="w-2 h-2 rounded-full bg-yellow-400" />
+                有未保存的更改
+              </span>
+            ) : (
+              <span className="text-green-400 flex items-center gap-1">
+                <Check className="w-3 h-3" />
+                已同步
+              </span>
+            )}
+          </span>
+        </div>
+        <div className="flex gap-2">
+          {hasChanges && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleReset}
+              className="border-gray-600 text-gray-300 hover:bg-gray-700"
+            >
+              <RotateCcw className="w-4 h-4 mr-1" />
+              重置
+            </Button>
+          )}
+          <Button
+            size="sm"
+            onClick={handleSave}
+            disabled={!hasChanges}
+            className="bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50"
+          >
+            <Save className="w-4 h-4 mr-1" />
+            保存更改
+          </Button>
+        </div>
+      </div>
+
+      <div className="flex gap-8 min-w-[1400px] p-4 overflow-x-auto">
         <div className="flex gap-8 flex-1">
           <div className="flex flex-col gap-4 w-64">
             <RoundColumn 
@@ -501,15 +549,51 @@ const SwissStageVisualEditor: React.FC<SwissStageVisualEditorProps> = ({
           </div>
         </div>
 
-        <div className="w-72 flex-shrink-0">
+        {/* 晋级名单管理面板 */}
+        <div className="w-80 flex-shrink-0 space-y-4">
           <Card className="bg-gray-800/80 border-gray-700 p-4 sticky top-4">
-            <h3 className="text-lg font-bold text-white mb-4">晋级名单管理</h3>
-            <p className="text-xs text-gray-400 mb-4">点击分类标签添加队伍，点击队伍移除</p>
-            <AdvancementEditor 
-              teams={teams} 
-              advancement={advancement} 
-              onUpdate={onAdvancementUpdate} 
-            />
+            <h3 className="text-lg font-bold text-white mb-2">晋级名单管理</h3>
+            <p className="text-xs text-gray-400 mb-4">
+              拖拽队伍调整晋级状态，或点击 × 移除
+            </p>
+            
+            {/* 未分配队伍 */}
+            {unassignedTeams.length > 0 && (
+              <div className="mb-4 p-3 bg-yellow-900/20 border border-yellow-800/50 rounded-lg">
+                <p className="text-xs text-yellow-400 mb-2">
+                  未分配 ({unassignedTeams.length})
+                </p>
+                <div className="flex flex-wrap gap-1">
+                  {unassignedTeams.map(team => (
+                    <div
+                      key={team.id}
+                      draggable
+                      onDragStart={(e) => handleDragStart(e, team.id, '')}
+                      className="px-2 py-1 bg-gray-800 text-gray-300 text-xs rounded border border-gray-700 cursor-move hover:border-yellow-600/50"
+                    >
+                      {team.name}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* 晋级分类 */}
+            <div className="space-y-3">
+              {categoryOrder.map(category => (
+                <AdvancementCategoryCard
+                  key={category}
+                  category={category}
+                  teamIds={localAdvancement[category]}
+                  teams={teams}
+                  config={categoryConfig[category]}
+                  onDragOver={handleDragOver}
+                  onDrop={handleDrop}
+                  onDragStart={handleDragStart}
+                  onRemove={handleRemoveTeam}
+                />
+              ))}
+            </div>
           </Card>
         </div>
       </div>

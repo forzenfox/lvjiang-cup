@@ -37,13 +37,15 @@
         "./src/hooks/*"
       ],
       "@api/*": [
-        "./api/*"
+        "./src/api/*"
+      ],
+      "@services/*": [
+        "./src/services/*"
       ]
     }
   },
   "include": [
     "src",
-    "api",
     "tests"
   ],
   "exclude": [

@@ -10,15 +10,15 @@ const mockTeams: Team[] = [
 ];
 
 const mockAdvancement = {
-  winners2_0: [],
-  winners2_1: [],
-  losersBracket: [],
-  eliminated3rd: [],
-  eliminated0_3: [],
+  winners2_0: [] as string[],
+  winners2_1: [] as string[],
+  losersBracket: [] as string[],
+  eliminated3rd: [] as string[],
+  eliminated0_3: [] as string[],
 };
 
-describe('AdvancementEditor 下拉框交互', () => {
-  it('点击分类标签应显示下拉框', () => {
+describe('AdvancementEditor 拖拽交互', () => {
+  it('应显示晋级分类卡片', () => {
     const onMatchUpdate = vi.fn();
     const onAdvancementUpdate = vi.fn();
 
@@ -32,17 +32,15 @@ describe('AdvancementEditor 下拉框交互', () => {
       />
     );
 
-    // 点击 "2-0 晋级" 标签
-    const badge2_0 = screen.getByText('2-0 晋级 (胜者组)');
-    fireEvent.click(badge2_0);
-
-    // 验证下拉框显示
-    const dropdown = screen.getByRole('combobox');
-    expect(dropdown).toBeInTheDocument();
-    expect(dropdown).toBeVisible();
+    // 验证所有分类标签都显示
+    expect(screen.getByText('2-0 晋级（胜者组）')).toBeInTheDocument();
+    expect(screen.getByText('2-1 晋级（胜者组）')).toBeInTheDocument();
+    expect(screen.getByText('晋级败者组')).toBeInTheDocument();
+    expect(screen.getByText('积分第三淘汰')).toBeInTheDocument();
+    expect(screen.getByText('0-3 淘汰')).toBeInTheDocument();
   });
 
-  it('点击其他地方（不选择队伍）后下拉框应关闭', () => {
+  it('未分配队伍区域应显示未分配的队伍', () => {
     const onMatchUpdate = vi.fn();
     const onAdvancementUpdate = vi.fn();
 
@@ -56,57 +54,14 @@ describe('AdvancementEditor 下拉框交互', () => {
       />
     );
 
-    // 点击 "2-0 晋级" 标签打开下拉框
-    const badge2_0 = screen.getByText('2-0 晋级 (胜者组)');
-    fireEvent.click(badge2_0);
-
-    // 验证下拉框显示
-    expect(screen.getByRole('combobox')).toBeInTheDocument();
-
-    // 触发 blur 事件（模拟点击其他地方）
-    const dropdown = screen.getByRole('combobox');
-    fireEvent.blur(dropdown);
-
-    // 验证下拉框关闭
-    expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
+    // 验证未分配区域显示所有队伍
+    expect(screen.getByText('未分配 (3)')).toBeInTheDocument();
+    expect(screen.getByText('驴酱')).toBeInTheDocument();
+    expect(screen.getByText('IC')).toBeInTheDocument();
+    expect(screen.getByText('小熊')).toBeInTheDocument();
   });
 
-  it('选择队伍后下拉框应关闭并添加队伍', () => {
-    const onMatchUpdate = vi.fn();
-    const onAdvancementUpdate = vi.fn();
-
-    render(
-      <SwissStageVisualEditor
-        matches={[]}
-        teams={mockTeams}
-        advancement={mockAdvancement}
-        onMatchUpdate={onMatchUpdate}
-        onAdvancementUpdate={onAdvancementUpdate}
-      />
-    );
-
-    // 点击 "2-0 晋级" 标签打开下拉框
-    const badge2_0 = screen.getByText('2-0 晋级 (胜者组)');
-    fireEvent.click(badge2_0);
-
-    // 选择一个队伍
-    const dropdown = screen.getByRole('combobox');
-    fireEvent.change(dropdown, { target: { value: 'team1' } });
-
-    // 触发 blur 事件
-    fireEvent.blur(dropdown);
-
-    // 验证 onAdvancementUpdate 被调用，且包含 team1
-    expect(onAdvancementUpdate).toHaveBeenCalledWith({
-      ...mockAdvancement,
-      winners2_0: ['team1'],
-    });
-
-    // 验证下拉框关闭
-    expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
-  });
-
-  it('重复添加同一队伍不应重复', () => {
+  it('已分配的队伍不应出现在未分配区域', () => {
     const onMatchUpdate = vi.fn();
     const onAdvancementUpdate = vi.fn();
 
@@ -125,13 +80,98 @@ describe('AdvancementEditor 下拉框交互', () => {
       />
     );
 
-    // 点击 "2-0 晋级" 标签打开下拉框
-    const badge2_0 = screen.getByText('2-0 晋级 (胜者组)');
-    fireEvent.click(badge2_0);
+    // 验证未分配区域只显示剩余队伍
+    expect(screen.getByText('未分配 (2)')).toBeInTheDocument();
+    // team1 不在未分配区域，而是在 2-0 晋级区域
+    const winners2_0Section = screen.getByText('2-0 晋级（胜者组）').closest('.bg-gray-900\\/50');
+    expect(winners2_0Section?.textContent).toContain('驴酱');
+  });
 
-    // team1 应该不在可选列表中
-    const dropdown = screen.getByRole('combobox');
-    const options = Array.from(dropdown.querySelectorAll('option')).map(o => o.value);
-    expect(options).not.toContain('team1');
+  it('点击移除按钮应从分类中移除队伍', () => {
+    const onMatchUpdate = vi.fn();
+    const onAdvancementUpdate = vi.fn();
+
+    const advancementWithTeam = {
+      ...mockAdvancement,
+      winners2_0: ['team1'],
+    };
+
+    render(
+      <SwissStageVisualEditor
+        matches={[]}
+        teams={mockTeams}
+        advancement={advancementWithTeam}
+        onMatchUpdate={onMatchUpdate}
+        onAdvancementUpdate={onAdvancementUpdate}
+      />
+    );
+
+    // 找到 2-0 晋级区域中的移除按钮
+    const winners2_0Section = screen.getByText('2-0 晋级（胜者组）').closest('.bg-gray-900\\/50');
+    const removeButton = winners2_0Section?.querySelector('button[title="移除"]');
+    
+    expect(removeButton).toBeInTheDocument();
+    
+    if (removeButton) {
+      fireEvent.click(removeButton);
+      // 验证移除后队伍回到未分配区域
+      expect(screen.getByText('未分配 (3)')).toBeInTheDocument();
+    }
+  });
+
+  it('保存按钮在未更改时应禁用', () => {
+    const onMatchUpdate = vi.fn();
+    const onAdvancementUpdate = vi.fn();
+
+    render(
+      <SwissStageVisualEditor
+        matches={[]}
+        teams={mockTeams}
+        advancement={mockAdvancement}
+        onMatchUpdate={onMatchUpdate}
+        onAdvancementUpdate={onAdvancementUpdate}
+      />
+    );
+
+    // 找到保存按钮
+    const saveButton = screen.getByText('保存更改').closest('button');
+    expect(saveButton).toBeDisabled();
+  });
+
+  it('重置按钮应恢复原始状态', () => {
+    const onMatchUpdate = vi.fn();
+    const onAdvancementUpdate = vi.fn();
+
+    const advancementWithTeam = {
+      ...mockAdvancement,
+      winners2_0: ['team1'],
+    };
+
+    render(
+      <SwissStageVisualEditor
+        matches={[]}
+        teams={mockTeams}
+        advancement={advancementWithTeam}
+        onMatchUpdate={onMatchUpdate}
+        onAdvancementUpdate={onAdvancementUpdate}
+      />
+    );
+
+    // 点击移除按钮
+    const winners2_0Section = screen.getByText('2-0 晋级（胜者组）').closest('.bg-gray-900\\/50');
+    const removeButton = winners2_0Section?.querySelector('button[title="移除"]');
+    
+    if (removeButton) {
+      fireEvent.click(removeButton);
+      
+      // 点击重置按钮
+      const resetButton = screen.getByText('重置').closest('button');
+      if (resetButton) {
+        fireEvent.click(resetButton);
+        
+        // 验证状态恢复
+        expect(screen.getByText('未分配 (2)')).toBeInTheDocument();
+      }
+    }
   });
 });

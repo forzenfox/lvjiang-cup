@@ -11,11 +11,11 @@ const mockTeams: Team[] = [
 ];
 
 const mockAdvancement = {
-  winners2_0: [],
-  winners2_1: [],
-  losersBracket: [],
-  eliminated3rd: [],
-  eliminated0_3: [],
+  winners2_0: [] as string[],
+  winners2_1: [] as string[],
+  losersBracket: [] as string[],
+  eliminated3rd: [] as string[],
+  eliminated0_3: [] as string[],
 };
 
 describe('SwissStageVisualEditor 点击编辑功能', () => {
@@ -49,10 +49,12 @@ describe('SwissStageVisualEditor 点击编辑功能', () => {
       />
     );
 
-    // 找到比赛卡片（包含队伍名称的元素）
-    const teamNameElement = screen.getByText('驴酱');
+    // 找到比赛卡片 - 通过查找包含 "已结束" 状态的卡片
+    const statusBadge = screen.getByText('已结束');
+    expect(statusBadge).toBeInTheDocument();
+    
     // 向上查找到卡片容器（带有 cursor-pointer 类的元素）
-    let matchCard = teamNameElement.parentElement;
+    let matchCard = statusBadge.parentElement;
     while (matchCard && !matchCard.className.includes('cursor-pointer')) {
       matchCard = matchCard.parentElement;
     }
