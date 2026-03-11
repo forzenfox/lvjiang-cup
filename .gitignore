@@ -30,3 +30,6 @@ coverage/
 **/tests/reports/
 *.test-results.json
 *.test-report.html
+
+# Trae IDE configuration
+.trae/
