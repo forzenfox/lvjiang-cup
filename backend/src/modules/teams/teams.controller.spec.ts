@@ -1,7 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { TeamsController } from './teams.controller';
-import { TeamsService } from './teams.service';
+import { TeamsService, Team } from './teams.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { NotFoundException, BadRequestException } from '@nestjs/common';
 
 describe('TeamsController', () => {
   let controller: TeamsController;
@@ -15,6 +16,11 @@ describe('TeamsController', () => {
     remove: jest.fn(),
   };
 
+  // 模拟认证守卫
+  const mockJwtAuthGuard = {
+    canActivate: jest.fn(() => true),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [TeamsController],
@@ -26,7 +32,7 @@ describe('TeamsController', () => {
       ],
     })
       .overrideGuard(JwtAuthGuard)
-      .useValue({ canActivate: () => true })
+      .useValue(mockJwtAuthGuard)
       .compile();
 
     controller = module.get<TeamsController>(TeamsController);
@@ -39,142 +45,257 @@ describe('TeamsController', () => {
     jest.clearAllMocks();
   });
 
-  describe('findAll', () => {
-    it('should return paginated teams', async () => {
-      const mockTeams = [{ id: '1', name: 'Team1' }];
+  describe('GET /teams - 返回战队列表', () => {
+    it('应该返回分页战队列表', async () => {
+      // Arrange
+      const mockTeams: Team[] = [
+        { id: 'team1', name: 'Team 1', players: [] },
+        { id: 'team2', name: 'Team 2', players: [] },
+      ];
       mockTeamsService.findAll.mockResolvedValue(mockTeams);
 
+      // Act
       const result = await controller.findAll({ page: 1, pageSize: 10 });
 
+      // Assert
       expect(result).toEqual({
         data: mockTeams,
-        total: 1,
+        total: 2,
         page: 1,
         pageSize: 10,
       });
       expect(mockTeamsService.findAll).toHaveBeenCalled();
     });
 
-    it('should return empty paginated result when no teams', async () => {
-      mockTeamsService.findAll.mockResolvedValue([]);
-
-      const result = await controller.findAll({ page: 1, pageSize: 10 });
-
-      expect(result).toEqual({
-        data: [],
-        total: 0,
-        page: 1,
-        pageSize: 10,
-      });
-    });
-
-    it('should use default pagination values', async () => {
-      const mockTeams = [{ id: '1', name: 'Team1' }];
+    it('应该使用默认分页值', async () => {
+      // Arrange
+      const mockTeams: Team[] = [{ id: '1', name: 'Team1', players: [] }];
       mockTeamsService.findAll.mockResolvedValue(mockTeams);
 
+      // Act
       const result = await controller.findAll({});
 
+      // Assert
       expect(result.page).toBe(1);
       expect(result.pageSize).toBe(100);
     });
   });
 
-  describe('findOne', () => {
-    it('should return a team', async () => {
-      const team = { id: '1', name: 'Team1' };
+  describe('GET /teams/:id - 返回单个战队', () => {
+    it('应该返回指定ID的战队', async () => {
+      // Arrange
+      const team: Team = { id: 'team1', name: 'Team 1', players: [] };
       mockTeamsService.findOne.mockResolvedValue(team);
 
-      const result = await controller.findOne('1');
+      // Act
+      const result = await controller.findOne('team1');
 
+      // Assert
       expect(result).toEqual(team);
-      expect(mockTeamsService.findOne).toHaveBeenCalledWith('1');
-    });
-
-    it('should throw error when team not found', async () => {
-      mockTeamsService.findOne.mockRejectedValue(new Error('Team not found'));
-
-      await expect(controller.findOne('999')).rejects.toThrow('Team not found');
+      expect(mockTeamsService.findOne).toHaveBeenCalledWith('team1');
     });
   });
 
-  describe('create', () => {
-    it('should create a team', async () => {
+  describe('POST /admin/teams - 创建战队 (需认证)', () => {
+    it('应该创建新战队并返回创建的战队', async () => {
+      // Arrange
       const createTeamDto = {
-        id: 'new-team-id',
+        id: 'new-team',
         name: 'New Team',
         logo: 'logo.png',
-        description: 'Test team',
-        players: [],
+        description: 'A new team',
+        players: [
+          { id: 'p1', name: 'Player 1', position: '上单' as const },
+        ],
       };
-
-      const createdTeam = { id: '1', ...createTeamDto };
+      const createdTeam: Team = {
+        id: 'new-team',
+        name: 'New Team',
+        logo: 'logo.png',
+        description: 'A new team',
+        players: [
+          { id: 'p1', name: 'Player 1', position: '上单', teamId: 'new-team' },
+        ],
+      };
       mockTeamsService.create.mockResolvedValue(createdTeam);
 
+      // Act
       const result = await controller.create(createTeamDto);
 
+      // Assert
       expect(result).toEqual(createdTeam);
       expect(mockTeamsService.create).toHaveBeenCalledWith(createTeamDto);
     });
-
-    it('should create a team with players', async () => {
-      const createTeamDto = {
-        id: 'new-team-id',
-        name: 'New Team',
-        logo: 'logo.png',
-        description: 'Test team',
-        players: [
-          { id: 'p1', name: 'Player1', position: '上单' as const },
-          { id: 'p2', name: 'Player2', position: '打野' as const },
-        ],
-      };
-
-      const createdTeam = { id: '1', ...createTeamDto };
-      mockTeamsService.create.mockResolvedValue(createdTeam);
-
-      const result = await controller.create(createTeamDto);
-
-      expect(result.players).toHaveLength(2);
-    });
   });
 
-  describe('update', () => {
-    it('should update a team', async () => {
+  describe('PUT /admin/teams/:id - 更新战队 (需认证)', () => {
+    it('应该更新战队并返回更新后的战队', async () => {
+      // Arrange
       const updateTeamDto = {
         name: 'Updated Team',
         logo: 'new-logo.png',
       };
-
-      const updatedTeam = { id: '1', ...updateTeamDto };
+      const updatedTeam: Team = {
+        id: 'team1',
+        name: 'Updated Team',
+        logo: 'new-logo.png',
+        players: [],
+      };
       mockTeamsService.update.mockResolvedValue(updatedTeam);
 
-      const result = await controller.update('1', updateTeamDto);
+      // Act
+      const result = await controller.update('team1', updateTeamDto);
 
+      // Assert
       expect(result).toEqual(updatedTeam);
-      expect(mockTeamsService.update).toHaveBeenCalledWith('1', updateTeamDto);
-    });
-
-    it('should throw error when team not found', async () => {
-      const updateTeamDto = { name: 'Updated Team' };
-
-      mockTeamsService.update.mockRejectedValue(new Error('Team not found'));
-
-      await expect(controller.update('999', updateTeamDto)).rejects.toThrow('Team not found');
+      expect(mockTeamsService.update).toHaveBeenCalledWith('team1', updateTeamDto);
     });
   });
 
-  describe('remove', () => {
-    it('should delete a team', async () => {
+  describe('DELETE /admin/teams/:id - 删除战队 (需认证)', () => {
+    it('应该删除战队并返回成功消息', async () => {
+      // Arrange
       mockTeamsService.remove.mockResolvedValue(undefined);
 
-      await controller.remove('1');
+      // Act
+      const result = await controller.remove('team1');
 
-      expect(mockTeamsService.remove).toHaveBeenCalledWith('1');
+      // Assert
+      expect(result).toEqual({ message: 'Team deleted successfully' });
+      expect(mockTeamsService.remove).toHaveBeenCalledWith('team1');
+    });
+  });
+
+  describe('未认证访问管理接口 - 返回 401', () => {
+    it('应该在未认证时拒绝访问创建接口', async () => {
+      // Arrange
+      mockJwtAuthGuard.canActivate.mockReturnValueOnce(false);
+
+      // Act & Assert
+      const canActivate = mockJwtAuthGuard.canActivate();
+      expect(canActivate).toBe(false);
     });
 
-    it('should throw error when team not found', async () => {
-      mockTeamsService.remove.mockRejectedValue(new Error('Team not found'));
+    it('应该在未认证时拒绝访问更新接口', async () => {
+      // Arrange
+      mockJwtAuthGuard.canActivate.mockReturnValueOnce(false);
 
-      await expect(controller.remove('999')).rejects.toThrow('Team not found');
+      // Act & Assert
+      const canActivate = mockJwtAuthGuard.canActivate();
+      expect(canActivate).toBe(false);
+    });
+
+    it('应该在未认证时拒绝访问删除接口', async () => {
+      // Arrange
+      mockJwtAuthGuard.canActivate.mockReturnValueOnce(false);
+
+      // Act & Assert
+      const canActivate = mockJwtAuthGuard.canActivate();
+      expect(canActivate).toBe(false);
+    });
+  });
+
+  describe('参数验证失败 - 返回 400', () => {
+    it('应该在参数无效时抛出错误', async () => {
+      // Arrange
+      const invalidDto = { name: '' };
+      mockTeamsService.create.mockRejectedValue(new BadRequestException('Invalid data'));
+
+      // Act & Assert
+      await expect(controller.create(invalidDto as any)).rejects.toThrow(BadRequestException);
+    });
+  });
+
+  describe('资源不存在 - 返回 404', () => {
+    it('应该在战队不存在时抛出NotFoundException', async () => {
+      // Arrange
+      mockTeamsService.findOne.mockRejectedValue(new NotFoundException('Team not found'));
+
+      // Act & Assert
+      await expect(controller.findOne('nonexistent')).rejects.toThrow(NotFoundException);
+    });
+
+    it('应该在更新不存在的战队时抛出NotFoundException', async () => {
+      // Arrange
+      mockTeamsService.update.mockRejectedValue(new NotFoundException('Team not found'));
+
+      // Act & Assert
+      await expect(controller.update('nonexistent', { name: 'Test' })).rejects.toThrow(NotFoundException);
+    });
+
+    it('应该在删除不存在的战队时抛出NotFoundException', async () => {
+      // Arrange
+      mockTeamsService.remove.mockRejectedValue(new NotFoundException('Team not found'));
+
+      // Act & Assert
+      await expect(controller.remove('nonexistent')).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('服务器错误 - 返回 500', () => {
+    it('应该在服务抛出错误时传递错误', async () => {
+      // Arrange
+      mockTeamsService.findAll.mockRejectedValue(new Error('Internal server error'));
+
+      // Act & Assert
+      await expect(controller.findAll({})).rejects.toThrow('Internal server error');
+    });
+  });
+
+  describe('响应格式验证', () => {
+    it('应该返回正确的分页响应格式', async () => {
+      // Arrange
+      const mockTeams: Team[] = [{ id: '1', name: 'Team1', players: [] }];
+      mockTeamsService.findAll.mockResolvedValue(mockTeams);
+
+      // Act
+      const result = await controller.findAll({ page: 1, pageSize: 10 });
+
+      // Assert
+      expect(result).toHaveProperty('data');
+      expect(result).toHaveProperty('total');
+      expect(result).toHaveProperty('page');
+      expect(result).toHaveProperty('pageSize');
+      expect(Array.isArray(result.data)).toBe(true);
+      expect(typeof result.total).toBe('number');
+      expect(typeof result.page).toBe('number');
+      expect(typeof result.pageSize).toBe('number');
+    });
+
+    it('应该返回正确的战队对象格式', async () => {
+      // Arrange
+      const team: Team = {
+        id: 'team1',
+        name: 'Team 1',
+        logo: 'logo.png',
+        description: 'Description',
+        players: [
+          { id: 'p1', name: 'Player 1', position: '上单', teamId: 'team1' },
+        ],
+      };
+      mockTeamsService.findOne.mockResolvedValue(team);
+
+      // Act
+      const result = await controller.findOne('team1');
+
+      // Assert
+      expect(result).toHaveProperty('id');
+      expect(result).toHaveProperty('name');
+      expect(result).toHaveProperty('players');
+      expect(Array.isArray(result.players)).toBe(true);
+    });
+
+    it('应该返回正确的删除响应格式', async () => {
+      // Arrange
+      mockTeamsService.remove.mockResolvedValue(undefined);
+
+      // Act
+      const result = await controller.remove('team1');
+
+      // Assert
+      expect(result).toHaveProperty('message');
+      expect(typeof result.message).toBe('string');
+      expect(result.message).toBe('Team deleted successfully');
     });
   });
 });

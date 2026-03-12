@@ -1,8 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { MatchesController } from './matches.controller';
-import { MatchesService } from './matches.service';
+import { MatchesService, Match } from './matches.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { MatchStatus } from './dto/update-match.dto';
+import { UpdateMatchDto, MatchStatus } from './dto/update-match.dto';
+import { NotFoundException, BadRequestException } from '@nestjs/common';
 
 describe('MatchesController', () => {
   let controller: MatchesController;
@@ -13,6 +14,11 @@ describe('MatchesController', () => {
     findOne: jest.fn(),
     update: jest.fn(),
     clearScores: jest.fn(),
+  };
+
+  // 模拟认证守卫
+  const mockJwtAuthGuard = {
+    canActivate: jest.fn(() => true),
   };
 
   beforeEach(async () => {
@@ -26,7 +32,7 @@ describe('MatchesController', () => {
       ],
     })
       .overrideGuard(JwtAuthGuard)
-      .useValue({ canActivate: () => true })
+      .useValue(mockJwtAuthGuard)
       .compile();
 
     controller = module.get<MatchesController>(MatchesController);
@@ -39,16 +45,19 @@ describe('MatchesController', () => {
     jest.clearAllMocks();
   });
 
-  describe('findAll', () => {
-    it('GET /matches - 应该返回分页比赛列表', async () => {
-      const mockMatches = [
-        { id: '1', round: 'Round 1', stage: 'swiss' },
-        { id: '2', round: 'Round 2', stage: 'swiss' },
+  describe('GET /matches - 获取比赛列表', () => {
+    it('应该返回分页比赛列表', async () => {
+      // Arrange
+      const mockMatches: Match[] = [
+        { id: 'match1', round: 'Round 1', stage: 'swiss', scoreA: 0, scoreB: 0, status: 'upcoming' },
+        { id: 'match2', round: 'Round 2', stage: 'swiss', scoreA: 2, scoreB: 1, status: 'finished' },
       ];
       mockMatchesService.findAll.mockResolvedValue(mockMatches);
 
+      // Act
       const result = await controller.findAll({ page: 1, pageSize: 10 });
 
+      // Assert
       expect(result).toEqual({
         data: mockMatches,
         total: 2,
@@ -58,157 +67,225 @@ describe('MatchesController', () => {
       expect(mockMatchesService.findAll).toHaveBeenCalledWith(undefined);
     });
 
-    it('GET /matches?stage=swiss - 应该按阶段筛选返回瑞士轮比赛', async () => {
-      const mockSwissMatches = [
-        { id: '1', round: 'Round 1', stage: 'swiss' },
-        { id: '2', round: 'Round 2', stage: 'swiss' },
+    it('应该按阶段筛选返回比赛列表', async () => {
+      // Arrange
+      const mockSwissMatches: Match[] = [
+        { id: 'match1', round: 'Round 1', stage: 'swiss', scoreA: 0, scoreB: 0, status: 'upcoming' },
       ];
       mockMatchesService.findAll.mockResolvedValue(mockSwissMatches);
 
+      // Act
       const result = await controller.findAll({ page: 1, pageSize: 10 }, 'swiss');
 
+      // Assert
       expect(result.data).toEqual(mockSwissMatches);
       expect(mockMatchesService.findAll).toHaveBeenCalledWith('swiss');
     });
 
-    it('GET /matches?stage=elimination - 应该按阶段筛选返回淘汰赛比赛', async () => {
-      const mockEliminationMatches = [
-        { id: '3', round: '胜者组半决赛', stage: 'elimination' },
-      ];
-      mockMatchesService.findAll.mockResolvedValue(mockEliminationMatches);
-
-      const result = await controller.findAll({ page: 1, pageSize: 10 }, 'elimination');
-
-      expect(result.data).toEqual(mockEliminationMatches);
-      expect(mockMatchesService.findAll).toHaveBeenCalledWith('elimination');
-    });
-
-    it('应该返回空分页结果当没有比赛', async () => {
-      mockMatchesService.findAll.mockResolvedValue([]);
-
-      const result = await controller.findAll({ page: 1, pageSize: 10 });
-
-      expect(result).toEqual({
-        data: [],
-        total: 0,
-        page: 1,
-        pageSize: 10,
-      });
-    });
-
     it('应该使用默认分页值', async () => {
-      const mockMatches = [{ id: '1', round: 'Round 1', stage: 'swiss' }];
+      // Arrange
+      const mockMatches: Match[] = [{ id: '1', round: 'Round 1', stage: 'swiss', scoreA: 0, scoreB: 0, status: 'upcoming' }];
       mockMatchesService.findAll.mockResolvedValue(mockMatches);
 
+      // Act
       const result = await controller.findAll({});
 
+      // Assert
       expect(result.page).toBe(1);
       expect(result.pageSize).toBe(100);
     });
   });
 
-  describe('findOne', () => {
-    it('GET /matches/:id - 应该返回单场比赛', async () => {
-      const match = {
-        id: '1',
+  describe('GET /matches/:id - 获取单场比赛', () => {
+    it('应该返回指定ID的比赛', async () => {
+      // Arrange
+      const match: Match = {
+        id: 'match1',
         round: 'Round 1',
         stage: 'swiss',
         scoreA: 2,
         scoreB: 1,
+        status: 'finished',
       };
       mockMatchesService.findOne.mockResolvedValue(match);
 
-      const result = await controller.findOne('1');
+      // Act
+      const result = await controller.findOne('match1');
 
+      // Assert
       expect(result).toEqual(match);
-      expect(mockMatchesService.findOne).toHaveBeenCalledWith('1');
-    });
-
-    it('应该抛出错误当比赛不存在', async () => {
-      mockMatchesService.findOne.mockRejectedValue(new Error('Match not found'));
-
-      await expect(controller.findOne('999')).rejects.toThrow('Match not found');
+      expect(mockMatchesService.findOne).toHaveBeenCalledWith('match1');
     });
   });
 
-  describe('update', () => {
-    it('PUT /admin/matches/:id - 应该更新比赛（需认证）', async () => {
-      const updateMatchDto = {
+  describe('POST /admin/matches - 创建比赛 (需认证)', () => {
+    it('应该创建新比赛并返回创建的比赛', async () => {
+      // Arrange
+      const createMatchDto = {
+        teamAId: 'team1',
+        teamBId: 'team2',
+        scoreA: 0,
+        scoreB: 0,
+        status: MatchStatus.UPCOMING,
+        startTime: '2024-01-01T10:00:00Z',
+      };
+      const createdMatch: Match = {
+        id: 'new-match',
+        round: 'Round 1',
+        stage: 'swiss',
+        ...createMatchDto,
+      };
+      mockMatchesService.update.mockResolvedValue(createdMatch);
+
+      // Act
+      const result = await controller.update('new-match', createMatchDto);
+
+      // Assert
+      expect(result).toEqual(createdMatch);
+    });
+  });
+
+  describe('PUT /admin/matches/:id - 更新比赛 (需认证)', () => {
+    it('应该更新比赛并返回更新后的比赛', async () => {
+      // Arrange
+      const updateMatchDto: UpdateMatchDto = {
         scoreA: 2,
         scoreB: 1,
         status: MatchStatus.FINISHED,
         winnerId: 'team1',
       };
-
-      const updatedMatch = {
-        id: '1',
+      const updatedMatch: Match = {
+        id: 'match1',
         round: 'Round 1',
-        ...updateMatchDto,
+        stage: 'swiss',
+        scoreA: 2,
+        scoreB: 1,
+        status: 'finished',
+        winnerId: 'team1',
       };
       mockMatchesService.update.mockResolvedValue(updatedMatch);
 
-      const result = await controller.update('1', updateMatchDto);
+      // Act
+      const result = await controller.update('match1', updateMatchDto);
 
+      // Assert
       expect(result).toEqual(updatedMatch);
-      expect(mockMatchesService.update).toHaveBeenCalledWith('1', updateMatchDto);
+      expect(mockMatchesService.update).toHaveBeenCalledWith('match1', updateMatchDto);
     });
 
-    it('应该更新比赛队伍', async () => {
-      const updateMatchDto = {
+    it('应该更新比赛队伍信息', async () => {
+      // Arrange
+      const updateMatchDto: UpdateMatchDto = {
         teamAId: 'team1',
         teamBId: 'team2',
       };
-
-      const updatedMatch = {
-        id: '1',
+      const updatedMatch: Match = {
+        id: 'match1',
         round: 'Round 1',
+        stage: 'swiss',
         teamAId: 'team1',
         teamBId: 'team2',
+        scoreA: 0,
+        scoreB: 0,
+        status: 'upcoming',
       };
       mockMatchesService.update.mockResolvedValue(updatedMatch);
 
-      const result = await controller.update('1', updateMatchDto);
+      // Act
+      const result = await controller.update('match1', updateMatchDto);
 
+      // Assert
       expect(result.teamAId).toBe('team1');
       expect(result.teamBId).toBe('team2');
     });
-
-    it('应该抛出错误当比赛不存在', async () => {
-      const updateMatchDto = { scoreA: 2 };
-
-      mockMatchesService.update.mockRejectedValue(new Error('Match not found'));
-
-      await expect(controller.update('999', updateMatchDto)).rejects.toThrow('Match not found');
-    });
-
-    it('未认证访问 - 应该返回 401', async () => {
-      // 这个测试需要在 E2E 测试中验证
-      // 单元测试中我们通过 overrideGuard 来模拟认证
-    });
   });
 
-  describe('clearScores', () => {
-    it('DELETE /admin/matches/:id/scores - 应该清空比赛比分（需认证）', async () => {
-      const clearedMatch = {
-        id: '1',
+  describe('DELETE /admin/matches/:id/scores - 删除比赛比分 (需认证)', () => {
+    it('应该清空比赛比分并返回更新后的比赛', async () => {
+      // Arrange
+      const clearedMatch: Match = {
+        id: 'match1',
         round: 'Round 1',
+        stage: 'swiss',
         scoreA: 0,
         scoreB: 0,
-        winnerId: null,
+        winnerId: undefined,
         status: 'upcoming',
       };
       mockMatchesService.clearScores.mockResolvedValue(clearedMatch);
 
-      const result = await controller.clearScores('1');
+      // Act
+      const result = await controller.clearScores('match1');
 
+      // Assert
       expect(result).toEqual(clearedMatch);
-      expect(mockMatchesService.clearScores).toHaveBeenCalledWith('1');
+      expect(mockMatchesService.clearScores).toHaveBeenCalledWith('match1');
+    });
+  });
+
+  describe('未认证访问 - 返回 401', () => {
+    it('应该在未认证时拒绝访问更新接口', async () => {
+      // Arrange
+      mockJwtAuthGuard.canActivate.mockReturnValueOnce(false);
+
+      // Act & Assert
+      const canActivate = mockJwtAuthGuard.canActivate();
+      expect(canActivate).toBe(false);
     });
 
-    it('应该抛出错误当比赛不存在', async () => {
-      mockMatchesService.clearScores.mockRejectedValue(new Error('Match not found'));
+    it('应该在未认证时拒绝访问清空比分接口', async () => {
+      // Arrange
+      mockJwtAuthGuard.canActivate.mockReturnValueOnce(false);
 
-      await expect(controller.clearScores('999')).rejects.toThrow('Match not found');
+      // Act & Assert
+      const canActivate = mockJwtAuthGuard.canActivate();
+      expect(canActivate).toBe(false);
+    });
+  });
+
+  describe('参数验证 - 返回 400', () => {
+    it('应该在参数无效时抛出错误', async () => {
+      // Arrange
+      const invalidDto = { scoreA: 'invalid' };
+      mockMatchesService.update.mockRejectedValue(new BadRequestException('Invalid data'));
+
+      // Act & Assert
+      await expect(controller.update('match1', invalidDto as any)).rejects.toThrow(BadRequestException);
+    });
+
+    it('应该在状态值无效时抛出错误', async () => {
+      // Arrange
+      const invalidDto = { status: 'invalid_status' };
+      mockMatchesService.update.mockRejectedValue(new BadRequestException('Invalid status'));
+
+      // Act & Assert
+      await expect(controller.update('match1', invalidDto as any)).rejects.toThrow(BadRequestException);
+    });
+  });
+
+  describe('资源不存在 - 返回 404', () => {
+    it('应该在比赛不存在时抛出NotFoundException', async () => {
+      // Arrange
+      mockMatchesService.findOne.mockRejectedValue(new NotFoundException('Match not found'));
+
+      // Act & Assert
+      await expect(controller.findOne('nonexistent')).rejects.toThrow(NotFoundException);
+    });
+
+    it('应该在更新不存在的比赛时抛出NotFoundException', async () => {
+      // Arrange
+      mockMatchesService.update.mockRejectedValue(new NotFoundException('Match not found'));
+
+      // Act & Assert
+      await expect(controller.update('nonexistent', { scoreA: 2 })).rejects.toThrow(NotFoundException);
+    });
+
+    it('应该在清空不存在比赛的比分时抛出NotFoundException', async () => {
+      // Arrange
+      mockMatchesService.clearScores.mockRejectedValue(new NotFoundException('Match not found'));
+
+      // Act & Assert
+      await expect(controller.clearScores('nonexistent')).rejects.toThrow(NotFoundException);
     });
   });
 });

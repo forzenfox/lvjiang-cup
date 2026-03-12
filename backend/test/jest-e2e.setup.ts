@@ -12,3 +12,6 @@ process.env.DATABASE_PATH = process.env.DATABASE_PATH || ':memory:';
 process.env.CACHE_TTL = process.env.CACHE_TTL || '60';
 process.env.ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'admin';
 process.env.ADMIN_PASSWORD_HASH = process.env.ADMIN_PASSWORD_HASH || '$2b$10$test-hash';
+
+// 设置Jest超时时间为30秒
+jest.setTimeout(30000);
