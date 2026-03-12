@@ -3,7 +3,7 @@
  * 测试战队的增删改查完整流程
  */
 
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach } from 'vitest';
 import axios, { AxiosInstance } from 'axios';
 
 // API 配置

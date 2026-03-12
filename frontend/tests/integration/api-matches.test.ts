@@ -3,7 +3,7 @@
  * 测试比赛的查询、更新、清空比分等完整流程
  */
 
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect, beforeAll, beforeEach } from 'vitest';
 import axios, { AxiosInstance } from 'axios';
 
 // API 配置

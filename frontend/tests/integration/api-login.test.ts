@@ -3,7 +3,7 @@
  * 测试完整的登录功能，包括页面交互、表单验证、认证状态管理
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeAll } from 'vitest';
 import axios, { AxiosInstance } from 'axios';
 
 // API 配置

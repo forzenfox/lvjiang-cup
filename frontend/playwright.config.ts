@@ -51,18 +51,11 @@ export default defineConfig({
     navigationTimeout: 30000,
   },
   
-  // 浏览器项目配置 - 仅支持Chrome和Edge
+  // 浏览器项目配置 - 仅支持 Edge
   projects: [
     {
-      name: 'chromium',
-      use: { 
-        ...devices['Desktop Chrome'],
-        channel: 'chrome',
-      },
-    },
-    {
       name: 'msedge',
-      use: { 
+      use: {
         ...devices['Desktop Edge'],
         channel: 'msedge',
       },
