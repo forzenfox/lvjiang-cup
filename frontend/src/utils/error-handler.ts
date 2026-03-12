@@ -150,7 +150,8 @@ export function parseAxiosError(error: AxiosError): AppError {
   // 服务器返回错误
   if (error.response) {
     const { status, data } = error.response;
-    const message = (data as any)?.message || getHttpErrorMessage(status);
+     
+    const message = (data as { message?: string })?.message || getHttpErrorMessage(status);
 
     // 根据状态码分类错误
     let type = ErrorType.SERVER;

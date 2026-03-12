@@ -46,7 +46,7 @@ export function usePerformanceMonitoring(
       });
       lcpObserver.observe({ entryTypes: ['largest-contentful-paint'] });
       observersRef.current.push(lcpObserver);
-    } catch (e) {
+    } catch {
       // 浏览器不支持
     }
 
@@ -63,7 +63,7 @@ export function usePerformanceMonitoring(
       });
       fidObserver.observe({ entryTypes: ['first-input'] });
       observersRef.current.push(fidObserver);
-    } catch (e) {
+    } catch {
       // 浏览器不支持
     }
 
@@ -83,7 +83,7 @@ export function usePerformanceMonitoring(
       });
       clsObserver.observe({ entryTypes: ['layout-shift'] });
       observersRef.current.push(clsObserver);
-    } catch (e) {
+    } catch {
       // 浏览器不支持
     }
 
@@ -101,7 +101,7 @@ export function usePerformanceMonitoring(
       });
       paintObserver.observe({ entryTypes: ['paint'] });
       observersRef.current.push(paintObserver);
-    } catch (e) {
+    } catch {
       // 浏览器不支持
     }
 
@@ -112,7 +112,7 @@ export function usePerformanceMonitoring(
         newMetrics.ttfb = navigation.responseStart - navigation.startTime;
         setMetrics((prev) => ({ ...prev, ttfb: newMetrics.ttfb }));
       }
-    } catch (e) {
+    } catch {
       // 浏览器不支持
     }
 
@@ -137,7 +137,7 @@ export function usePerformanceMonitoring(
  * 使用 RAF (Request Animation Frame) 节流
  * 用于优化高频更新（如滚动、鼠标移动）
  */
-export function useRafThrottle<T extends (...args: any[]) => void>(
+export function useRafThrottle<T extends (...args: unknown[]) => void>(
   callback: T
 ): (...args: Parameters<T>) => void {
   const rafIdRef = useRef<number | null>(null);
@@ -215,6 +215,7 @@ export function useIntersectionObserver(
     return () => {
       observer.disconnect();
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [onIntersect, triggerOnce, observerOptions.threshold, observerOptions.root, observerOptions.rootMargin]);
 
   return { ref: ref as React.RefObject<HTMLElement>, isIntersecting, entry };
@@ -343,7 +344,7 @@ export function useLongTaskMonitoring(
       return () => {
         observer.disconnect();
       };
-    } catch (e) {
+    } catch {
       // 浏览器不支持
     }
   }, [onLongTask, threshold]);
@@ -374,7 +375,7 @@ export function useResourceMonitoring(
       return () => {
         observer.disconnect();
       };
-    } catch (e) {
+    } catch {
       // 浏览器不支持
     }
   }, [onResourceLoad]);
@@ -393,12 +394,14 @@ export function useMemoryMonitoring(
   interval: number = 5000
 ): void {
   useEffect(() => {
-    if (typeof window === 'undefined' || !(performance as any).memory) {
+     
+    if (typeof window === 'undefined' || !(performance as unknown as { memory?: { usedJSHeapSize: number; totalJSHeapSize: number; jsHeapSizeLimit: number } }).memory) {
       return;
     }
 
     const timer = setInterval(() => {
-      const memory = (performance as any).memory;
+       
+      const memory = (performance as unknown as { memory: { usedJSHeapSize: number; totalJSHeapSize: number; jsHeapSizeLimit: number } }).memory;
       if (memory) {
         onMemoryInfo?.({
           usedJSHeapSize: memory.usedJSHeapSize,

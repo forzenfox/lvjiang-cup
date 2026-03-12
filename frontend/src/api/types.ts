@@ -5,7 +5,7 @@
 /**
  * 通用响应类型
  */
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   /** 响应状态码 */
   code: number;
   /** 响应数据 */
@@ -25,7 +25,7 @@ export interface ApiError {
   /** 错误消息 */
   message: string;
   /** 错误详情 */
-  details?: any;
+  details?: unknown;
 }
 
 /**
@@ -66,9 +66,13 @@ export interface LoginRequest {
 
 export interface LoginResponse {
   /** 用户信息 */
-  user: UserInfo;
-  /** 访问令牌 */
-  token: string;
+  user?: UserInfo;
+  /** 访问令牌 (后端返回 access_token) */
+  access_token?: string;
+  /** 令牌类型 */
+  token_type?: string;
+  /** 兼容旧版本 */
+  token?: string;
   /** 刷新令牌 */
   refreshToken?: string;
 }

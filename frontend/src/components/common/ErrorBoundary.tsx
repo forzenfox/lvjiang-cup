@@ -78,8 +78,10 @@ export class ErrorBoundary extends Component<Props, State> {
 
   reportError(error: Error, errorInfo: ErrorInfo) {
     // 可以集成 Sentry、LogRocket 等错误监控服务
-    if (typeof window !== 'undefined' && (window as any).Sentry) {
-      (window as any).Sentry.captureException(error, {
+     
+    if (typeof window !== 'undefined' && (window as unknown as { Sentry?: { captureException: (e: Error, opts: { extra: { componentStack: string } }) => void } }).Sentry) {
+       
+      (window as unknown as { Sentry: { captureException: (e: Error, opts: { extra: { componentStack: string } }) => void } }).Sentry.captureException(error, {
         extra: {
           componentStack: errorInfo.componentStack,
         },

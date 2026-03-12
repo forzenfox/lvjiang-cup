@@ -3,7 +3,7 @@
  * 测试完整的登录功能，包括页面交互、表单验证、认证状态管理
  */
 
-import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import axios, { AxiosInstance } from 'axios';
 
 // API 配置
@@ -42,7 +42,7 @@ describe('E2E 测试 - 登录流程', () => {
           timeout: 5000,
         });
         expect(response.status).toBe(200);
-      } catch (error) {
+      } catch {
         // 如果前端服务未启动，跳过此测试
         console.log('前端服务可能未启动，跳过页面访问测试');
       }
@@ -57,8 +57,9 @@ describe('E2E 测试 - 登录流程', () => {
           password: VALID_CREDENTIALS.password,
         });
         expect.fail('应该抛出错误');
-      } catch (error: any) {
-        expect([400, 401]).toContain(error.response?.status);
+      } catch (error: unknown) {
+        const axiosError = error as { response?: { status: number } };
+        expect([400, 401]).toContain(axiosError.response?.status);
       }
     });
 
@@ -69,8 +70,9 @@ describe('E2E 测试 - 登录流程', () => {
           password: '',
         });
         expect.fail('应该抛出错误');
-      } catch (error: any) {
-        expect([400, 401]).toContain(error.response?.status);
+      } catch (error: unknown) {
+        const axiosError = error as { response?: { status: number } };
+        expect([400, 401]).toContain(axiosError.response?.status);
       }
     });
 
@@ -78,8 +80,9 @@ describe('E2E 测试 - 登录流程', () => {
       try {
         await apiClient.post('/admin/auth/login', {});
         expect.fail('应该抛出错误');
-      } catch (error: any) {
-        expect(error.response?.status).toBe(400);
+      } catch (error: unknown) {
+        const axiosError = error as { response?: { status: number } };
+        expect(axiosError.response?.status).toBe(400);
       }
     });
 
@@ -89,8 +92,9 @@ describe('E2E 测试 - 登录流程', () => {
           password: VALID_CREDENTIALS.password,
         });
         expect.fail('应该抛出错误');
-      } catch (error: any) {
-        expect(error.response?.status).toBe(400);
+      } catch (error: unknown) {
+        const axiosError = error as { response?: { status: number } };
+        expect(axiosError.response?.status).toBe(400);
       }
     });
 
@@ -100,8 +104,9 @@ describe('E2E 测试 - 登录流程', () => {
           username: VALID_CREDENTIALS.username,
         });
         expect.fail('应该抛出错误');
-      } catch (error: any) {
-        expect(error.response?.status).toBe(400);
+      } catch (error: unknown) {
+        const axiosError = error as { response?: { status: number } };
+        expect(axiosError.response?.status).toBe(400);
       }
     });
   });
@@ -126,9 +131,10 @@ describe('E2E 测试 - 登录流程', () => {
       try {
         await apiClient.post('/admin/auth/login', INVALID_CREDENTIALS);
         expect.fail('应该抛出错误');
-      } catch (error: any) {
-        expect(error.response?.status).toBe(401);
-        expect(error.response?.data).toBeDefined();
+      } catch (error: unknown) {
+        const axiosError = error as { response?: { status: number; data: unknown } };
+        expect(axiosError.response?.status).toBe(401);
+        expect(axiosError.response?.data).toBeDefined();
       }
     });
 
@@ -139,8 +145,9 @@ describe('E2E 测试 - 登录流程', () => {
           password: 'somepassword',
         });
         expect.fail('应该抛出错误');
-      } catch (error: any) {
-        expect(error.response?.status).toBe(401);
+      } catch (error: unknown) {
+        const axiosError = error as { response?: { status: number } };
+        expect(axiosError.response?.status).toBe(401);
       }
     });
 
@@ -151,8 +158,9 @@ describe('E2E 测试 - 登录流程', () => {
           password: VALID_CREDENTIALS.password,
         });
         expect.fail('应该抛出错误');
-      } catch (error: any) {
-        expect(error.response?.status).toBe(401);
+      } catch (error: unknown) {
+        const axiosError = error as { response?: { status: number } };
+        expect(axiosError.response?.status).toBe(401);
       }
     });
 
@@ -163,9 +171,10 @@ describe('E2E 测试 - 登录流程', () => {
           password: VALID_CREDENTIALS.password,
         });
         expect.fail('应该抛出错误');
-      } catch (error: any) {
+      } catch (error: unknown) {
         // 可能返回 400 或 401
-        expect([400, 401]).toContain(error.response?.status);
+        const axiosError = error as { response?: { status: number } };
+        expect([400, 401]).toContain(axiosError.response?.status);
       }
     });
 
@@ -176,8 +185,9 @@ describe('E2E 测试 - 登录流程', () => {
           password: 'b'.repeat(1000),
         });
         expect.fail('应该抛出错误');
-      } catch (error: any) {
-        expect(error.response?.status).toBe(401);
+      } catch (error: unknown) {
+        const axiosError = error as { response?: { status: number } };
+        expect(axiosError.response?.status).toBe(401);
       }
     });
   });
@@ -202,9 +212,10 @@ describe('E2E 测试 - 登录流程', () => {
       try {
         const response = await authClient.get('/admin/teams');
         expect(response.status).toBe(200);
-      } catch (error: any) {
+      } catch (error: unknown) {
         // 如果没有战队数据，可能返回 200 空数组或 404
-        expect([200, 404]).toContain(error.response?.status || 200);
+        const axiosError = error as { response?: { status: number } };
+        expect([200, 404]).toContain(axiosError.response?.status || 200);
       }
     });
 
@@ -219,8 +230,9 @@ describe('E2E 测试 - 登录流程', () => {
       try {
         await invalidClient.get('/admin/teams');
         expect.fail('应该抛出错误');
-      } catch (error: any) {
-        expect(error.response?.status).toBe(401);
+      } catch (error: unknown) {
+        const axiosError = error as { response?: { status: number } };
+        expect(axiosError.response?.status).toBe(401);
       }
     });
 
@@ -235,8 +247,9 @@ describe('E2E 测试 - 登录流程', () => {
       try {
         await expiredClient.get('/admin/teams');
         expect.fail('应该抛出错误');
-      } catch (error: any) {
-        expect(error.response?.status).toBe(401);
+      } catch (error: unknown) {
+        const axiosError = error as { response?: { status: number } };
+        expect(axiosError.response?.status).toBe(401);
       }
     });
 
@@ -244,8 +257,9 @@ describe('E2E 测试 - 登录流程', () => {
       try {
         await apiClient.get('/admin/teams');
         expect.fail('应该抛出错误');
-      } catch (error: any) {
-        expect(error.response?.status).toBe(401);
+      } catch (error: unknown) {
+        const axiosError = error as { response?: { status: number } };
+        expect(axiosError.response?.status).toBe(401);
       }
     });
 
@@ -260,8 +274,9 @@ describe('E2E 测试 - 登录流程', () => {
       try {
         await malformedClient.get('/admin/teams');
         expect.fail('应该抛出错误');
-      } catch (error: any) {
-        expect(error.response?.status).toBe(401);
+      } catch (error: unknown) {
+        const axiosError = error as { response?: { status: number } };
+        expect(axiosError.response?.status).toBe(401);
       }
     });
   });
@@ -289,9 +304,10 @@ describe('E2E 测试 - 登录流程', () => {
       for (const attempt of sqlInjectionAttempts) {
         try {
           await apiClient.post('/admin/auth/login', attempt);
-        } catch (error: any) {
+        } catch (error: unknown) {
           // 所有注入尝试都应该失败
-          expect([400, 401]).toContain(error.response?.status);
+          const axiosError = error as { response?: { status: number } };
+          expect([400, 401]).toContain(axiosError.response?.status);
         }
       }
     });
@@ -309,8 +325,9 @@ describe('E2E 测试 - 登录流程', () => {
             username: payload,
             password: VALID_CREDENTIALS.password,
           });
-        } catch (error: any) {
-          expect(error.response?.status).toBe(401);
+        } catch (error: unknown) {
+          const axiosError = error as { response?: { status: number } };
+          expect(axiosError.response?.status).toBe(401);
         }
       }
     });

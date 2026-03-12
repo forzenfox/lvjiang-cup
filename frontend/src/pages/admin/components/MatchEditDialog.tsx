@@ -3,7 +3,7 @@ import { Match, Team, MatchStatus } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Save, X, PlayCircle, CheckCircle } from 'lucide-react';
-import { formatDateTime, toDateTimeLocal, fromDateTimeLocal } from '@/utils/datetime';
+import { toDateTimeLocal, fromDateTimeLocal } from '@/utils/datetime';
 
 interface MatchEditDialogProps {
   match: Match;
@@ -55,8 +55,6 @@ const MatchEditDialog: React.FC<MatchEditDialogProps> = ({
     }
     setFormData(updated);
   };
-
-  const getTeamName = (id: string) => teams.find(t => t.id === id)?.name || '待定';
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">

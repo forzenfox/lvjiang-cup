@@ -28,6 +28,9 @@ test-results/
 playwright-report/
 coverage/
 **/tests/reports/
+**/tests/e2e/report/
+**/tests/e2e/screenshots/
+**/tests/e2e/videos/
 *.test-results.json
 *.test-report.html
 

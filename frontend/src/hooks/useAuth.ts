@@ -89,9 +89,9 @@ export function useAuth(): UseAuthReturn {
           loading: false,
           error: null,
         });
-      } catch (err) {
-        // Token 无效或过期，清除本地存储
-        localStorage.removeItem(TOKEN_KEY);
+      } catch {
+      // Token 无效或过期，清除本地存储
+      localStorage.removeItem(TOKEN_KEY);
         setState({
           isAuthenticated: false,
           user: null,
@@ -114,14 +114,24 @@ export function useAuth(): UseAuthReturn {
     try {
       const response = await loginApi(credentials);
       
+      // 后端返回 access_token，适配前端存储
+      const token = response.access_token || response.token;
+      
       // 保存 Token 到 localStorage
-      if (response.token) {
-        localStorage.setItem(TOKEN_KEY, response.token);
+      if (token) {
+        localStorage.setItem(TOKEN_KEY, token);
       }
+      
+      // 后端不返回user信息，根据登录用户名构造
+      const userInfo: UserInfo = response.user || {
+        id: 'admin',
+        username: credentials.username,
+        role: 'admin',
+      };
       
       setState({
         isAuthenticated: true,
-        user: response.user,
+        user: userInfo,
         loading: false,
         error: null,
       });

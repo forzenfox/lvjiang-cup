@@ -223,7 +223,7 @@ describe('useDebounce', () => {
           expect(result.current.error).toEqual(error);
           expect(result.current.loading).toBe(false);
         });
-      } catch (e) {
+      } catch {
         // 预期的错误
       }
     }, 10000);

@@ -110,7 +110,7 @@ const AdminLogin: React.FC = () => {
     try {
       await login({ username: username.trim(), password });
       // 登录成功后的跳转由 useAuth 处理
-    } catch (err) {
+    } catch {
       // 错误已由 useAuth 设置，这里不需要额外处理
       // 保持表单状态以便用户重新输入
     }

@@ -1,7 +1,4 @@
 import { describe, it, expect } from 'vitest';
-import { render, screen } from '@testing-library/react';
-import { MemoryRouter, Routes, Route, useRoutes } from 'react-router-dom';
-import { useEffect, useState } from 'react';
 
 describe('App 路由配置', () => {
   it('不应该包含 /admin/advancement 路由', () => {

@@ -5,7 +5,7 @@ import { Clock, GripVertical, Save, RotateCcw, Check } from 'lucide-react';
 import { formatDateTime } from '@/utils/datetime';
 import { swissRoundSlots, SwissRoundSlot, getRoundFormat } from './swissRoundSlots';
 import MatchEditDialog from '@/pages/admin/components/MatchEditDialog';
-import { useAdvancementStore, categoryConfig, categoryOrder } from '@/store/advancementStore';
+import { categoryConfig, categoryOrder } from '@/store/advancementStore';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 
@@ -342,8 +342,6 @@ const SwissStageVisualEditor: React.FC<SwissStageVisualEditorProps> = ({
   const [localAdvancement, setLocalAdvancement] = useState(advancement);
   const [hasChanges, setHasChanges] = useState(false);
   const [draggedTeam, setDraggedTeam] = useState<{ teamId: string; fromCategory: string } | null>(null);
-  
-  const moveTeam = useAdvancementStore(state => state.moveTeam);
 
   // 当外部 advancement 变化时更新本地状态
   useEffect(() => {

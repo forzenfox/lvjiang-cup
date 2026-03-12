@@ -3,7 +3,7 @@
  * 测试比赛的查询、更新、清空比分等完整流程
  */
 
-import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
+import { describe, it, expect, beforeAll } from 'vitest';
 import axios, { AxiosInstance } from 'axios';
 
 // API 配置
@@ -118,8 +118,9 @@ describe('E2E 测试 - 比赛管理流程', () => {
       try {
         await apiClient.get('/matches/nonexistent-match-id-12345');
         expect.fail('应该抛出错误');
-      } catch (error: any) {
-        expect(error.response?.status).toBe(404);
+      } catch (error: unknown) {
+        const axiosError = error as { response?: { status: number } };
+        expect(axiosError.response?.status).toBe(404);
       }
     });
   });
@@ -220,8 +221,9 @@ describe('E2E 测试 - 比赛管理流程', () => {
           score_b: 1,
         });
         expect.fail('应该抛出错误');
-      } catch (error: any) {
-        expect(error.response?.status).toBe(401);
+      } catch (error: unknown) {
+        const axiosError = error as { response?: { status: number } };
+        expect(axiosError.response?.status).toBe(401);
       }
     });
 
@@ -232,8 +234,9 @@ describe('E2E 测试 - 比赛管理流程', () => {
           score_b: 1,
         });
         expect.fail('应该抛出错误');
-      } catch (error: any) {
-        expect(error.response?.status).toBe(404);
+      } catch (error: unknown) {
+        const axiosError = error as { response?: { status: number } };
+        expect(axiosError.response?.status).toBe(404);
       }
     });
 
@@ -261,8 +264,9 @@ describe('E2E 测试 - 比赛管理流程', () => {
           status: 'invalid_status',
         });
         expect.fail('应该抛出错误');
-      } catch (error: any) {
-        expect(error.response?.status).toBe(400);
+      } catch (error: unknown) {
+        const axiosError = error as { response?: { status: number } };
+        expect(axiosError.response?.status).toBe(400);
       }
     });
 
@@ -278,8 +282,9 @@ describe('E2E 测试 - 比赛管理流程', () => {
           score_b: 0,
         });
         expect.fail('应该抛出错误');
-      } catch (error: any) {
-        expect(error.response?.status).toBe(400);
+      } catch (error: unknown) {
+        const axiosError = error as { response?: { status: number } };
+        expect(axiosError.response?.status).toBe(400);
       }
     });
   });
@@ -329,8 +334,9 @@ describe('E2E 测试 - 比赛管理流程', () => {
       try {
         await apiClient.delete(`/admin/matches/${testMatchId}/scores`);
         expect.fail('应该抛出错误');
-      } catch (error: any) {
-        expect(error.response?.status).toBe(401);
+      } catch (error: unknown) {
+        const axiosError = error as { response?: { status: number } };
+        expect(axiosError.response?.status).toBe(401);
       }
     });
 
@@ -338,8 +344,9 @@ describe('E2E 测试 - 比赛管理流程', () => {
       try {
         await authClient.delete('/admin/matches/nonexistent-match-id-12345/scores');
         expect.fail('应该抛出错误');
-      } catch (error: any) {
-        expect(error.response?.status).toBe(404);
+      } catch (error: unknown) {
+        const axiosError = error as { response?: { status: number } };
+        expect(axiosError.response?.status).toBe(404);
       }
     });
   });
@@ -354,7 +361,8 @@ describe('E2E 测试 - 比赛管理流程', () => {
       expect(Array.isArray(response.data)).toBe(true);
 
       // 验证返回的比赛都是瑞士轮阶段
-      response.data.forEach((match: any) => {
+       
+      response.data.forEach((match: { stage: string }) => {
         expect(match.stage).toBe('swiss');
       });
     });
@@ -385,7 +393,8 @@ describe('E2E 测试 - 比赛管理流程', () => {
       expect(Array.isArray(response.data)).toBe(true);
 
       // 验证返回的比赛都是淘汰赛阶段
-      response.data.forEach((match: any) => {
+       
+      response.data.forEach((match: { stage: string }) => {
         expect(match.stage).toBe('elimination');
       });
     });
@@ -473,9 +482,10 @@ describe('E2E 测试 - 比赛管理流程', () => {
           score_b: 999,
         });
         expect(response.status).toBe(200);
-      } catch (error: any) {
+      } catch (error: unknown) {
         // 如果限制比分大小也是合理的
-        expect([200, 400]).toContain(error.response?.status || 200);
+        const axiosError = error as { response?: { status: number } };
+        expect([200, 400]).toContain(axiosError.response?.status || 200);
       }
     });
 

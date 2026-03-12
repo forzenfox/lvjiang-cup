@@ -3,7 +3,7 @@
  * 测试战队的增删改查完整流程
  */
 
-import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
+import { describe, it, expect, beforeAll } from 'vitest';
 import axios, { AxiosInstance } from 'axios';
 
 // API 配置
@@ -97,7 +97,7 @@ describe('E2E 测试 - 战队管理流程', () => {
       if (createdTeamId) {
         try {
           await authClient.delete(`/admin/teams/${createdTeamId}`);
-        } catch (e) {
+        } catch {
           // 忽略删除错误
         }
       }
@@ -140,8 +140,9 @@ describe('E2E 测试 - 战队管理流程', () => {
       try {
         await apiClient.post('/admin/teams', newTeam);
         expect.fail('应该抛出错误');
-      } catch (error: any) {
-        expect(error.response?.status).toBe(401);
+      } catch (error: unknown) {
+        const axiosError = error as { response?: { status: number } };
+        expect(axiosError.response?.status).toBe(401);
       }
     });
 
@@ -154,8 +155,9 @@ describe('E2E 测试 - 战队管理流程', () => {
       try {
         await authClient.post('/admin/teams', invalidTeam);
         expect.fail('应该抛出错误');
-      } catch (error: any) {
-        expect(error.response?.status).toBe(400);
+      } catch (error: unknown) {
+        const axiosError = error as { response?: { status: number } };
+        expect(axiosError.response?.status).toBe(400);
       }
     });
 
@@ -168,8 +170,9 @@ describe('E2E 测试 - 战队管理流程', () => {
       try {
         await authClient.post('/admin/teams', invalidTeam);
         expect.fail('应该抛出错误');
-      } catch (error: any) {
-        expect(error.response?.status).toBe(400);
+      } catch (error: unknown) {
+        const axiosError = error as { response?: { status: number } };
+        expect(axiosError.response?.status).toBe(400);
       }
     });
 
@@ -190,8 +193,9 @@ describe('E2E 测试 - 战队管理流程', () => {
       try {
         await authClient.post('/admin/teams', team2);
         expect.fail('应该抛出错误');
-      } catch (error: any) {
-        expect([400, 409]).toContain(error.response?.status);
+      } catch (error: unknown) {
+        const axiosError = error as { response?: { status: number } };
+        expect([400, 409]).toContain(axiosError.response?.status);
       }
 
       // 清理
@@ -210,8 +214,9 @@ describe('E2E 测试 - 战队管理流程', () => {
       try {
         await authClient.post('/admin/teams', invalidTeam);
         expect.fail('应该抛出错误');
-      } catch (error: any) {
-        expect(error.response?.status).toBe(400);
+      } catch (error: unknown) {
+        const axiosError = error as { response?: { status: number } };
+        expect(axiosError.response?.status).toBe(400);
       }
     });
 
@@ -246,7 +251,7 @@ describe('E2E 测试 - 战队管理流程', () => {
       // 清理
       try {
         await authClient.delete(`/admin/teams/${testTeamId}`);
-      } catch (e) {
+      } catch {
         // 忽略错误
       }
     });
@@ -263,8 +268,9 @@ describe('E2E 测试 - 战队管理流程', () => {
       try {
         await apiClient.get('/teams/nonexistent-team-id-12345');
         expect.fail('应该抛出错误');
-      } catch (error: any) {
-        expect(error.response?.status).toBe(404);
+      } catch (error: unknown) {
+        const axiosError = error as { response?: { status: number } };
+        expect(axiosError.response?.status).toBe(404);
       }
     });
 
@@ -272,8 +278,9 @@ describe('E2E 测试 - 战队管理流程', () => {
       try {
         await apiClient.get('/teams/');
         expect.fail('应该抛出错误');
-      } catch (error: any) {
-        expect(error.response?.status).toBe(404);
+      } catch (error: unknown) {
+        const axiosError = error as { response?: { status: number } };
+        expect(axiosError.response?.status).toBe(404);
       }
     });
   });
@@ -293,7 +300,7 @@ describe('E2E 测试 - 战队管理流程', () => {
       // 清理
       try {
         await authClient.delete(`/admin/teams/${testTeamId}`);
-      } catch (e) {
+      } catch {
         // 忽略错误
       }
     });
@@ -366,8 +373,9 @@ describe('E2E 测试 - 战队管理流程', () => {
           name: '未认证更新',
         });
         expect.fail('应该抛出错误');
-      } catch (error: any) {
-        expect(error.response?.status).toBe(401);
+      } catch (error: unknown) {
+        const axiosError = error as { response?: { status: number } };
+        expect(axiosError.response?.status).toBe(401);
       }
     });
 
@@ -377,8 +385,9 @@ describe('E2E 测试 - 战队管理流程', () => {
           name: '不存在的战队',
         });
         expect.fail('应该抛出错误');
-      } catch (error: any) {
-        expect(error.response?.status).toBe(404);
+      } catch (error: unknown) {
+        const axiosError = error as { response?: { status: number } };
+        expect(axiosError.response?.status).toBe(404);
       }
     });
 
@@ -409,8 +418,9 @@ describe('E2E 测试 - 战队管理流程', () => {
       try {
         await apiClient.get(`/teams/${teamId}`);
         expect.fail('应该抛出错误');
-      } catch (error: any) {
-        expect(error.response?.status).toBe(404);
+      } catch (error: unknown) {
+        const axiosError = error as { response?: { status: number } };
+        expect(axiosError.response?.status).toBe(404);
       }
     });
 
@@ -425,8 +435,9 @@ describe('E2E 测试 - 战队管理流程', () => {
       try {
         await apiClient.delete(`/admin/teams/${teamId}`);
         expect.fail('应该抛出错误');
-      } catch (error: any) {
-        expect(error.response?.status).toBe(401);
+      } catch (error: unknown) {
+        const axiosError = error as { response?: { status: number } };
+        expect(axiosError.response?.status).toBe(401);
       }
 
       // 清理
@@ -437,8 +448,9 @@ describe('E2E 测试 - 战队管理流程', () => {
       try {
         await authClient.delete('/admin/teams/nonexistent-id-12345');
         expect.fail('应该抛出错误');
-      } catch (error: any) {
-        expect(error.response?.status).toBe(404);
+      } catch (error: unknown) {
+        const axiosError = error as { response?: { status: number } };
+        expect(axiosError.response?.status).toBe(404);
       }
     });
 
@@ -456,8 +468,9 @@ describe('E2E 测试 - 战队管理流程', () => {
       try {
         await apiClient.get(`/teams/${teamId}`);
         expect.fail('应该抛出错误');
-      } catch (error: any) {
-        expect(error.response?.status).toBe(404);
+      } catch (error: unknown) {
+        const axiosError = error as { response?: { status: number } };
+        expect(axiosError.response?.status).toBe(404);
       }
     });
   });
@@ -498,8 +511,9 @@ describe('E2E 测试 - 战队管理流程', () => {
       try {
         await apiClient.get(`/teams/${teamId}`);
         expect.fail('应该抛出错误');
-      } catch (error: any) {
-        expect(error.response?.status).toBe(404);
+      } catch (error: unknown) {
+        const axiosError = error as { response?: { status: number } };
+        expect(axiosError.response?.status).toBe(404);
       }
     });
   });
@@ -518,9 +532,10 @@ describe('E2E 测试 - 战队管理流程', () => {
         expect(response.status).toBe(201);
         // 清理
         await authClient.delete(`/admin/teams/${response.data.id}`);
-      } catch (error: any) {
+      } catch (error: unknown) {
         // 如果拒绝超长名称也是合理的
-        expect([201, 400]).toContain(error.response?.status || 201);
+        const axiosError = error as { response?: { status: number } };
+        expect([201, 400]).toContain(axiosError.response?.status || 201);
       }
     });
 
@@ -534,8 +549,9 @@ describe('E2E 测试 - 战队管理流程', () => {
       try {
         await authClient.post('/admin/teams', emptyNameTeam);
         expect.fail('应该抛出错误');
-      } catch (error: any) {
-        expect(error.response?.status).toBe(400);
+      } catch (error: unknown) {
+        const axiosError = error as { response?: { status: number } };
+        expect(axiosError.response?.status).toBe(400);
       }
     });
 
@@ -556,9 +572,10 @@ describe('E2E 测试 - 战队管理流程', () => {
         expect(response.status).toBe(201);
         // 清理
         await authClient.delete(`/admin/teams/${response.data.id}`);
-      } catch (error: any) {
+      } catch (error: unknown) {
         // 如果限制队员数量也是合理的
-        expect([201, 400]).toContain(error.response?.status || 201);
+        const axiosError = error as { response?: { status: number } };
+        expect([201, 400]).toContain(axiosError.response?.status || 201);
       }
     });
   });

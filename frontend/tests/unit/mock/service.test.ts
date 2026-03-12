@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { mockService } from '@/mock/service';
-import { initialTeams, initialMatches, initialStreamInfo } from '@/mock/data';
-import type { Team, Match, StreamInfo } from '@/types';
+import { initialTeams } from '@/mock/data';
+import type { Team, StreamInfo } from '@/types';
 
 describe('mockService', () => {
   beforeEach(() => {

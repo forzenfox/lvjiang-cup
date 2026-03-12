@@ -72,7 +72,6 @@ export const Skeleton: React.FC<SkeletonProps> = ({
   height,
   animate = true,
   lines = 1,
-  lineGap = 2,
   className,
   style,
   ...props

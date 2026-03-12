@@ -44,7 +44,7 @@ export function useDebounce<T>(value: T, delay: number): T {
  * // 在输入时调用
  * debouncedSearch(inputValue);
  */
-export function useDebounceCallback<T extends (...args: any[]) => any>(
+export function useDebounceCallback<T extends (...args: unknown[]) => unknown>(
   callback: T,
   delay: number,
   options: {
@@ -148,7 +148,7 @@ export function useDebounceCallback<T extends (...args: any[]) => any>(
  *   500
  * );
  */
-export function useDebouncedRequest<T, Args extends any[]>(
+export function useDebouncedRequest<T, Args extends unknown[]>(
   requestFn: (...args: Args) => Promise<T>,
   delay: number,
   options: {

@@ -8,8 +8,7 @@ import { matchService } from '@/services/matchService';
 import { streamService } from '@/services/streamService';
 import { Upload, Trash2, Database, Users, Trophy, Radio, Activity } from 'lucide-react';
 import { toast } from 'sonner';
-import type { Team, Match } from '@/types';
-import type { Stream } from '@/api/types';
+// import type { Match } from '@/types';
 
 interface DashboardStats {
   totalTeams: number;

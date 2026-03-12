@@ -52,6 +52,7 @@ const mapStatusToFrontend = (status: string): MatchStatus => {
 };
 
 // 将 API Match 转换为前端 Match
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const toFrontendMatch = (apiMatch: any): Match => ({
   id: apiMatch.id,
   teamAId: apiMatch.team1Id,

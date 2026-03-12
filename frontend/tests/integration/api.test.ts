@@ -3,7 +3,7 @@
  * 测试所有 API 端点、认证流程和错误处理
  */
 
-import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
+import { describe, it, expect, beforeAll, beforeEach } from 'vitest';
 import axios, { AxiosError, AxiosInstance } from 'axios';
 
 // API 基础配置
@@ -15,10 +15,10 @@ const TEST_ADMIN = {
   password: 'admin123',
 };
 
-const TEST_INVALID_USER = {
-  username: 'invalid',
-  password: 'wrongpassword',
-};
+// const TEST_INVALID_USER = {
+//   username: 'invalid',
+//   password: 'wrongpassword',
+// };
 
 // 创建 axios 实例
 const createApiClient = (): AxiosInstance => {

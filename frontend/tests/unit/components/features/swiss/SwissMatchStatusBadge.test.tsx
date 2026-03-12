@@ -1,7 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { render } from '@testing-library/react';
 import SwissMatchStatusBadge from '@/components/features/swiss/SwissMatchStatusBadge';
-import type { MatchStatus } from '@/types';
 
 describe('SwissMatchStatusBadge', () => {
   it('应该正确显示"未开始"状态', () => {

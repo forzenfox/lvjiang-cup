@@ -5,7 +5,6 @@ import axios, {
   AxiosResponse,
   InternalAxiosRequestConfig,
 } from 'axios';
-import { toast } from 'sonner';
 import { handleError, ErrorHandlerConfig } from '@/utils/error-handler';
 
 // 从环境变量读取基础 URL

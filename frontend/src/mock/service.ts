@@ -17,7 +17,7 @@ const loadFromStorage = <T>(key: string, initialData: T): T => {
     }
     try {
       return JSON.parse(stored);
-    } catch (e) {
+    } catch {
       return Array.isArray(initialData) ? [] as T : {} as T;
     }
   }
@@ -33,8 +33,8 @@ const loadFromStorage = <T>(key: string, initialData: T): T => {
       return initialData;
     }
     return parsed;
-  } catch (e) {
-    console.error(`[MockService] 解析 ${key} 失败，使用初始数据`, e);
+  } catch {
+    console.error(`[MockService] 解析 ${key} 失败，使用初始数据`);
     return initialData;
   }
 };

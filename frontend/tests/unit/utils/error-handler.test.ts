@@ -8,7 +8,6 @@ import {
   isNetworkError,
   isTimeoutError,
   getHttpErrorMessage,
-  handleError,
   safeExecute,
 } from '@/utils/error-handler';
 
@@ -63,7 +62,8 @@ describe('Error Handler', () => {
 
     it('should return false for non-network errors', () => {
       const error = new AxiosError('Server Error');
-      error.response = { status: 500, statusText: 'Internal Server Error', data: {}, headers: {}, config: {} as any };
+       
+      error.response = { status: 500, statusText: 'Internal Server Error', data: {}, headers: {}, config: {} as unknown as AxiosError['config'] };
 
       expect(isNetworkError(error)).toBe(false);
     });
@@ -129,7 +129,8 @@ describe('Error Handler', () => {
         statusText: 'Unauthorized',
         data: { message: 'Unauthorized' },
         headers: {},
-        config: {} as any,
+         
+        config: {} as unknown as AxiosError['config'],
       };
 
       const appError = parseAxiosError(error);
@@ -145,7 +146,8 @@ describe('Error Handler', () => {
         statusText: 'Internal Server Error',
         data: { message: 'Internal Server Error' },
         headers: {},
-        config: {} as any,
+         
+        config: {} as unknown as AxiosError['config'],
       };
 
       const appError = parseAxiosError(error);

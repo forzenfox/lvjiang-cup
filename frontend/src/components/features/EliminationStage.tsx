@@ -8,7 +8,6 @@ import {
   BOARD_HEIGHT,
   ELIMINATION_POSITIONS,
   createPlaceholderMatch,
-  GAME_KEYS,
 } from './eliminationConstants';
 
 interface EliminationStageProps {

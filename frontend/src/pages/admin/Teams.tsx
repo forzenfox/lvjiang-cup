@@ -66,6 +66,7 @@ const toUpdateTeamRequest = (team: Team): UpdateTeamRequest => ({
 });
 
 // 将 API Team 转换为前端 Team
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const toFrontendTeam = (apiTeam: any): Team => ({
   id: apiTeam.id,
   name: apiTeam.name,
