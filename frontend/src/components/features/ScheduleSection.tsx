@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { Loader2, AlertCircle, Calendar } from 'lucide-react';
+import { Loader2, AlertCircle } from 'lucide-react';
 import { matchService, teamService } from '@/services';
 import type { Match as ApiMatch, Team as ApiTeam } from '@/api/types';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -135,21 +135,7 @@ const ErrorState: React.FC<{ message: string; onRetry: () => void }> = ({ messag
   </div>
 );
 
-// 空数据状态组件
-const EmptyState: React.FC<{ stage: string; onRetry: () => void }> = ({ stage, onRetry }) => (
-  <div className="flex flex-col items-center justify-center py-20">
-    <Calendar className="w-16 h-16 text-gray-500 mb-4" />
-    <p className="text-xl text-gray-400 mb-2">暂无{stage}数据</p>
-    <p className="text-sm text-gray-500 mb-6">当前没有可用的比赛信息</p>
-    <Button 
-      variant="outline" 
-      onClick={onRetry}
-      className="border-secondary text-secondary hover:bg-secondary/10"
-    >
-      刷新数据
-    </Button>
-  </div>
-);
+
 
 interface ScheduleSectionProps {
   /** 自动刷新间隔（毫秒），默认 30000ms (30秒) */
@@ -255,15 +241,11 @@ const ScheduleSection: React.FC<ScheduleSectionProps> = ({ refreshInterval = 300
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3 }}
               >
-                {swissMatches.length === 0 ? (
-                  <EmptyState stage="瑞士轮" onRetry={loadData} />
-                ) : (
-                  <SwissStage 
+                <SwissStage 
                     matches={swissMatches} 
                     teams={teams}
                     advancement={advancement}
                   />
-                )}
               </motion.div>
             </TabsContent>
 
@@ -273,14 +255,10 @@ const ScheduleSection: React.FC<ScheduleSectionProps> = ({ refreshInterval = 300
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3 }}
               >
-                {eliminationMatches.length === 0 ? (
-                  <EmptyState stage="淘汰赛" onRetry={loadData} />
-                ) : (
-                  <EliminationStage 
+                <EliminationStage 
                     matches={eliminationMatches} 
                     teams={teams}
                   />
-                )}
               </motion.div>
             </TabsContent>
           </Tabs>

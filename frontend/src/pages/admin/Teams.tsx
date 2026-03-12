@@ -50,10 +50,18 @@ const ensureAllPositions = (players: Player[] = [], teamId: string): Player[] =>
 
 // 将前端 Team 转换为 API CreateTeamRequest
 const toCreateTeamRequest = (team: Team): CreateTeamRequest => ({
+  id: team.id,
   name: team.name,
   logo: team.logo,
   description: team.description,
-  members: team.players?.map(p => p.name).filter(Boolean) || [],
+  players: team.players
+    ?.filter(p => p.name.trim())
+    .map(p => ({
+      id: p.id,
+      name: p.name,
+      avatar: p.avatar,
+      position: p.position as '上单' | '打野' | '中单' | 'AD' | '辅助',
+    })) || [],
 });
 
 // 将前端 Team 转换为 API UpdateTeamRequest
@@ -62,7 +70,14 @@ const toUpdateTeamRequest = (team: Team): UpdateTeamRequest => ({
   name: team.name,
   logo: team.logo,
   description: team.description,
-  members: team.players?.map(p => p.name).filter(Boolean) || [],
+  players: team.players
+    ?.filter(p => p.name.trim())
+    .map(p => ({
+      id: p.id,
+      name: p.name,
+      avatar: p.avatar,
+      position: p.position as '上单' | '打野' | '中单' | 'AD' | '辅助',
+    })) || [],
 });
 
 // 将 API Team 转换为前端 Team

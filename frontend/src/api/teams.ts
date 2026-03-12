@@ -46,13 +46,13 @@ export async function getById(id: string): Promise<Team> {
  * @returns 创建的战队信息
  */
 export async function create(data: CreateTeamRequest): Promise<Team> {
-  const response = await apiClient.post<ApiResponse<Team>>('/teams', data);
+  const response = await apiClient.post<ApiResponse<Team>>('/admin/teams', data);
   const responseData = response.data;
-  
+
   if (!responseData.success || !responseData.data) {
     throw new Error(responseData.message || '创建战队失败');
   }
-  
+
   return responseData.data;
 }
 
@@ -63,13 +63,13 @@ export async function create(data: CreateTeamRequest): Promise<Team> {
  */
 export async function update(data: UpdateTeamRequest): Promise<Team> {
   const { id, ...updateData } = data;
-  const response = await apiClient.patch<ApiResponse<Team>>(`/teams/${id}`, updateData);
+  const response = await apiClient.put<ApiResponse<Team>>(`/admin/teams/${id}`, updateData);
   const responseData = response.data;
-  
+
   if (!responseData.success || !responseData.data) {
     throw new Error(responseData.message || '更新战队失败');
   }
-  
+
   return responseData.data;
 }
 
@@ -78,9 +78,9 @@ export async function update(data: UpdateTeamRequest): Promise<Team> {
  * @param id 战队 ID
  */
 export async function remove(id: string): Promise<void> {
-  const response = await apiClient.delete<ApiResponse<void>>(`/teams/${id}`);
+  const response = await apiClient.delete<ApiResponse<void>>(`/admin/teams/${id}`);
   const responseData = response.data;
-  
+
   if (!responseData.success) {
     throw new Error(responseData.message || '删除战队失败');
   }

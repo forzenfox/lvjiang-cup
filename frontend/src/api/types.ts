@@ -99,11 +99,21 @@ export interface Team {
   updatedAt?: string;
 }
 
+// 后端期望的队员格式
+export interface CreatePlayerRequest {
+  id: string;
+  name: string;
+  avatar?: string;
+  position: '上单' | '打野' | '中单' | 'AD' | '辅助';
+}
+
+// 后端期望的创建战队请求格式
 export interface CreateTeamRequest {
+  id: string;
   name: string;
   logo?: string;
   description?: string;
-  members?: string[];
+  players?: CreatePlayerRequest[];
 }
 
 export interface UpdateTeamRequest extends Partial<CreateTeamRequest> {

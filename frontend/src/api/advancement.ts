@@ -44,50 +44,18 @@ export async function getByStage(stage: string): Promise<AdvancementRule> {
  * @returns 更新后的晋级规则信息
  */
 export async function update(data: UpdateAdvancementRequest): Promise<AdvancementRule> {
-  const { id, ...updateData } = data;
-  const response = await apiClient.patch<ApiResponse<AdvancementRule>>(`/advancement/${id}`, updateData);
+  const response = await apiClient.put<ApiResponse<AdvancementRule>>('/admin/advancement', data);
   const responseData = response.data;
-  
+
   if (!responseData.success || !responseData.data) {
     throw new Error(responseData.message || '更新晋级规则失败');
   }
-  
-  return responseData.data;
-}
 
-/**
- * 创建晋级规则
- * @param data 创建晋级规则数据
- * @returns 创建的晋级规则信息
- */
-export async function create(data: Partial<AdvancementRule>): Promise<AdvancementRule> {
-  const response = await apiClient.post<ApiResponse<AdvancementRule>>('/advancement', data);
-  const responseData = response.data;
-  
-  if (!responseData.success || !responseData.data) {
-    throw new Error(responseData.message || '创建晋级规则失败');
-  }
-  
   return responseData.data;
-}
-
-/**
- * 删除晋级规则
- * @param id 晋级规则 ID
- */
-export async function remove(id: string): Promise<void> {
-  const response = await apiClient.delete<ApiResponse<void>>(`/advancement/${id}`);
-  const responseData = response.data;
-  
-  if (!responseData.success) {
-    throw new Error(responseData.message || '删除晋级规则失败');
-  }
 }
 
 export default {
   get,
   getByStage,
   update,
-  create,
-  remove,
 };

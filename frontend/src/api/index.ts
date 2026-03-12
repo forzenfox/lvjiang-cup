@@ -21,4 +21,4 @@ export { default as matchesApi, getAll as getAllMatches, getById as getMatchById
 export { default as streamsApi, get as getStream, getAll as getAllStreams, update as updateStream, create as createStream, remove as removeStream } from './streams';
 
 // 晋级 API
-export { default as advancementApi, get as getAdvancement, getByStage as getAdvancementByStage, update as updateAdvancement, create as createAdvancement, remove as removeAdvancement } from './advancement';
+export { default as advancementApi, get as getAdvancement, getByStage as getAdvancementByStage, update as updateAdvancement } from './advancement';

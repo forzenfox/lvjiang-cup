@@ -47,13 +47,13 @@ export async function getById(id: string): Promise<Match> {
  */
 export async function update(data: UpdateMatchRequest): Promise<Match> {
   const { id, ...updateData } = data;
-  const response = await apiClient.patch<ApiResponse<Match>>(`/matches/${id}`, updateData);
+  const response = await apiClient.put<ApiResponse<Match>>(`/admin/matches/${id}`, updateData);
   const responseData = response.data;
-  
+
   if (!responseData.success || !responseData.data) {
     throw new Error(responseData.message || '更新比赛失败');
   }
-  
+
   return responseData.data;
 }
 
