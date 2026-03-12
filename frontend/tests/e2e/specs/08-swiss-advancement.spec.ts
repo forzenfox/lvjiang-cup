@@ -28,7 +28,7 @@ test.describe('晋级名单管理下拉框交互', () => {
 
     await expect(dropdown).not.toBeVisible();
 
-    const teamList = page.locator('.flex.flex-col.gap-1\\.5.mt-2');
+    const teamList = page.locator('.flex.flex-col.gap-1\.5.mt-2');
     await expect(teamList).toBeVisible();
   });
 

@@ -10,7 +10,7 @@ export default defineConfig({
     setupFiles: ['./tests/setup.ts'],
     outputFile: './tests/reports/test-results.xml',
     reporters: ['default', 'junit'],
-    exclude: ['node_modules'],
+    exclude: ['node_modules', 'tests/e2e/**/*'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
