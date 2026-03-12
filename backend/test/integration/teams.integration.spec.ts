@@ -15,7 +15,6 @@ describe('Teams Integration Tests', () => {
     get: jest.fn(),
     set: jest.fn(),
     del: jest.fn(),
-    flush: jest.fn(),
   };
 
   beforeAll(async () => {
@@ -184,7 +183,7 @@ describe('Teams Integration Tests', () => {
     });
 
     it('should clear cache after create', async () => {
-      mockCacheService.flush.mockReturnValue(undefined);
+      mockCacheService.del.mockReturnValue(undefined);
 
       const createDto = {
         id: 'team-1',
@@ -195,7 +194,7 @@ describe('Teams Integration Tests', () => {
       };
 
       await service.create(createDto);
-      expect(mockCacheService.flush).toHaveBeenCalled();
+      expect(mockCacheService.del).toHaveBeenCalledWith('teams:all');
     });
 
     it('should clear cache after update', async () => {
@@ -211,12 +210,11 @@ describe('Teams Integration Tests', () => {
 
       mockCacheService.get.mockReturnValue(undefined);
       mockCacheService.del.mockReturnValue(undefined);
-      mockCacheService.flush.mockReturnValue(undefined);
 
       await service.update(createDto.id, { name: 'Updated Name' });
 
       expect(mockCacheService.del).toHaveBeenCalledWith('team:team-1');
-      expect(mockCacheService.flush).toHaveBeenCalled();
+      expect(mockCacheService.del).toHaveBeenCalledWith('teams:all');
     });
   });
 
@@ -244,7 +242,6 @@ describe('Teams Integration Tests', () => {
 
       mockCacheService.get.mockReturnValue(undefined);
       mockCacheService.del.mockReturnValue(undefined);
-      mockCacheService.flush.mockReturnValue(undefined);
       await service.update(team1.id, { name: 'Updated Team 1' });
 
       mockCacheService.get.mockReturnValue(undefined);
@@ -275,7 +272,6 @@ describe('Teams Integration Tests', () => {
 
       mockCacheService.get.mockReturnValue(undefined);
       mockCacheService.del.mockReturnValue(undefined);
-      mockCacheService.flush.mockReturnValue(undefined);
 
       const updateDto = {
         players: [

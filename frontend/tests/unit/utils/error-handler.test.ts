@@ -63,7 +63,7 @@ describe('Error Handler', () => {
 
     it('should return false for non-network errors', () => {
       const error = new AxiosError('Server Error');
-      error.response = { status: 500, data: {}, headers: {}, config: {} as any };
+      error.response = { status: 500, statusText: 'Internal Server Error', data: {}, headers: {}, config: {} as any };
 
       expect(isNetworkError(error)).toBe(false);
     });
@@ -126,6 +126,7 @@ describe('Error Handler', () => {
       const error = new AxiosError('Unauthorized');
       error.response = {
         status: 401,
+        statusText: 'Unauthorized',
         data: { message: 'Unauthorized' },
         headers: {},
         config: {} as any,
@@ -141,6 +142,7 @@ describe('Error Handler', () => {
       const error = new AxiosError('Server Error');
       error.response = {
         status: 500,
+        statusText: 'Internal Server Error',
         data: { message: 'Internal Server Error' },
         headers: {},
         config: {} as any,

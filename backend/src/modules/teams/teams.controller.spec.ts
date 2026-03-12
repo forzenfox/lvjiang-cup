@@ -40,22 +40,42 @@ describe('TeamsController', () => {
   });
 
   describe('findAll', () => {
-    it('should return array of teams', async () => {
+    it('should return paginated teams', async () => {
       const mockTeams = [{ id: '1', name: 'Team1' }];
       mockTeamsService.findAll.mockResolvedValue(mockTeams);
 
-      const result = await controller.findAll();
+      const result = await controller.findAll({ page: 1, pageSize: 10 });
 
-      expect(result).toEqual(mockTeams);
+      expect(result).toEqual({
+        data: mockTeams,
+        total: 1,
+        page: 1,
+        pageSize: 10,
+      });
       expect(mockTeamsService.findAll).toHaveBeenCalled();
     });
 
-    it('should return empty array when no teams', async () => {
+    it('should return empty paginated result when no teams', async () => {
       mockTeamsService.findAll.mockResolvedValue([]);
 
-      const result = await controller.findAll();
+      const result = await controller.findAll({ page: 1, pageSize: 10 });
 
-      expect(result).toEqual([]);
+      expect(result).toEqual({
+        data: [],
+        total: 0,
+        page: 1,
+        pageSize: 10,
+      });
+    });
+
+    it('should use default pagination values', async () => {
+      const mockTeams = [{ id: '1', name: 'Team1' }];
+      mockTeamsService.findAll.mockResolvedValue(mockTeams);
+
+      const result = await controller.findAll({});
+
+      expect(result.page).toBe(1);
+      expect(result.pageSize).toBe(100);
     });
   });
 

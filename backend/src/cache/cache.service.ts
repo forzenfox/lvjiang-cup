@@ -1,10 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import NodeCache from 'node-cache';
+
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const NodeCache = require('node-cache');
 
 @Injectable()
 export class CacheService {
-  private cache: NodeCache;
+  private cache: any;
   private readonly logger = new Logger(CacheService.name);
 
   constructor(private configService: ConfigService) {
@@ -16,13 +18,13 @@ export class CacheService {
       deleteOnExpire: true,
     });
 
-    this.cache.on('expired', (key, value) => {
+    this.cache.on('expired', (key: string, value: any) => {
       this.logger.debug(`Cache expired: ${key}`);
     });
   }
 
   get<T>(key: string): T | undefined {
-    return this.cache.get<T>(key);
+    return this.cache.get(key) as T | undefined;
   }
 
   set<T>(key: string, value: T, ttl?: number): boolean {

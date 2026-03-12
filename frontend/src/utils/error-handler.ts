@@ -187,7 +187,7 @@ export function parseAxiosError(error: AxiosError): AppError {
 /**
  * 错误处理器配置
  */
-interface ErrorHandlerConfig {
+export interface ErrorHandlerConfig {
   /** 是否显示 toast 提示 */
   showToast?: boolean;
   /** 是否重定向到登录页（401 错误） */

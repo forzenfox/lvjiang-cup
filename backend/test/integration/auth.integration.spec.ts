@@ -17,7 +17,12 @@ describe('Auth Integration Tests', () => {
           provide: JwtService,
           useValue: {
             sign: jest.fn(() => 'mock-jwt-token'),
-            decode: jest.fn(() => ({ username: 'admin', sub: 'admin' })),
+            decode: jest.fn(() => ({ 
+              username: 'admin', 
+              sub: 'admin',
+              iat: Math.floor(Date.now() / 1000),
+              exp: Math.floor(Date.now() / 1000) + 3600,
+            })),
           },
         },
         {

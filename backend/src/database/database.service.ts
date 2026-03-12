@@ -17,14 +17,23 @@ function openDatabase(dbPath: string): Promise<sqlite3.Database> {
   });
 }
 
+// 运行 SQL 结果接口
+export interface RunResult {
+  lastID: number;
+  changes: number;
+}
+
 // 运行 SQL
-function run(db: sqlite3.Database, sql: string, params: any[] = []): Promise<void> {
+function run(db: sqlite3.Database, sql: string, params: any[] = []): Promise<RunResult> {
   return new Promise((resolve, reject) => {
     db.run(sql, params, function(err) {
       if (err) {
         reject(err);
       } else {
-        resolve();
+        resolve({
+          lastID: this.lastID,
+          changes: this.changes,
+        });
       }
     });
   });
@@ -108,7 +117,7 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
   }
 
   // 包装方法供其他服务使用
-  async run(sql: string, params: any[] = []): Promise<void> {
+  async run(sql: string, params: any[] = []): Promise<RunResult> {
     return run(this.db, sql, params);
   }
 

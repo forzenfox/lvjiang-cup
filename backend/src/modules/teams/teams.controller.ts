@@ -6,12 +6,14 @@ import {
   Delete,
   Body,
   Param,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiParam } from '@nestjs/swagger';
 import { TeamsService, Team } from './teams.service';
 import { CreateTeamDto } from './dto/create-team.dto';
 import { UpdateTeamDto } from './dto/update-team.dto';
+import { PaginationDto, PaginatedResult } from './dto/pagination.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @ApiTags('战队管理')
@@ -21,8 +23,23 @@ export class TeamsController {
 
   @Get('teams')
   @ApiOperation({ summary: '获取所有战队列表' })
-  async findAll(): Promise<Team[]> {
-    return this.teamsService.findAll();
+  async findAll(@Query() paginationDto: PaginationDto): Promise<PaginatedResult<Team>> {
+    const allTeams = await this.teamsService.findAll();
+    const page = paginationDto.page || 1;
+    const pageSize = paginationDto.pageSize || 100;
+    
+    // 计算分页
+    const total = allTeams.length;
+    const start = (page - 1) * pageSize;
+    const end = start + pageSize;
+    const paginatedData = allTeams.slice(start, end);
+    
+    return {
+      data: paginatedData,
+      total,
+      page,
+      pageSize,
+    };
   }
 
   @Get('teams/:id')

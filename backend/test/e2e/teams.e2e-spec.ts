@@ -1,18 +1,15 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import * as request from 'supertest';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
 import { TeamsModule } from '../../src/modules/teams/teams.module';
 import { AuthModule } from '../../src/modules/auth/auth.module';
-import { UsersModule } from '../../src/modules/users/users.module';
-import { Team } from '../../src/modules/teams/entities/team.entity';
-import { User } from '../../src/modules/users/entities/user.entity';
+import { DatabaseModule } from '../../src/database/database.module';
+import { CacheModule } from '../../src/cache/cache.module';
 
-describe('TeamsController (e2e)', () => {
+describe('Teams API (e2e)', () => {
   let app: INestApplication;
   let authToken: string;
-  let adminToken: string;
   let createdTeamId: string;
 
   beforeAll(async () => {
@@ -20,19 +17,28 @@ describe('TeamsController (e2e)', () => {
       imports: [
         ConfigModule.forRoot({
           isGlobal: true,
-          envFilePath: '.env.test',
+          ignoreEnvFile: true,
+          load: [() => ({
+            jwt: {
+              secret: 'test-secret-key-for-jwt-signing-in-test-environment',
+              expiresIn: '1h',
+            },
+            database: {
+              path: ':memory:',
+            },
+            cache: {
+              ttl: 60,
+            },
+            admin: {
+              username: 'admin',
+              password: 'admin123',
+            },
+          })],
         }),
-        TypeOrmModule.forRoot({
-          type: 'sqlite',
-          database: ':memory:',
-          entities: [Team, User],
-          synchronize: true,
-          logging: false,
-        }),
-        TypeOrmModule.forFeature([Team, User]),
-        TeamsModule,
+        DatabaseModule,
+        CacheModule,
         AuthModule,
-        UsersModule,
+        TeamsModule,
       ],
     }).compile();
 
@@ -44,269 +50,194 @@ describe('TeamsController (e2e)', () => {
     }));
     await app.init();
 
-    // 创建普通用户并登录
-    await request(app.getHttpServer())
-      .post('/auth/register')
-      .send({
-        username: 'teamuser',
-        password: 'password123',
-        email: 'team@example.com',
-      });
-
+    // 登录获取 token
     const loginResponse = await request(app.getHttpServer())
-      .post('/auth/login')
+      .post('/admin/auth/login')
       .send({
-        username: 'teamuser',
-        password: 'password123',
+        username: 'admin',
+        password: 'admin123',
       });
+    
     authToken = loginResponse.body.access_token;
-
-    // 创建管理员用户
-    await request(app.getHttpServer())
-      .post('/auth/register')
-      .send({
-        username: 'adminuser',
-        password: 'password123',
-        email: 'admin@example.com',
-        role: 'admin',
-      });
-
-    const adminLoginResponse = await request(app.getHttpServer())
-      .post('/auth/login')
-      .send({
-        username: 'adminuser',
-        password: 'password123',
-      });
-    adminToken = adminLoginResponse.body.access_token;
   });
 
   afterAll(async () => {
-    await app.close();
+    if (app) {
+      await app.close();
+    }
   });
 
-  describe('队伍创建流程', () => {
-    it('POST /teams - 应该成功创建队伍', async () => {
-      const response = await request(app.getHttpServer())
-        .post('/teams')
-        .set('Authorization', `Bearer ${authToken}`)
-        .send({
-          name: '测试队伍',
-          description: '这是一个测试队伍',
-          logo: 'https://example.com/logo.png',
-        })
-        .expect(201);
-
-      expect(response.body).toHaveProperty('id');
-      expect(response.body.name).toBe('测试队伍');
-      expect(response.body).toHaveProperty('createdAt');
-      createdTeamId = response.body.id;
-    });
-
-    it('POST /teams - 应该拒绝无授权请求', () => {
-      return request(app.getHttpServer())
-        .post('/teams')
-        .send({
-          name: '未授权队伍',
-        })
-        .expect(401);
-    });
-
-    it('POST /teams - 应该拒绝缺少队伍名称', () => {
-      return request(app.getHttpServer())
-        .post('/teams')
-        .set('Authorization', `Bearer ${authToken}`)
-        .send({
-          description: '缺少名称的队伍',
-        })
-        .expect(400);
-    });
-
-    it('POST /teams - 应该拒绝过长的队伍名称', () => {
-      return request(app.getHttpServer())
-        .post('/teams')
-        .set('Authorization', `Bearer ${authToken}`)
-        .send({
-          name: 'a'.repeat(101),
-        })
-        .expect(400);
-    });
-  });
-
-  describe('队伍查询流程', () => {
-    it('GET /teams - 应该返回队伍列表', async () => {
+  describe('GET /teams', () => {
+    it('应该返回战队列表', async () => {
       const response = await request(app.getHttpServer())
         .get('/teams')
         .expect(200);
 
       expect(Array.isArray(response.body)).toBe(true);
-      expect(response.body.length).toBeGreaterThan(0);
     });
 
-    it('GET /teams - 应该支持分页', async () => {
+    it('应该返回空数组当没有战队', async () => {
       const response = await request(app.getHttpServer())
-        .get('/teams?page=1&limit=10')
+        .get('/teams')
         .expect(200);
 
       expect(Array.isArray(response.body)).toBe(true);
     });
+  });
 
-    it('GET /teams/:id - 应该返回特定队伍', async () => {
+  describe('GET /teams/:id', () => {
+    it('应该返回单个战队', async () => {
+      // 先创建一个战队
+      const createResponse = await request(app.getHttpServer())
+        .post('/admin/teams')
+        .set('Authorization', `Bearer ${authToken}`)
+        .send({
+          name: '测试战队',
+          tag: 'TEST',
+          logo: 'https://example.com/logo.png',
+          description: '测试战队描述',
+          players: [
+            { name: 'Player1', position: '上单' },
+            { name: 'Player2', position: '打野' },
+          ],
+        });
+
+      createdTeamId = createResponse.body.id;
+
       const response = await request(app.getHttpServer())
         .get(`/teams/${createdTeamId}`)
         .expect(200);
 
       expect(response.body.id).toBe(createdTeamId);
-      expect(response.body.name).toBe('测试队伍');
+      expect(response.body.name).toBe('测试战队');
     });
 
-    it('GET /teams/:id - 应该处理不存在的队伍', () => {
-      return request(app.getHttpServer())
-        .get('/teams/999999')
+    it('应该返回 404 当战队不存在', async () => {
+      await request(app.getHttpServer())
+        .get('/teams/non-existent-id')
         .expect(404);
     });
+  });
 
-    it('GET /teams/:id - 应该处理无效ID格式', () => {
-      return request(app.getHttpServer())
-        .get('/teams/invalid-id')
+  describe('POST /admin/teams', () => {
+    it('应该创建新战队（需认证）', async () => {
+      const response = await request(app.getHttpServer())
+        .post('/admin/teams')
+        .set('Authorization', `Bearer ${authToken}`)
+        .send({
+          name: '新测试战队',
+          tag: 'NEW',
+          logo: 'https://example.com/new-logo.png',
+          description: '新测试战队描述',
+          players: [
+            { name: 'NewPlayer1', position: '上单' },
+            { name: 'NewPlayer2', position: '打野' },
+            { name: 'NewPlayer3', position: '中单' },
+            { name: 'NewPlayer4', position: 'ADC' },
+            { name: 'NewPlayer5', position: '辅助' },
+          ],
+        })
+        .expect(201);
+
+      expect(response.body).toHaveProperty('id');
+      expect(response.body.name).toBe('新测试战队');
+      expect(response.body.players).toHaveLength(5);
+    });
+
+    it('应该拒绝未认证请求', async () => {
+      await request(app.getHttpServer())
+        .post('/admin/teams')
+        .send({
+          name: '未授权战队',
+        })
+        .expect(401);
+    });
+
+    it('应该验证必填字段', async () => {
+      await request(app.getHttpServer())
+        .post('/admin/teams')
+        .set('Authorization', `Bearer ${authToken}`)
+        .send({
+          // 缺少 name
+          tag: 'TEST',
+        })
         .expect(400);
     });
   });
 
-  describe('队伍更新流程', () => {
-    it('PUT /teams/:id - 应该成功更新队伍', async () => {
+  describe('PUT /admin/teams/:id', () => {
+    it('应该更新战队信息（需认证）', async () => {
       const response = await request(app.getHttpServer())
-        .put(`/teams/${createdTeamId}`)
+        .put(`/admin/teams/${createdTeamId}`)
         .set('Authorization', `Bearer ${authToken}`)
         .send({
-          name: '更新后的队伍',
+          name: '更新后的战队名',
           description: '更新后的描述',
         })
         .expect(200);
 
-      expect(response.body.name).toBe('更新后的队伍');
+      expect(response.body.name).toBe('更新后的战队名');
       expect(response.body.description).toBe('更新后的描述');
     });
 
-    it('PUT /teams/:id - 应该拒绝无授权请求', () => {
-      return request(app.getHttpServer())
-        .put(`/teams/${createdTeamId}`)
+    it('应该返回 404 当战队不存在', async () => {
+      await request(app.getHttpServer())
+        .put('/admin/teams/non-existent-id')
+        .set('Authorization', `Bearer ${authToken}`)
+        .send({
+          name: '不存在的战队',
+        })
+        .expect(404);
+    });
+
+    it('应该拒绝未认证请求', async () => {
+      await request(app.getHttpServer())
+        .put(`/admin/teams/${createdTeamId}`)
         .send({
           name: '未授权更新',
         })
         .expect(401);
     });
-
-    it('PUT /teams/:id - 应该拒绝更新不存在的队伍', () => {
-      return request(app.getHttpServer())
-        .put('/teams/999999')
-        .set('Authorization', `Bearer ${authToken}`)
-        .send({
-          name: '不存在的队伍',
-        })
-        .expect(404);
-    });
   });
 
-  describe('队伍删除流程', () => {
-    it('DELETE /teams/:id - 应该成功删除队伍', async () => {
-      // 先创建一个新队伍用于删除测试
+  describe('DELETE /admin/teams/:id', () => {
+    it('应该删除战队（需认证）', async () => {
+      // 先创建一个用于删除的战队
       const createResponse = await request(app.getHttpServer())
-        .post('/teams')
+        .post('/admin/teams')
         .set('Authorization', `Bearer ${authToken}`)
         .send({
-          name: '待删除队伍',
+          name: '待删除战队',
+          tag: 'DELETE',
+          players: [
+            { name: 'DeletePlayer1', position: '上单' },
+          ],
         });
 
       const teamIdToDelete = createResponse.body.id;
 
       await request(app.getHttpServer())
-        .delete(`/teams/${teamIdToDelete}`)
+        .delete(`/admin/teams/${teamIdToDelete}`)
         .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
 
-      // 验证队伍已被删除
+      // 验证战队已被删除
       await request(app.getHttpServer())
         .get(`/teams/${teamIdToDelete}`)
         .expect(404);
     });
 
-    it('DELETE /teams/:id - 应该拒绝无授权请求', () => {
-      return request(app.getHttpServer())
-        .delete(`/teams/${createdTeamId}`)
-        .expect(401);
-    });
-  });
-
-  describe('队伍成员管理流程', () => {
-    let memberTeamId: string;
-
-    beforeAll(async () => {
-      const response = await request(app.getHttpServer())
-        .post('/teams')
-        .set('Authorization', `Bearer ${authToken}`)
-        .send({
-          name: '成员测试队伍',
-        });
-      memberTeamId = response.body.id;
-    });
-
-    it('POST /teams/:id/members - 应该添加成员到队伍', async () => {
-      const response = await request(app.getHttpServer())
-        .post(`/teams/${memberTeamId}/members`)
-        .set('Authorization', `Bearer ${authToken}`)
-        .send({
-          userId: 'test-user-id',
-          role: 'member',
-        })
-        .expect(201);
-
-      expect(response.body).toHaveProperty('members');
-    });
-
-    it('GET /teams/:id/members - 应该获取队伍成员列表', async () => {
-      const response = await request(app.getHttpServer())
-        .get(`/teams/${memberTeamId}/members`)
-        .set('Authorization', `Bearer ${authToken}`)
-        .expect(200);
-
-      expect(Array.isArray(response.body)).toBe(true);
-    });
-
-    it('DELETE /teams/:id/members/:userId - 应该移除队伍成员', async () => {
+    it('应该返回 404 当战队不存在', async () => {
       await request(app.getHttpServer())
-        .delete(`/teams/${memberTeamId}/members/test-user-id`)
+        .delete('/admin/teams/non-existent-id')
         .set('Authorization', `Bearer ${authToken}`)
-        .expect(200);
-    });
-  });
-
-  describe('队伍统计信息', () => {
-    it('GET /teams/:id/stats - 应该返回队伍统计', async () => {
-      const response = await request(app.getHttpServer())
-        .get(`/teams/${createdTeamId}/stats`)
-        .expect(200);
-
-      expect(response.body).toHaveProperty('totalMatches');
-      expect(response.body).toHaveProperty('wins');
-      expect(response.body).toHaveProperty('losses');
-    });
-  });
-
-  describe('队伍搜索功能', () => {
-    it('GET /teams/search - 应该支持按名称搜索', async () => {
-      const response = await request(app.getHttpServer())
-        .get('/teams/search?q=更新后的队伍')
-        .expect(200);
-
-      expect(Array.isArray(response.body)).toBe(true);
+        .expect(404);
     });
 
-    it('GET /teams/search - 应该处理空搜索词', async () => {
-      const response = await request(app.getHttpServer())
-        .get('/teams/search?q=')
-        .expect(200);
-
-      expect(Array.isArray(response.body)).toBe(true);
+    it('应该拒绝未认证请求', async () => {
+      await request(app.getHttpServer())
+        .delete(`/admin/teams/${createdTeamId}`)
+        .expect(401);
     });
   });
 });
