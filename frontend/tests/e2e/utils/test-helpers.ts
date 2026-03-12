@@ -12,43 +12,6 @@ export async function waitForPageLoad(page: Page) {
 }
 
 /**
- * 清除localStorage
- */
-export async function clearLocalStorage(page: Page) {
-  try {
-    await page.evaluate(() => localStorage.clear());
-  } catch {
-    // 如果页面未加载或localStorage不可用，忽略错误
-    console.log('⚠️ localStorage清除失败，可能页面未加载');
-  }
-}
-
-/**
- * 设置localStorage数据
- */
-export async function setLocalStorage(page: Page, key: string, value: string) {
-  try {
-    await page.evaluate(({ key, value }) => {
-      localStorage.setItem(key, value);
-    }, { key, value });
-  } catch (e) {
-    console.log('⚠️ localStorage设置失败:', e);
-  }
-}
-
-/**
- * 获取localStorage数据
- */
-export async function getLocalStorage(page: Page, key: string): Promise<string | null> {
-  try {
-    return await page.evaluate((key) => localStorage.getItem(key), key);
-  } catch (e) {
-    console.log('⚠️ localStorage获取失败:', e);
-    return null;
-  }
-}
-
-/**
  * 模拟网络延迟
  */
 export async function delay(ms: number) {
@@ -59,9 +22,9 @@ export async function delay(ms: number) {
  * 截图并保存
  */
 export async function takeScreenshot(page: Page, name: string) {
-  await page.screenshot({ 
+  await page.screenshot({
     path: `./tests/e2e/screenshots/${name}-${Date.now()}.png`,
-    fullPage: true 
+    fullPage: true
   });
 }
 

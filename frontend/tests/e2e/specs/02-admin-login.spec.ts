@@ -1,7 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { HomePage, AdminLoginPage, DashboardPage } from '../pages';
 import { adminUser, wrongPasswordUser, wrongUsernameUser, emptyUsernameUser, emptyPasswordUser } from '../fixtures/users.fixture';
-import { clearLocalStorage } from '../utils/test-helpers';
 
 /**
  * 管理员登录测试用例
@@ -18,7 +17,6 @@ test.describe('管理员登录功能测试', () => {
     loginPage = new AdminLoginPage(page);
     dashboardPage = new DashboardPage(page);
     await loginPage.goto();
-    await clearLocalStorage(page);
   });
 
   /**

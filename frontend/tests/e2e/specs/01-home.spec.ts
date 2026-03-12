@@ -1,6 +1,5 @@
 import { test, expect } from '@playwright/test';
 import { HomePage } from '../pages/HomePage';
-import { clearLocalStorage } from '../utils/test-helpers';
 
 /**
  * 首页测试用例
@@ -13,7 +12,6 @@ test.describe('首页功能测试', () => {
   test.beforeEach(async ({ page }) => {
     homePage = new HomePage(page);
     await homePage.goto();
-    await clearLocalStorage(page);
     await page.reload();
   });
 
