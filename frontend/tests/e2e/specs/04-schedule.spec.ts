@@ -1,7 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { AdminLoginPage, DashboardPage, SchedulePage } from '../pages';
 import { adminUser } from '../fixtures/users.fixture';
-import { clearLocalStorage } from '../utils/test-helpers';
 
 /**
  * 赛程管理测试用例
@@ -17,10 +16,9 @@ test.describe('赛程管理功能测试', () => {
     loginPage = new AdminLoginPage(page);
     dashboardPage = new DashboardPage(page);
     schedulePage = new SchedulePage(page);
-    
-    // 先导航到页面，再清理数据并登录
+
+    // 先导航到页面并登录
     await loginPage.goto();
-    await clearLocalStorage(page);
     await page.reload();
     await loginPage.login(adminUser);
     await dashboardPage.expectPageLoaded();

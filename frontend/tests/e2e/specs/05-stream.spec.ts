@@ -1,7 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { AdminLoginPage, DashboardPage, StreamPage, HomePage } from '../pages';
 import { adminUser } from '../fixtures/users.fixture';
-import { clearLocalStorage } from '../utils/test-helpers';
 
 /**
  * 直播管理测试用例
@@ -19,10 +18,9 @@ test.describe('直播管理功能测试', () => {
     dashboardPage = new DashboardPage(page);
     streamPage = new StreamPage(page);
     homePage = new HomePage(page);
-    
-    // 先导航到页面，再清理数据并登录
+
+    // 先导航到页面并登录
     await loginPage.goto();
-    await clearLocalStorage(page);
     await page.reload();
     await loginPage.login(adminUser);
     await dashboardPage.expectPageLoaded();
