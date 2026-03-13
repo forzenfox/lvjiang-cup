@@ -5,7 +5,7 @@ import HeroSection from '../components/features/HeroSection';
 import ScheduleSection from '../components/features/ScheduleSection';
 import TeamSection from '../components/features/TeamSection';
 import { Button } from '../components/ui/button';
-import { streamService, teamService, matchService } from '../services';
+import { streamService, teamService, matchService, advancementService } from '../services';
 
 /**
  * 首页数据加载状态
@@ -142,6 +142,13 @@ const Home: React.FC = () => {
           } finally {
             updateLoadingState('matches', false);
           }
+        })(),
+        // 晋级名单数据
+        (async () => {
+          if (isBackground) {
+            advancementService.resetState();
+          }
+          await advancementService.get();
         })(),
       ]);
 

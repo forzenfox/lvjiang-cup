@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Loader2, AlertCircle } from 'lucide-react';
-import { matchService, teamService } from '@/services';
+import { matchService, teamService, advancementService } from '@/services';
 import type { Match as ApiMatch, Team as ApiTeam } from '@/api/types';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -143,17 +143,22 @@ const ScheduleSection: React.FC<ScheduleSectionProps> = ({ refreshInterval = 300
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<string>('swiss');
-  const advancement = useAdvancementStore(state => state.advancement);
+  const { advancement, setAdvancement } = useAdvancementStore();
 
   // 加载数据
-  const loadData = useCallback(async () => {
+  const loadData = useCallback(async (forceRefresh = false) => {
     try {
       setLoading(true);
       setError(null);
       
-      const [matchesResponse, teamsResponse] = await Promise.all([
+      if (forceRefresh) {
+        advancementService.resetState();
+      }
+      
+      const [matchesResponse, teamsResponse, advancementData] = await Promise.all([
         matchService.getAll(1, 100),
-        teamService.getAll(1, 100)
+        teamService.getAll(1, 100),
+        advancementService.get()
       ]);
 
       const convertedTeams = teamsResponse.data.map(convertApiTeamToLocal);
@@ -161,6 +166,16 @@ const ScheduleSection: React.FC<ScheduleSectionProps> = ({ refreshInterval = 300
       
       setTeams(convertedTeams);
       setMatches(convertedMatches);
+      
+      if (advancementData) {
+        setAdvancement({
+          winners2_0: advancementData.winners2_0 || [],
+          winners2_1: advancementData.winners2_1 || [],
+          losersBracket: advancementData.losersBracket || [],
+          eliminated3rd: advancementData.eliminated3rd || [],
+          eliminated0_3: advancementData.eliminated0_3 || []
+        }, 'api');
+      }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : '获取赛程数据失败';
       setError(errorMessage);
@@ -168,7 +183,7 @@ const ScheduleSection: React.FC<ScheduleSectionProps> = ({ refreshInterval = 300
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [setAdvancement]);
 
   // 按阶段筛选比赛
   const swissMatches = matches.filter(m => m.stage === 'swiss');
@@ -177,8 +192,8 @@ const ScheduleSection: React.FC<ScheduleSectionProps> = ({ refreshInterval = 300
   // Tab 切换处理
   const handleTabChange = (value: string) => {
     setActiveTab(value);
-    // Tab 切换时刷新数据
-    loadData();
+    // Tab 切换时刷新数据（强制刷新）
+    loadData(true);
   };
 
   useEffect(() => {
@@ -187,13 +202,13 @@ const ScheduleSection: React.FC<ScheduleSectionProps> = ({ refreshInterval = 300
 
     // 设置自动刷新
     const interval = setInterval(() => {
-      loadData();
+      loadData(true);
     }, refreshInterval);
 
     // 页面可见性检测：切换回页面时立即刷新
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
-        loadData();
+        loadData(true);
       }
     };
     document.addEventListener('visibilitychange', handleVisibilityChange);
