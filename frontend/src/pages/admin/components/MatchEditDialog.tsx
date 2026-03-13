@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Match, Team, MatchStatus } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -21,6 +21,7 @@ const MatchEditDialog: React.FC<MatchEditDialogProps> = ({
   onSave,
 }) => {
   const [formData, setFormData] = useState<Match>(match);
+  const dateInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setFormData(match);
@@ -56,6 +57,12 @@ const MatchEditDialog: React.FC<MatchEditDialogProps> = ({
     setFormData(updated);
   };
 
+  const handleDateInputClick = () => {
+    if (dateInputRef.current?.showPicker) {
+      dateInputRef.current.showPicker();
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
       <Card className="w-full max-w-lg bg-gray-800 border-gray-700 max-h-[90vh] overflow-y-auto">
@@ -69,10 +76,13 @@ const MatchEditDialog: React.FC<MatchEditDialogProps> = ({
           <div>
             <label className="block text-sm text-gray-400 mb-1">比赛时间</label>
             <input
+              ref={dateInputRef}
               type="datetime-local"
               value={formData.startTime ? toDateTimeLocal(formData.startTime) : ''}
               onChange={(e) => handleChange('startTime', fromDateTimeLocal(e.target.value))}
-              className="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded text-white text-sm"
+              onClick={handleDateInputClick}
+              className="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded text-white text-sm cursor-pointer"
+              style={{ colorScheme: 'dark' }}
             />
           </div>
 
