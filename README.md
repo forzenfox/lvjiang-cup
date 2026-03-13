@@ -6,7 +6,7 @@
 
 ### 前台展示
 - **赛事首页**：展示赛事信息、直播入口、战队介绍
-- **战队展示**：展示参赛战队及其队员信息（上单、打野、中单、AD、辅助）
+- **战队展示**：展示参赛战队及其队员信息（top、jungle、mid、bot、support）
 - **赛程查看**：支持瑞士轮和淘汰赛双阶段赛程展示
 - **直播观看**：集成直播平台链接，实时观看比赛
 
@@ -140,7 +140,7 @@ interface Player {
   id: string;
   name: string;        // 姓名
   avatar: string;      // 头像链接
-  position: string;    // 位置（上单/打野/中单/AD/辅助）
+  position: string;    // 位置（top/jungle/mid/bot/support）
   description: string; // 简介
 }
 ```

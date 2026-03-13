@@ -92,7 +92,7 @@
           "id": "player-001",
           "name": "选手1",
           "avatar": "https://example.com/avatar.png",
-          "position": "上单",
+          "position": "top",
           "teamId": "team-001"
         }
       ]
@@ -117,7 +117,7 @@
 | data[].players[].id | string | 队员ID |
 | data[].players[].name | string | 队员名称 |
 | data[].players[].avatar | string | 队员头像URL |
-| data[].players[].position | string | 位置（上单/打野/中单/AD/辅助） |
+| data[].players[].position | string | 位置（top/jungle/mid/bot/support） |
 | data[].players[].teamId | string | 所属战队ID |
 | total | integer | 总数量 |
 | page | integer | 当前页码 |
@@ -150,7 +150,7 @@
       "id": "player-001",
       "name": "选手1",
       "avatar": "https://example.com/avatar.png",
-      "position": "上单",
+      "position": "top",
       "teamId": "team-001"
     }
   ]
@@ -183,7 +183,7 @@ Authorization: Bearer <access_token>
 | players[].id | string | 是 | 队员ID |
 | players[].name | string | 是 | 队员名称 |
 | players[].avatar | string | 否 | 队员头像URL |
-| players[].position | string | 是 | 位置（上单/打野/中单/AD/辅助） |
+| players[].position | string | 是 | 位置（top/jungle/mid/bot/support） |
 
 **请求示例**
 ```json
@@ -197,7 +197,7 @@ Authorization: Bearer <access_token>
       "id": "player-002",
       "name": "选手2",
       "avatar": "https://example.com/avatar2.png",
-      "position": "打野"
+      "position": "jungle"
     }
   ]
 }
@@ -215,7 +215,7 @@ Authorization: Bearer <access_token>
       "id": "player-002",
       "name": "选手2",
       "avatar": "https://example.com/avatar2.png",
-      "position": "打野",
+      "position": "jungle",
       "teamId": "team-002"
     }
   ]
@@ -253,7 +253,7 @@ Authorization: Bearer <access_token>
 | players[].id | string | 否 | 队员ID |
 | players[].name | string | 否 | 队员名称 |
 | players[].avatar | string | 否 | 队员头像URL |
-| players[].position | string | 否 | 位置（上单/打野/中单/AD/辅助） |
+| players[].position | string | 否 | 位置（top/jungle/mid/bot/support） |
 
 **请求示例**
 ```json

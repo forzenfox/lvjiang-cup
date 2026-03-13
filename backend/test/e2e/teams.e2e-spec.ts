@@ -92,7 +92,7 @@ describe('Teams API (e2e)', () => {
           id: uuidv4(),
           name: '测试战队1',
           tag: 'TEST1',
-          players: [{ id: uuidv4(), name: 'Player1', position: '上单' }],
+          players: [{ id: uuidv4(), name: 'Player1', position: 'top' }],
         });
 
       const response = await request(app.getHttpServer())
@@ -119,8 +119,8 @@ describe('Teams API (e2e)', () => {
           logo: 'https://example.com/logo.png',
           description: '测试战队描述',
           players: [
-            { id: uuidv4(), name: 'Player1', position: '上单' },
-            { id: uuidv4(), name: 'Player2', position: '打野' },
+            { id: uuidv4(), name: 'Player1', position: 'top' },
+            { id: uuidv4(), name: 'Player2', position: 'jungle' },
           ],
         });
 
@@ -158,11 +158,11 @@ describe('Teams API (e2e)', () => {
           logo: 'https://example.com/new-logo.png',
           description: '新测试战队描述',
           players: [
-            { id: uuidv4(), name: 'NewPlayer1', position: '上单' },
-            { id: uuidv4(), name: 'NewPlayer2', position: '打野' },
-            { id: uuidv4(), name: 'NewPlayer3', position: '中单' },
-            { id: uuidv4(), name: 'NewPlayer4', position: 'AD' },
-            { id: uuidv4(), name: 'NewPlayer5', position: '辅助' },
+            { id: uuidv4(), name: 'NewPlayer1', position: 'top' },
+            { id: uuidv4(), name: 'NewPlayer2', position: 'jungle' },
+            { id: uuidv4(), name: 'NewPlayer3', position: 'mid' },
+            { id: uuidv4(), name: 'NewPlayer4', position: 'bot' },
+            { id: uuidv4(), name: 'NewPlayer5', position: 'support' },
           ],
         })
         .expect(201);
@@ -269,7 +269,7 @@ describe('Teams API (e2e)', () => {
           id: uuidv4(),
           name: '待更新战队',
           tag: 'UPDATE',
-          players: [{ id: uuidv4(), name: 'Player1', position: '上单' }],
+          players: [{ id: uuidv4(), name: 'DeletePlayer1', position: 'top' }],
         });
 
       const teamIdToUpdate = createResponse.body.id;
@@ -324,7 +324,7 @@ describe('Teams API (e2e)', () => {
           name: '待删除战队',
           tag: 'DELETE',
           players: [
-            { id: uuidv4(), name: 'DeletePlayer1', position: '上单' },
+            { id: uuidv4(), name: 'DeletePlayer1', position: 'top' },
           ],
         });
 
@@ -373,7 +373,7 @@ describe('Teams API (e2e)', () => {
           id: uuidv4(),
           name: '格式测试战队',
           tag: 'FORMAT',
-          players: [{ id: uuidv4(), name: 'Player1', position: '上单' }],
+          players: [{ id: uuidv4(), name: 'Player1', position: 'top' }],
         })
         .expect(201);
 
@@ -421,7 +421,7 @@ describe('Teams API (e2e)', () => {
 
     it('创建战队应该在200ms内响应', async () => {
       const startTime = Date.now();
-      
+
       await request(app.getHttpServer())
         .post('/admin/teams')
         .set('Authorization', `Bearer ${authToken}`)
@@ -429,7 +429,7 @@ describe('Teams API (e2e)', () => {
           id: uuidv4(),
           name: '性能测试战队',
           tag: 'PERF',
-          players: [{ id: uuidv4(), name: 'Player1', position: '上单' }],
+          players: [{ id: uuidv4(), name: 'Player1', position: 'top' }],
         })
         .expect(201);
       
@@ -450,7 +450,7 @@ describe('Teams API (e2e)', () => {
           id: uuidv4(),
           name: '并发测试战队1',
           tag: 'CONC1',
-          players: [{ id: uuidv4(), name: 'Player1', position: '上单' }],
+          players: [{ id: uuidv4(), name: 'Player1', position: 'top' }],
         });
 
       // 并发发起多个读取请求
@@ -478,7 +478,7 @@ describe('Teams API (e2e)', () => {
             id: uuidv4(),
             name: `并发创建战队${index}`,
             tag: `CONC${index}`,
-            players: [{ id: uuidv4(), name: `Player${index}`, position: '上单' }],
+            players: [{ id: uuidv4(), name: `Player${index}`, position: 'top' }],
           })
       );
 
@@ -502,7 +502,7 @@ describe('Teams API (e2e)', () => {
           id: uuidv4(),
           name: 'A', // 单个字符
           tag: 'MIN',
-          players: [{ id: uuidv4(), name: 'Player1', position: '上单' }],
+          players: [{ id: uuidv4(), name: 'Player1', position: 'top' }],
         })
         .expect(201);
 
@@ -518,7 +518,7 @@ describe('Teams API (e2e)', () => {
           id: uuidv4(),
           name: longName,
           tag: 'LONG',
-          players: [{ id: uuidv4(), name: 'Player1', position: '上单' }],
+          players: [{ id: uuidv4(), name: 'Player1', position: 'top' }],
         })
         .expect(201);
 
@@ -534,7 +534,7 @@ describe('Teams API (e2e)', () => {
           id: uuidv4(),
           name: specialName,
           tag: 'SPEC',
-          players: [{ id: uuidv4(), name: 'Player1', position: '上单' }],
+          players: [{ id: uuidv4(), name: 'Player1', position: 'top' }],
         })
         .expect(201);
 
@@ -560,7 +560,7 @@ describe('Teams API (e2e)', () => {
       const players = Array(10).fill(null).map((_, i) => ({
         id: uuidv4(),
         name: `Player${i}`,
-        position: i < 5 ? '上单' : '打野',
+        position: i < 5 ? 'top' : 'jungle',
       }));
 
       const response = await request(app.getHttpServer())

@@ -77,7 +77,7 @@ describe('Teams Integration Tests', () => {
         id TEXT PRIMARY KEY,
         name TEXT NOT NULL,
         avatar TEXT,
-        position TEXT CHECK(position IN ('上单', '打野', '中单', 'AD', '辅助')),
+        position TEXT CHECK(position IN ('top', 'jungle', 'mid', 'bot', 'support')),
         team_id TEXT NOT NULL,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -116,8 +116,8 @@ describe('Teams Integration Tests', () => {
         logo: 'logo.png',
         description: 'Test description',
         players: [
-          { id: 'p1', name: 'Player1', position: '上单' as const },
-          { id: 'p2', name: 'Player2', position: '打野' as const },
+          { id: 'p1', name: 'Player1', position: 'top' as const },
+          { id: 'p2', name: 'Player2', position: 'jungle' as const },
         ],
       };
 
@@ -154,7 +154,7 @@ describe('Teams Integration Tests', () => {
         logo: 'logo.png',
         description: 'Test description',
         players: [
-          { id: 'p1', name: 'Player1', position: '上单' as const },
+          { id: 'p1', name: 'Player1', position: 'top' as const },
         ],
       };
 
@@ -268,8 +268,8 @@ describe('Teams Integration Tests', () => {
         logo: 'logo.png',
         description: 'Test description',
         players: [
-          { id: 'p1', name: 'Player1', position: '上单' as const },
-          { id: 'p2', name: 'Player2', position: '打野' as const },
+          { id: 'p1', name: 'Player1', position: 'top' as const },
+          { id: 'p2', name: 'Player2', position: 'jungle' as const },
         ],
       };
 
@@ -280,8 +280,8 @@ describe('Teams Integration Tests', () => {
 
       const updateDto = {
         players: [
-          { id: 'p1', name: 'UpdatedPlayer1', position: '上单' as const },
-          { id: 'p3', name: 'Player3', position: '中单' as const },
+          { id: 'p1', name: 'UpdatedPlayer1', position: 'top' as const },
+          { id: 'p3', name: 'Player3', position: 'mid' as const },
         ],
       };
 
@@ -312,16 +312,16 @@ describe('Teams Integration Tests', () => {
 
       const updated = await service.update(created.id, {
         players: [
-          { id: 'p1', name: 'Player1', position: '上单' as const },
-          { id: 'p2', name: 'Player2', position: '打野' as const },
-          { id: 'p3', name: 'Player3', position: '中单' as const },
-          { id: 'p4', name: 'Player4', position: 'AD' as const },
-          { id: 'p5', name: 'Player5', position: '辅助' as const },
+          { id: 'p1', name: 'Player1', position: 'top' as const },
+          { id: 'p2', name: 'Player2', position: 'jungle' as const },
+          { id: 'p3', name: 'Player3', position: 'mid' as const },
+          { id: 'p4', name: 'Player4', position: 'bot' as const },
+          { id: 'p5', name: 'Player5', position: 'support' as const },
         ],
       });
 
       expect(updated.players).toHaveLength(5);
-      expect(updated.players.map(p => p.position).sort()).toEqual(['AD', '上单', '中单', '打野', '辅助']);
+      expect(updated.players.map(p => p.position).sort()).toEqual(['bot', 'jungle', 'mid', 'support', 'top']);
     });
 
     it('should remove all players from team', async () => {
@@ -331,8 +331,8 @@ describe('Teams Integration Tests', () => {
         logo: 'logo.png',
         description: 'Test description',
         players: [
-          { id: 'p1', name: 'Player1', position: '上单' as const },
-          { id: 'p2', name: 'Player2', position: '打野' as const },
+          { id: 'p1', name: 'Player1', position: 'top' as const },
+          { id: 'p2', name: 'Player2', position: 'jungle' as const },
         ],
       };
 
@@ -356,7 +356,7 @@ describe('Teams Integration Tests', () => {
         logo: 'logo.png',
         description: 'Test description',
         players: [
-          { id: 'p1', name: 'OldName', position: '上单' as const, avatar: 'old.png' },
+          { id: 'p1', name: 'OldName', position: 'top' as const, avatar: 'old.png' },
         ],
       };
 
@@ -367,13 +367,13 @@ describe('Teams Integration Tests', () => {
 
       const updated = await service.update(created.id, {
         players: [
-          { id: 'p1', name: 'NewName', position: '打野' as const, avatar: 'new.png' },
+          { id: 'p1', name: 'NewName', position: 'jungle' as const, avatar: 'new.png' },
         ],
       });
 
       expect(updated.players).toHaveLength(1);
       expect(updated.players[0].name).toBe('NewName');
-      expect(updated.players[0].position).toBe('打野');
+      expect(updated.players[0].position).toBe('jungle');
       expect(updated.players[0].avatar).toBe('new.png');
     });
   });
@@ -387,7 +387,7 @@ describe('Teams Integration Tests', () => {
         logo: 'logo.png',
         description: 'Test description',
         players: [
-          { id: 'p1', name: 'Player1', position: '上单' as const },
+          { id: 'p1', name: 'Player1', position: 'top' as const },
         ],
       };
 
@@ -415,7 +415,7 @@ describe('Teams Integration Tests', () => {
         players: Array.from({ length: 10 }, (_, i) => ({
           id: `p${i}`,
           name: `Player${i}`,
-          position: ['上单', '打野', '中单', 'AD', '辅助'][i % 5] as any,
+          position: ['top', 'jungle', 'mid', 'bot', 'support'][i % 5] as any,
         })),
       };
 
@@ -576,7 +576,7 @@ describe('Teams Integration Tests', () => {
         logo: 'logo.png',
         description: 'Description',
         players: [
-          { id: 'p1', name: 'Player1', position: '上单' as const },
+          { id: 'p1', name: 'Player1', position: 'top' as const },
         ],
       });
 
@@ -607,7 +607,7 @@ describe('Teams Integration Tests', () => {
       // 然后插入队员到存在的队伍应该成功
       const result = await databaseService.run(
         'INSERT INTO players (id, name, position, team_id) VALUES (?, ?, ?, ?)',
-        ['p1', 'Player1', '上单', 'team-1']
+        ['p1', 'Player1', 'top', 'team-1']
       );
       expect(result.changes).toBe(1);
 
@@ -623,8 +623,8 @@ describe('Teams Integration Tests', () => {
         logo: 'logo.png',
         description: 'Description',
         players: [
-          { id: 'p1', name: 'Player1', position: '上单' as const },
-          { id: 'p2', name: 'Player2', position: '打野' as const },
+          { id: 'p1', name: 'Player1', position: 'top' as const },
+          { id: 'p2', name: 'Player2', position: 'jungle' as const },
         ],
       });
 
@@ -651,7 +651,7 @@ describe('Teams Integration Tests', () => {
         players: Array.from({ length: 5 }, (_, i) => ({
           id: `p${i}`,
           name: `Player${i}`,
-          position: ['上单', '打野', '中单', 'AD', '辅助'][i] as any,
+          position: ['top', 'jungle', 'mid', 'bot', 'support'][i] as any,
         })),
       });
 
@@ -676,7 +676,7 @@ describe('Teams Integration Tests', () => {
         logo: 'logo1.png',
         description: 'Description 1',
         players: [
-          { id: 't1p1', name: 'T1Player1', position: '上单' as const },
+          { id: 't1p1', name: 'T1Player1', position: 'top' as const },
         ],
       });
 
@@ -686,7 +686,7 @@ describe('Teams Integration Tests', () => {
         logo: 'logo2.png',
         description: 'Description 2',
         players: [
-          { id: 't2p1', name: 'T2Player1', position: '打野' as const },
+          { id: 't2p1', name: 'T2Player1', position: 'jungle' as const },
         ],
       });
 
@@ -722,7 +722,7 @@ describe('Teams Integration Tests', () => {
           players: Array.from({ length: 5 }, (_, j) => ({
             id: `team-${i}-p${j}`,
             name: `Player${j}`,
-            position: ['上单', '打野', '中单', 'AD', '辅助'][j] as any,
+            position: ['top', 'jungle', 'mid', 'bot', 'support'][j] as any,
           })),
         });
       }
@@ -745,7 +745,7 @@ describe('Teams Integration Tests', () => {
         players: Array.from({ length: 20 }, (_, i) => ({
           id: `p${i}`,
           name: `Player${i}`,
-          position: ['上单', '打野', '中单', 'AD', '辅助'][i % 5] as any,
+          position: ['top', 'jungle', 'mid', 'bot', 'support'][i % 5] as any,
         })),
       });
 

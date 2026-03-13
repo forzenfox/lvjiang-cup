@@ -18,10 +18,10 @@ class UpdatePlayerDto {
   @IsOptional()
   avatar?: string;
 
-  @ApiPropertyOptional({ description: '位置', enum: ['上单', '打野', '中单', 'AD', '辅助'] })
+  @ApiPropertyOptional({ description: '位置', enum: ['top', 'jungle', 'mid', 'bot', 'support'] })
   @IsString()
   @IsOptional()
-  position?: '上单' | '打野' | '中单' | 'AD' | '辅助';
+  position?: 'top' | 'jungle' | 'mid' | 'bot' | 'support';
 }
 
 export class UpdateTeamDto {

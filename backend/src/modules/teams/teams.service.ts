@@ -8,7 +8,7 @@ export interface Player {
   id: string;
   name: string;
   avatar?: string;
-  position: '上单' | '打野' | '中单' | 'AD' | '辅助';
+  position: 'top' | 'jungle' | 'mid' | 'bot' | 'support';
   teamId: string;
 }
 

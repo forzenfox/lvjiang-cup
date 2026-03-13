@@ -5,6 +5,7 @@ import type { Team as ApiTeam } from '../../api/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui/card';
 import { Button } from '../ui/button';
 import { TopIcon, JungleIcon, MidIcon, AdcIcon, SupportIcon } from '../icons/PositionIcons';
+import { getPositionLabel } from '../../utils/position';
 
 // 本地 Player 类型（兼容现有UI）
 interface Player {
@@ -26,11 +27,11 @@ interface Team {
 
 const PositionIcon: React.FC<{ position: string }> = ({ position }) => {
   switch (position.toLowerCase()) {
-    case '上单': return <TopIcon className="w-4 h-4" />;
-    case '打野': return <JungleIcon className="w-4 h-4" />;
-    case '中单': return <MidIcon className="w-4 h-4" />;
-    case 'adc': return <AdcIcon className="w-4 h-4" />;
-    case '辅助': return <SupportIcon className="w-4 h-4" />;
+    case 'top': return <TopIcon className="w-4 h-4" />;
+    case 'jungle': return <JungleIcon className="w-4 h-4" />;
+    case 'mid': return <MidIcon className="w-4 h-4" />;
+    case 'bot': return <AdcIcon className="w-4 h-4" />;
+    case 'support': return <SupportIcon className="w-4 h-4" />;
     default: return <User className="w-4 h-4 text-gray-400" />;
   }
 };
@@ -105,15 +106,27 @@ const TeamSection: React.FC<TeamSectionProps> = ({ refreshInterval = 30000 }) =>
 
   // 将 API Team 转换为本地 Team 格式
   const convertApiTeamToLocal = (apiTeam: ApiTeam): Team => {
-    // 生成模拟队员数据（因为 API Team 没有直接的 players 字段）
-    const positions = ['上单', '打野', '中单', 'ADC', '辅助'];
-    const players: Player[] = positions.map((position, index) => ({
-      id: `${apiTeam.id}-player-${index}`,
-      name: `${apiTeam.name} - ${position}`,
-      avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${apiTeam.id}-${index}`,
-      position,
-      description: `${position}选手`,
-    }));
+    // 如果 API 返回了 players 数据，使用真实数据；否则生成模拟数据
+    let players: Player[];
+    if (apiTeam.players && apiTeam.players.length > 0) {
+      players = apiTeam.players.map((apiPlayer) => ({
+        id: apiPlayer.id,
+        name: apiPlayer.name,
+        avatar: apiPlayer.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${apiPlayer.id}`,
+        position: apiPlayer.position,
+        description: '',
+      }));
+    } else {
+      // 生成模拟队员数据（当 API 没有返回 players 数据时）
+      const positions = ['top', 'jungle', 'mid', 'bot', 'support'];
+      players = positions.map((position, index) => ({
+        id: `${apiTeam.id}-player-${index}`,
+        name: '待补充',
+        avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${apiTeam.id}-${index}`,
+        position,
+        description: `${position}选手`,
+      }));
+    }
 
     return {
       id: apiTeam.id,
@@ -213,9 +226,8 @@ const TeamSection: React.FC<TeamSectionProps> = ({ refreshInterval = 30000 }) =>
                           <img src={player.avatar} alt={player.name} className="w-8 h-8 rounded-full bg-gray-700 object-cover" />
                           <span className="text-sm font-medium text-gray-200">{player.name}</span>
                         </div>
-                        <div className="flex items-center space-x-1" title={player.position}>
+                        <div className="flex items-center" title={getPositionLabel(player.position)}>
                           <PositionIcon position={player.position} />
-                          <span className="text-xs text-gray-400 hidden sm:inline">{player.position}</span>
                         </div>
                       </div>
                     ))}

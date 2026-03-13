@@ -108,7 +108,7 @@ describe('AppController (e2e)', () => {
             players: teamData.players.map((name, index) => ({
               id: uuidv4(),
               name,
-              position: ['上单', '打野', '中单', 'AD', '辅助'][index],
+              position: ['top', 'jungle', 'mid', 'bot', 'support'][index],
             })),
           })
           .expect(201);
@@ -281,7 +281,7 @@ describe('AppController (e2e)', () => {
           id: uuidv4(),
           name: '待删除战队',
           tag: 'DELETE',
-          players: [{ id: uuidv4(), name: 'DeletePlayer1', position: '上单' }],
+          players: [{ id: uuidv4(), name: 'DeletePlayer1', position: 'top' }],
         });
 
       const teamIdToDelete = createResponse.body.id;

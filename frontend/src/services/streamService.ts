@@ -85,8 +85,8 @@ function handleError(error: unknown, defaultMessage: string): never {
  * await streamService.update({
  *   id: 'stream1',
  *   title: '新标题',
- *   streamUrl: 'https://new-url.com',
- *   isActive: true
+ *   url: 'https://new-url.com',
+ *   isLive: true
  * });
  * ```
  */
@@ -149,9 +149,9 @@ export const streamService: StreamService = {
       }
       
       // 验证 URL 格式（如果提供了 URL）
-      if (data.streamUrl) {
+      if (data.url) {
         try {
-          new URL(data.streamUrl);
+          new URL(data.url);
         } catch {
           throw new Error('直播地址格式不正确');
         }

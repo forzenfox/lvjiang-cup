@@ -87,6 +87,17 @@ export interface UserInfo {
 }
 
 /**
+ * 队员相关类型
+ */
+export interface Player {
+  id: string;
+  name: string;
+  avatar?: string;
+  position: 'top' | 'jungle' | 'mid' | 'bot' | 'support';
+  teamId: string;
+}
+
+/**
  * 战队相关类型
  */
 export interface Team {
@@ -94,17 +105,9 @@ export interface Team {
   name: string;
   logo?: string;
   description?: string;
-  members?: string[];
+  players?: Player[];
   createdAt?: string;
   updatedAt?: string;
-}
-
-// 后端期望的队员格式
-export interface CreatePlayerRequest {
-  id: string;
-  name: string;
-  avatar?: string;
-  position: '上单' | '打野' | '中单' | 'AD' | '辅助';
 }
 
 // 后端期望的创建战队请求格式
@@ -113,7 +116,7 @@ export interface CreateTeamRequest {
   name: string;
   logo?: string;
   description?: string;
-  players?: CreatePlayerRequest[];
+  players?: Player[];
 }
 
 export interface UpdateTeamRequest extends Partial<CreateTeamRequest> {
@@ -125,27 +128,34 @@ export interface UpdateTeamRequest extends Partial<CreateTeamRequest> {
  */
 export interface Match {
   id: string;
-  stage: string;
-  round: number;
-  team1Id: string;
-  team2Id: string;
-  team1Score?: number;
-  team2Score?: number;
-  winnerTeamId?: string;
-  status: 'scheduled' | 'live' | 'completed' | 'cancelled';
-  scheduledAt?: string;
-  startedAt?: string;
-  endedAt?: string;
+  stage: 'swiss' | 'elimination';
+  round: string;
+  teamAId?: string;
+  teamBId?: string;
+  teamA?: Team;
+  teamB?: Team;
+  scoreA: number;
+  scoreB: number;
+  winnerId?: string;
+  status: 'upcoming' | 'ongoing' | 'finished';
+  startTime?: string;
+  swissRecord?: string;
+  swissDay?: number;
+  eliminationBracket?: 'winners' | 'losers' | 'grand_finals';
+  eliminationGameNumber?: number;
   createdAt?: string;
   updatedAt?: string;
 }
 
 export interface UpdateMatchRequest {
   id: string;
-  team1Score?: number;
-  team2Score?: number;
-  winnerTeamId?: string;
-  status?: 'scheduled' | 'live' | 'completed' | 'cancelled';
+  teamAId?: string;
+  teamBId?: string;
+  scoreA?: number;
+  scoreB?: number;
+  winnerId?: string;
+  status?: 'upcoming' | 'ongoing' | 'finished';
+  startTime?: string;
 }
 
 export interface FindMatchesByStageRequest {
@@ -159,10 +169,8 @@ export interface FindMatchesByStageRequest {
 export interface Stream {
   id: string;
   title: string;
-  streamUrl: string;
-  isActive: boolean;
-  currentMatchId?: string;
-  viewersCount?: number;
+  url: string;
+  isLive: boolean;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -170,27 +178,25 @@ export interface Stream {
 export interface UpdateStreamRequest {
   id: string;
   title?: string;
-  streamUrl?: string;
-  isActive?: boolean;
-  currentMatchId?: string;
+  url?: string;
+  isLive?: boolean;
 }
 
 /**
  * 晋级相关类型
  */
-export interface AdvancementRule {
-  id: string;
-  stage: string;
-  advancementCount: number;
-  criteria: string; // 'points', 'wins', 'score'
-  tiebreaker?: string; // 'head_to_head', 'score_difference', 'total_score'
-  createdAt?: string;
-  updatedAt?: string;
+export interface Advancement {
+  winners2_0: string[];
+  winners2_1: string[];
+  losersBracket: string[];
+  eliminated3rd: string[];
+  eliminated0_3: string[];
 }
 
 export interface UpdateAdvancementRequest {
-  id: string;
-  advancementCount?: number;
-  criteria?: string;
-  tiebreaker?: string;
+  winners2_0?: string[];
+  winners2_1?: string[];
+  losersBracket?: string[];
+  eliminated3rd?: string[];
+  eliminated0_3?: string[];
 }

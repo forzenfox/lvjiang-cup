@@ -1,16 +1,16 @@
 import * as advancementApi from '@/api/advancement';
-import type { AdvancementRule, UpdateAdvancementRequest } from '@/api/types';
+import type { Advancement, UpdateAdvancementRequest } from '@/api/types';
 
 /**
  * 晋级数据服务状态接口
  */
 export interface AdvancementServiceState {
   /** 所有晋级规则列表 */
-  rules: AdvancementRule[];
+  rules: Advancement[];
   /** 当前选中的晋级规则 */
-  currentRule: AdvancementRule | null;
+  currentRule: Advancement | null;
   /** 按阶段分组的晋级规则 */
-  rulesByStage: Map<string, AdvancementRule>;
+  rulesByStage: Map<string, Advancement>;
   /** 加载状态 */
   loading: boolean;
   /** 错误信息 */
@@ -21,12 +21,12 @@ export interface AdvancementServiceState {
  * 晋级数据服务接口
  */
 interface AdvancementService {
-  /** 获取晋级规则（全部或指定阶段） */
-  get: (stage?: string) => Promise<AdvancementRule | AdvancementRule[]>;
+  /** 获取晋级规则 */
+  get: () => Promise<Advancement>;
   /** 获取特定阶段的晋级规则 */
-  getByStage: (stage: string) => Promise<AdvancementRule>;
+  getByStage: (stage: string) => Promise<Advancement>;
   /** 更新晋级规则 */
-  update: (data: UpdateAdvancementRequest) => Promise<AdvancementRule>;
+  update: (data: UpdateAdvancementRequest) => Promise<Advancement>;
   /** 获取服务状态 */
   getState: () => AdvancementServiceState;
   /** 清除错误 */
@@ -86,59 +86,45 @@ function handleError(error: unknown, defaultMessage: string): never {
  * 
  * // 更新晋级规则
  * await advancementService.update({
- *   id: 'rule1',
- *   advancementCount: 4,
- *   criteria: 'points',
- *   tiebreaker: 'head_to_head'
+ *   winners2_0: ['team1', 'team2'],
+ *   winners2_1: ['team3', 'team4'],
+ *   losersBracket: ['team5', 'team6'],
+ *   eliminated3rd: ['team7', 'team8'],
+ *   eliminated0_3: ['team9', 'team10']
  * });
  * ```
  */
 export const advancementService: AdvancementService = {
   /**
    * 获取晋级规则
-   * @param stage 阶段名称，如果不传则获取所有阶段的晋级规则
-   * @returns 晋级规则信息或列表
+   * @returns 晋级规则信息
    */
-  async get(stage?: string): Promise<AdvancementRule | AdvancementRule[]> {
+  async get(): Promise<Advancement> {
     setState({ loading: true, error: null });
     
     try {
-      const result = await advancementApi.get(stage);
+      const result = await advancementApi.get();
       
-      if (Array.isArray(result)) {
-        // 获取到规则列表
-        const rulesByStage = new Map<string, AdvancementRule>();
-        result.forEach(rule => {
-          rulesByStage.set(rule.stage, rule);
-        });
-        
-        setState({
-          rules: result,
-          rulesByStage,
-          loading: false,
-        });
-      } else {
-        // 获取到单个规则
-        const updatedRulesByStage = new Map(state.rulesByStage);
-        updatedRulesByStage.set(result.stage, result);
-        
-        // 更新规则列表
-        const existingIndex = state.rules.findIndex(r => r.id === result.id);
-        const updatedRules = existingIndex >= 0
-          ? state.rules.map(r => r.id === result.id ? result : r)
-          : [...state.rules, result];
-        
-        setState({
-          rules: updatedRules,
-          rulesByStage: updatedRulesByStage,
-          currentRule: result,
-          loading: false,
-        });
-      }
+      // 获取到单个规则
+      const updatedRulesByStage = new Map(state.rulesByStage);
+      updatedRulesByStage.set('default', result);
+      
+      // 更新规则列表
+      const existingIndex = state.rules.findIndex(r => r === result);
+      const updatedRules = existingIndex >= 0
+        ? state.rules.map(r => r === result ? result : r)
+        : [...state.rules, result];
+      
+      setState({
+        rules: updatedRules,
+        rulesByStage: updatedRulesByStage,
+        currentRule: result,
+        loading: false,
+      });
       
       return result;
     } catch (error) {
-      handleError(error, stage ? `获取 ${stage} 阶段晋级规则失败` : '获取晋级规则失败');
+      handleError(error, '获取晋级规则失败');
     }
   },
 
@@ -147,7 +133,7 @@ export const advancementService: AdvancementService = {
    * @param stage 阶段名称
    * @returns 晋级规则信息
    */
-  async getByStage(stage: string): Promise<AdvancementRule> {
+  async getByStage(stage: string): Promise<Advancement> {
     setState({ loading: true, error: null });
     
     try {
@@ -156,16 +142,17 @@ export const advancementService: AdvancementService = {
         throw new Error('阶段名称不能为空');
       }
       
-      const rule = await advancementApi.getByStage(stage);
+      // 由于 API 没有 getByStage 方法，使用 get() 获取所有数据
+      const rule = await advancementApi.get();
       
       // 更新阶段分组缓存
       const updatedRulesByStage = new Map(state.rulesByStage);
       updatedRulesByStage.set(stage, rule);
       
       // 更新规则列表
-      const existingIndex = state.rules.findIndex(r => r.id === rule.id);
+      const existingIndex = state.rules.findIndex(r => r === rule);
       const updatedRules = existingIndex >= 0
-        ? state.rules.map(r => r.id === rule.id ? rule : r)
+        ? state.rules.map(r => r === rule ? rule : r)
         : [...state.rules, rule];
       
       setState({
@@ -186,45 +173,26 @@ export const advancementService: AdvancementService = {
    * @param data 更新晋级规则数据
    * @returns 更新后的晋级规则信息
    */
-  async update(data: UpdateAdvancementRequest): Promise<AdvancementRule> {
+  async update(data: UpdateAdvancementRequest): Promise<Advancement> {
     setState({ loading: true, error: null });
     
     try {
-      // 验证 ID
-      if (!data.id) {
-        throw new Error('晋级规则 ID 不能为空');
-      }
-      
-      // 验证晋级数量
-      if (data.advancementCount !== undefined && data.advancementCount < 0) {
-        throw new Error('晋级数量不能为负数');
-      }
-      
-      // 验证晋级标准
-      const validCriteria = ['points', 'wins', 'score'];
-      if (data.criteria && !validCriteria.includes(data.criteria)) {
-        throw new Error(`无效的晋级标准: ${data.criteria}，可选值: ${validCriteria.join(', ')}`);
-      }
-      
-      // 验证平局决胜规则
-      const validTiebreakers = ['head_to_head', 'score_difference', 'total_score'];
-      if (data.tiebreaker && !validTiebreakers.includes(data.tiebreaker)) {
-        throw new Error(`无效的平局决胜规则: ${data.tiebreaker}，可选值: ${validTiebreakers.join(', ')}`);
-      }
-      
       const rule = await advancementApi.update(data);
       
       // 更新本地列表中的规则
-      const updatedRules = state.rules.map(r => r.id === rule.id ? rule : r);
+      const existingIndex = state.rules.findIndex(r => r === rule);
+      const updatedRules = existingIndex >= 0
+        ? state.rules.map(r => r === rule ? rule : r)
+        : [...state.rules, rule];
       
       // 更新阶段分组缓存
       const updatedRulesByStage = new Map(state.rulesByStage);
-      updatedRulesByStage.set(rule.stage, rule);
+      updatedRulesByStage.set('default', rule);
       
       setState({
         rules: updatedRules,
         rulesByStage: updatedRulesByStage,
-        currentRule: state.currentRule?.id === rule.id ? rule : state.currentRule,
+        currentRule: rule,
         loading: false,
       });
       

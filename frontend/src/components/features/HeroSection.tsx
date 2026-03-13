@@ -55,8 +55,8 @@ const HeroSection: React.FC<HeroSectionProps> = ({ refreshInterval = 30000 }) =>
   }, [refreshInterval]);
 
   const handleWatchLive = () => {
-    if (streamInfo?.streamUrl) {
-      window.open(streamInfo.streamUrl, '_blank');
+    if (streamInfo?.url) {
+      window.open(streamInfo.url, '_blank');
     }
   };
 
@@ -138,11 +138,11 @@ const HeroSection: React.FC<HeroSectionProps> = ({ refreshInterval = 30000 }) =>
           驴酱公会终极对决
         </p>
         
-        {streamInfo?.isActive ? (
+        {streamInfo?.isLive ? (
           <div className="flex flex-col items-center space-y-4">
-            <Button 
-              variant="cta" 
-              size="lg" 
+            <Button
+              variant="cta"
+              size="lg"
               className="text-xl px-12 py-8 rounded-full shadow-[0_0_30px_rgba(234,179,8,0.6)] hover:scale-105 transform transition-transform"
               onClick={handleWatchLive}
             >
@@ -155,11 +155,6 @@ const HeroSection: React.FC<HeroSectionProps> = ({ refreshInterval = 30000 }) =>
                 正在直播：{streamInfo.title}
               </p>
             </div>
-            {streamInfo.viewersCount !== undefined && streamInfo.viewersCount > 0 && (
-              <p className="text-sm text-gray-400">
-                {streamInfo.viewersCount.toLocaleString()} 人正在观看
-              </p>
-            )}
           </div>
         ) : (
           <div className="bg-black/50 backdrop-blur-sm p-6 rounded-xl border border-white/10">

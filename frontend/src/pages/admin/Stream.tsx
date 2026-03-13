@@ -11,9 +11,8 @@ import { Radio, Link2, Type, Activity, RefreshCw, Eye, EyeOff, Save } from 'luci
 const toFormData = (stream: Stream | null) => ({
   id: stream?.id || '',
   title: stream?.title || '',
-  url: stream?.streamUrl || '',
-  isLive: stream?.isActive || false,
-  viewersCount: stream?.viewersCount || 0,
+  url: stream?.url || '',
+  isLive: stream?.isLive || false,
 });
 
 interface StreamFormData {
@@ -21,7 +20,6 @@ interface StreamFormData {
   title: string;
   url: string;
   isLive: boolean;
-  viewersCount: number;
 }
 
 const AdminStream: React.FC = () => {
@@ -30,7 +28,6 @@ const AdminStream: React.FC = () => {
     title: '',
     url: '',
     isLive: false,
-    viewersCount: 0,
   });
   const [originalStream, setOriginalStream] = useState<Stream | null>(null);
   const [loading, setLoading] = useState(false);
@@ -68,7 +65,6 @@ const AdminStream: React.FC = () => {
         title: '',
         url: '',
         isLive: false,
-        viewersCount: 0,
       });
     } finally {
       setLoading(false);
@@ -88,8 +84,8 @@ const AdminStream: React.FC = () => {
       const updateData = {
         id: streamInfo.id,
         title: streamInfo.title,
-        streamUrl: streamInfo.url,
-        isActive: streamInfo.isLive,
+        url: streamInfo.url,
+        isLive: streamInfo.isLive,
       };
       
       await streamService.update(updateData);
@@ -218,18 +214,7 @@ const AdminStream: React.FC = () => {
                   </p>
                 </div>
 
-                {/* 观看人数（只读） */}
-                {streamInfo.viewersCount > 0 && (
-                  <div>
-                    <label className="flex items-center gap-2 text-sm font-medium text-gray-300 mb-2">
-                      <Activity className="w-4 h-4" />
-                      当前观看人数
-                    </label>
-                    <div className="px-3 py-2 bg-gray-900/50 border border-gray-700 rounded-md text-gray-400">
-                      {streamInfo.viewersCount.toLocaleString()} 人
-                    </div>
-                  </div>
-                )}
+
 
                 {/* 操作按钮 */}
                 <div className="flex gap-3 pt-4">

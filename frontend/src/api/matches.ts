@@ -92,10 +92,27 @@ export async function findByRound(round: number): Promise<Match[]> {
   return responseData.data;
 }
 
+/**
+ * 清空比赛比分
+ * @param id 比赛 ID
+ * @returns 清空比分后的比赛信息
+ */
+export async function clearScores(id: string): Promise<Match> {
+  const response = await apiClient.delete<ApiResponse<Match>>(`/admin/matches/${id}/scores`);
+  const responseData = response.data;
+
+  if (!responseData.success || !responseData.data) {
+    throw new Error(responseData.message || '清空比分失败');
+  }
+
+  return responseData.data;
+}
+
 export default {
   getAll,
   getById,
   update,
   findByStage,
   findByRound,
+  clearScores,
 };

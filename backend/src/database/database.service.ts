@@ -148,7 +148,7 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
         id TEXT PRIMARY KEY,
         name TEXT NOT NULL,
         avatar TEXT,
-        position TEXT CHECK(position IN ('上单', '打野', '中单', 'AD', '辅助')),
+        position TEXT CHECK(position IN ('top', 'jungle', 'mid', 'bot', 'support')),
         team_id TEXT NOT NULL,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,

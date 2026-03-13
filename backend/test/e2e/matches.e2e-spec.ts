@@ -74,7 +74,7 @@ describe('Matches API (e2e)', () => {
         id: uuidv4(),
         name: '战队A',
         tag: 'TEAMA',
-        players: [{ id: uuidv4(), name: 'PlayerA1', position: '上单' }],
+        players: [{ id: uuidv4(), name: 'PlayerA1', position: 'top' }],
       });
     teamAId = teamAResponse.body.id;
 
@@ -85,7 +85,7 @@ describe('Matches API (e2e)', () => {
         id: uuidv4(),
         name: '战队B',
         tag: 'TEAMB',
-        players: [{ id: uuidv4(), name: 'PlayerB1', position: '上单' }],
+        players: [{ id: uuidv4(), name: 'PlayerB1', position: 'top' }],
       });
     teamBId = teamBResponse.body.id;
 

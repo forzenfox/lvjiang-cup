@@ -76,7 +76,7 @@ describe('Cross-Module Integration Tests', () => {
         id TEXT PRIMARY KEY,
         name TEXT NOT NULL,
         avatar TEXT,
-        position TEXT CHECK(position IN ('上单', '打野', '中单', 'AD', '辅助')),
+        position TEXT CHECK(position IN ('top', 'jungle', 'mid', 'bot', 'support')),
         team_id TEXT NOT NULL,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -412,7 +412,7 @@ describe('Cross-Module Integration Tests', () => {
           name: `Team ${i}`,
           logo: `logo${i}.png`,
           description: `Description ${i}`,
-          players: [{ id: `p${i}`, name: `Player${i}`, position: '上单' as const }],
+          players: [{ id: `p${i}`, name: `Player${i}`, position: 'top' as const }],
         });
         teams.push(team);
       }
@@ -590,7 +590,7 @@ describe('Cross-Module Integration Tests', () => {
         name: 'Consistent Team',
         logo: 'logo.png',
         description: 'Test',
-        players: [{ id: 'p1', name: 'Player1', position: '上单' as const }],
+        players: [{ id: 'p1', name: 'Player1', position: 'top' as const }],
       });
 
       // 2. 创建比赛
@@ -663,8 +663,8 @@ describe('Cross-Module Integration Tests', () => {
           logo: `logo${i}.png`,
           description: `Team ${i} description`,
           players: [
-            { id: `p${i}-1`, name: `Player${i}-1`, position: '上单' as const },
-            { id: `p${i}-2`, name: `Player${i}-2`, position: '打野' as const },
+            { id: `p${i}-1`, name: `Player${i}-1`, position: 'top' as const },
+            { id: `p${i}-2`, name: `Player${i}-2`, position: 'jungle' as const },
           ],
         });
         teams.push(team);
@@ -1003,7 +1003,7 @@ describe('Cross-Module Integration Tests', () => {
         players: Array.from({ length: 5 }, (_, i) => ({
           id: `p${i}`,
           name: `Player${i}`,
-          position: ['上单', '打野', '中单', 'AD', '辅助'][i] as any,
+          position: ['top', 'jungle', 'mid', 'bot', 'support'][i] as any,
         })),
       });
 

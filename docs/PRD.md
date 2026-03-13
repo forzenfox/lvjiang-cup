@@ -192,7 +192,7 @@ interface Player {
   id: string;
   name: string;
   avatar: string;
-  position: string; // 上单/打野/中单/AD/辅助
+  position: string; // top/jungle/mid/bot/support
   description: string;
   teamId?: string;
 }

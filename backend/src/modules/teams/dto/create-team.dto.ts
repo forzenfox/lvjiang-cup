@@ -16,9 +16,9 @@ class CreatePlayerDto {
   @IsOptional()
   avatar?: string;
 
-  @ApiProperty({ description: '位置', enum: ['上单', '打野', '中单', 'AD', '辅助'] })
+  @ApiProperty({ description: '位置', enum: ['top', 'jungle', 'mid', 'bot', 'support'] })
   @IsString()
-  position: '上单' | '打野' | '中单' | 'AD' | '辅助';
+  position: 'top' | 'jungle' | 'mid' | 'bot' | 'support';
 }
 
 export class CreateTeamDto {

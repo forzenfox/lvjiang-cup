@@ -23,11 +23,11 @@ export const testTeam: Team = {
   logo: 'https://example.com/logo.png',
   description: '这是一个测试战队',
   players: [
-    { name: '上单选手', position: '上单' },
-    { name: '打野选手', position: '打野' },
-    { name: '中单选手', position: '中单' },
-    { name: 'AD选手', position: 'AD' },
-    { name: '辅助选手', position: '辅助' },
+    { name: '上单选手', position: 'top' },
+    { name: '打野选手', position: 'jungle' },
+    { name: '中单选手', position: 'mid' },
+    { name: 'AD选手', position: 'bot' },
+    { name: '辅助选手', position: 'support' },
   ],
 };
 
@@ -38,11 +38,11 @@ export const shortNameTeam: Team = {
   name: 'A',
   description: '短名称战队',
   players: [
-    { name: '选手1', position: '上单' },
-    { name: '选手2', position: '打野' },
-    { name: '选手3', position: '中单' },
-    { name: '选手4', position: 'AD' },
-    { name: '选手5', position: '辅助' },
+    { name: '选手1', position: 'top' },
+    { name: '选手2', position: 'jungle' },
+    { name: '选手3', position: 'mid' },
+    { name: '选手4', position: 'bot' },
+    { name: '选手5', position: 'support' },
   ],
 };
 
@@ -53,11 +53,11 @@ export const longNameTeam: Team = {
   name: '这是一个非常长的战队名称用于测试边界条件处理',
   description: '长名称战队测试',
   players: [
-    { name: '选手1', position: '上单' },
-    { name: '选手2', position: '打野' },
-    { name: '选手3', position: '中单' },
-    { name: '选手4', position: 'AD' },
-    { name: '选手5', position: '辅助' },
+    { name: '选手1', position: 'top' },
+    { name: '选手2', position: 'jungle' },
+    { name: '选手3', position: 'mid' },
+    { name: '选手4', position: 'bot' },
+    { name: '选手5', position: 'support' },
   ],
 };
 

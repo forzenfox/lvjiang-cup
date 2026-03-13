@@ -8,9 +8,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/ca
 import { Plus, Trash2, Edit2, Save, X, RefreshCw, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { getPositionLabel } from '@/utils/position';
 
 // LOL固定位置
-const LOL_POSITIONS = ['上单', '打野', '中单', 'AD', '辅助'];
+const LOL_POSITIONS = ['top', 'jungle', 'mid', 'bot', 'support'];
 
 // 创建默认队员列表
 const createDefaultPlayers = (teamId: string): Player[] => {
@@ -60,7 +61,8 @@ const toCreateTeamRequest = (team: Team): CreateTeamRequest => ({
       id: p.id,
       name: p.name,
       avatar: p.avatar,
-      position: p.position as '上单' | '打野' | '中单' | 'AD' | '辅助',
+      position: p.position as 'top' | 'jungle' | 'mid' | 'bot' | 'support',
+      teamId: team.id,
     })) || [],
 });
 
@@ -76,7 +78,8 @@ const toUpdateTeamRequest = (team: Team): UpdateTeamRequest => ({
       id: p.id,
       name: p.name,
       avatar: p.avatar,
-      position: p.position as '上单' | '打野' | '中单' | 'AD' | '辅助',
+      position: p.position as 'top' | 'jungle' | 'mid' | 'bot' | 'support',
+      teamId: team.id,
     })) || [],
 });
 
@@ -88,11 +91,11 @@ const toFrontendTeam = (apiTeam: any): Team => ({
   logo: apiTeam.logo || '',
   description: apiTeam.description || '',
   players: ensureAllPositions(
-    (apiTeam.members || []).map((name: string, index: number) => ({
-      id: `p-${apiTeam.id}-${index}`,
-      name,
-      position: LOL_POSITIONS[index] || '替补',
-      avatar: '',
+    (apiTeam.players || []).map((p: any) => ({
+      id: p.id,
+      name: p.name,
+      position: p.position,
+      avatar: p.avatar || '',
       description: '',
       teamId: apiTeam.id
     })),
@@ -284,13 +287,19 @@ const AdminTeams: React.FC = () => {
                   <div key={player.id} className="p-3 bg-gray-900/50 rounded border border-gray-700">
                     <div className="flex items-center gap-2 mb-2">
                       <span className="px-2 py-0.5 bg-blue-600/30 text-blue-400 text-xs rounded font-medium">
-                        {player.position}
+                        {getPositionLabel(player.position)}
                       </span>
                     </div>
                     <input
                       value={player.name}
                       onChange={(e) => handlePlayerChange(idx, 'name', e.target.value)}
                       placeholder="队员姓名"
+                      className="w-full px-2 py-1.5 bg-gray-700 rounded text-white text-sm focus:outline-none focus:border-blue-500 border border-transparent mb-2"
+                    />
+                    <input
+                      value={player.avatar || ''}
+                      onChange={(e) => handlePlayerChange(idx, 'avatar', e.target.value)}
+                      placeholder="头像链接"
                       className="w-full px-2 py-1.5 bg-gray-700 rounded text-white text-sm focus:outline-none focus:border-blue-500 border border-transparent"
                     />
                   </div>
@@ -394,7 +403,7 @@ const AdminTeams: React.FC = () => {
                           key={idx} 
                           className="px-2 py-0.5 bg-gray-700/50 text-gray-300 text-xs rounded"
                         >
-                          {player.position}: {player.name}
+                          {getPositionLabel(player.position)}: {player.name}
                         </span>
                       ))}
                     {team.players.filter(p => p.name).length > 5 && (

@@ -15,10 +15,10 @@ export { default as authApi, login, getCurrentUser, logout, isAuthenticated } fr
 export { default as teamsApi, getAll as getAllTeams, getById as getTeamById, create as createTeam, update as updateTeam, remove as removeTeam } from './teams';
 
 // 比赛 API
-export { default as matchesApi, getAll as getAllMatches, getById as getMatchById, update as updateMatch, findByStage as findMatchesByStage, findByRound as findMatchesByRound } from './matches';
+export { default as matchesApi, getAll as getAllMatches, getById as getMatchById, update as updateMatch, findByStage as findMatchesByStage, findByRound as findMatchesByRound, clearScores as clearMatchScores } from './matches';
 
 // 直播 API
 export { default as streamsApi, get as getStream, getAll as getAllStreams, update as updateStream, create as createStream, remove as removeStream } from './streams';
 
 // 晋级 API
-export { default as advancementApi, get as getAdvancement, getByStage as getAdvancementByStage, update as updateAdvancement } from './advancement';
+export { default as advancementApi, get as getAdvancement, update as updateAdvancement } from './advancement';

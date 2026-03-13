@@ -105,7 +105,7 @@ describe('TeamsController', () => {
         logo: 'logo.png',
         description: 'A new team',
         players: [
-          { id: 'p1', name: 'Player 1', position: '上单' as const },
+          { id: 'p1', name: 'Player 1', position: 'top' as const },
         ],
       };
       const createdTeam: Team = {
@@ -114,7 +114,7 @@ describe('TeamsController', () => {
         logo: 'logo.png',
         description: 'A new team',
         players: [
-          { id: 'p1', name: 'Player 1', position: '上单', teamId: 'new-team' },
+          { id: 'p1', name: 'Player 1', position: 'top', teamId: 'new-team' },
         ],
       };
       mockTeamsService.create.mockResolvedValue(createdTeam);
@@ -270,7 +270,7 @@ describe('TeamsController', () => {
         logo: 'logo.png',
         description: 'Description',
         players: [
-          { id: 'p1', name: 'Player 1', position: '上单', teamId: 'team1' },
+          { id: 'p1', name: 'Player 1', position: 'top', teamId: 'team1' },
         ],
       };
       mockTeamsService.findOne.mockResolvedValue(team);

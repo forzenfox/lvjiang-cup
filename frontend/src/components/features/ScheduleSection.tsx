@@ -51,40 +51,35 @@ interface Match {
 
 // 将 API Match 转换为本地 Match 格式
 const convertApiMatchToLocal = (apiMatch: ApiMatch, teams: Team[]): Match => {
-  const teamA = teams.find(t => t.id === apiMatch.team1Id);
-  const teamB = teams.find(t => t.id === apiMatch.team2Id);
-
-  // 将 API status 映射到本地 status
-  let status: MatchStatus = 'upcoming';
-  if (apiMatch.status === 'live') status = 'ongoing';
-  else if (apiMatch.status === 'completed') status = 'finished';
+  const teamA = teams.find(t => t.id === apiMatch.teamAId);
+  const teamB = teams.find(t => t.id === apiMatch.teamBId);
 
   // 将 API stage 映射到本地 stage
   const stage: MatchStage = apiMatch.stage === 'elimination' ? 'elimination' : 'swiss';
 
   return {
     id: apiMatch.id,
-    teamAId: apiMatch.team1Id,
-    teamBId: apiMatch.team2Id,
+    teamAId: apiMatch.teamAId || '',
+    teamBId: apiMatch.teamBId || '',
     teamA,
     teamB,
-    scoreA: apiMatch.team1Score || 0,
-    scoreB: apiMatch.team2Score || 0,
-    winnerId: apiMatch.winnerTeamId || null,
+    scoreA: apiMatch.scoreA || 0,
+    scoreB: apiMatch.scoreB || 0,
+    winnerId: apiMatch.winnerId || null,
     round: `第${apiMatch.round}轮`,
-    status,
-    startTime: apiMatch.scheduledAt || new Date().toISOString(),
+    status: apiMatch.status,
+    startTime: apiMatch.startTime || new Date().toISOString(),
     stage,
-    swissRecord: stage === 'swiss' ? `${apiMatch.team1Score || 0}-${apiMatch.team2Score || 0}` : undefined,
-    swissDay: stage === 'swiss' ? apiMatch.round : undefined,
-    eliminationGameNumber: stage === 'elimination' ? apiMatch.round : undefined,
+    swissRecord: stage === 'swiss' ? `${apiMatch.scoreA || 0}-${apiMatch.scoreB || 0}` : undefined,
+    swissDay: stage === 'swiss' ? Number(apiMatch.round) : undefined,
+    eliminationGameNumber: stage === 'elimination' ? Number(apiMatch.round) : undefined,
     eliminationBracket: stage === 'elimination' ? 'winners' : undefined,
   };
 };
 
 // 将 API Team 转换为本地 Team 格式
 const convertApiTeamToLocal = (apiTeam: ApiTeam): Team => {
-  const positions = ['上单', '打野', '中单', 'ADC', '辅助'];
+  const positions = ['top', 'jungle', 'mid', 'bot', 'support'];
   const players: Player[] = positions.map((position, index) => ({
     id: `${apiTeam.id}-player-${index}`,
     name: `${apiTeam.name} - ${position}`,

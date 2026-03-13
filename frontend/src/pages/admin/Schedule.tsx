@@ -15,24 +15,16 @@ import { Button } from '@/components/ui/button';
 // 将前端 Match 转换为 API UpdateMatchRequest
 const toUpdateMatchRequest = (match: Match): UpdateMatchRequest => ({
   id: match.id,
-  team1Score: match.scoreA,
-  team2Score: match.scoreB,
-  winnerTeamId: match.winnerId || undefined,
+  scoreA: match.scoreA,
+  scoreB: match.scoreB,
+  winnerId: match.winnerId || undefined,
   status: mapStatusToApi(match.status),
 });
 
 // 将前端状态映射到 API 状态
-const mapStatusToApi = (status: MatchStatus): 'scheduled' | 'live' | 'completed' | 'cancelled' => {
-  switch (status) {
-    case 'upcoming':
-      return 'scheduled';
-    case 'ongoing':
-      return 'live';
-    case 'finished':
-      return 'completed';
-    default:
-      return 'scheduled';
-  }
+const mapStatusToApi = (status: MatchStatus): 'upcoming' | 'ongoing' | 'finished' => {
+  // 前端状态和 API 状态保持一致
+  return status;
 };
 
 // 将 API 状态映射到前端状态
@@ -96,11 +88,11 @@ const AdminSchedule: React.FC = () => {
         name: t.name,
         logo: t.logo || '',
         description: t.description || '',
-        players: (t.members || []).map((name: string, index: number) => ({
-          id: `p-${t.id}-${index}`,
-          name,
-          position: ['上单', '打野', '中单', 'AD', '辅助'][index] || '替补',
-          avatar: '',
+        players: (t.players || []).map((player, index: number) => ({
+          id: player.id || `p-${t.id}-${index}`,
+          name: player.name,
+          position: player.position || ['top', 'jungle', 'mid', 'bot', 'support'][index] || 'sub',
+          avatar: player.avatar || '',
           description: '',
           teamId: t.id
         })),

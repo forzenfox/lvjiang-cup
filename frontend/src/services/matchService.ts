@@ -100,10 +100,10 @@ function handleError(error: unknown, defaultMessage: string): never {
  * // 更新比赛比分
  * await matchService.update({
  *   id: 'match1',
- *   team1Score: 2,
- *   team2Score: 1,
- *   winnerTeamId: 'team1',
- *   status: 'completed'
+ *   scoreA: 2,
+ *   scoreB: 1,
+ *   winnerId: 'team1',
+ *   status: 'finished'
  * });
  * 
  * // 按阶段筛选比赛
@@ -179,15 +179,15 @@ export const matchService: MatchService = {
       }
       
       // 验证比分数据
-      if (data.team1Score !== undefined && data.team1Score < 0) {
+      if (data.scoreA !== undefined && data.scoreA < 0) {
         throw new Error('队伍1比分不能为负数');
       }
-      if (data.team2Score !== undefined && data.team2Score < 0) {
+      if (data.scoreB !== undefined && data.scoreB < 0) {
         throw new Error('队伍2比分不能为负数');
       }
       
       // 验证获胜方
-      if (data.winnerTeamId && !data.team1Score && !data.team2Score) {
+      if (data.winnerId && data.scoreA === undefined && data.scoreB === undefined) {
         throw new Error('设置获胜方时必须提供比分');
       }
       
