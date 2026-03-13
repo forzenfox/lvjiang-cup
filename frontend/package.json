@@ -13,10 +13,14 @@
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",
-    "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui",
-    "test:e2e:debug": "playwright test --debug",
-    "test:e2e:report": "playwright show-report"
+    "test:e2e": "playwright test --workers=1",
+    "test:e2e:ui": "playwright test --ui --workers=1",
+    "test:e2e:debug": "playwright test --debug --workers=1",
+    "test:e2e:report": "playwright show-report",
+    "test:e2e:serial": "playwright test --workers=1 --fully-parallel=false",
+    "test:e2e:phase1": "playwright test 01-home.spec.ts --workers=1",
+    "test:e2e:phase2": "playwright test 02-admin-login.spec.ts 05-stream.spec.ts 03-teams.spec.ts 04-schedule.spec.ts --workers=1",
+    "test:e2e:phase3": "playwright test 06-advancement.spec.ts 07-edge-cases.spec.ts --workers=1"
   },
   "dependencies": {
     "@radix-ui/react-tabs": "^1.1.13",

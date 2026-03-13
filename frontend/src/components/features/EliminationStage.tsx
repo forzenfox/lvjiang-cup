@@ -17,6 +17,18 @@ interface EliminationStageProps {
   onMatchUpdate?: (match: Match) => void;
 }
 
+// 淘汰赛比赛编号到真实ID的映射（与后端初始化槽位一致）
+const GAME_NUMBER_TO_ID: Record<number, string> = {
+  1: 'elim-winners-1',
+  2: 'elim-winners-2',
+  3: 'elim-losers-3',
+  4: 'elim-losers-4',
+  5: 'elim-winners-5',
+  6: 'elim-losers-6',
+  7: 'elim-losers-7',
+  8: 'elim-grand-8',
+};
+
 const EliminationStage: React.FC<EliminationStageProps> = ({
   matches,
   teams,
@@ -27,7 +39,19 @@ const EliminationStage: React.FC<EliminationStageProps> = ({
   const getMatch = (gameNum: number) => matches.find(m => m.eliminationGameNumber === gameNum);
 
   const renderMatch = (match: Match | undefined, pos: { x: number; y: number }, gameNum?: number) => {
-    const displayMatch = match || createPlaceholderMatch(gameNum);
+    // 对于可编辑模式，如果比赛不存在，使用真实ID创建占位比赛
+    let displayMatch: Match;
+    if (match) {
+      displayMatch = match;
+    } else if (editable && gameNum && GAME_NUMBER_TO_ID[gameNum]) {
+      // 使用真实ID创建占位比赛，而不是 placeholder-xxx
+      displayMatch = {
+        ...createPlaceholderMatch(gameNum),
+        id: GAME_NUMBER_TO_ID[gameNum],
+      };
+    } else {
+      displayMatch = createPlaceholderMatch(gameNum);
+    }
 
     return (
       <div

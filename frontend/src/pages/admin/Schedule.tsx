@@ -123,6 +123,48 @@ const AdminSchedule: React.FC = () => {
     }
   };
 
+  // 处理瑞士轮创建新比赛（实际上是找到空槽位并更新）
+  const handleMatchCreate = async (newMatch: Omit<Match, 'id'>) => {
+    // 验证是否选择了至少一支队伍
+    if (!newMatch.teamAId || !newMatch.teamBId) {
+      toast.error('请选择两支队伍');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // 找到对应战绩分组的空槽位
+      const swissRecord = newMatch.swissRecord;
+      const existingMatches = matches.filter(m => m.stage === 'swiss' && m.swissRecord === swissRecord);
+
+      // 查找没有队伍的槽位（teamAId 或 teamBId 为空或空字符串）
+      const emptySlot = existingMatches.find(m => !m.teamAId || m.teamAId === '' || !m.teamBId || m.teamBId === '');
+
+      if (emptySlot) {
+        // 更新现有槽位
+        const updateData: UpdateMatchRequest = {
+          id: emptySlot.id,
+          teamAId: newMatch.teamAId,
+          teamBId: newMatch.teamBId,
+          scoreA: newMatch.scoreA,
+          scoreB: newMatch.scoreB,
+          status: newMatch.status,
+          startTime: newMatch.startTime,
+        };
+        await matchService.update(updateData);
+        toast.success('比赛已创建');
+        await loadData();
+      } else {
+        toast.error('该战绩分组已满，无法添加更多比赛');
+      }
+    } catch (error) {
+      console.error('Failed to create match:', error);
+      toast.error(error instanceof Error ? error.message : '创建失败');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleAdvancementUpdate = (newAdvancement: typeof advancement) => {
     setAdvancement(newAdvancement, 'admin');
     toast.success('晋级名单已更新');
@@ -185,6 +227,7 @@ const AdminSchedule: React.FC = () => {
                     teams={teams}
                     advancement={advancement}
                     onMatchUpdate={handleMatchUpdate}
+                    onMatchCreate={handleMatchCreate}
                     onAdvancementUpdate={handleAdvancementUpdate}
                   />
                 )}

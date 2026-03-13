@@ -68,3 +68,19 @@ export const editedTeam: Partial<Team> = {
   name: '编辑后的战队名称',
   description: '这是编辑后的战队描述',
 };
+
+/**
+ * 第二支测试战队（用于比赛对阵）
+ */
+export const testTeamBeta: Team = {
+  name: '测试战队Beta',
+  logo: 'https://example.com/logo-beta.png',
+  description: '这是第二支测试战队，用于比赛对阵',
+  players: [
+    { name: 'Beta上单', position: 'top' },
+    { name: 'Beta打野', position: 'jungle' },
+    { name: 'Beta中单', position: 'mid' },
+    { name: 'Beta射手', position: 'bot' },
+    { name: 'Beta辅助', position: 'support' },
+  ],
+};

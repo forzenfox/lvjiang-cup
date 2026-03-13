@@ -28,29 +28,29 @@ export class TeamsPage {
   readonly confirmDeleteButton: Locator;
   readonly cancelDeleteButton: Locator;
 
-  constructor(page: Page, baseUrl: string = 'http://localhost:5174') {
+  constructor(page: Page, baseUrl: string = 'http://localhost:5173') {
     this.page = page;
     this.url = `${baseUrl}/admin/teams`;
 
-    // 页面元素 - 使用实际页面中的类名和文本
-    this.pageTitle = page.locator('h1:has-text("战队管理")');
-    this.addButton = page.locator('button:has-text("添加战队")');
-    this.refreshButton = page.locator('button:has-text("刷新")');
-    this.teamCards = page.locator('.bg-gray-800.border-gray-700');
-    this.emptyState = page.locator('text=暂无战队数据');
+    // 页面元素 - 使用稳定的 role 和 data-testid
+    this.pageTitle = page.getByRole('heading', { name: '战队管理' });
+    this.addButton = page.getByRole('button', { name: '添加战队' });
+    this.refreshButton = page.getByRole('button', { name: '刷新' });
+    this.teamCards = page.getByTestId('admin-team-card');
+    this.emptyState = page.getByText(/暂无战队|还没有战队/);
 
-    // 表单元素 - 使用 placeholder 和类名
-    this.teamForm = page.locator('.bg-gray-800:has(h3:has-text("新建战队"))');
-    this.teamNameInput = page.locator('input[placeholder="请输入战队名称"]');
-    this.teamLogoInput = page.locator('input[placeholder="https://example.com/logo.png"]');
-    this.teamDescriptionInput = page.locator('textarea.bg-gray-700');
-    this.saveButton = page.locator('button:has-text("保存战队")');
-    this.cancelButton = page.locator('button:has-text("取消")');
+    // 表单元素 - 使用 data-testid
+    this.teamForm = page.getByTestId('team-form');
+    this.teamNameInput = page.getByTestId('team-name-input');
+    this.teamLogoInput = page.getByTestId('team-logo-input');
+    this.teamDescriptionInput = page.getByTestId('team-description-input');
+    this.saveButton = page.getByRole('button', { name: '保存战队' });
+    this.cancelButton = page.getByRole('button', { name: '取消' });
 
     // 删除确认对话框
-    this.deleteDialog = page.locator('[role="alertdialog"], .fixed.inset-0:has-text("确认删除")');
-    this.confirmDeleteButton = page.locator('button:has-text("删除")');
-    this.cancelDeleteButton = page.locator('button:has-text("取消")');
+    this.deleteDialog = page.getByRole('alertdialog');
+    this.confirmDeleteButton = page.getByRole('button', { name: '删除' });
+    this.cancelDeleteButton = page.getByRole('button', { name: '取消' });
   }
 
   /**
@@ -103,7 +103,7 @@ export class TeamsPage {
    * 填写队员信息
    */
   async fillPlayerNames(playerNames: string[]): Promise<void> {
-    const playerInputs = this.page.locator('input[placeholder="队员姓名"]');
+    const playerInputs = this.page.getByTestId('player-name-input');
     const count = await playerInputs.count();
 
     for (let i = 0; i < Math.min(playerNames.length, count); i++) {
@@ -205,7 +205,7 @@ export class TeamsPage {
    * 根据名称查找战队卡片
    */
   async findTeamCardByName(name: string): Promise<Locator | null> {
-    const card = this.page.locator('.bg-gray-800').filter({ hasText: name });
+    const card = this.page.getByTestId('admin-team-card').filter({ hasText: name });
     if (await card.isVisible().catch(() => false)) {
       return card;
     }
@@ -218,7 +218,7 @@ export class TeamsPage {
   async clickEditTeam(name: string): Promise<void> {
     const card = await this.findTeamCardByName(name);
     if (card) {
-      const editButton = card.locator('button').first();
+      const editButton = card.getByRole('button', { name: '编辑' });
       await editButton.click();
       await expect(this.teamNameInput).toBeVisible();
     }
@@ -230,7 +230,7 @@ export class TeamsPage {
   async clickDeleteTeam(name: string): Promise<void> {
     const card = await this.findTeamCardByName(name);
     if (card) {
-      const deleteButton = card.locator('button').last();
+      const deleteButton = card.getByRole('button', { name: '删除' });
       await deleteButton.click();
       await expect(this.deleteDialog).toBeVisible();
     }
@@ -255,7 +255,7 @@ export class TeamsPage {
    * 检查战队是否存在
    */
   async hasTeam(name: string): Promise<boolean> {
-    const card = this.page.locator('.bg-gray-800').filter({ hasText: name });
+    const card = this.page.getByTestId('admin-team-card').filter({ hasText: name });
     return await card.isVisible().catch(() => false);
   }
 
@@ -274,5 +274,27 @@ export class TeamsPage {
     await expect(this.pageTitle).toBeVisible();
     await expect(this.addButton).toBeVisible();
     await expect(this.refreshButton).toBeVisible();
+  }
+
+  /**
+   * 加载模拟数据（用于测试）
+   */
+  async loadMockData(): Promise<void> {
+    // 通过 API 调用创建测试数据
+    await this.page.evaluate(async () => {
+      const response = await fetch('/api/admin/teams', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: '测试战队',
+          logo: 'https://example.com/logo.png',
+          description: '测试描述'
+        })
+      });
+      return response.ok;
+    });
+    // 刷新页面以加载新数据
+    await this.page.reload();
+    await this.waitForPageLoad();
   }
 }
