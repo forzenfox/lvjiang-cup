@@ -21,6 +21,7 @@ const SwissMatchStatusBadge: React.FC<SwissMatchStatusBadgeProps> = ({ status })
   return (
     <span
       className={`absolute top-0 right-0 px-1.5 py-0.5 text-[10px] rounded-bl border ${statusStyles[status]}`}
+      data-testid="match-status"
     >
       {statusLabels[status]}
     </span>

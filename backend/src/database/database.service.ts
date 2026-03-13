@@ -68,6 +68,7 @@ function all<T>(db: sqlite3.Database, sql: string, params: any[] = []): Promise<
 @Injectable()
 export class DatabaseService implements OnModuleInit, OnModuleDestroy {
   private db: sqlite3.Database;
+  private isConnected = false;
   private readonly logger = new Logger(DatabaseService.name);
 
   constructor(private configService: ConfigService) {}
@@ -84,14 +85,15 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     // 创建数据库连接
     try {
       this.db = await openDatabase(dbPath);
+      this.isConnected = true;
       this.logger.log('Database connected');
-      
+
       // 启用 WAL 模式提升性能
       await run(this.db, 'PRAGMA journal_mode = WAL');
       await run(this.db, 'PRAGMA synchronous = NORMAL');
       await run(this.db, 'PRAGMA temp_store = MEMORY');
       await run(this.db, 'PRAGMA mmap_size = 30000000000');
-      
+
       // 初始化表结构
       await this.initTables();
     } catch (err) {
@@ -101,10 +103,14 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
   }
 
   onModuleDestroy() {
-    if (this.db) {
+    if (this.db && this.isConnected) {
+      this.isConnected = false;
       this.db.close((err) => {
         if (err) {
-          this.logger.error('Error closing database', err.message);
+          // 只记录非"Database handle is closed"的错误
+          if (!err.message?.includes('Database handle is closed')) {
+            this.logger.error('Error closing database', err.message);
+          }
         } else {
           this.logger.log('Database connection closed');
         }

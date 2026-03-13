@@ -64,12 +64,12 @@ const TeamCardSkeleton: React.FC = () => (
 
 // 空数据状态组件
 const EmptyState: React.FC<{ onRetry: () => void }> = ({ onRetry }) => (
-  <div className="col-span-full flex flex-col items-center justify-center py-20">
+  <div className="col-span-full flex flex-col items-center justify-center py-20" data-testid="empty-teams">
     <Users className="w-16 h-16 text-gray-500 mb-4" />
     <p className="text-xl text-gray-400 mb-2">暂无战队数据</p>
     <p className="text-sm text-gray-500 mb-6">当前没有可用的战队信息</p>
-    <Button 
-      variant="outline" 
+    <Button
+      variant="outline"
       onClick={onRetry}
       className="border-secondary text-secondary hover:bg-secondary/10"
     >
@@ -204,29 +204,30 @@ const TeamSection: React.FC<TeamSectionProps> = ({ refreshInterval = 30000 }) =>
           </div>
         ) : (
           /* 正常数据展示 */
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8" data-testid="teams-grid">
             {teams.map((team) => (
-              <Card key={team.id} className="bg-white/5 border-white/10 hover:border-secondary/50 transition-all duration-300 hover:transform hover:-translate-y-2 group overflow-hidden">
+              <Card key={team.id} className="bg-white/5 border-white/10 hover:border-secondary/50 transition-all duration-300 hover:transform hover:-translate-y-2 group overflow-hidden" data-testid="team-card">
                 <div className="h-32 bg-gradient-to-br from-blue-900/50 to-purple-900/50 relative flex items-center justify-center p-4">
-                  <img 
-                    src={team.logo} 
-                    alt={team.name} 
-                    className="w-24 h-24 object-contain drop-shadow-lg transform group-hover:scale-110 transition-transform duration-300" 
+                  <img
+                    src={team.logo}
+                    alt={team.name}
+                    className="w-24 h-24 object-contain drop-shadow-lg transform group-hover:scale-110 transition-transform duration-300"
+                    data-testid="team-logo"
                   />
                 </div>
                 <CardHeader>
-                  <CardTitle className="text-xl text-center text-secondary group-hover:text-white transition-colors">{team.name}</CardTitle>
-                  <CardDescription className="text-center">{team.description}</CardDescription>
+                  <CardTitle className="text-xl text-center text-secondary group-hover:text-white transition-colors" data-testid="team-name">{team.name}</CardTitle>
+                  <CardDescription className="text-center" data-testid="team-description">{team.description}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
                     {team.players.map((player) => (
-                      <div key={player.id} className="flex items-center justify-between p-2 rounded bg-black/20 hover:bg-white/10 transition-colors">
+                      <div key={player.id} className="flex items-center justify-between p-2 rounded bg-black/20 hover:bg-white/10 transition-colors" data-testid="player-row">
                         <div className="flex items-center space-x-3">
-                          <img src={player.avatar} alt={player.name} className="w-8 h-8 rounded-full bg-gray-700 object-cover" />
-                          <span className="text-sm font-medium text-gray-200">{player.name}</span>
+                          <img src={player.avatar} alt={player.name} className="w-8 h-8 rounded-full bg-gray-700 object-cover" data-testid="player-avatar" />
+                          <span className="text-sm font-medium text-gray-200" data-testid="player-name">{player.name}</span>
                         </div>
-                        <div className="flex items-center" title={getPositionLabel(player.position)}>
+                        <div className="flex items-center" title={getPositionLabel(player.position)} data-testid="position-icon">
                           <PositionIcon position={player.position} />
                         </div>
                       </div>

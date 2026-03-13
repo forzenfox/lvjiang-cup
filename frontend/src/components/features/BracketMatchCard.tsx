@@ -15,9 +15,9 @@ const BracketStatusBadge: React.FC<{ status: MatchStatus }> = ({ status }) => {
     ongoing: 'bg-green-900/50 text-green-400 border-green-700/30 animate-pulse',
     finished: 'bg-gray-700/50 text-gray-400 border-gray-600/30'
   };
-  
+
   return (
-    <span className={`absolute top-0 right-0 px-1.5 py-0.5 text-[10px] rounded-bl border ${styles[status]}`}>
+    <span className={`absolute top-0 right-0 px-1.5 py-0.5 text-[10px] rounded-bl border ${styles[status]}`} data-testid="match-status">
       {status === 'upcoming' ? '未开始' : status === 'ongoing' ? '进行中' : '已结束'}
     </span>
   );
@@ -33,8 +33,8 @@ const BracketMatchCard = React.forwardRef<HTMLDivElement, BracketMatchCardProps>
   const teamBWon = match.winnerId === match.teamBId;
 
   return (
-    <div className="flex flex-col gap-1 relative group">
-      <Card 
+    <div className="flex flex-col gap-1 relative group" data-testid="bracket-match">
+      <Card
         ref={ref}
         className={`
           relative overflow-hidden
@@ -56,74 +56,82 @@ const BracketMatchCard = React.forwardRef<HTMLDivElement, BracketMatchCardProps>
         </div>
 
         {/* Team A */}
-        <div 
+        <div
           data-team="a"
           className={`
             flex items-center justify-between px-3 py-2 border-b border-gray-700/50
             ${teamAWon ? 'bg-yellow-500/10' : ''}
           `}
+          data-testid="team-a"
         >
           <div className="flex items-center gap-2">
             {teamA?.logo ? (
-              <img 
-                src={teamA.logo} 
+              <img
+                src={teamA.logo}
                 alt={teamA.name}
                 className="w-5 h-5 rounded-full object-cover"
+                data-testid="team-a-logo"
               />
             ) : (
               <div className="w-5 h-5 rounded-full bg-gray-700" />
             )}
-            <span 
+            <span
               className={`
                 text-sm font-medium truncate max-w-[90px]
                 ${teamAWon ? 'text-yellow-400' : 'text-gray-300'}
               `}
+              data-testid="team-a-name"
             >
               {teamA?.name || '待定'}
             </span>
           </div>
-          <span 
+          <span
             className={`
               text-sm font-bold w-6 text-center
               ${teamAWon ? 'text-yellow-400' : 'text-gray-500'}
             `}
+            data-testid="team-a-score"
           >
             {match.scoreA}
           </span>
         </div>
 
         {/* Team B */}
-        <div 
+        <div
           data-team="b"
           className={`
             flex items-center justify-between px-3 py-2
             ${teamBWon ? 'bg-yellow-500/10' : ''}
           `}
+          data-testid="team-b"
         >
           <div className="flex items-center gap-2">
             {teamB?.logo ? (
-              <img 
-                src={teamB.logo} 
+              <img
+                src={teamB.logo}
                 alt={teamB.name}
                 className="w-5 h-5 rounded-full object-cover"
+                data-testid="team-b-logo"
               />
             ) : (
               <div className="w-5 h-5 rounded-full bg-gray-700" />
             )}
-            <span 
+            <span
               className={`
                 text-sm font-medium truncate max-w-[90px]
                 ${teamBWon ? 'text-yellow-400' : 'text-gray-300'}
               `}
+              data-testid="team-b-name"
             >
               {teamB?.name || '待定'}
             </span>
           </div>
-          <span 
+          <span
             className={`
               text-sm font-bold w-6 text-center
               ${teamBWon ? 'text-yellow-400' : 'text-gray-500'}
             `}
+            data-testid="team-b-score"
           >
             {match.scoreB}
           </span>

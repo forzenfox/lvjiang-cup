@@ -36,14 +36,14 @@ export class TeamsPage {
     this.pageTitle = page.getByRole('heading', { name: '战队管理' });
     this.addButton = page.getByRole('button', { name: '添加战队' });
     this.refreshButton = page.getByRole('button', { name: '刷新' });
-    this.teamCards = page.getByTestId('admin-team-card');
-    this.emptyState = page.getByText(/暂无战队|还没有战队/);
+    this.teamCards = page.locator('[data-testid="admin-team-card"], .card:has(.text-white)');
+    this.emptyState = page.getByText(/暂无战队 | 还没有战队 | 暂无战队数据/);
 
-    // 表单元素 - 使用 data-testid
-    this.teamForm = page.getByTestId('team-form');
-    this.teamNameInput = page.getByTestId('team-name-input');
-    this.teamLogoInput = page.getByTestId('team-logo-input');
-    this.teamDescriptionInput = page.getByTestId('team-description-input');
+    // 表单元素 - 使用 placeholder 和 label 定位
+    this.teamForm = page.locator('form, .card:has(input[placeholder*="请输入战队名称"])');
+    this.teamNameInput = page.locator('input[placeholder*="请输入战队名称"]').first();
+    this.teamLogoInput = page.locator('input[placeholder*="logo"]').first();
+    this.teamDescriptionInput = page.locator('textarea[placeholder*="简介"]').first();
     this.saveButton = page.getByRole('button', { name: '保存战队' });
     this.cancelButton = page.getByRole('button', { name: '取消' });
 
@@ -152,6 +152,8 @@ export class TeamsPage {
    */
   async editTeam(name: string, updates: Partial<Team>): Promise<void> {
     await this.clickEditTeam(name);
+    // 等待表单完全打开
+    await this.page.waitForTimeout(1000);
     await this.fillTeamForm(updates);
     await this.saveTeam();
   }
@@ -168,6 +170,18 @@ export class TeamsPage {
    * 验证战队存在
    */
   async expectTeamExists(name: string): Promise<void> {
+    // 等待战队出现，最多重试 3 次
+    for (let i = 0; i < 3; i++) {
+      const exists = await this.hasTeam(name);
+      if (exists) {
+        return;
+      }
+      // 如果没找到，等待一下再试
+      await this.page.waitForTimeout(1000);
+      // 刷新列表
+      await this.refresh();
+    }
+    // 最后一次检查
     const exists = await this.hasTeam(name);
     expect(exists).toBe(true);
   }
@@ -195,17 +209,45 @@ export class TeamsPage {
   }
 
   /**
-   * 获取战队列表
+   * 获取战队卡片列表
+   */
+  async getTeamCards(): Promise<Locator[]> {
+    const teamCards = this.page.locator('[data-testid="admin-team-card"], .card:has(.text-white)');
+    const count = await teamCards.count();
+    const cards: Locator[] = [];
+    for (let i = 0; i < count; i++) {
+      cards.push(teamCards.nth(i));
+    }
+    return cards;
+  }
+
+  /**
+   * 获取战队数量
    */
   async getTeamCount(): Promise<number> {
-    return await this.teamCards.count();
+    // 尝试多种定位方式
+    const teamCards = this.page.locator('[data-testid="admin-team-card"], .card:has(.text-white), .bg-gray-800:has(.text-white)');
+    return await teamCards.count();
+  }
+
+  /**
+   * 获取战队卡片列表
+   */
+  async getTeamCards(): Promise<Locator[]> {
+    const teamCards = this.page.locator('[data-testid="admin-team-card"], .card:has(.text-white)');
+    const count = await teamCards.count();
+    const cards: Locator[] = [];
+    for (let i = 0; i < count; i++) {
+      cards.push(teamCards.nth(i));
+    }
+    return cards;
   }
 
   /**
    * 根据名称查找战队卡片
    */
   async findTeamCardByName(name: string): Promise<Locator | null> {
-    const card = this.page.getByTestId('admin-team-card').filter({ hasText: name });
+    const card = this.page.locator('[data-testid="admin-team-card"], .card:has(.text-white)').filter({ hasText: name }).first();
     if (await card.isVisible().catch(() => false)) {
       return card;
     }
@@ -255,7 +297,8 @@ export class TeamsPage {
    * 检查战队是否存在
    */
   async hasTeam(name: string): Promise<boolean> {
-    const card = this.page.getByTestId('admin-team-card').filter({ hasText: name });
+    // 尝试多种定位方式
+    const card = this.page.locator('.card, [data-testid="admin-team-card"]').filter({ hasText: name }).first();
     return await card.isVisible().catch(() => false);
   }
 

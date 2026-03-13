@@ -99,7 +99,7 @@ const convertApiTeamToLocal = (apiTeam: ApiTeam): Team => {
 
 // 加载骨架屏组件
 const ScheduleSkeleton: React.FC = () => (
-  <div className="w-full">
+  <div className="w-full" data-testid="schedule-skeleton">
     <div className="flex justify-center mb-8">
       <div className="flex space-x-2 bg-gray-800/50 p-1 rounded-lg">
         <div className="w-24 h-10 bg-white/10 rounded animate-pulse" />
@@ -116,12 +116,12 @@ const ScheduleSkeleton: React.FC = () => (
 
 // 错误状态组件
 const ErrorState: React.FC<{ message: string; onRetry: () => void }> = ({ message, onRetry }) => (
-  <div className="flex flex-col items-center justify-center py-20">
+  <div className="flex flex-col items-center justify-center py-20" data-testid="schedule-error">
     <AlertCircle className="w-16 h-16 text-red-500 mb-4" />
     <p className="text-xl text-red-400 mb-2">加载失败</p>
     <p className="text-sm text-gray-400 mb-6">{message}</p>
-    <Button 
-      variant="outline" 
+    <Button
+      variant="outline"
       onClick={onRetry}
       className="border-red-400 text-red-400 hover:bg-red-400/10"
     >
@@ -239,34 +239,34 @@ const ScheduleSection: React.FC<ScheduleSectionProps> = ({ refreshInterval = 300
           // 错误状态
           <ErrorState message={error} onRetry={loadData} />
         ) : (
-          <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-            <TabsList className="w-full max-w-md mx-auto mb-8 flex">
-              <TabsTrigger value="swiss" className="flex-1">瑞士轮</TabsTrigger>
-              <TabsTrigger value="elimination" className="flex-1">淘汰赛</TabsTrigger>
+          <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full" data-testid="schedule-tabs">
+            <TabsList className="w-full max-w-md mx-auto mb-8 flex" data-testid="schedule-tab-list">
+              <TabsTrigger value="swiss" className="flex-1" data-testid="swiss-tab">瑞士轮</TabsTrigger>
+              <TabsTrigger value="elimination" className="flex-1" data-testid="elimination-tab">淘汰赛</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="swiss" className="mt-0">
+            <TabsContent value="swiss" className="mt-0" data-testid="swiss-content">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3 }}
               >
-                <SwissStage 
-                    matches={swissMatches} 
+                <SwissStage
+                    matches={swissMatches}
                     teams={teams}
                     advancement={advancement}
                   />
               </motion.div>
             </TabsContent>
 
-            <TabsContent value="elimination" className="mt-0">
+            <TabsContent value="elimination" className="mt-0" data-testid="elimination-content">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3 }}
               >
-                <EliminationStage 
-                    matches={eliminationMatches} 
+                <EliminationStage
+                    matches={eliminationMatches}
                     teams={teams}
                   />
               </motion.div>

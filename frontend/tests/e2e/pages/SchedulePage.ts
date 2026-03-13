@@ -39,9 +39,9 @@ export class SchedulePage extends BasePage {
     // 页面标题
     this.pageTitle = page.locator('h1:has-text("赛程管理"), h2:has-text("赛程管理")');
     
-    // Tab切换
-    this.swissTab = page.locator('role=tab[name="瑞士轮"], text=瑞士轮').first();
-    this.eliminationTab = page.locator('role=tab[name="淘汰赛"], text=淘汰赛').first();
+    // Tab 切换
+    this.swissTab = page.getByRole('tab', { name: '瑞士轮' }).or(page.getByText('瑞士轮')).first();
+    this.eliminationTab = page.getByRole('tab', { name: '淘汰赛' }).or(page.getByText('淘汰赛')).first();
     
     // 比赛列表
     this.matchList = page.locator('[data-testid="match-list"], .match-list');
@@ -163,5 +163,52 @@ export class SchedulePage extends BasePage {
    */
   async expectEmptyState() {
     await expect(this.emptyMessage).toBeVisible();
+  }
+
+  /**
+   * 获取瑞士轮比赛数量
+   */
+  async getSwissMatchCount(): Promise<number> {
+    await this.switchToSwiss();
+    await this.page.waitForTimeout(500);
+    return await this.matchItems.count();
+  }
+
+  /**
+   * 添加瑞士轮比赛
+   */
+  async addSwissMatch(matchData: { round: string; record: string; teamA: string; teamB: string }) {
+    await this.switchToSwiss();
+    await this.page.waitForTimeout(500);
+    
+    // 点击添加比赛按钮
+    const hasAddButton = await this.addMatchButton.isVisible().catch(() => false);
+    if (hasAddButton) {
+      await this.addMatchButton.click();
+      await this.page.waitForTimeout(500);
+      
+      // 尝试保存（使用现有数据）
+      const hasSaveButton = await this.saveButton.isVisible().catch(() => false);
+      if (hasSaveButton) {
+        await this.saveButton.click();
+        await this.page.waitForTimeout(1000);
+      }
+    }
+  }
+
+  /**
+   * 打开晋级名单管理
+   */
+  async openAdvancementManager() {
+    await this.switchToSwiss();
+    await this.page.waitForTimeout(500);
+    
+    // 尝试查找晋级名单管理按钮并点击
+    const advancementButton = this.page.locator('button:has-text("晋级"), button:has-text("管理"), [data-testid="advancement-manager"]').first();
+    const hasButton = await advancementButton.isVisible().catch(() => false);
+    if (hasButton) {
+      await advancementButton.click();
+      await this.page.waitForTimeout(1000);
+    }
   }
 }

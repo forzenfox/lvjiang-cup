@@ -29,6 +29,7 @@ const SwissMatchCard: React.FC<SwissMatchCardProps> = ({
         onClick ? 'cursor-pointer hover:border-blue-500/50' : ''
       } ${className}`}
       onClick={onClick}
+      data-testid="swiss-match"
     >
       <SwissMatchStatusBadge status={match.status} />
 
@@ -49,6 +50,7 @@ const SwissMatchCard: React.FC<SwissMatchCardProps> = ({
               ? 'opacity-50'
               : 'opacity-100'
           }`}
+          data-testid="team-a"
         >
           <div className="flex items-center gap-2">
             <SwissTeamLogo team={teamA} />
@@ -56,6 +58,7 @@ const SwissMatchCard: React.FC<SwissMatchCardProps> = ({
               className={`text-sm font-medium ${
                 match.winnerId === match.teamAId ? 'text-yellow-400' : 'text-gray-300'
               }`}
+              data-testid="team-a-name"
             >
               {teamA?.name || '待定'}
             </span>
@@ -64,6 +67,7 @@ const SwissMatchCard: React.FC<SwissMatchCardProps> = ({
             className={`text-sm font-bold ${
               match.winnerId === match.teamAId ? 'text-yellow-400' : 'text-gray-500'
             }`}
+            data-testid="team-a-score"
           >
             {match.scoreA}
           </span>
@@ -78,6 +82,7 @@ const SwissMatchCard: React.FC<SwissMatchCardProps> = ({
               ? 'opacity-50'
               : 'opacity-100'
           }`}
+          data-testid="team-b"
         >
           <div className="flex items-center gap-2">
             <SwissTeamLogo team={teamB} />
@@ -85,6 +90,7 @@ const SwissMatchCard: React.FC<SwissMatchCardProps> = ({
               className={`text-sm font-medium ${
                 match.winnerId === match.teamBId ? 'text-yellow-400' : 'text-gray-300'
               }`}
+              data-testid="team-b-name"
             >
               {teamB?.name || '待定'}
             </span>
@@ -93,6 +99,7 @@ const SwissMatchCard: React.FC<SwissMatchCardProps> = ({
             className={`text-sm font-bold ${
               match.winnerId === match.teamBId ? 'text-yellow-400' : 'text-gray-500'
             }`}
+            data-testid="team-b-score"
           >
             {match.scoreB}
           </span>
