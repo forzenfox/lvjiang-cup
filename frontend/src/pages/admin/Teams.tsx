@@ -62,7 +62,6 @@ const toCreateTeamRequest = (team: Team): CreateTeamRequest => ({
       name: p.name,
       avatar: p.avatar,
       position: p.position as 'top' | 'jungle' | 'mid' | 'bot' | 'support',
-      teamId: team.id,
     })) || [],
 });
 
@@ -79,7 +78,6 @@ const toUpdateTeamRequest = (team: Team): UpdateTeamRequest => ({
       name: p.name,
       avatar: p.avatar,
       position: p.position as 'top' | 'jungle' | 'mid' | 'bot' | 'support',
-      teamId: team.id,
     })) || [],
 });
 
