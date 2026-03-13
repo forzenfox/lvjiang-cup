@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import AdminLayout from '../../components/layout/AdminLayout';
 import { teamService } from '@/services/teamService';
 import { matchService } from '@/services/matchService';
+import { advancementService } from '@/services/advancementService';
 import type { Team, Match, MatchStatus } from '@/types';
 import type { UpdateMatchRequest } from '@/api/types';
 import { Toaster, toast } from 'sonner';
@@ -9,16 +10,21 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../components/ui/ta
 import SwissStageVisualEditor from './SwissStageVisualEditor';
 import EliminationStage from '@/components/features/EliminationStage';
 import { useAdvancementStore } from '@/store/advancementStore';
-import { RefreshCw, Trophy, Calendar } from 'lucide-react';
+import { RefreshCw, Trophy, Calendar, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { initSlots } from '@/api/admin';
 
 // 将前端 Match 转换为 API UpdateMatchRequest
 const toUpdateMatchRequest = (match: Match): UpdateMatchRequest => ({
   id: match.id,
+  teamAId: match.teamAId,
+  teamBId: match.teamBId,
   scoreA: match.scoreA,
   scoreB: match.scoreB,
   winnerId: match.winnerId || undefined,
   status: mapStatusToApi(match.status),
+  startTime: match.startTime,
 });
 
 // 将前端状态映射到 API 状态
@@ -47,14 +53,14 @@ const mapStatusToFrontend = (status: string): MatchStatus => {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const toFrontendMatch = (apiMatch: any): Match => ({
   id: apiMatch.id,
-  teamAId: apiMatch.team1Id,
-  teamBId: apiMatch.team2Id,
-  scoreA: apiMatch.team1Score || 0,
-  scoreB: apiMatch.team2Score || 0,
-  winnerId: apiMatch.winnerTeamId || null,
-  round: `第${apiMatch.round}轮`,
+  teamAId: apiMatch.teamAId,
+  teamBId: apiMatch.teamBId,
+  scoreA: apiMatch.scoreA || 0,
+  scoreB: apiMatch.scoreB || 0,
+  winnerId: apiMatch.winnerId || null,
+  round: apiMatch.round,
   status: mapStatusToFrontend(apiMatch.status),
-  startTime: apiMatch.scheduledAt || '',
+  startTime: apiMatch.startTime || '',
   stage: apiMatch.stage as 'swiss' | 'elimination',
   swissRecord: apiMatch.swissRecord,
   swissDay: apiMatch.swissDay,
@@ -66,7 +72,9 @@ const AdminSchedule: React.FC = () => {
   const [matches, setMatches] = useState<Match[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
   const [loading, setLoading] = useState(false);
-  
+  const [initSlotsLoading, setInitSlotsLoading] = useState(false);
+  const [showInitConfirm, setShowInitConfirm] = useState(false);
+
   const advancement = useAdvancementStore(state => state.advancement);
   const setAdvancement = useAdvancementStore(state => state.setAdvancement);
 
@@ -165,9 +173,41 @@ const AdminSchedule: React.FC = () => {
     }
   };
 
-  const handleAdvancementUpdate = (newAdvancement: typeof advancement) => {
-    setAdvancement(newAdvancement, 'admin');
-    toast.success('晋级名单已更新');
+  const handleAdvancementUpdate = async (newAdvancement: typeof advancement) => {
+    try {
+      await advancementService.update({
+        winners2_0: newAdvancement.winners2_0,
+        winners2_1: newAdvancement.winners2_1,
+        losersBracket: newAdvancement.losersBracket,
+        eliminated3rd: newAdvancement.eliminated3rd,
+        eliminated0_3: newAdvancement.eliminated0_3,
+      });
+      setAdvancement(newAdvancement, 'admin');
+      toast.success('晋级名单已保存');
+    } catch (error) {
+      console.error('Failed to save advancement:', error);
+      toast.error(error instanceof Error ? error.message : '保存晋级名单失败');
+    }
+  };
+
+  // 初始化比赛槽位
+  const handleInitSlots = () => {
+    setShowInitConfirm(true);
+  };
+
+  const confirmInitSlots = async () => {
+    setShowInitConfirm(false);
+    setInitSlotsLoading(true);
+    try {
+      const result = await initSlots();
+      toast.success(`比赛槽位初始化成功！共创建 ${result.count} 场比赛`);
+      await loadData();
+    } catch (error) {
+      console.error('Failed to init slots:', error);
+      toast.error(error instanceof Error ? error.message : '初始化失败');
+    } finally {
+      setInitSlotsLoading(false);
+    }
   };
 
   const swissMatches = matches.filter(m => m.stage === 'swiss');
@@ -176,6 +216,15 @@ const AdminSchedule: React.FC = () => {
   return (
     <AdminLayout>
       <Toaster position="top-right" theme="dark" />
+      <ConfirmDialog
+        isOpen={showInitConfirm}
+        title="初始化比赛槽位"
+        message="确定要初始化比赛槽位吗？这将创建瑞士轮 14 场和淘汰赛 8 场比赛槽位。如果槽位已存在，则不会重复创建。"
+        confirmText="确定初始化"
+        cancelText="取消"
+        onConfirm={confirmInitSlots}
+        onCancel={() => setShowInitConfirm(false)}
+      />
       <div className="flex flex-col h-full">
         <div className="flex justify-between items-center mb-6">
           <div>
@@ -184,15 +233,28 @@ const AdminSchedule: React.FC = () => {
               共 {matches.length} 场比赛 · {swissMatches.length} 场瑞士轮 · {eliminationMatches.length} 场淘汰赛
             </p>
           </div>
-          <Button 
-            variant="outline" 
-            onClick={loadData}
-            disabled={loading}
-            className="border-gray-600 text-gray-300 hover:bg-gray-700"
-          >
-            <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-            刷新数据
-          </Button>
+          <div className="flex gap-2">
+            {matches.length === 0 && (
+              <Button
+                variant="default"
+                onClick={handleInitSlots}
+                disabled={initSlotsLoading}
+                className="bg-green-600 hover:bg-green-700 text-white"
+              >
+                <Plus className={`w-4 h-4 mr-2 ${initSlotsLoading ? 'animate-spin' : ''}`} />
+                {initSlotsLoading ? '初始化中...' : '初始化比赛槽位'}
+              </Button>
+            )}
+            <Button 
+              variant="outline" 
+              onClick={loadData}
+              disabled={loading}
+              className="border-gray-600 text-gray-300 hover:bg-gray-700"
+            >
+              <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+              刷新数据
+            </Button>
+          </div>
         </div>
 
         <div className="flex-1 overflow-y-auto bg-gray-900/50 rounded-lg border border-gray-800 p-6">

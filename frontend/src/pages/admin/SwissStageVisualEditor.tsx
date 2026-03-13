@@ -103,7 +103,8 @@ const FixedSlotMatchCard: React.FC<FixedSlotMatchCardProps> = ({ match, teams, s
     } else if (onCreate) {
       onCreate(updatedMatch);
     }
-    setIsDialogOpen(false);
+    // 返回 true 让 MatchEditDialog 关闭对话框
+    return true;
   };
 
   const handleClose = () => {

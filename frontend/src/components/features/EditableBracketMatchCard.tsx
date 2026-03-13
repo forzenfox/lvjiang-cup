@@ -41,6 +41,7 @@ const EditableBracketMatchCard = forwardRef<HTMLDivElement, EditableBracketMatch
 
     const handleSave = (updatedMatch: Match) => {
       onUpdate(updatedMatch);
+      return true;
     };
 
     return (

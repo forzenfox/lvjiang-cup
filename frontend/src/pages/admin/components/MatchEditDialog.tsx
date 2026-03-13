@@ -2,15 +2,16 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Match, Team, MatchStatus } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Save, X, PlayCircle, CheckCircle } from 'lucide-react';
+import { Save, X, PlayCircle, CheckCircle, Calendar } from 'lucide-react';
 import { toDateTimeLocal, fromDateTimeLocal } from '@/utils/datetime';
+import { toast } from 'sonner';
 
 interface MatchEditDialogProps {
   match: Match;
   teams: Team[];
   isOpen: boolean;
   onClose: () => void;
-  onSave: (match: Match) => void;
+  onSave: (match: Match) => boolean | void | Promise<boolean | void>;
 }
 
 const MatchEditDialog: React.FC<MatchEditDialogProps> = ({
@@ -33,7 +34,18 @@ const MatchEditDialog: React.FC<MatchEditDialogProps> = ({
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
+    // 校验必填字段
+    if (!formData.teamAId || !formData.teamBId) {
+      toast.error('请选择队伍 A 和队伍 B');
+      return;
+    }
+    
+    if (formData.teamAId === formData.teamBId) {
+      toast.error('队伍 A 和队伍 B 不能相同');
+      return;
+    }
+    
     if (formData.status === 'finished' && !formData.winnerId) {
       if (formData.scoreA > formData.scoreB) {
         formData.winnerId = formData.teamAId;
@@ -41,8 +53,10 @@ const MatchEditDialog: React.FC<MatchEditDialogProps> = ({
         formData.winnerId = formData.teamBId;
       }
     }
-    onSave(formData);
-    onClose();
+    const result = await onSave(formData);
+    if (result !== false) {
+      onClose();
+    }
   };
 
   const handleQuickStatus = (status: MatchStatus) => {
@@ -75,15 +89,20 @@ const MatchEditDialog: React.FC<MatchEditDialogProps> = ({
         <CardContent className="space-y-4">
           <div>
             <label className="block text-sm text-gray-400 mb-1">比赛时间</label>
-            <input
-              ref={dateInputRef}
-              type="datetime-local"
-              value={formData.startTime ? toDateTimeLocal(formData.startTime) : ''}
-              onChange={(e) => handleChange('startTime', fromDateTimeLocal(e.target.value))}
-              onClick={handleDateInputClick}
-              className="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded text-white text-sm cursor-pointer"
-              style={{ colorScheme: 'dark' }}
-            />
+            <div className="relative">
+              <input
+                ref={dateInputRef}
+                type="datetime-local"
+                value={formData.startTime ? toDateTimeLocal(formData.startTime) : ''}
+                onChange={(e) => handleChange('startTime', fromDateTimeLocal(e.target.value))}
+                onClick={handleDateInputClick}
+                className="w-full px-3 py-2 pr-10 bg-gray-900 border border-gray-700 rounded text-white text-sm cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-0"
+                style={{ colorScheme: 'dark' }}
+              />
+              <Calendar 
+                 className="absolute right-2 top-1/2 -translate-y-1/2 w-5 h-5 text-blue-400 pointer-events-none"
+               />
+            </div>
           </div>
 
           <div>

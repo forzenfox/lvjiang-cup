@@ -66,14 +66,14 @@ const convertApiMatchToLocal = (apiMatch: ApiMatch, teams: Team[]): Match => {
     scoreA: apiMatch.scoreA || 0,
     scoreB: apiMatch.scoreB || 0,
     winnerId: apiMatch.winnerId || null,
-    round: `第${apiMatch.round}轮`,
+    round: apiMatch.round,
     status: apiMatch.status,
-    startTime: apiMatch.startTime || new Date().toISOString(),
+    startTime: apiMatch.startTime || '',
     stage,
-    swissRecord: stage === 'swiss' ? `${apiMatch.scoreA || 0}-${apiMatch.scoreB || 0}` : undefined,
-    swissDay: stage === 'swiss' ? Number(apiMatch.round) : undefined,
-    eliminationGameNumber: stage === 'elimination' ? Number(apiMatch.round) : undefined,
-    eliminationBracket: stage === 'elimination' ? 'winners' : undefined,
+    swissRecord: apiMatch.swissRecord,
+    swissDay: apiMatch.swissDay,
+    eliminationGameNumber: apiMatch.eliminationGameNumber,
+    eliminationBracket: apiMatch.eliminationBracket,
   };
 };
 

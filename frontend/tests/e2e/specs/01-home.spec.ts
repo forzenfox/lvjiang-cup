@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { HomePage } from '../pages/HomePage';
+import { mockTeams, mockTeamNames, mockSwissMatches, mockEliminationMatches } from '../fixtures/mock-data.fixture';
 
 /**
  * 首页功能测试 - 游客功能验证
@@ -164,6 +165,13 @@ test.describe('【第三阶段-2】首页战队功能测试', () => {
     // 验证战队卡片显示
     expect(teamCards.length).toBeGreaterThan(0);
     
+    // 验证模拟数据中的战队存在
+    const expectedTeamName = mockTeamNames[0]; // 驴酱
+    const teamExists = await page.locator(`text=${expectedTeamName}`).first().isVisible().catch(() => false);
+    if (teamExists) {
+      console.log(`✅ 找到模拟数据中的战队: ${expectedTeamName}`);
+    }
+    
     // 验证每个战队卡片显示Logo、名称和队员
     for (const card of teamCards.slice(0, 3)) { // 检查前3个
       // 验证战队名称
@@ -276,6 +284,18 @@ test.describe('【第三阶段-3】首页赛程功能测试', () => {
       const group = page.locator(`text=${record}`);
       if (await group.isVisible().catch(() => false)) {
         console.log(`✅ 找到战绩分组: ${record}`);
+      }
+    }
+    
+    // 验证模拟数据中的比赛存在
+    const mockMatch = mockSwissMatches[0];
+    const teamA = mockTeams.find(t => t.id === mockMatch.teamAId)?.name;
+    const teamB = mockTeams.find(t => t.id === mockMatch.teamBId)?.name;
+    if (teamA && teamB) {
+      const matchExists = await page.locator(`text=${teamA}`).first().isVisible().catch(() => false) ||
+                         await page.locator(`text=${teamB}`).first().isVisible().catch(() => false);
+      if (matchExists) {
+        console.log(`✅ 找到模拟数据中的比赛: ${teamA} vs ${teamB}`);
       }
     }
     

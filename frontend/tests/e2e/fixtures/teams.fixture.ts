@@ -1,6 +1,4 @@
-/**
- * 战队测试数据
- */
+import { mockTeams, mockSwissMatches, mockEliminationMatches, mockTeamNames, getTeamById } from './mock-data.fixture';
 
 export interface Player {
   name: string;
@@ -15,25 +13,16 @@ export interface Team {
   players: Player[];
 }
 
-/**
- * 测试战队数据
- */
 export const testTeam: Team = {
-  name: '测试战队',
-  logo: 'https://example.com/logo.png',
-  description: '这是一个测试战队',
-  players: [
-    { name: '上单选手', position: 'top' },
-    { name: '打野选手', position: 'jungle' },
-    { name: '中单选手', position: 'mid' },
-    { name: 'AD选手', position: 'bot' },
-    { name: '辅助选手', position: 'support' },
-  ],
+  name: mockTeams[0].name,
+  logo: mockTeams[0].logo,
+  description: mockTeams[0].description,
+  players: mockTeams[0].players!.map(p => ({
+    name: p.name,
+    position: p.position
+  }))
 };
 
-/**
- * 边界测试数据 - 短名称
- */
 export const shortNameTeam: Team = {
   name: 'A',
   description: '短名称战队',
@@ -46,9 +35,6 @@ export const shortNameTeam: Team = {
   ],
 };
 
-/**
- * 边界测试数据 - 长名称
- */
 export const longNameTeam: Team = {
   name: '这是一个非常长的战队名称用于测试边界条件处理',
   description: '长名称战队测试',
@@ -61,26 +47,32 @@ export const longNameTeam: Team = {
   ],
 };
 
-/**
- * 编辑战队数据
- */
 export const editedTeam: Partial<Team> = {
   name: '编辑后的战队名称',
   description: '这是编辑后的战队描述',
 };
 
-/**
- * 第二支测试战队（用于比赛对阵）
- */
 export const testTeamBeta: Team = {
-  name: '测试战队Beta',
-  logo: 'https://example.com/logo-beta.png',
-  description: '这是第二支测试战队，用于比赛对阵',
-  players: [
-    { name: 'Beta上单', position: 'top' },
-    { name: 'Beta打野', position: 'jungle' },
-    { name: 'Beta中单', position: 'mid' },
-    { name: 'Beta射手', position: 'bot' },
-    { name: 'Beta辅助', position: 'support' },
-  ],
+  name: mockTeams[1].name,
+  logo: mockTeams[1].logo,
+  description: mockTeams[1].description,
+  players: mockTeams[1].players!.map(p => ({
+    name: p.name,
+    position: p.position
+  }))
 };
+
+export const getTestTeamForMatch = (index: number = 2): Team => {
+  const team = mockTeams[index];
+  return {
+    name: team.name,
+    logo: team.logo,
+    description: team.description,
+    players: team.players!.map(p => ({
+      name: p.name,
+      position: p.position
+    }))
+  };
+};
+
+export { mockTeams, mockTeamNames, mockSwissMatches, mockEliminationMatches, getTeamById };
