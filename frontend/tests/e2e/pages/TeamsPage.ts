@@ -87,7 +87,7 @@ export class TeamsPage {
   /**
    * 填写战队表单
    */
-  async fillTeamForm(team: Partial<Team>): Promise<void> {
+  async fillTeamForm(team: any): Promise<void> {
     if (team.name) {
       await this.teamNameInput.fill(team.name);
     }
@@ -130,7 +130,7 @@ export class TeamsPage {
   /**
    * 创建新战队（完整流程）
    */
-  async createTeam(team: Partial<Team>, playerNames?: string[]): Promise<void> {
+  async createTeam(team: any, playerNames?: string[]): Promise<void> {
     await this.clickAddTeam();
     await this.fillTeamForm(team);
     if (playerNames && playerNames.length > 0) {
@@ -142,15 +142,15 @@ export class TeamsPage {
   /**
    * 添加新战队（别名，与 createTeam 相同）
    */
-  async addNewTeam(team: Partial<Team> & { players?: Array<{ name: string; position: string }> }): Promise<void> {
-    const playerNames = team.players?.map(p => p.name) || [];
+  async addNewTeam(team: any): Promise<void> {
+    const playerNames = team.players?.map((p: any) => p.name) || [];
     await this.createTeam(team, playerNames);
   }
 
   /**
    * 编辑战队
    */
-  async editTeam(name: string, updates: Partial<Team>): Promise<void> {
+  async editTeam(name: string, updates: any): Promise<void> {
     await this.clickEditTeam(name);
     // 等待表单完全打开
     await this.page.waitForTimeout(1000);

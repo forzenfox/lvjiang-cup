@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { AdminLoginPage, DashboardPage, TeamsPage, HomePage } from '../pages';
+import { DashboardPage, TeamsPage, HomePage, AdminLoginPage } from '../pages';
 import { adminUser } from '../fixtures/users.fixture';
 import { testTeam } from '../fixtures/teams.fixture';
 
@@ -11,19 +11,15 @@ import { testTeam } from '../fixtures/teams.fixture';
  */
 
 test.describe('【边界测试】综合边界测试', () => {
-  let loginPage: AdminLoginPage;
   let dashboardPage: DashboardPage;
   let homePage: HomePage;
 
   test.beforeEach(async ({ page }) => {
-    loginPage = new AdminLoginPage(page);
     dashboardPage = new DashboardPage(page);
     homePage = new HomePage(page);
 
-    // 先导航到页面并登录
-    await loginPage.goto();
-    await page.reload();
-    await loginPage.login(adminUser);
+    // 直接导航到管理后台（已有登录状态）
+    await page.goto('/admin/dashboard');
     await dashboardPage.expectPageLoaded();
   });
 
@@ -43,19 +39,15 @@ test.describe('【边界测试】综合边界测试', () => {
 });
 
 test.describe('【异常测试】系统异常处理测试', () => {
-  let loginPage: AdminLoginPage;
   let dashboardPage: DashboardPage;
   let teamsPage: TeamsPage;
 
   test.beforeEach(async ({ page }) => {
-    loginPage = new AdminLoginPage(page);
     dashboardPage = new DashboardPage(page);
     teamsPage = new TeamsPage(page);
 
-    // 先导航到页面并登录
-    await loginPage.goto();
-    await page.reload();
-    await loginPage.login(adminUser);
+    // 直接导航到管理后台（已有登录状态）
+    await page.goto('/admin/dashboard');
     await dashboardPage.expectPageLoaded();
   });
 
@@ -140,36 +132,10 @@ test.describe('【异常测试】系统异常处理测试', () => {
     // 恢复网络
     await page.unroute('**/api/**');
   });
-
-  /**
-   * 并发操作测试
-   * 优先级: P2
-   * 验证并发操作的处理
-   */
-  test('并发操作处理 @P2', async ({ browser }) => {
-    // 创建两个页面实例
-    const context1 = await browser.newContext();
-    const context2 = await browser.newContext();
-    
-    const page1 = await context1.newPage();
-    const page2 = await context2.newPage();
-    
-    // 两个用户同时登录
-    const loginPage1 = new AdminLoginPage(page1);
-    const loginPage2 = new AdminLoginPage(page2);
-    
-    await Promise.all([
-      loginPage1.goto().then(() => loginPage1.login(adminUser)),
-      loginPage2.goto().then(() => loginPage2.login(adminUser)),
-    ]);
-    
-    console.log('✅ 并发登录成功');
-    
-    // 清理
-    await context1.close();
-    await context2.close();
-  });
 });
+
+// 注意：并发操作测试已移至 07b-concurrent.spec.ts
+// 因为该测试需要独立的登录状态
 
 test.describe('【性能测试】页面性能测试', () => {
   let homePage: HomePage;

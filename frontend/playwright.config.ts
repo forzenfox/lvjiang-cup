@@ -1,6 +1,11 @@
 import { defineConfig, devices } from '@playwright/test';
 import dotenv from 'dotenv';
 import path from 'path';
+import { fileURLToPath } from 'url';
+
+// ES 模块中获取 __dirname 的替代方案
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // 加载环境变量 - 使用 tests/e2e/.env
 const e2eEnvPath = path.resolve(__dirname, 'tests', 'e2e', '.env');
@@ -31,17 +36,9 @@ export default defineConfig({
   // ⚠️ 串行执行 - workers设为1
   workers: 1,
   
-  // ⚠️ 测试文件按依赖顺序执行
-  // 顺序: 首页 → 登录 → 直播 → 战队 → 赛程 → 晋级 → 边界
-  testMatch: [
-    '**/01-home.spec.ts',           // 第一阶段：首页基础
-    '**/02-admin-login.spec.ts',    // 第二阶段-1：登录
-    '**/05-stream.spec.ts',         // 第二阶段-2：直播
-    '**/03-teams.spec.ts',          // 第二阶段-3/4：战队
-    '**/04-schedule.spec.ts',       // 第二阶段-5/6/7：赛程
-    '**/06-advancement.spec.ts',    // 第四阶段-1/2：晋级名单
-    '**/07-edge-cases.spec.ts',     // 第五阶段：边界测试
-  ],
+  // ⚠️ 测试文件按依赖顺序执行（通过文件名数字前缀控制）
+  // 正确顺序: 登录 → 仪表盘 → 直播 → 战队 → 赛程 → 晋级 → 首页验证 → 边界 → 并发
+  // 注：testMatch 不控制执行顺序，执行顺序由文件名决定
   
   // 测试报告配置
   reporter: [
@@ -76,12 +73,27 @@ export default defineConfig({
   
   // 浏览器项目配置 - 仅支持 Edge
   projects: [
+    // 项目1：登录测试（不使用 storageState，因为需要测试登录功能本身）
     {
-      name: 'msedge',
+      name: 'msedge-login',
+      testMatch: ['**/01-login.spec.ts', '**/09-concurrent.spec.ts'],
       use: {
         ...devices['Desktop Edge'],
         channel: 'msedge',
+        // 不使用 storageState
       },
+    },
+    // 项目2：其他所有测试（使用全局登录状态）
+    {
+      name: 'msedge',
+      testIgnore: ['**/01-login.spec.ts', '**/09-concurrent.spec.ts'],
+      use: {
+        ...devices['Desktop Edge'],
+        channel: 'msedge',
+        // 使用保存的认证状态 - 避免频繁登录
+        storageState: './tests/e2e/.auth/auth.json',
+      },
+      dependencies: ['msedge-login'],
     },
   ],
   

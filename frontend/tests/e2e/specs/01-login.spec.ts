@@ -28,7 +28,7 @@ test.describe('【第二阶段-1】管理员登录功能测试', () => {
    * 验证管理员可以使用正确的用户名和密码登录
    * 前置条件: 环境初始化完成
    */
-  test('TEST-101: 登录管理后台成功 @P0', async () => {
+  test('TEST-101: 登录管理后台成功 @P0', async ({ page }) => {
     // 访问登录页面
     await loginPage.goto();
 
@@ -36,7 +36,7 @@ test.describe('【第二阶段-1】管理员登录功能测试', () => {
     await loginPage.expectPageLoaded();
 
     // 验证URL包含/admin
-    await expect(loginPage.page).toHaveURL(/\/admin/);
+    await expect(page).toHaveURL(/\/admin/);
 
     // 执行登录
     await loginPage.login(adminUser);
@@ -48,10 +48,10 @@ test.describe('【第二阶段-1】管理员登录功能测试', () => {
     await dashboardPage.expectPageLoaded();
 
     // 验证URL正确
-    await expect(loginPage.page).toHaveURL(/\/admin\/dashboard/);
+    await expect(page).toHaveURL(/\/admin\/dashboard/);
 
     // 验证页面标题（实际标题是"驴酱杯"）
-    await expect(loginPage.page).toHaveTitle(/驴酱杯/);
+    await expect(page).toHaveTitle(/驴酱杯/);
   });
 
   /**
@@ -117,48 +117,11 @@ test.describe('【第二阶段-1】管理员登录功能测试', () => {
   });
 });
 
-test.describe('【第二阶段-2】管理仪表盘功能测试', () => {
-  let loginPage: AdminLoginPage;
-  let dashboardPage: DashboardPage;
+// 注意：管理仪表盘功能测试（TEST-102）已移至其他测试文件
+// 这些测试现在使用全局保存的登录状态，避免重复登录
 
-  test.beforeEach(async ({ page }) => {
-    loginPage = new AdminLoginPage(page);
-    dashboardPage = new DashboardPage(page);
-    
-    // 先登录
-    await loginPage.goto();
-    await loginPage.login(adminUser);
-    await dashboardPage.expectPageLoaded();
-  });
-
-  /**
-   * TEST-102: 查看管理仪表盘 (US-102)
-   * 优先级: P0
-   * 验证仪表盘显示系统概览
-   * 前置条件: TEST-101 登录成功
-   */
-  test('TEST-102: 查看管理仪表盘 @P0', async ({ page }) => {
-    // 验证统计卡片显示
-    await expect(dashboardPage.teamCountCard).toBeVisible();
-    await expect(dashboardPage.matchCountCard).toBeVisible();
-    await expect(dashboardPage.streamStatusCard).toBeVisible();
-    await expect(dashboardPage.systemStatusCard).toBeVisible();
-
-    // 验证刷新统计按钮
-    await expect(page.getByRole('button', { name: '刷新统计' })).toBeVisible();
-
-    // 验证快捷入口到各管理模块
-    await expect(page.getByRole('heading', { name: '直播管理' })).toBeVisible();
-    await expect(page.getByRole('heading', { name: '战队管理' })).toBeVisible();
-    await expect(page.getByRole('heading', { name: '赛程管理' })).toBeVisible();
-
-    // 验证导航菜单
-    await expect(page.getByRole('link', { name: '战队管理' })).toBeVisible();
-    await expect(page.getByRole('link', { name: '赛程管理' })).toBeVisible();
-    await expect(page.getByRole('link', { name: '直播配置' })).toBeVisible();
-  });
-});
-
+// 注意：退出登录功能测试（TEST-113）保持在此文件中
+// 因为退出登录会清除登录状态，需要独立执行
 test.describe('【第四阶段-5】退出登录功能测试', () => {
   let loginPage: AdminLoginPage;
   let dashboardPage: DashboardPage;

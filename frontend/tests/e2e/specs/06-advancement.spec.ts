@@ -1,6 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { AdminLoginPage, DashboardPage, SchedulePage, HomePage } from '../pages';
-import { adminUser } from '../fixtures/users.fixture';
+import { DashboardPage, SchedulePage, HomePage } from '../pages';
 
 /**
  * 晋级名单管理测试用例
@@ -8,19 +7,15 @@ import { adminUser } from '../fixtures/users.fixture';
  */
 
 test.describe('【第四阶段 -1】瑞士轮晋级名单管理测试', () => {
-  let loginPage: AdminLoginPage;
   let dashboardPage: DashboardPage;
   let schedulePage: SchedulePage;
 
   test.beforeEach(async ({ page }) => {
-    loginPage = new AdminLoginPage(page);
     dashboardPage = new DashboardPage(page);
     schedulePage = new SchedulePage(page);
 
-    // 先导航到页面并登录
-    await loginPage.goto();
-    await page.reload();
-    await loginPage.login(adminUser);
+    // 直接导航到管理后台（已有登录状态）
+    await page.goto('/admin/dashboard');
     await dashboardPage.expectPageLoaded();
   });
 
@@ -62,21 +57,17 @@ test.describe('【第四阶段 -1】瑞士轮晋级名单管理测试', () => {
 });
 
 test.describe('【第四阶段 -2】晋级名单同步验证测试', () => {
-  let loginPage: AdminLoginPage;
   let dashboardPage: DashboardPage;
   let schedulePage: SchedulePage;
   let homePage: HomePage;
 
   test.beforeEach(async ({ page }) => {
-    loginPage = new AdminLoginPage(page);
     dashboardPage = new DashboardPage(page);
     schedulePage = new SchedulePage(page);
     homePage = new HomePage(page);
 
-    // 先导航到页面并登录
-    await loginPage.goto();
-    await page.reload();
-    await loginPage.login(adminUser);
+    // 直接导航到管理后台（已有登录状态）
+    await page.goto('/admin/dashboard');
     await dashboardPage.expectPageLoaded();
   });
 
@@ -106,19 +97,15 @@ test.describe('【第四阶段 -2】晋级名单同步验证测试', () => {
 });
 
 test.describe('【边界测试】晋级名单边界测试', () => {
-  let loginPage: AdminLoginPage;
   let dashboardPage: DashboardPage;
   let schedulePage: SchedulePage;
 
   test.beforeEach(async ({ page }) => {
-    loginPage = new AdminLoginPage(page);
     dashboardPage = new DashboardPage(page);
     schedulePage = new SchedulePage(page);
 
-    // 先导航到页面并登录
-    await loginPage.goto();
-    await page.reload();
-    await loginPage.login(adminUser);
+    // 直接导航到管理后台（已有登录状态）
+    await page.goto('/admin/dashboard');
     await dashboardPage.expectPageLoaded();
   });
 

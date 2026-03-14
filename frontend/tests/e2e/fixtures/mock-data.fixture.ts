@@ -1,4 +1,4 @@
-import { Team, Match } from '../../src/types';
+import type { Team, Match } from '../../../src/types';
 
 interface StreamInfo {
   title: string;
@@ -14,6 +14,8 @@ export interface SwissAdvancement {
   eliminated0_3: string[];
 }
 
+// 从 src/mock/data.ts 复制的数据
+// 注意：为了避免 Playwright 测试运行时的模块解析问题，这里直接复制数据
 export const mockTeams: Team[] = [
   {
     id: 'team1',

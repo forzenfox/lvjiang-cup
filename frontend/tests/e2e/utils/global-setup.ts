@@ -1,4 +1,13 @@
 import { chromium, FullConfig } from '@playwright/test';
+import * as path from 'path';
+import { fileURLToPath } from 'url';
+
+// ES 模块中获取 __dirname 的替代方案
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// 认证状态存储路径
+const authStatePath = path.resolve(__dirname, '../.auth/auth.json');
 
 async function globalSetup(config: FullConfig) {
   console.log('🚀 开始全局设置...');
@@ -12,13 +21,15 @@ async function globalSetup(config: FullConfig) {
       console.log('ℹ️ 数据清理已禁用');
     }
     
+    // 启动浏览器并登录
     const browser = await chromium.launch();
     const context = await browser.newContext();
     const page = await context.newPage();
     
-    const baseURL = process.env.FRONTEND_URL! || config.webServer?.url;
-    await page.goto(baseURL, { waitUntil: 'domcontentloaded' });
+    const baseURL = (process.env.FRONTEND_URL || config.webServer?.url)!;
     
+    // 先清空本地存储
+    await page.goto(baseURL, { waitUntil: 'domcontentloaded' });
     await page.evaluate(() => {
       const keysToClear = [
         'lvjiang-cup-cache',
@@ -47,8 +58,39 @@ async function globalSetup(config: FullConfig) {
       
       sessionStorage.clear();
     });
-    
     await context.clearCookies();
+    
+    // 执行登录操作
+    console.log('🔐 正在执行登录...');
+    await page.goto(`${baseURL}/admin`, { waitUntil: 'domcontentloaded' });
+    
+    // 填写登录表单
+    const adminUsername = process.env.ADMIN_USERNAME!;
+    const adminPassword = process.env.ADMIN_PASSWORD!;
+    
+    // 输入用户名
+    const usernameInput = page.locator('input[name="username"], input[placeholder*="用户名"], input[type="text"]').first();
+    await usernameInput.waitFor({ state: 'visible', timeout: 10000 });
+    await usernameInput.fill(adminUsername);
+    
+    // 输入密码
+    const passwordInput = page.locator('input[name="password"], input[placeholder*="密码"], input[type="password"]').first();
+    await passwordInput.waitFor({ state: 'visible', timeout: 10000 });
+    await passwordInput.fill(adminPassword);
+    
+    // 点击登录按钮
+    const loginButton = page.locator('button[type="submit"], button:has-text("登录")').first();
+    await loginButton.waitFor({ state: 'visible', timeout: 10000 });
+    await loginButton.click();
+    
+    // 等待登录成功并跳转到仪表盘
+    await page.waitForURL(/.*admin\/dashboard.*/, { timeout: 15000 });
+    await page.waitForLoadState('networkidle');
+    
+    // 保存登录状态
+    await context.storageState({ path: authStatePath });
+    console.log('✅ 登录状态已保存到:', authStatePath);
+    
     await browser.close();
     
     console.log('✅ 全局设置完成');

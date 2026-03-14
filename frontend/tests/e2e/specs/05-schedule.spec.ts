@@ -1,6 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { AdminLoginPage, DashboardPage, SchedulePage, TeamsPage, HomePage } from '../pages';
-import { adminUser } from '../fixtures/users.fixture';
+import { DashboardPage, SchedulePage, TeamsPage, HomePage } from '../pages';
 import { testTeam, testTeamBeta } from '../fixtures/teams.fixture';
 
 /**
@@ -15,21 +14,17 @@ import { testTeam, testTeamBeta } from '../fixtures/teams.fixture';
  */
 
 test.describe('【第二阶段-5】瑞士轮赛程管理测试', () => {
-  let loginPage: AdminLoginPage;
   let dashboardPage: DashboardPage;
   let schedulePage: SchedulePage;
   let teamsPage: TeamsPage;
 
   test.beforeEach(async ({ page }) => {
-    loginPage = new AdminLoginPage(page);
     dashboardPage = new DashboardPage(page);
     schedulePage = new SchedulePage(page);
     teamsPage = new TeamsPage(page);
 
-    // 先导航到页面并登录
-    await loginPage.goto();
-    await page.reload();
-    await loginPage.login(adminUser);
+    // 直接导航到管理后台（已有登录状态）
+    await page.goto('/admin/dashboard');
     await dashboardPage.expectPageLoaded();
   });
 
@@ -95,19 +90,15 @@ test.describe('【第二阶段-5】瑞士轮赛程管理测试', () => {
 });
 
 test.describe('【第二阶段-6】淘汰赛赛程管理测试', () => {
-  let loginPage: AdminLoginPage;
   let dashboardPage: DashboardPage;
   let schedulePage: SchedulePage;
 
   test.beforeEach(async ({ page }) => {
-    loginPage = new AdminLoginPage(page);
     dashboardPage = new DashboardPage(page);
     schedulePage = new SchedulePage(page);
 
-    // 先导航到页面并登录
-    await loginPage.goto();
-    await page.reload();
-    await loginPage.login(adminUser);
+    // 直接导航到管理后台（已有登录状态）
+    await page.goto('/admin/dashboard');
     await dashboardPage.expectPageLoaded();
   });
 
@@ -154,19 +145,15 @@ test.describe('【第二阶段-6】淘汰赛赛程管理测试', () => {
 });
 
 test.describe('【第二阶段-7】比赛结果更新测试', () => {
-  let loginPage: AdminLoginPage;
   let dashboardPage: DashboardPage;
   let schedulePage: SchedulePage;
 
   test.beforeEach(async ({ page }) => {
-    loginPage = new AdminLoginPage(page);
     dashboardPage = new DashboardPage(page);
     schedulePage = new SchedulePage(page);
 
-    // 先导航到页面并登录
-    await loginPage.goto();
-    await page.reload();
-    await loginPage.login(adminUser);
+    // 直接导航到管理后台（已有登录状态）
+    await page.goto('/admin/dashboard');
     await dashboardPage.expectPageLoaded();
   });
 
@@ -211,19 +198,15 @@ test.describe('【第二阶段-7】比赛结果更新测试', () => {
 });
 
 test.describe('【边界测试】比分输入边界测试', () => {
-  let loginPage: AdminLoginPage;
   let dashboardPage: DashboardPage;
   let schedulePage: SchedulePage;
 
   test.beforeEach(async ({ page }) => {
-    loginPage = new AdminLoginPage(page);
     dashboardPage = new DashboardPage(page);
     schedulePage = new SchedulePage(page);
 
-    // 先导航到页面并登录
-    await loginPage.goto();
-    await page.reload();
-    await loginPage.login(adminUser);
+    // 直接导航到管理后台（已有登录状态）
+    await page.goto('/admin/dashboard');
     await dashboardPage.expectPageLoaded();
   });
 
@@ -248,21 +231,17 @@ test.describe('【边界测试】比分输入边界测试', () => {
 });
 
 test.describe('【第三阶段 -4】赛程前台展示验证', () => {
-  let loginPage: AdminLoginPage;
   let dashboardPage: DashboardPage;
   let schedulePage: SchedulePage;
   let homePage: HomePage;
 
   test.beforeEach(async ({ page }) => {
-    loginPage = new AdminLoginPage(page);
     dashboardPage = new DashboardPage(page);
     schedulePage = new SchedulePage(page);
     homePage = new HomePage(page);
 
-    // 先导航到页面并登录
-    await loginPage.goto();
-    await page.reload();
-    await loginPage.login(adminUser);
+    // 直接导航到管理后台（已有登录状态）
+    await page.goto('/admin/dashboard');
     await dashboardPage.expectPageLoaded();
   });
 

@@ -6,6 +6,10 @@ import { User } from '../fixtures/users.fixture';
  * 管理员登录页面 - Page Object
  */
 export class AdminLoginPage extends BasePage {
+  // 公开访问 page 对象以便测试中使用
+  get pageObj() {
+    return this.page;
+  }
   // 登录表单元素
   readonly loginForm: Locator;
   readonly usernameInput: Locator;

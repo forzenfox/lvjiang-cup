@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { AdminLoginPage, DashboardPage, HomePage } from '../pages';
+import { DashboardPage, HomePage, StreamPage } from '../pages';
 import { adminUser } from '../fixtures/users.fixture';
 
 /**
@@ -14,17 +14,17 @@ import { adminUser } from '../fixtures/users.fixture';
  */
 
 test.describe('【第二阶段-2】直播管理功能测试', () => {
-  let loginPage: AdminLoginPage;
   let dashboardPage: DashboardPage;
+  let streamPage: StreamPage;
+  let homePage: HomePage;
 
   test.beforeEach(async ({ page }) => {
-    loginPage = new AdminLoginPage(page);
     dashboardPage = new DashboardPage(page);
+    streamPage = new StreamPage(page);
+    homePage = new HomePage(page);
 
-    // 先导航到页面并登录
-    await loginPage.goto();
-    await page.reload();
-    await loginPage.login(adminUser);
+    // 直接导航到管理后台（已有登录状态）
+    await page.goto('/admin/dashboard');
     await dashboardPage.expectPageLoaded();
   });
 
@@ -39,13 +39,25 @@ test.describe('【第二阶段-2】直播管理功能测试', () => {
   test('TEST-103: 配置直播信息 @P0', async ({ page }) => {
     // 导航到直播管理页面
     await dashboardPage.navigateToStream();
+    await streamPage.expectPageLoaded();
     
-    // 验证页面加载（使用更宽松的定位器）
+    // 验证页面加载
     await expect(page.locator('h1, h2').filter({ hasText: /直播/ })).toBeVisible({ timeout: 10000 });
     
-    // 验证页面有表单元素
-    const hasForm = await page.locator('input, button').first().isVisible().catch(() => false);
-    expect(hasForm).toBe(true);
+    // 填写直播信息
+    const testStreamUrl = 'https://www.douyu.com/99999';
+    const streamUrlInput = page.locator('input[placeholder*="直播地址"], input[name="streamUrl"]').first();
+    if (await streamUrlInput.isVisible().catch(() => false)) {
+      await streamUrlInput.fill(testStreamUrl);
+      
+      // 点击保存按钮
+      const saveButton = page.locator('button:has-text("保存"), button[type="submit"]').first();
+      if (await saveButton.isVisible().catch(() => false)) {
+        await saveButton.click();
+        await page.waitForTimeout(1000);
+        console.log('✅ 直播信息配置已保存');
+      }
+    }
     
     console.log('✅ 直播管理页面正常加载');
     
@@ -64,6 +76,7 @@ test.describe('【第二阶段-2】直播管理功能测试', () => {
   test('TEST-103-2: 配置直播信息 - 未直播状态 @P1', async ({ page }) => {
     // 导航到直播管理页面
     await dashboardPage.navigateToStream();
+    await streamPage.expectPageLoaded();
     await expect(page.locator('h1, h2').filter({ hasText: /直播/ })).toBeVisible({ timeout: 10000 });
     
     // 验证页面有表单元素
@@ -87,6 +100,7 @@ test.describe('【第二阶段-2】直播管理功能测试', () => {
   test('TEST-103-3: 直播链接验证 @P1', async ({ page }) => {
     // 导航到直播管理页面
     await dashboardPage.navigateToStream();
+    await streamPage.expectPageLoaded();
     await expect(page.locator('h1, h2').filter({ hasText: /直播/ })).toBeVisible({ timeout: 10000 });
     
     // 验证页面有表单元素
@@ -110,6 +124,7 @@ test.describe('【第二阶段-2】直播管理功能测试', () => {
   test('TEST-103-4: 清空直播信息 @P2', async ({ page }) => {
     // 导航到直播管理页面
     await dashboardPage.navigateToStream();
+    await streamPage.expectPageLoaded();
     await expect(page.locator('h1, h2').filter({ hasText: /直播/ })).toBeVisible({ timeout: 10000 });
     
     // 验证页面有表单元素
@@ -127,12 +142,10 @@ test.describe('【第二阶段-2】直播管理功能测试', () => {
 });
 
 test.describe('【第三阶段-1】直播前台展示验证', () => {
-  let loginPage: AdminLoginPage;
   let dashboardPage: DashboardPage;
   let homePage: HomePage;
 
   test.beforeEach(async ({ page }) => {
-    loginPage = new AdminLoginPage(page);
     dashboardPage = new DashboardPage(page);
     homePage = new HomePage(page);
   });
@@ -143,9 +156,8 @@ test.describe('【第三阶段-1】直播前台展示验证', () => {
    * 验证后台配置的直播信息在前台正确显示
    */
   test('直播信息前台同步验证 @P0', async ({ page }) => {
-    // 登录并配置直播
-    await loginPage.goto();
-    await loginPage.login(adminUser);
+    // 直接导航到管理后台（已有登录状态）
+    await page.goto('/admin/dashboard');
     await dashboardPage.expectPageLoaded();
     
     // 导航到直播管理页面
@@ -171,9 +183,8 @@ test.describe('【第三阶段-1】直播前台展示验证', () => {
    * 验证点击直播按钮跳转到正确的链接
    */
   test('直播按钮跳转验证 @P0', async ({ page }) => {
-    // 登录并配置直播
-    await loginPage.goto();
-    await loginPage.login(adminUser);
+    // 直接导航到管理后台（已有登录状态）
+    await page.goto('/admin/dashboard');
     await dashboardPage.expectPageLoaded();
     
     // 导航到直播管理页面
@@ -195,17 +206,13 @@ test.describe('【第三阶段-1】直播前台展示验证', () => {
 });
 
 test.describe('【边界测试】直播信息边界测试', () => {
-  let loginPage: AdminLoginPage;
   let dashboardPage: DashboardPage;
 
   test.beforeEach(async ({ page }) => {
-    loginPage = new AdminLoginPage(page);
     dashboardPage = new DashboardPage(page);
 
-    // 先导航到页面并登录
-    await loginPage.goto();
-    await page.reload();
-    await loginPage.login(adminUser);
+    // 直接导航到管理后台（已有登录状态）
+    await page.goto('/admin/dashboard');
     await dashboardPage.expectPageLoaded();
   });
 
