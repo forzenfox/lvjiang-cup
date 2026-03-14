@@ -45,21 +45,23 @@ test.describe('【第二阶段-2】直播管理功能测试', () => {
     await expect(page.locator('h1, h2').filter({ hasText: /直播/ })).toBeVisible({ timeout: 10000 });
     
     // 填写直播信息
+    const testStreamTitle = '驴酱杯测试直播';
     const testStreamUrl = 'https://www.douyu.com/99999';
-    const streamUrlInput = page.locator('input[placeholder*="直播地址"], input[name="streamUrl"]').first();
-    if (await streamUrlInput.isVisible().catch(() => false)) {
-      await streamUrlInput.fill(testStreamUrl);
-      
-      // 点击保存按钮
-      const saveButton = page.locator('button:has-text("保存"), button[type="submit"]').first();
-      if (await saveButton.isVisible().catch(() => false)) {
-        await saveButton.click();
-        await page.waitForTimeout(1000);
-        console.log('✅ 直播信息配置已保存');
-      }
-    }
     
-    console.log('✅ 直播管理页面正常加载');
+    await streamPage.fillStreamTitle(testStreamTitle);
+    await streamPage.fillStreamUrl(testStreamUrl);
+    
+    // 切换到直播状态
+    await streamPage.toggleLiveStatus();
+    
+    // 保存配置
+    await streamPage.saveConfig();
+    await streamPage.expectSaveSuccess();
+    
+    // 验证直播状态已更新
+    await streamPage.expectLiveStatus();
+    
+    console.log('✅ 直播信息配置已保存');
     
     // 验证前台页面可以访问
     await homePage.goto();
@@ -77,19 +79,18 @@ test.describe('【第二阶段-2】直播管理功能测试', () => {
     // 导航到直播管理页面
     await dashboardPage.navigateToStream();
     await streamPage.expectPageLoaded();
-    await expect(page.locator('h1, h2').filter({ hasText: /直播/ })).toBeVisible({ timeout: 10000 });
     
-    // 验证页面有表单元素
-    const hasForm = await page.locator('input, button').first().isVisible().catch(() => false);
-    expect(hasForm).toBe(true);
+    // 验证页面元素可见
+    await expect(streamPage.streamUrlInput).toBeVisible();
+    await expect(streamPage.streamTitleInput).toBeVisible();
+    await expect(streamPage.isLiveToggle).toBeVisible();
+    await expect(streamPage.saveButton).toBeVisible();
+    
+    // 验证当前状态
+    const statusText = await streamPage.streamStatusText.textContent();
+    console.log(`✅ 当前直播状态: ${statusText}`);
     
     console.log('✅ 直播管理页面可以正常操作');
-    
-    // 验证前台页面可以访问
-    await homePage.goto();
-    await homePage.expectPageLoaded();
-    
-    console.log('✅ 首页可以正常访问');
   });
 
   /**
@@ -101,19 +102,19 @@ test.describe('【第二阶段-2】直播管理功能测试', () => {
     // 导航到直播管理页面
     await dashboardPage.navigateToStream();
     await streamPage.expectPageLoaded();
-    await expect(page.locator('h1, h2').filter({ hasText: /直播/ })).toBeVisible({ timeout: 10000 });
     
-    // 验证页面有表单元素
-    const hasForm = await page.locator('input, button').first().isVisible().catch(() => false);
-    expect(hasForm).toBe(true);
+    // 填写直播信息
+    const testStreamTitle = '链接验证测试';
+    const testStreamUrl = 'https://live.bilibili.com/12345';
     
-    console.log('✅ 直播管理页面可以正常操作');
+    await streamPage.fillStreamTitle(testStreamTitle);
+    await streamPage.fillStreamUrl(testStreamUrl);
     
-    // 验证前台页面可以访问
-    await homePage.goto();
-    await homePage.expectPageLoaded();
+    // 验证输入值正确
+    await expect(streamPage.streamTitleInput).toHaveValue(testStreamTitle);
+    await expect(streamPage.streamUrlInput).toHaveValue(testStreamUrl);
     
-    console.log('✅ 首页可以正常访问');
+    console.log('✅ 直播链接可以正确填写');
   });
 
   /**
@@ -125,28 +126,27 @@ test.describe('【第二阶段-2】直播管理功能测试', () => {
     // 导航到直播管理页面
     await dashboardPage.navigateToStream();
     await streamPage.expectPageLoaded();
-    await expect(page.locator('h1, h2').filter({ hasText: /直播/ })).toBeVisible({ timeout: 10000 });
     
-    // 验证页面有表单元素
-    const hasForm = await page.locator('input, button').first().isVisible().catch(() => false);
-    expect(hasForm).toBe(true);
+    // 清空直播链接
+    await streamPage.streamUrlInput.fill('');
+    await streamPage.streamTitleInput.fill('');
     
-    console.log('✅ 直播管理页面可以正常操作');
+    // 验证已清空
+    await expect(streamPage.streamUrlInput).toHaveValue('');
+    await expect(streamPage.streamTitleInput).toHaveValue('');
     
-    // 验证前台页面可以访问
-    await homePage.goto();
-    await homePage.expectPageLoaded();
-    
-    console.log('✅ 首页可以正常访问');
+    console.log('✅ 直播信息可以清空');
   });
 });
 
 test.describe('【第三阶段-1】直播前台展示验证', () => {
   let dashboardPage: DashboardPage;
+  let streamPage: StreamPage;
   let homePage: HomePage;
 
   test.beforeEach(async ({ page }) => {
     dashboardPage = new DashboardPage(page);
+    streamPage = new StreamPage(page);
     homePage = new HomePage(page);
   });
 
@@ -162,13 +162,16 @@ test.describe('【第三阶段-1】直播前台展示验证', () => {
     
     // 导航到直播管理页面
     await dashboardPage.navigateToStream();
-    await expect(page.locator('h1, h2').filter({ hasText: /直播/ })).toBeVisible({ timeout: 10000 });
+    await streamPage.expectPageLoaded();
     
-    // 验证页面有表单元素
-    const hasForm = await page.locator('input, button').first().isVisible().catch(() => false);
-    expect(hasForm).toBe(true);
+    // 配置直播信息
+    const testStreamTitle = '前台同步测试直播';
+    const testStreamUrl = 'https://www.douyu.com/88888';
     
-    console.log('✅ 直播管理页面可以正常操作');
+    await streamPage.configureStream(testStreamTitle, testStreamUrl, true);
+    await streamPage.expectSaveSuccess();
+    
+    console.log('✅ 直播信息已配置');
     
     // 访问前台验证
     await homePage.goto();
@@ -182,20 +185,23 @@ test.describe('【第三阶段-1】直播前台展示验证', () => {
    * 优先级: P0
    * 验证点击直播按钮跳转到正确的链接
    */
-  test('直播按钮跳转验证 @P0', async ({ page }) => {
+  test('直播按钮跳转验证 @P0', async ({ context, page }) => {
     // 直接导航到管理后台（已有登录状态）
     await page.goto('/admin/dashboard');
     await dashboardPage.expectPageLoaded();
     
     // 导航到直播管理页面
     await dashboardPage.navigateToStream();
-    await expect(page.locator('h1, h2').filter({ hasText: /直播/ })).toBeVisible({ timeout: 10000 });
+    await streamPage.expectPageLoaded();
     
-    // 验证页面有表单元素
-    const hasForm = await page.locator('input, button').first().isVisible().catch(() => false);
-    expect(hasForm).toBe(true);
+    // 配置直播信息
+    const testStreamUrl = 'https://www.douyu.com/77777';
+    await streamPage.fillStreamUrl(testStreamUrl);
+    await streamPage.toggleLiveStatus();
+    await streamPage.saveConfig();
+    await streamPage.expectSaveSuccess();
     
-    console.log('✅ 直播管理页面可以正常操作');
+    console.log('✅ 直播信息已配置');
     
     // 访问前台
     await homePage.goto();
@@ -207,9 +213,11 @@ test.describe('【第三阶段-1】直播前台展示验证', () => {
 
 test.describe('【边界测试】直播信息边界测试', () => {
   let dashboardPage: DashboardPage;
+  let streamPage: StreamPage;
 
   test.beforeEach(async ({ page }) => {
     dashboardPage = new DashboardPage(page);
+    streamPage = new StreamPage(page);
 
     // 直接导航到管理后台（已有登录状态）
     await page.goto('/admin/dashboard');
@@ -223,13 +231,16 @@ test.describe('【边界测试】直播信息边界测试', () => {
    */
   test('直播标题长度边界 @P2', async ({ page }) => {
     await dashboardPage.navigateToStream();
-    await expect(page.locator('h1, h2').filter({ hasText: /直播/ })).toBeVisible({ timeout: 10000 });
+    await streamPage.expectPageLoaded();
     
-    // 验证页面有表单元素
-    const hasForm = await page.locator('input, button').first().isVisible().catch(() => false);
-    expect(hasForm).toBe(true);
+    // 测试长标题
+    const longTitle = '这是一个非常长的直播标题用于测试边界条件处理' + 'A'.repeat(50);
+    await streamPage.fillStreamTitle(longTitle);
     
-    console.log('✅ 直播管理页面可以正常操作');
+    // 验证可以填写
+    await expect(streamPage.streamTitleInput).toHaveValue(longTitle);
+    
+    console.log('✅ 长标题可以正常填写');
   });
 
   /**
@@ -239,12 +250,15 @@ test.describe('【边界测试】直播信息边界测试', () => {
    */
   test('特殊字符标题测试 @P2', async ({ page }) => {
     await dashboardPage.navigateToStream();
-    await expect(page.locator('h1, h2').filter({ hasText: /直播/ })).toBeVisible({ timeout: 10000 });
+    await streamPage.expectPageLoaded();
     
-    // 验证页面有表单元素
-    const hasForm = await page.locator('input, button').first().isVisible().catch(() => false);
-    expect(hasForm).toBe(true);
+    // 测试特殊字符
+    const specialTitle = '直播标题!@#$%^&*()_+-=[]{}|;\':",./<>?';
+    await streamPage.fillStreamTitle(specialTitle);
     
-    console.log('✅ 直播管理页面可以正常操作');
+    // 验证可以填写
+    await expect(streamPage.streamTitleInput).toHaveValue(specialTitle);
+    
+    console.log('✅ 特殊字符标题可以正常填写');
   });
 });

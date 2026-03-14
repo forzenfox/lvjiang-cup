@@ -228,14 +228,15 @@ const AdminSchedule: React.FC = () => {
       <div className="flex flex-col h-full">
         <div className="flex justify-between items-center mb-6">
           <div>
-            <h1 className="text-3xl font-bold text-white">赛程管理</h1>
-            <p className="text-sm text-gray-400 mt-1">
+            <h1 data-testid="schedule-page-title" className="text-3xl font-bold text-white">赛程管理</h1>
+            <p data-testid="schedule-match-count" className="text-sm text-gray-400 mt-1">
               共 {matches.length} 场比赛 · {swissMatches.length} 场瑞士轮 · {eliminationMatches.length} 场淘汰赛
             </p>
           </div>
           <div className="flex gap-2">
             {matches.length === 0 && (
               <Button
+                data-testid="init-slots-button"
                 variant="default"
                 onClick={handleInitSlots}
                 disabled={initSlotsLoading}
@@ -246,6 +247,7 @@ const AdminSchedule: React.FC = () => {
               </Button>
             )}
             <Button 
+              data-testid="refresh-schedule-button"
               variant="outline" 
               onClick={loadData}
               disabled={loading}
@@ -265,13 +267,13 @@ const AdminSchedule: React.FC = () => {
             </div>
           ) : (
             <Tabs defaultValue="swiss" className="w-full">
-              <TabsList className="mb-6 bg-gray-800/50 border border-gray-700">
-                <TabsTrigger value="swiss" className="px-6 data-[state=active]:bg-blue-600 data-[state=active]:text-white flex items-center gap-2">
+              <TabsList data-testid="schedule-tabs" className="mb-6 bg-gray-800/50 border border-gray-700">
+                <TabsTrigger data-testid="swiss-tab" value="swiss" className="px-6 data-[state=active]:bg-blue-600 data-[state=active]:text-white flex items-center gap-2">
                   <Calendar className="w-4 h-4" />
                   瑞士轮 (Swiss Stage)
                   <span className="ml-1 text-xs opacity-70">({swissMatches.length})</span>
                 </TabsTrigger>
-                <TabsTrigger value="elimination" className="px-6 data-[state=active]:bg-blue-600 data-[state=active]:text-white flex items-center gap-2">
+                <TabsTrigger data-testid="elimination-tab" value="elimination" className="px-6 data-[state=active]:bg-blue-600 data-[state=active]:text-white flex items-center gap-2">
                   <Trophy className="w-4 h-4" />
                   淘汰赛 (Elimination Stage)
                   <span className="ml-1 text-xs opacity-70">({eliminationMatches.length})</span>

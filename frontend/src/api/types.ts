@@ -89,12 +89,21 @@ export interface UserInfo {
 /**
  * 队员相关类型
  */
+// 从API响应接收的队员类型(包含teamId)
 export interface Player {
   id: string;
   name: string;
   avatar?: string;
   position: 'top' | 'jungle' | 'mid' | 'bot' | 'support';
   teamId: string;
+}
+
+// 发送到API的队员类型(不包含teamId)
+export interface CreatePlayerRequest {
+  id: string;
+  name: string;
+  avatar?: string;
+  position: 'top' | 'jungle' | 'mid' | 'bot' | 'support';
 }
 
 /**
@@ -116,7 +125,7 @@ export interface CreateTeamRequest {
   name: string;
   logo?: string;
   description?: string;
-  players?: Player[];
+  players?: CreatePlayerRequest[];
 }
 
 export interface UpdateTeamRequest extends Partial<CreateTeamRequest> {

@@ -148,7 +148,7 @@ const AdminStream: React.FC = () => {
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-6">
                 {/* 直播状态开关 */}
-                <div className="bg-gray-900/50 p-4 rounded-lg border border-gray-700">
+                <div data-testid="stream-status-section" className="bg-gray-900/50 p-4 rounded-lg border border-gray-700">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className={`p-2 rounded-lg ${streamInfo.isLive ? 'bg-green-500/20' : 'bg-gray-700'}`}>
@@ -160,12 +160,13 @@ const AdminStream: React.FC = () => {
                       </div>
                       <div>
                         <p className="text-white font-medium">直播状态</p>
-                        <p className="text-sm text-gray-400">
+                        <p data-testid="stream-status-text" className="text-sm text-gray-400">
                           {streamInfo.isLive ? '当前正在直播' : '当前未直播'}
                         </p>
                       </div>
                     </div>
                     <button
+                      data-testid="stream-status-toggle"
                       type="button"
                       onClick={toggleLiveStatus}
                       className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-800 ${
@@ -188,6 +189,7 @@ const AdminStream: React.FC = () => {
                     直播标题
                   </label>
                   <input
+                    data-testid="stream-title-input"
                     type="text"
                     value={streamInfo.title}
                     onChange={(e) => setStreamInfo({ ...streamInfo, title: e.target.value })}
@@ -203,6 +205,7 @@ const AdminStream: React.FC = () => {
                     直播链接
                   </label>
                   <input
+                    data-testid="stream-url-input"
                     type="url"
                     value={streamInfo.url}
                     onChange={(e) => setStreamInfo({ ...streamInfo, url: e.target.value })}
@@ -219,6 +222,7 @@ const AdminStream: React.FC = () => {
                 {/* 操作按钮 */}
                 <div className="flex gap-3 pt-4">
                   <Button
+                    data-testid="stream-save-button"
                     type="submit"
                     disabled={saving || !hasChanges}
                     className="flex-1 bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50"
@@ -228,6 +232,7 @@ const AdminStream: React.FC = () => {
                   </Button>
                   {hasChanges && (
                     <Button
+                      data-testid="stream-reset-button"
                       type="button"
                       variant="outline"
                       onClick={handleReset}

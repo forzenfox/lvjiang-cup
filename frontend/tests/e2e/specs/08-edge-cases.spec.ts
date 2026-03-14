@@ -134,7 +134,7 @@ test.describe('【异常测试】系统异常处理测试', () => {
   });
 });
 
-// 注意：并发操作测试已移至 07b-concurrent.spec.ts
+// 注意：并发操作测试已移至 09-concurrent.spec.ts
 // 因为该测试需要独立的登录状态
 
 test.describe('【性能测试】页面性能测试', () => {

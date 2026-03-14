@@ -47,12 +47,12 @@ test.describe('【第二阶段-3】战队列表功能测试', () => {
     // 验证显示战队Logo、名称和队员数量
     if (teamCards.length > 0) {
       for (const card of teamCards.slice(0, 3)) {
-        // 验证战队Logo
-        const logo = card.locator('img, [data-testid="team-logo"]');
+        // 验证战队Logo（可能是图片或占位符）
+        const logo = card.locator('[data-testid="team-logo"], [data-testid="team-logo-placeholder"]');
         await expect(logo).toBeVisible();
         
         // 验证战队名称
-        const name = card.locator('[data-testid="team-name"], h3, h4');
+        const name = card.locator('[data-testid="team-name"]');
         await expect(name).toBeVisible();
         
         // 验证队员数量显示
@@ -124,9 +124,12 @@ test.describe('【第二阶段-4】战队增删改功能测试', () => {
     await page.reload();
     await teamsPage.expectPageLoaded();
 
-    // 验证战队数量增加（不验证具体战队名称）
+    // 验证战队数量增加
     const newCount = await teamsPage.getTeamCount();
-    expect(newCount).toBeGreaterThanOrEqual(initialCount);
+    expect(newCount).toBeGreaterThan(initialCount);
+
+    // 验证新战队存在且包含正确信息
+    await teamsPage.expectTeamExists(testTeam.name);
     
     // 验证前台页面可以访问
     await homePage.goto();

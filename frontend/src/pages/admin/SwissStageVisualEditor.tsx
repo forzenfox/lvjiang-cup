@@ -245,6 +245,7 @@ interface DraggableTeamItemProps {
 const DraggableTeamItem: React.FC<DraggableTeamItemProps> = ({ team, category, onDragStart, onRemove }) => {
   return (
     <div
+      data-testid={`draggable-team-${team.id}`}
       draggable
       onDragStart={(e) => onDragStart(e, team.id, category)}
       className="flex items-center justify-between text-sm text-gray-300 bg-gray-800/50 p-2 rounded border border-gray-700 cursor-move hover:bg-gray-800 hover:border-gray-600 transition-colors group"
@@ -256,9 +257,10 @@ const DraggableTeamItem: React.FC<DraggableTeamItemProps> = ({ team, category, o
         ) : (
           <div className="w-5 h-5 rounded-full bg-gray-700" />
         )}
-        <span className="font-medium">{team.name}</span>
+        <span data-testid={`draggable-team-name-${team.id}`} className="font-medium">{team.name}</span>
       </div>
       <button
+        data-testid={`remove-team-${team.id}`}
         onClick={(e) => {
           e.stopPropagation();
           onRemove(team.id, category);
@@ -299,21 +301,22 @@ const AdvancementCategoryCard: React.FC<AdvancementCategoryCardProps> = ({
 
   return (
     <div
+      data-testid={`advancement-category-${category}`}
       className="bg-gray-900/50 rounded-lg border border-gray-700 overflow-hidden"
       onDragOver={onDragOver}
       onDrop={(e) => onDrop(e, category)}
     >
-      <div className={`px-3 py-2 border-b border-gray-700 ${config.color.replace('bg-', 'bg-opacity-20 bg-')}`}>
+      <div data-testid={`advancement-category-header-${category}`} className={`px-3 py-2 border-b border-gray-700 ${config.color.replace('bg-', 'bg-opacity-20 bg-')}`}>
         <div className="flex items-center gap-2">
           <div className={`w-2 h-2 rounded-full ${config.color}`} />
-          <h4 className="text-sm font-semibold text-white">{config.label}</h4>
-          <span className="text-xs text-gray-500 ml-auto">{categoryTeams.length}</span>
+          <h4 data-testid={`advancement-category-label-${category}`} className="text-sm font-semibold text-white">{config.label}</h4>
+          <span data-testid={`advancement-category-count-${category}`} className="text-xs text-gray-500 ml-auto">{categoryTeams.length}</span>
         </div>
-        <p className="text-xs text-gray-500 mt-0.5">{config.description}</p>
+        <p data-testid={`advancement-category-desc-${category}`} className="text-xs text-gray-500 mt-0.5">{config.description}</p>
       </div>
-      <div className="p-2 space-y-1 min-h-[60px]">
+      <div data-testid={`advancement-category-teams-${category}`} className="p-2 space-y-1 min-h-[60px]">
         {categoryTeams.length === 0 ? (
-          <div className="text-center py-4 text-gray-600 text-xs">
+          <div data-testid={`advancement-category-empty-${category}`} className="text-center py-4 text-gray-600 text-xs">
             拖拽队伍到此处
           </div>
         ) : (
@@ -447,11 +450,11 @@ const SwissStageVisualEditor: React.FC<SwissStageVisualEditorProps> = ({
   const unassignedTeams = getUnassignedTeams();
 
   return (
-    <div className="w-full">
+    <div data-testid="swiss-stage-editor" className="w-full">
       {/* 操作栏 */}
-      <div className="flex justify-between items-center mb-4 p-3 bg-gray-800/50 rounded-lg border border-gray-700">
+      <div data-testid="advancement-toolbar" className="flex justify-between items-center mb-4 p-3 bg-gray-800/50 rounded-lg border border-gray-700">
         <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-400">
+          <span data-testid="advancement-sync-status" className="text-sm text-gray-400">
             {hasChanges ? (
               <span className="text-yellow-400 flex items-center gap-1">
                 <span className="w-2 h-2 rounded-full bg-yellow-400" />
@@ -468,6 +471,7 @@ const SwissStageVisualEditor: React.FC<SwissStageVisualEditorProps> = ({
         <div className="flex gap-2">
           {hasChanges && (
             <Button
+              data-testid="advancement-reset-button"
               variant="outline"
               size="sm"
               onClick={handleReset}
@@ -478,6 +482,7 @@ const SwissStageVisualEditor: React.FC<SwissStageVisualEditorProps> = ({
             </Button>
           )}
           <Button
+            data-testid="advancement-save-button"
             size="sm"
             onClick={handleSave}
             disabled={!hasChanges}
@@ -549,23 +554,24 @@ const SwissStageVisualEditor: React.FC<SwissStageVisualEditorProps> = ({
         </div>
 
         {/* 晋级名单管理面板 */}
-        <div className="w-80 flex-shrink-0 space-y-4">
-          <Card className="bg-gray-800/80 border-gray-700 p-4 sticky top-4">
-            <h3 className="text-lg font-bold text-white mb-2">晋级名单管理</h3>
-            <p className="text-xs text-gray-400 mb-4">
+        <div data-testid="advancement-panel" className="w-80 flex-shrink-0 space-y-4">
+          <Card data-testid="advancement-card" className="bg-gray-800/80 border-gray-700 p-4 sticky top-4">
+            <h3 data-testid="advancement-title" className="text-lg font-bold text-white mb-2">晋级名单管理</h3>
+            <p data-testid="advancement-description" className="text-xs text-gray-400 mb-4">
               拖拽队伍调整晋级状态，或点击 × 移除
             </p>
-            
+
             {/* 未分配队伍 */}
             {unassignedTeams.length > 0 && (
-              <div className="mb-4 p-3 bg-yellow-900/20 border border-yellow-800/50 rounded-lg">
-                <p className="text-xs text-yellow-400 mb-2">
+              <div data-testid="unassigned-teams" className="mb-4 p-3 bg-yellow-900/20 border border-yellow-800/50 rounded-lg">
+                <p data-testid="unassigned-count" className="text-xs text-yellow-400 mb-2">
                   未分配 ({unassignedTeams.length})
                 </p>
                 <div className="flex flex-wrap gap-1">
                   {unassignedTeams.map(team => (
                     <div
                       key={team.id}
+                      data-testid={`unassigned-team-${team.id}`}
                       draggable
                       onDragStart={(e) => handleDragStart(e, team.id, '')}
                       className="px-2 py-1 bg-gray-800 text-gray-300 text-xs rounded border border-gray-700 cursor-move hover:border-yellow-600/50"
@@ -578,7 +584,7 @@ const SwissStageVisualEditor: React.FC<SwissStageVisualEditorProps> = ({
             )}
 
             {/* 晋级分类 */}
-            <div className="space-y-3">
+            <div data-testid="advancement-categories" className="space-y-3">
               {categoryOrder.map(category => (
                 <AdvancementCategoryCard
                   key={category}

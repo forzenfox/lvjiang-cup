@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import AdminLayout from '../../components/layout/AdminLayout';
 import { teamService } from '@/services/teamService';
 import type { Team, Player } from '@/types';
-import type { CreateTeamRequest, UpdateTeamRequest } from '@/api/types';
+import type { CreateTeamRequest, UpdateTeamRequest, CreatePlayerRequest } from '@/api/types';
 import { Button } from '../../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Plus, Trash2, Edit2, Save, X, RefreshCw, Users } from 'lucide-react';
@@ -61,9 +61,8 @@ const toCreateTeamRequest = (team: Team): CreateTeamRequest => ({
       id: p.id,
       name: p.name,
       avatar: p.avatar,
-      position: p.position as 'top' | 'jungle' | 'mid' | 'bot' | 'support',
-      teamId: team.id
-    })) || [],
+      position: p.position as 'top' | 'jungle' | 'mid' | 'bot' | 'support'
+    } as CreatePlayerRequest)) || [],
 });
 
 // 将前端 Team 转换为 API UpdateTeamRequest
@@ -78,9 +77,8 @@ const toUpdateTeamRequest = (team: Team): UpdateTeamRequest => ({
       id: p.id,
       name: p.name,
       avatar: p.avatar,
-      position: p.position as 'top' | 'jungle' | 'mid' | 'bot' | 'support',
-      teamId: team.id
-    })) || [],
+      position: p.position as 'top' | 'jungle' | 'mid' | 'bot' | 'support'
+    } as CreatePlayerRequest)) || [],
 });
 
 // 将 API Team 转换为前端 Team
@@ -303,12 +301,14 @@ const AdminTeams: React.FC = () => {
                       </span>
                     </div>
                     <input
+                      data-testid="player-name-input"
                       value={player.name}
                       onChange={(e) => handlePlayerChange(idx, 'name', e.target.value)}
                       placeholder="队员姓名"
                       className="w-full px-2 py-1.5 bg-gray-700 rounded text-white text-sm focus:outline-none focus:border-blue-500 border border-transparent mb-2"
                     />
                     <input
+                      data-testid="player-avatar-input"
                       value={player.avatar || ''}
                       onChange={(e) => handlePlayerChange(idx, 'avatar', e.target.value)}
                       placeholder="头像链接"
@@ -354,11 +354,12 @@ const AdminTeams: React.FC = () => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {teams.map(team => (
-            <Card key={team.id} className="bg-gray-800 border-gray-700 hover:border-gray-600 transition-colors">
+            <Card key={team.id} data-testid="admin-team-card" className="bg-gray-800 border-gray-700 hover:border-gray-600 transition-colors">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <div className="flex items-center space-x-3">
                   {team.logo ? (
                     <img 
+                      data-testid="team-logo"
                       src={team.logo} 
                       alt={team.name} 
                       className="w-10 h-10 rounded object-contain bg-black/20"
@@ -367,11 +368,11 @@ const AdminTeams: React.FC = () => {
                       }}
                     />
                   ) : (
-                    <div className="w-10 h-10 rounded bg-gray-700 flex items-center justify-center text-gray-500">
+                    <div data-testid="team-logo-placeholder" className="w-10 h-10 rounded bg-gray-700 flex items-center justify-center text-gray-500">
                       <Users className="w-5 h-5" />
                     </div>
                   )}
-                  <CardTitle className="text-white text-lg">{team.name}</CardTitle>
+                  <CardTitle data-testid="team-name" className="text-white text-lg">{team.name}</CardTitle>
                 </div>
                 <div className="flex space-x-1">
                   <Button 
@@ -379,6 +380,7 @@ const AdminTeams: React.FC = () => {
                     size="icon" 
                     onClick={() => handleEdit(team)}
                     disabled={loading}
+                    aria-label="编辑"
                   >
                     <Edit2 className="w-4 h-4 text-blue-400" />
                   </Button>
@@ -387,6 +389,7 @@ const AdminTeams: React.FC = () => {
                     size="icon" 
                     onClick={() => handleDeleteClick(team.id)}
                     disabled={loading}
+                    aria-label="删除"
                   >
                     <Trash2 className="w-4 h-4 text-red-400" />
                   </Button>

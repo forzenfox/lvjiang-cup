@@ -49,8 +49,8 @@ export class TeamsPage {
 
     // 删除确认对话框
     this.deleteDialog = page.getByRole('alertdialog');
-    this.confirmDeleteButton = page.getByRole('button', { name: '删除' });
-    this.cancelDeleteButton = page.getByRole('button', { name: '取消' });
+    this.confirmDeleteButton = page.locator('[role="alertdialog"] button.bg-blue-600, [role="alertdialog"] button:has-text("删除")').first();
+    this.cancelDeleteButton = page.locator('[role="alertdialog"] button:has-text("取消")').first();
   }
 
   /**
