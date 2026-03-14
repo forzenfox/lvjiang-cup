@@ -8,7 +8,7 @@ import axios, {
 import { handleError, ErrorHandlerConfig } from '@/utils/error-handler';
 
 // 从环境变量读取基础 URL
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api';
+const BASE_URL = import.meta.env.VITE_API_BASE_URL!;
 const TIMEOUT = 10000; // 10 秒超时
 
 /**
