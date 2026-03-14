@@ -6,6 +6,7 @@ import { NotFoundException, BadRequestException } from '@nestjs/common';
 
 describe('TeamsController', () => {
   let controller: TeamsController;
+  let service: TeamsService;
 
   const mockTeamsService = {
     findAll: jest.fn(),

@@ -8,6 +8,7 @@ import { NotFoundException } from '@nestjs/common';
 describe('Teams Integration Tests', () => {
   let service: TeamsService;
   let databaseService: DatabaseService;
+  let cacheService: CacheService;
   let module: TestingModule;
 
   const mockCacheService = {

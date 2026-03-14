@@ -7,6 +7,7 @@ import { NotFoundException, BadRequestException } from '@nestjs/common';
 
 describe('StreamsController', () => {
   let controller: StreamsController;
+  let service: StreamsService;
 
   const mockStreamsService = {
     findOne: jest.fn(),

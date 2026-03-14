@@ -5,6 +5,8 @@ import { CacheService } from '../../cache/cache.service';
 
 describe('AdvancementService', () => {
   let service: AdvancementService;
+  let databaseService: DatabaseService;
+  let cacheService: CacheService;
 
   const mockDatabaseService = {
     get: jest.fn(),

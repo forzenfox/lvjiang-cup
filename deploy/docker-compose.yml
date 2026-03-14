@@ -1,0 +1,67 @@
+version: '3.8'
+
+# 驴酱杯赛事网站 - Docker Compose 配置
+# 使用 GitHub Container Registry 预构建镜像
+#
+# 使用方法:
+# 1. 配置 .env 文件
+# 2. docker-compose pull
+# 3. docker-compose up -d
+#
+# 注意：此文件位于 /deploy 目录，部署时请切换到该目录执行命令
+
+services:
+  # 后端服务
+  backend:
+    image: ghcr.io/${GITHUB_OWNER:-your-username}/${GITHUB_REPO:-lvjiang-cup}/backend:${TAG:-latest}
+    container_name: lvjiang-backend
+    restart: unless-stopped
+    expose:
+      - "3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRES_IN=24h
+      - ADMIN_USERNAME=${ADMIN_USERNAME:-admin}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+      - DATABASE_PATH=/app/data/lvjiang.db
+      - CORS_ORIGIN=${CORS_ORIGIN}
+    volumes:
+      # 数据持久化
+      - ../data:/app/data
+      - ../backup:/app/backup
+      # 配置文件外挂（可选，如需自定义配置可取消注释）
+      # - ./config/backend.env:/app/.env.production:ro
+    networks:
+      - lvjiang-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/api/teams"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    pull_policy: always
+
+  # 前端服务（Nginx + 反向代理）
+  frontend:
+    image: ghcr.io/${GITHUB_OWNER:-your-username}/${GITHUB_REPO:-lvjiang-cup}/frontend:${TAG:-latest}
+    container_name: lvjiang-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      # Nginx 配置文件外挂，方便修改配置
+      - ./config/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      # 前端运行时配置文件外挂，支持动态配置 API 地址
+      # 修改此文件无需重启容器，刷新浏览器即可生效
+      - ./config/config.js:/usr/share/nginx/html/config.js:ro
+    depends_on:
+      - backend
+    networks:
+      - lvjiang-network
+    pull_policy: always
+
+networks:
+  lvjiang-network:
+    driver: bridge

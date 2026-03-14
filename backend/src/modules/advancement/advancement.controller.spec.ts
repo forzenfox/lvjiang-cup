@@ -6,6 +6,7 @@ import { NotFoundException, BadRequestException } from '@nestjs/common';
 
 describe('AdvancementController', () => {
   let controller: AdvancementController;
+  let service: AdvancementService;
 
   const mockAdvancementService = {
     findOne: jest.fn(),

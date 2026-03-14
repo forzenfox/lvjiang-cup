@@ -20,62 +20,87 @@ const REQUIRED_ENV_VARS = [
   'CORS_ORIGIN',
 ];
 
-async function validateEnvironmentConfig() {
+/**
+ * 加载环境变量配置文件
+ * 优先从环境变量读取，如果不存在则尝试从 .env 文件加载
+ */
+async function loadEnvironmentConfig() {
   const nodeEnv = process.env.NODE_ENV || 'development';
   const envFileName = `.env.${nodeEnv}`;
   const envFilePath = path.resolve(process.cwd(), envFileName);
 
   logger.log(`当前环境: ${nodeEnv}`);
-  logger.log(`期望配置文件: ${envFileName}`);
+
+  // 检查是否所有必需的环境变量都已通过环境变量传入
+  const missingFromEnv = REQUIRED_ENV_VARS.filter((varName) => !process.env[varName]);
+
+  // 如果所有变量都已设置，直接返回（支持纯环境变量模式）
+  if (missingFromEnv.length === 0) {
+    logger.log('✅ 所有配置已从环境变量加载');
+    return;
+  }
+
+  // 如果有缺失，尝试从文件加载
+  logger.log(`尝试从配置文件加载: ${envFileName}`);
 
   if (!fs.existsSync(envFilePath)) {
-    logger.error(`❌ 环境配置文件不存在: ${envFileName}`);
-    logger.error('');
-    logger.error('请执行以下命令创建配置文件:');
-    logger.error('');
+    logger.warn(`⚠️ 配置文件不存在: ${envFileName}`);
+    logger.warn('将尝试从 .env 文件加载...');
 
-    const examples = {
-      development: 'cp .env.example .env.development',
-      production: 'cp .env.example .env.production',
-      test: 'cp .env.example .env.test',
-    };
-
-    if (examples[nodeEnv]) {
-      logger.error(`  ${examples[nodeEnv]}`);
+    // 尝试加载默认的 .env 文件
+    const defaultEnvPath = path.resolve(process.cwd(), '.env');
+    if (fs.existsSync(defaultEnvPath)) {
+      require('dotenv').config({ path: defaultEnvPath });
+      logger.log('✅ 已从 .env 文件加载配置');
     } else {
-      logger.error(`  cp .env.example ${envFileName}`);
+      logger.warn('未找到 .env 文件');
     }
+  } else {
+    // 加载环境特定的配置文件
+    require('dotenv').config({ path: envFilePath });
+    logger.log(`✅ 已从 ${envFileName} 加载配置`);
+  }
 
+  // 再次检查是否所有变量都已设置
+  const stillMissing = REQUIRED_ENV_VARS.filter((varName) => !process.env[varName]);
+
+  if (stillMissing.length > 0) {
+    logger.error(`❌ 缺少必需的环境变量: ${stillMissing.join(', ')}`);
     logger.error('');
-    logger.error('然后编辑配置文件设置正确的值');
+    logger.error('请通过以下方式之一配置:');
+    logger.error('');
+    logger.error('方式1 - 环境变量（推荐用于 Docker）:');
+    stillMissing.forEach((varName) => {
+      logger.error(`  export ${varName}=your_value`);
+    });
+    logger.error('');
+    logger.error('方式2 - 配置文件:');
+    logger.error(`  创建 ${envFileName} 文件并添加配置`);
     logger.error('');
 
     process.exit(1);
   }
+}
 
-  logger.log(`✅ 配置文件加载成功: ${envFileName}`);
+async function validateEnvironmentConfig() {
   logger.log('');
+  logger.log('验证环境变量...');
 
   const missingVars = REQUIRED_ENV_VARS.filter((varName) => !process.env[varName]);
 
   if (missingVars.length > 0) {
     logger.error(`❌ 缺少必需的环境变量: ${missingVars.join(', ')}`);
-    logger.error('');
-    logger.error('请在配置文件中添加以下变量:');
-    logger.error('');
-    missingVars.forEach((varName) => {
-      logger.error(`  ${varName}=`);
-    });
-    logger.error('');
-
     process.exit(1);
   }
 
   logger.log('✅ 所有必需的环境变量已配置');
+  logger.log('');
 }
 
 async function bootstrap() {
+  await loadEnvironmentConfig();
   await validateEnvironmentConfig();
+
   const app = await NestFactory.create(AppModule);
 
   app.enableCors({

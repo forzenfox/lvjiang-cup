@@ -5,6 +5,7 @@ import { UnauthorizedException, BadRequestException } from '@nestjs/common';
 
 describe('AuthController', () => {
   let controller: AuthController;
+  let service: AuthService;
 
   const mockAuthService = {
     login: jest.fn(),

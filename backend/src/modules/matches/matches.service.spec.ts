@@ -6,6 +6,8 @@ import { NotFoundException } from '@nestjs/common';
 
 describe('MatchesService', () => {
   let service: MatchesService;
+  let databaseService: DatabaseService;
+  let cacheService: CacheService;
 
   const mockDatabaseService = {
     all: jest.fn(),
