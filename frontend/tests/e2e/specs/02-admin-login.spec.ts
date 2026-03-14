@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { HomePage, AdminLoginPage, DashboardPage } from '../pages';
+import { AdminLoginPage, DashboardPage } from '../pages';
 import { adminUser, wrongPasswordUser, wrongUsernameUser, emptyUsernameUser, emptyPasswordUser } from '../fixtures/users.fixture';
 
 /**
@@ -14,12 +14,10 @@ import { adminUser, wrongPasswordUser, wrongUsernameUser, emptyUsernameUser, emp
  */
 
 test.describe('【第二阶段-1】管理员登录功能测试', () => {
-  let homePage: HomePage;
   let loginPage: AdminLoginPage;
   let dashboardPage: DashboardPage;
 
   test.beforeEach(async ({ page }) => {
-    homePage = new HomePage(page);
     loginPage = new AdminLoginPage(page);
     dashboardPage = new DashboardPage(page);
   });

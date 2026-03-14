@@ -80,7 +80,9 @@ describe('AdvancementService', () => {
       expect(result.losersBracket).toEqual(['team4']);
       expect(result.eliminated3rd).toEqual(['team5']);
       expect(result.eliminated0_3).toEqual(['team6']);
-      expect(mockDatabaseService.get).toHaveBeenCalledWith('SELECT * FROM advancement WHERE id = 1');
+      expect(mockDatabaseService.get).toHaveBeenCalledWith(
+        'SELECT * FROM advancement WHERE id = 1',
+      );
       expect(mockCacheService.set).toHaveBeenCalledWith('advancement:info', expect.any(Object));
     });
 

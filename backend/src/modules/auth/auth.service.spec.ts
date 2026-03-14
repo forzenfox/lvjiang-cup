@@ -93,7 +93,7 @@ describe('AuthService', () => {
 
       expect(result).toBe(true);
       expect(bcrypt.compare).toHaveBeenCalledWith('password', '$2b$10$hashedpassword');
-      
+
       // 恢复原始 mock
       mockConfigService.get = originalMock;
     });
@@ -112,7 +112,7 @@ describe('AuthService', () => {
         token_type: 'Bearer',
       });
       expect(mockJwtService.sign).toHaveBeenCalledWith(
-        expect.objectContaining({ username: 'admin', sub: 'admin' })
+        expect.objectContaining({ username: 'admin', sub: 'admin' }),
       );
     });
 

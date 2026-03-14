@@ -1,9 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { renderHook, act, waitFor } from '@testing-library/react';
+import { renderHook, act } from '@testing-library/react';
 import {
   useDebounce,
   useDebounceCallback,
-  useDebouncedRequest,
   useDebouncedInput,
 } from '@/hooks/useDebounce';
 

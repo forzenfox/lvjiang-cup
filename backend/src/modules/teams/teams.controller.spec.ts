@@ -104,18 +104,14 @@ describe('TeamsController', () => {
         name: 'New Team',
         logo: 'logo.png',
         description: 'A new team',
-        players: [
-          { id: 'p1', name: 'Player 1', position: 'top' as const },
-        ],
+        players: [{ id: 'p1', name: 'Player 1', position: 'top' as const }],
       };
       const createdTeam: Team = {
         id: 'new-team',
         name: 'New Team',
         logo: 'logo.png',
         description: 'A new team',
-        players: [
-          { id: 'p1', name: 'Player 1', position: 'top', teamId: 'new-team' },
-        ],
+        players: [{ id: 'p1', name: 'Player 1', position: 'top', teamId: 'new-team' }],
       };
       mockTeamsService.create.mockResolvedValue(createdTeam);
 
@@ -220,7 +216,9 @@ describe('TeamsController', () => {
       mockTeamsService.update.mockRejectedValue(new NotFoundException('Team not found'));
 
       // Act & Assert
-      await expect(controller.update('nonexistent', { name: 'Test' })).rejects.toThrow(NotFoundException);
+      await expect(controller.update('nonexistent', { name: 'Test' })).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('应该在删除不存在的战队时抛出NotFoundException', async () => {
@@ -269,9 +267,7 @@ describe('TeamsController', () => {
         name: 'Team 1',
         logo: 'logo.png',
         description: 'Description',
-        players: [
-          { id: 'p1', name: 'Player 1', position: 'top', teamId: 'team1' },
-        ],
+        players: [{ id: 'p1', name: 'Player 1', position: 'top', teamId: 'team1' }],
       };
       mockTeamsService.findOne.mockResolvedValue(team);
 

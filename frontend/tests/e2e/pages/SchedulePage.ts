@@ -177,7 +177,7 @@ export class SchedulePage extends BasePage {
   /**
    * 添加瑞士轮比赛
    */
-  async addSwissMatch(matchData: { round: string; record: string; teamA: string; teamB: string }) {
+  async addSwissMatch() {
     await this.switchToSwiss();
     await this.page.waitForTimeout(500);
     

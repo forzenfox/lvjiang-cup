@@ -20,8 +20,10 @@ export class AdminController {
   @ApiOperation({ summary: '初始化比赛槽位（瑞士轮+淘汰赛）' })
   async initSlots(): Promise<{ message: string; count: number }> {
     await this.matchesService.initSlots();
-    const result = await this.databaseService.get<{ count: number }>('SELECT COUNT(*) as count FROM matches');
-    
+    const result = await this.databaseService.get<{ count: number }>(
+      'SELECT COUNT(*) as count FROM matches',
+    );
+
     return {
       message: 'Match slots initialized successfully',
       count: result.count,
@@ -35,7 +37,7 @@ export class AdminController {
   async resetSlots(): Promise<{ message: string }> {
     await this.databaseService.resetMatchSlots();
     this.cacheService.flush();
-    
+
     return {
       message: 'Match slots reset successfully',
     };
@@ -48,7 +50,7 @@ export class AdminController {
   async clearAllData(): Promise<{ message: string }> {
     await this.databaseService.clearAllData();
     this.cacheService.flush();
-    
+
     return {
       message: 'All data cleared successfully',
     };

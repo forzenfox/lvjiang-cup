@@ -98,13 +98,11 @@ test.describe('【第二阶段-6】淘汰赛赛程管理测试', () => {
   let loginPage: AdminLoginPage;
   let dashboardPage: DashboardPage;
   let schedulePage: SchedulePage;
-  let teamsPage: TeamsPage;
 
   test.beforeEach(async ({ page }) => {
     loginPage = new AdminLoginPage(page);
     dashboardPage = new DashboardPage(page);
     schedulePage = new SchedulePage(page);
-    teamsPage = new TeamsPage(page);
 
     // 先导航到页面并登录
     await loginPage.goto();
@@ -159,15 +157,11 @@ test.describe('【第二阶段-7】比赛结果更新测试', () => {
   let loginPage: AdminLoginPage;
   let dashboardPage: DashboardPage;
   let schedulePage: SchedulePage;
-  let teamsPage: TeamsPage;
-  let homePage: HomePage;
 
   test.beforeEach(async ({ page }) => {
     loginPage = new AdminLoginPage(page);
     dashboardPage = new DashboardPage(page);
     schedulePage = new SchedulePage(page);
-    teamsPage = new TeamsPage(page);
-    homePage = new HomePage(page);
 
     // 先导航到页面并登录
     await loginPage.goto();
@@ -220,13 +214,11 @@ test.describe('【边界测试】比分输入边界测试', () => {
   let loginPage: AdminLoginPage;
   let dashboardPage: DashboardPage;
   let schedulePage: SchedulePage;
-  let teamsPage: TeamsPage;
 
   test.beforeEach(async ({ page }) => {
     loginPage = new AdminLoginPage(page);
     dashboardPage = new DashboardPage(page);
     schedulePage = new SchedulePage(page);
-    teamsPage = new TeamsPage(page);
 
     // 先导航到页面并登录
     await loginPage.goto();
@@ -259,14 +251,12 @@ test.describe('【第三阶段 -4】赛程前台展示验证', () => {
   let loginPage: AdminLoginPage;
   let dashboardPage: DashboardPage;
   let schedulePage: SchedulePage;
-  let teamsPage: TeamsPage;
   let homePage: HomePage;
 
   test.beforeEach(async ({ page }) => {
     loginPage = new AdminLoginPage(page);
     dashboardPage = new DashboardPage(page);
     schedulePage = new SchedulePage(page);
-    teamsPage = new TeamsPage(page);
     homePage = new HomePage(page);
 
     // 先导航到页面并登录

@@ -1,7 +1,6 @@
 import { test, expect } from '@playwright/test';
-import { AdminLoginPage, DashboardPage, SchedulePage, TeamsPage, HomePage } from '../pages';
+import { AdminLoginPage, DashboardPage, SchedulePage, HomePage } from '../pages';
 import { adminUser } from '../fixtures/users.fixture';
-import { testTeam } from '../fixtures/teams.fixture';
 
 /**
  * 晋级名单管理测试用例
@@ -12,13 +11,11 @@ test.describe('【第四阶段 -1】瑞士轮晋级名单管理测试', () => {
   let loginPage: AdminLoginPage;
   let dashboardPage: DashboardPage;
   let schedulePage: SchedulePage;
-  let teamsPage: TeamsPage;
 
   test.beforeEach(async ({ page }) => {
     loginPage = new AdminLoginPage(page);
     dashboardPage = new DashboardPage(page);
     schedulePage = new SchedulePage(page);
-    teamsPage = new TeamsPage(page);
 
     // 先导航到页面并登录
     await loginPage.goto();
@@ -68,14 +65,12 @@ test.describe('【第四阶段 -2】晋级名单同步验证测试', () => {
   let loginPage: AdminLoginPage;
   let dashboardPage: DashboardPage;
   let schedulePage: SchedulePage;
-  let teamsPage: TeamsPage;
   let homePage: HomePage;
 
   test.beforeEach(async ({ page }) => {
     loginPage = new AdminLoginPage(page);
     dashboardPage = new DashboardPage(page);
     schedulePage = new SchedulePage(page);
-    teamsPage = new TeamsPage(page);
     homePage = new HomePage(page);
 
     // 先导航到页面并登录
@@ -114,13 +109,11 @@ test.describe('【边界测试】晋级名单边界测试', () => {
   let loginPage: AdminLoginPage;
   let dashboardPage: DashboardPage;
   let schedulePage: SchedulePage;
-  let teamsPage: TeamsPage;
 
   test.beforeEach(async ({ page }) => {
     loginPage = new AdminLoginPage(page);
     dashboardPage = new DashboardPage(page);
     schedulePage = new SchedulePage(page);
-    teamsPage = new TeamsPage(page);
 
     // 先导航到页面并登录
     await loginPage.goto();

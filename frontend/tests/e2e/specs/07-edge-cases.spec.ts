@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
-import { AdminLoginPage, DashboardPage, TeamsPage, SchedulePage, HomePage } from '../pages';
+import { AdminLoginPage, DashboardPage, TeamsPage, HomePage } from '../pages';
 import { adminUser } from '../fixtures/users.fixture';
-import { testTeam, testTeamBeta } from '../fixtures/teams.fixture';
+import { testTeam } from '../fixtures/teams.fixture';
 
 /**
  * 边界和异常测试用例
@@ -13,15 +13,11 @@ import { testTeam, testTeamBeta } from '../fixtures/teams.fixture';
 test.describe('【边界测试】综合边界测试', () => {
   let loginPage: AdminLoginPage;
   let dashboardPage: DashboardPage;
-  let teamsPage: TeamsPage;
-  let schedulePage: SchedulePage;
   let homePage: HomePage;
 
   test.beforeEach(async ({ page }) => {
     loginPage = new AdminLoginPage(page);
     dashboardPage = new DashboardPage(page);
-    teamsPage = new TeamsPage(page);
-    schedulePage = new SchedulePage(page);
     homePage = new HomePage(page);
 
     // 先导航到页面并登录
@@ -36,7 +32,7 @@ test.describe('【边界测试】综合边界测试', () => {
    * 优先级: P1
    * 验证空数据时各区域的显示
    */
-  test('TEST-B004: 空数据状态 @P1', async ({ page }) => {
+  test('TEST-B004: 空数据状态 @P1', async () => {
     // 访问前台首页
     await homePage.goto();
     await homePage.expectPageLoaded();
@@ -50,13 +46,11 @@ test.describe('【异常测试】系统异常处理测试', () => {
   let loginPage: AdminLoginPage;
   let dashboardPage: DashboardPage;
   let teamsPage: TeamsPage;
-  let schedulePage: SchedulePage;
 
   test.beforeEach(async ({ page }) => {
     loginPage = new AdminLoginPage(page);
     dashboardPage = new DashboardPage(page);
     teamsPage = new TeamsPage(page);
-    schedulePage = new SchedulePage(page);
 
     // 先导航到页面并登录
     await loginPage.goto();
@@ -189,7 +183,7 @@ test.describe('【性能测试】页面性能测试', () => {
    * 优先级: P1
    * 验证首页加载时间
    */
-  test('首页加载性能 @P1', async ({ page }) => {
+  test('首页加载性能 @P1', async () => {
     await homePage.goto();
     await homePage.expectPageLoaded();
     
@@ -266,7 +260,7 @@ test.describe('【安全测试】基础安全测试', () => {
    * 优先级：P1
    * 验证 SQL 注入防护
    */
-  test('SQL 注入防护测试 @P1', async ({ page }) => {
+  test('SQL 注入防护测试 @P1', async () => {
     await loginPage.goto();
     
     // 验证登录页面可以正常访问

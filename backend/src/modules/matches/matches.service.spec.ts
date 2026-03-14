@@ -53,7 +53,9 @@ describe('MatchesService', () => {
     });
 
     it('should return matches from cache', async () => {
-      const mockMatches = [{ id: '1', round: 'Round 1', stage: 'swiss', scoreA: 0, scoreB: 0, status: 'upcoming' }];
+      const mockMatches = [
+        { id: '1', round: 'Round 1', stage: 'swiss', scoreA: 0, scoreB: 0, status: 'upcoming' },
+      ];
       mockCacheService.get.mockReturnValue(mockMatches);
 
       const result = await service.findAll();
@@ -65,7 +67,9 @@ describe('MatchesService', () => {
     it('should return matches from database when cache is empty', async () => {
       mockCacheService.get.mockReturnValue(undefined);
       mockDatabaseService.all
-        .mockResolvedValueOnce([{ id: '1', round: 'Round 1', stage: 'swiss', score_a: 0, score_b: 0, status: 'upcoming' }])
+        .mockResolvedValueOnce([
+          { id: '1', round: 'Round 1', stage: 'swiss', score_a: 0, score_b: 0, status: 'upcoming' },
+        ])
         .mockResolvedValueOnce([]);
 
       const result = await service.findAll();
@@ -77,12 +81,14 @@ describe('MatchesService', () => {
     it('should filter by stage', async () => {
       mockCacheService.get.mockReturnValue(undefined);
       mockDatabaseService.all
-        .mockResolvedValueOnce([{ id: '1', round: 'Round 1', stage: 'swiss', score_a: 0, score_b: 0, status: 'upcoming' }])
+        .mockResolvedValueOnce([
+          { id: '1', round: 'Round 1', stage: 'swiss', score_a: 0, score_b: 0, status: 'upcoming' },
+        ])
         .mockResolvedValueOnce([]);
 
       const result = await service.findAll('swiss');
 
-      expect(result.every(m => m.stage === 'swiss')).toBe(true);
+      expect(result.every((m) => m.stage === 'swiss')).toBe(true);
     });
   });
 
@@ -92,7 +98,14 @@ describe('MatchesService', () => {
     });
 
     it('should return a match from cache', async () => {
-      const mockMatch = { id: '1', round: 'Round 1', stage: 'swiss', scoreA: 0, scoreB: 0, status: 'upcoming' };
+      const mockMatch = {
+        id: '1',
+        round: 'Round 1',
+        stage: 'swiss',
+        scoreA: 0,
+        scoreB: 0,
+        status: 'upcoming',
+      };
       mockCacheService.get.mockReturnValue(mockMatch);
 
       const result = await service.findOne('1');

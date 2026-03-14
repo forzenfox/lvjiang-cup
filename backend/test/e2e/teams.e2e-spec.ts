@@ -19,22 +19,24 @@ describe('Teams API (e2e)', () => {
         ConfigModule.forRoot({
           isGlobal: true,
           ignoreEnvFile: true,
-          load: [() => ({
-            jwt: {
-              secret: 'test-secret-key-for-jwt-signing-in-test-environment',
-              expiresIn: '1h',
-            },
-            database: {
-              path: ':memory:',
-            },
-            cache: {
-              ttl: 60,
-            },
-            admin: {
-              username: 'admin',
-              password: 'admin123',
-            },
-          })],
+          load: [
+            () => ({
+              jwt: {
+                secret: 'test-secret-key-for-jwt-signing-in-test-environment',
+                expiresIn: '1h',
+              },
+              database: {
+                path: ':memory:',
+              },
+              cache: {
+                ttl: 60,
+              },
+              admin: {
+                username: 'admin',
+                password: 'admin123',
+              },
+            }),
+          ],
         }),
         DatabaseModule,
         CacheModule,
@@ -44,21 +46,21 @@ describe('Teams API (e2e)', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
-    app.useGlobalPipes(new ValidationPipe({
-      whitelist: true,
-      forbidNonWhitelisted: true,
-      transform: true,
-    }));
+    app.useGlobalPipes(
+      new ValidationPipe({
+        whitelist: true,
+        forbidNonWhitelisted: true,
+        transform: true,
+      }),
+    );
     await app.init();
 
     // 登录获取 token
-    const loginResponse = await request(app.getHttpServer())
-      .post('/admin/auth/login')
-      .send({
-        username: 'admin',
-        password: 'admin123',
-      });
-    
+    const loginResponse = await request(app.getHttpServer()).post('/admin/auth/login').send({
+      username: 'admin',
+      password: 'admin123',
+    });
+
     authToken = loginResponse.body.access_token;
   });
 
@@ -70,9 +72,7 @@ describe('Teams API (e2e)', () => {
 
   describe('GET /api/teams', () => {
     it('空列表 - 应该返回空数组当没有战队', async () => {
-      const response = await request(app.getHttpServer())
-        .get('/teams')
-        .expect(200);
+      const response = await request(app.getHttpServer()).get('/teams').expect(200);
 
       expect(response.body).toHaveProperty('data');
       expect(response.body).toHaveProperty('total');
@@ -95,9 +95,7 @@ describe('Teams API (e2e)', () => {
           players: [{ id: uuidv4(), name: 'Player1', position: 'top' }],
         });
 
-      const response = await request(app.getHttpServer())
-        .get('/teams')
-        .expect(200);
+      const response = await request(app.getHttpServer()).get('/teams').expect(200);
 
       expect(response.body).toHaveProperty('data');
       expect(Array.isArray(response.body.data)).toBe(true);
@@ -137,9 +135,7 @@ describe('Teams API (e2e)', () => {
     });
 
     it('未找到 - 应该返回 404 当战队不存在', async () => {
-      const response = await request(app.getHttpServer())
-        .get('/teams/non-existent-id')
-        .expect(404);
+      const response = await request(app.getHttpServer()).get('/teams/non-existent-id').expect(404);
 
       expect(response.body).toHaveProperty('message');
       expect(response.body.statusCode).toBe(404);
@@ -216,8 +212,9 @@ describe('Teams API (e2e)', () => {
     });
 
     it('认证失败 - 应该拒绝过期token', async () => {
-      const expiredToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJleHAiOjE1MTYyMzkwMjJ9.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c';
-      
+      const expiredToken =
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJleHAiOjE1MTYyMzkwMjJ9.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c';
+
       const response = await request(app.getHttpServer())
         .post('/admin/teams')
         .set('Authorization', `Bearer ${expiredToken}`)
@@ -323,9 +320,7 @@ describe('Teams API (e2e)', () => {
           id: uuidv4(),
           name: '待删除战队',
           tag: 'DELETE',
-          players: [
-            { id: uuidv4(), name: 'DeletePlayer1', position: 'top' },
-          ],
+          players: [{ id: uuidv4(), name: 'DeletePlayer1', position: 'top' }],
         });
 
       const teamIdToDelete = createResponse.body.id;
@@ -339,9 +334,7 @@ describe('Teams API (e2e)', () => {
       expect(response.body.message).toBe('Team deleted successfully');
 
       // 验证战队已被删除
-      await request(app.getHttpServer())
-        .get(`/teams/${teamIdToDelete}`)
-        .expect(404);
+      await request(app.getHttpServer()).get(`/teams/${teamIdToDelete}`).expect(404);
     });
 
     it('未找到 - 应该返回 404 当战队不存在', async () => {
@@ -408,14 +401,12 @@ describe('Teams API (e2e)', () => {
   describe('Performance - 性能测试', () => {
     it('应该在100ms内响应', async () => {
       const startTime = Date.now();
-      
-      await request(app.getHttpServer())
-        .get('/teams')
-        .expect(200);
-      
+
+      await request(app.getHttpServer()).get('/teams').expect(200);
+
       const endTime = Date.now();
       const responseTime = endTime - startTime;
-      
+
       expect(responseTime).toBeLessThan(100);
     });
 
@@ -432,10 +423,10 @@ describe('Teams API (e2e)', () => {
           players: [{ id: uuidv4(), name: 'Player1', position: 'top' }],
         })
         .expect(201);
-      
+
       const endTime = Date.now();
       const responseTime = endTime - startTime;
-      
+
       expect(responseTime).toBeLessThan(200);
     });
   });
@@ -454,15 +445,14 @@ describe('Teams API (e2e)', () => {
         });
 
       // 并发发起多个读取请求
-      const promises = Array(10).fill(null).map(() =>
-        request(app.getHttpServer())
-          .get('/teams')
-      );
+      const promises = Array(10)
+        .fill(null)
+        .map(() => request(app.getHttpServer()).get('/teams'));
 
       const responses = await Promise.all(promises);
 
       // 所有请求都应该成功
-      responses.forEach(response => {
+      responses.forEach((response) => {
         expect(response.status).toBe(200);
         expect(response.body).toHaveProperty('data');
         expect(Array.isArray(response.body.data)).toBe(true);
@@ -470,17 +460,19 @@ describe('Teams API (e2e)', () => {
     });
 
     it('应该处理并发创建请求', async () => {
-      const promises = Array(5).fill(null).map((_, index) =>
-        request(app.getHttpServer())
-          .post('/admin/teams')
-          .set('Authorization', `Bearer ${authToken}`)
-          .send({
-            id: uuidv4(),
-            name: `并发创建战队${index}`,
-            tag: `CONC${index}`,
-            players: [{ id: uuidv4(), name: `Player${index}`, position: 'top' }],
-          })
-      );
+      const promises = Array(5)
+        .fill(null)
+        .map((_, index) =>
+          request(app.getHttpServer())
+            .post('/admin/teams')
+            .set('Authorization', `Bearer ${authToken}`)
+            .send({
+              id: uuidv4(),
+              name: `并发创建战队${index}`,
+              tag: `CONC${index}`,
+              players: [{ id: uuidv4(), name: `Player${index}`, position: 'top' }],
+            }),
+        );
 
       const responses = await Promise.all(promises);
 
@@ -557,11 +549,13 @@ describe('Teams API (e2e)', () => {
     });
 
     it('应该处理较多选手', async () => {
-      const players = Array(10).fill(null).map((_, i) => ({
-        id: uuidv4(),
-        name: `Player${i}`,
-        position: i < 5 ? 'top' : 'jungle',
-      }));
+      const players = Array(10)
+        .fill(null)
+        .map((_, i) => ({
+          id: uuidv4(),
+          name: `Player${i}`,
+          position: i < 5 ? 'top' : 'jungle',
+        }));
 
       const response = await request(app.getHttpServer())
         .post('/admin/teams')

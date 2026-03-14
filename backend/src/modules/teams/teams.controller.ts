@@ -1,14 +1,4 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Put,
-  Delete,
-  Body,
-  Param,
-  Query,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, Query, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiParam } from '@nestjs/swagger';
 import { TeamsService, Team } from './teams.service';
 import { CreateTeamDto } from './dto/create-team.dto';
@@ -27,13 +17,13 @@ export class TeamsController {
     const allTeams = await this.teamsService.findAll();
     const page = paginationDto.page || 1;
     const pageSize = paginationDto.pageSize || 100;
-    
+
     // 计算分页
     const total = allTeams.length;
     const start = (page - 1) * pageSize;
     const end = start + pageSize;
     const paginatedData = allTeams.slice(start, end);
-    
+
     return {
       data: paginatedData,
       total,
@@ -62,10 +52,7 @@ export class TeamsController {
   @ApiBearerAuth()
   @ApiOperation({ summary: '更新战队（需认证）' })
   @ApiParam({ name: 'id', description: '战队ID' })
-  async update(
-    @Param('id') id: string,
-    @Body() updateTeamDto: UpdateTeamDto,
-  ): Promise<Team> {
+  async update(@Param('id') id: string, @Body() updateTeamDto: UpdateTeamDto): Promise<Team> {
     return this.teamsService.update(id, updateTeamDto);
   }
 

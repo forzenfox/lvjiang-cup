@@ -33,23 +33,23 @@ async function validateEnvironmentConfig() {
     logger.error('');
     logger.error('请执行以下命令创建配置文件:');
     logger.error('');
-    
+
     const examples = {
       development: 'cp .env.example .env.development',
       production: 'cp .env.example .env.production',
       test: 'cp .env.example .env.test',
     };
-    
+
     if (examples[nodeEnv]) {
       logger.error(`  ${examples[nodeEnv]}`);
     } else {
       logger.error(`  cp .env.example ${envFileName}`);
     }
-    
+
     logger.error('');
     logger.error('然后编辑配置文件设置正确的值');
     logger.error('');
-    
+
     process.exit(1);
   }
 
@@ -67,7 +67,7 @@ async function validateEnvironmentConfig() {
       logger.error(`  ${varName}=`);
     });
     logger.error('');
-    
+
     process.exit(1);
   }
 

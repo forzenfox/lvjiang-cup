@@ -30,7 +30,7 @@ describe('JwtAuthGuard', () => {
 
     it('should return user when valid', () => {
       const mockUser = { username: 'admin', sub: 'admin' };
-      
+
       const result = guard.handleRequest(null, mockUser, null);
 
       expect(result).toEqual(mockUser);
@@ -42,7 +42,7 @@ describe('JwtAuthGuard', () => {
 
     it('should throw UnauthorizedException when info is provided without error', () => {
       const mockInfo = { message: 'Token expired' };
-      
+
       expect(() => guard.handleRequest(null, null, mockInfo)).toThrow(UnauthorizedException);
     });
   });

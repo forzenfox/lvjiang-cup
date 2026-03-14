@@ -20,17 +20,11 @@ describe('AppController (e2e)', () => {
   });
 
   it('/api/teams (GET) - should return empty array initially', () => {
-    return request(app.getHttpServer())
-      .get('/api/teams')
-      .expect(200)
-      .expect([]);
+    return request(app.getHttpServer()).get('/api/teams').expect(200).expect([]);
   });
 
   it('/api/matches (GET) - should return empty array initially', () => {
-    return request(app.getHttpServer())
-      .get('/api/matches')
-      .expect(200)
-      .expect([]);
+    return request(app.getHttpServer()).get('/api/matches').expect(200).expect([]);
   });
 
   it('/api/stream (GET) - should return stream info', () => {

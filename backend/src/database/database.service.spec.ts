@@ -25,7 +25,10 @@ const createMockDatabase = () => ({
 // 在模块级别 mock sqlite3
 jest.mock('sqlite3', () => {
   return {
-    Database: jest.fn().mockImplementation(function(dbPath: string, callback?: (err: Error | null) => void) {
+    Database: jest.fn().mockImplementation(function (
+      dbPath: string,
+      callback?: (err: Error | null) => void,
+    ) {
       const db = createMockDatabase();
       // 同步调用回调
       if (callback) {
@@ -72,7 +75,7 @@ describe('DatabaseService', () => {
     it('应该使用配置中的路径连接数据库', async () => {
       // Arrange
       (fs.existsSync as jest.Mock).mockReturnValue(true);
-      mockRun.mockImplementation(function(this: any, sql: string, params: any[], callback: any) {
+      mockRun.mockImplementation(function (this: any, sql: string, params: any[], callback: any) {
         callback.call({ lastID: 1, changes: 1 }, null);
       });
 
@@ -86,7 +89,7 @@ describe('DatabaseService', () => {
     it('当数据目录不存在时应该创建目录', async () => {
       // Arrange
       (fs.existsSync as jest.Mock).mockReturnValue(false);
-      mockRun.mockImplementation(function(this: any, sql: string, params: any[], callback: any) {
+      mockRun.mockImplementation(function (this: any, sql: string, params: any[], callback: any) {
         callback.call({ lastID: 1, changes: 1 }, null);
       });
 
@@ -101,7 +104,7 @@ describe('DatabaseService', () => {
   describe('执行查询 (get方法)', () => {
     beforeEach(async () => {
       (fs.existsSync as jest.Mock).mockReturnValue(true);
-      mockRun.mockImplementation(function(this: any, sql: string, params: any[], callback: any) {
+      mockRun.mockImplementation(function (this: any, sql: string, params: any[], callback: any) {
         callback.call({ lastID: 1, changes: 1 }, null);
       });
       await service.onModuleInit();
@@ -138,7 +141,7 @@ describe('DatabaseService', () => {
   describe('执行查询 (all方法)', () => {
     beforeEach(async () => {
       (fs.existsSync as jest.Mock).mockReturnValue(true);
-      mockRun.mockImplementation(function(this: any, sql: string, params: any[], callback: any) {
+      mockRun.mockImplementation(function (this: any, sql: string, params: any[], callback: any) {
         callback.call({ lastID: 1, changes: 1 }, null);
       });
       await service.onModuleInit();
@@ -179,7 +182,7 @@ describe('DatabaseService', () => {
   describe('执行修改 (run方法)', () => {
     beforeEach(async () => {
       (fs.existsSync as jest.Mock).mockReturnValue(true);
-      mockRun.mockImplementation(function(this: any, sql: string, params: any[], callback: any) {
+      mockRun.mockImplementation(function (this: any, sql: string, params: any[], callback: any) {
         callback.call({ lastID: 1, changes: 1 }, null);
       });
       await service.onModuleInit();
@@ -187,12 +190,15 @@ describe('DatabaseService', () => {
 
     it('应该执行INSERT并返回lastID和changes', async () => {
       // Arrange
-      mockRun.mockImplementation(function(this: any, sql, params, callback) {
+      mockRun.mockImplementation(function (this: any, sql, params, callback) {
         callback.call({ lastID: 5, changes: 1 }, null);
       });
 
       // Act
-      const result = await service.run('INSERT INTO teams (id, name) VALUES (?, ?)', ['5', 'New Team']);
+      const result = await service.run('INSERT INTO teams (id, name) VALUES (?, ?)', [
+        '5',
+        'New Team',
+      ]);
 
       // Assert
       expect(result.lastID).toBe(5);
@@ -201,7 +207,7 @@ describe('DatabaseService', () => {
 
     it('应该执行UPDATE并返回changes数量', async () => {
       // Arrange
-      mockRun.mockImplementation(function(this: any, sql, params, callback) {
+      mockRun.mockImplementation(function (this: any, sql, params, callback) {
         callback.call({ lastID: 0, changes: 3 }, null);
       });
 
@@ -216,7 +222,7 @@ describe('DatabaseService', () => {
   describe('事务处理', () => {
     beforeEach(async () => {
       (fs.existsSync as jest.Mock).mockReturnValue(true);
-      mockRun.mockImplementation(function(this: any, sql: string, params: any[], callback: any) {
+      mockRun.mockImplementation(function (this: any, sql: string, params: any[], callback: any) {
         callback.call({ lastID: 1, changes: 1 }, null);
       });
       await service.onModuleInit();
@@ -246,7 +252,7 @@ describe('DatabaseService', () => {
   describe('错误处理', () => {
     beforeEach(async () => {
       (fs.existsSync as jest.Mock).mockReturnValue(true);
-      mockRun.mockImplementation(function(this: any, sql: string, params: any[], callback: any) {
+      mockRun.mockImplementation(function (this: any, sql: string, params: any[], callback: any) {
         callback.call({ lastID: 1, changes: 1 }, null);
       });
       await service.onModuleInit();
@@ -280,7 +286,7 @@ describe('DatabaseService', () => {
       // Arrange
       (fs.existsSync as jest.Mock).mockReturnValue(true);
       const executedQueries: string[] = [];
-      mockRun.mockImplementation(function(this: any, sql: string, params: any[], callback: any) {
+      mockRun.mockImplementation(function (this: any, sql: string, params: any[], callback: any) {
         executedQueries.push(sql);
         callback.call({ lastID: 1, changes: 1 }, null);
       });
@@ -289,18 +295,28 @@ describe('DatabaseService', () => {
       await service.onModuleInit();
 
       // Assert
-      expect(executedQueries.some(q => q.includes('CREATE TABLE IF NOT EXISTS teams'))).toBe(true);
-      expect(executedQueries.some(q => q.includes('CREATE TABLE IF NOT EXISTS players'))).toBe(true);
-      expect(executedQueries.some(q => q.includes('CREATE TABLE IF NOT EXISTS matches'))).toBe(true);
-      expect(executedQueries.some(q => q.includes('CREATE TABLE IF NOT EXISTS stream_info'))).toBe(true);
-      expect(executedQueries.some(q => q.includes('CREATE TABLE IF NOT EXISTS advancement'))).toBe(true);
+      expect(executedQueries.some((q) => q.includes('CREATE TABLE IF NOT EXISTS teams'))).toBe(
+        true,
+      );
+      expect(executedQueries.some((q) => q.includes('CREATE TABLE IF NOT EXISTS players'))).toBe(
+        true,
+      );
+      expect(executedQueries.some((q) => q.includes('CREATE TABLE IF NOT EXISTS matches'))).toBe(
+        true,
+      );
+      expect(
+        executedQueries.some((q) => q.includes('CREATE TABLE IF NOT EXISTS stream_info')),
+      ).toBe(true);
+      expect(
+        executedQueries.some((q) => q.includes('CREATE TABLE IF NOT EXISTS advancement')),
+      ).toBe(true);
     });
 
     it('应该启用WAL模式', async () => {
       // Arrange
       (fs.existsSync as jest.Mock).mockReturnValue(true);
       const executedQueries: string[] = [];
-      mockRun.mockImplementation(function(this: any, sql: string, params: any[], callback: any) {
+      mockRun.mockImplementation(function (this: any, sql: string, params: any[], callback: any) {
         executedQueries.push(sql);
         callback.call({ lastID: 1, changes: 1 }, null);
       });
@@ -318,7 +334,7 @@ describe('DatabaseService', () => {
       // Arrange
       (fs.existsSync as jest.Mock).mockReturnValue(true);
       const executedQueries: string[] = [];
-      mockRun.mockImplementation(function(this: any, sql: string, params: any[], callback: any) {
+      mockRun.mockImplementation(function (this: any, sql: string, params: any[], callback: any) {
         executedQueries.push(sql);
         callback.call({ lastID: 1, changes: 1 }, null);
       });
@@ -327,15 +343,19 @@ describe('DatabaseService', () => {
       await service.onModuleInit();
 
       // Assert
-      expect(executedQueries.some(q => q.includes('INSERT OR IGNORE INTO stream_info'))).toBe(true);
-      expect(executedQueries.some(q => q.includes('INSERT OR IGNORE INTO advancement'))).toBe(true);
+      expect(executedQueries.some((q) => q.includes('INSERT OR IGNORE INTO stream_info'))).toBe(
+        true,
+      );
+      expect(executedQueries.some((q) => q.includes('INSERT OR IGNORE INTO advancement'))).toBe(
+        true,
+      );
     });
   });
 
   describe('数据库关闭', () => {
     beforeEach(async () => {
       (fs.existsSync as jest.Mock).mockReturnValue(true);
-      mockRun.mockImplementation(function(this: any, sql: string, params: any[], callback: any) {
+      mockRun.mockImplementation(function (this: any, sql: string, params: any[], callback: any) {
         callback.call({ lastID: 1, changes: 1 }, null);
       });
       await service.onModuleInit();

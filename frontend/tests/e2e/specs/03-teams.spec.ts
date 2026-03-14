@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { AdminLoginPage, DashboardPage, TeamsPage, HomePage } from '../pages';
 import { adminUser } from '../fixtures/users.fixture';
-import { testTeam, editedTeam, shortNameTeam, longNameTeam, testTeamBeta } from '../fixtures/teams.fixture';
+import { testTeam, longNameTeam, testTeamBeta } from '../fixtures/teams.fixture';
 
 /**
  * 战队管理测试用例

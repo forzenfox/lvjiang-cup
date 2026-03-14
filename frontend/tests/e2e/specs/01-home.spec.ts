@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { HomePage } from '../pages/HomePage';
-import { mockTeams, mockTeamNames, mockSwissMatches, mockEliminationMatches } from '../fixtures/mock-data.fixture';
+import { mockTeamNames } from '../fixtures/mock-data.fixture';
 
 /**
  * 首页功能测试 - 游客功能验证
@@ -99,14 +99,11 @@ test.describe('【第三阶段-1】首页直播功能测试', () => {
    * 
    * 注意: 此测试需要在管理员配置直播信息后执行
    */
-  test('TEST-002: 观看赛事直播 @P0', async ({ page, context }) => {
+  test('TEST-002: 观看赛事直播 @P0', async ({ context }) => {
     // 检查直播按钮是否存在
     const hasLiveButton = await homePage.liveButton.isVisible().catch(() => false);
     
     if (hasLiveButton) {
-      // 验证直播状态显示
-      const liveStatus = await page.locator('text=直播中, text=LIVE').isVisible().catch(() => false);
-      
       // 点击直播按钮
       const [newPage] = await Promise.all([
         context.waitForEvent('page'),

@@ -333,15 +333,13 @@ describe('Auth Integration Tests', () => {
       };
 
       // 模拟并发登录
-      const promises = Array.from({ length: 5 }, () =>
-        authService.login(loginDto)
-      );
+      const promises = Array.from({ length: 5 }, () => authService.login(loginDto));
 
       const results = await Promise.all(promises);
 
       // 所有登录都应该成功
       expect(results).toHaveLength(5);
-      results.forEach(result => {
+      results.forEach((result) => {
         expect(result.access_token).toBeDefined();
         expect(result.token_type).toBe('Bearer');
       });
@@ -353,12 +351,10 @@ describe('Auth Integration Tests', () => {
         password: 'admin123',
       };
 
-      const promises = Array.from({ length: 3 }, () =>
-        authService.login(loginDto)
-      );
+      const promises = Array.from({ length: 3 }, () => authService.login(loginDto));
 
       const results = await Promise.all(promises);
-      const tokens = results.map(r => r.access_token);
+      const tokens = results.map((r) => r.access_token);
 
       // 所有 token 应该是唯一的
       const uniqueTokens = new Set(tokens);
@@ -424,21 +420,25 @@ describe('Auth Integration Tests', () => {
 
   describe('错误处理集成', () => {
     it('should handle missing credentials', async () => {
-      await expect(authService.login({ username: '', password: '' }))
-        .rejects.toThrow(UnauthorizedException);
+      await expect(authService.login({ username: '', password: '' })).rejects.toThrow(
+        UnauthorizedException,
+      );
 
-      await expect(authService.login({ username: 'admin', password: '' }))
-        .rejects.toThrow(UnauthorizedException);
+      await expect(authService.login({ username: 'admin', password: '' })).rejects.toThrow(
+        UnauthorizedException,
+      );
     });
 
     it('should handle null credentials', async () => {
-      await expect(authService.login({ username: null as any, password: null as any }))
-        .rejects.toThrow(UnauthorizedException);
+      await expect(
+        authService.login({ username: null as any, password: null as any }),
+      ).rejects.toThrow(UnauthorizedException);
     });
 
     it('should handle undefined credentials', async () => {
-      await expect(authService.login({ username: undefined as any, password: undefined as any }))
-        .rejects.toThrow(UnauthorizedException);
+      await expect(
+        authService.login({ username: undefined as any, password: undefined as any }),
+      ).rejects.toThrow(UnauthorizedException);
     });
 
     it('should provide clear error messages', async () => {

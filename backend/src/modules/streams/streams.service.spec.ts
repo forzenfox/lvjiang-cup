@@ -78,7 +78,9 @@ describe('StreamsService', () => {
         url: 'http://example.com',
         isLive: true,
       });
-      expect(mockDatabaseService.get).toHaveBeenCalledWith('SELECT * FROM stream_info WHERE id = 1');
+      expect(mockDatabaseService.get).toHaveBeenCalledWith(
+        'SELECT * FROM stream_info WHERE id = 1',
+      );
       expect(mockCacheService.set).toHaveBeenCalledWith('stream:info', expect.any(Object));
     });
 
@@ -112,7 +114,14 @@ describe('StreamsService', () => {
   describe('findAll', () => {
     it('应该从缓存获取所有直播', async () => {
       const cachedStreams = [
-        { id: '1', title: 'Stream 1', url: 'http://1.com', isLive: true, createdAt: '', updatedAt: '' },
+        {
+          id: '1',
+          title: 'Stream 1',
+          url: 'http://1.com',
+          isLive: true,
+          createdAt: '',
+          updatedAt: '',
+        },
       ];
       mockCacheService.get.mockReturnValue(cachedStreams);
 
@@ -126,7 +135,14 @@ describe('StreamsService', () => {
     it('应该从数据库获取所有直播（缓存未命中）', async () => {
       mockCacheService.get.mockReturnValue(undefined);
       mockDatabaseService.all.mockResolvedValue([
-        { id: 1, title: 'Stream 1', url: 'http://1.com', is_live: 1, created_at: '2024-01-01', updated_at: '2024-01-01' },
+        {
+          id: 1,
+          title: 'Stream 1',
+          url: 'http://1.com',
+          is_live: 1,
+          created_at: '2024-01-01',
+          updated_at: '2024-01-01',
+        },
       ]);
 
       const result = await service.findAll();
@@ -192,7 +208,11 @@ describe('StreamsService', () => {
         updated_at: '2024-01-01',
       });
 
-      const result = await service.create({ title: 'New Stream', url: 'http://new.com', isLive: true });
+      const result = await service.create({
+        title: 'New Stream',
+        url: 'http://new.com',
+        isLive: true,
+      });
 
       expect(result.id).toBe('2');
       expect(mockDatabaseService.run).toHaveBeenCalledWith(
@@ -385,10 +405,9 @@ describe('StreamsService', () => {
 
       await service.remove('1');
 
-      expect(mockDatabaseService.run).toHaveBeenCalledWith(
-        'DELETE FROM stream_info WHERE id = ?',
-        ['1'],
-      );
+      expect(mockDatabaseService.run).toHaveBeenCalledWith('DELETE FROM stream_info WHERE id = ?', [
+        '1',
+      ]);
       expect(mockCacheService.del).toHaveBeenCalledWith('stream:info');
     });
 

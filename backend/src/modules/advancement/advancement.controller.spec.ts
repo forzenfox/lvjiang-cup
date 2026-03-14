@@ -186,7 +186,9 @@ describe('AdvancementController', () => {
     it('应该在参数不是数组时抛出错误', async () => {
       // Arrange
       const invalidDto = { winners2_0: 'not_an_array' };
-      mockAdvancementService.update.mockRejectedValue(new BadRequestException('Invalid data format'));
+      mockAdvancementService.update.mockRejectedValue(
+        new BadRequestException('Invalid data format'),
+      );
 
       // Act & Assert
       await expect(controller.update(invalidDto as any)).rejects.toThrow(BadRequestException);
@@ -274,7 +276,9 @@ describe('AdvancementController', () => {
 
     it('应该在数据解析错误时抛出异常', async () => {
       // Arrange
-      mockAdvancementService.findOne.mockRejectedValue(new NotFoundException('Advancement data not found'));
+      mockAdvancementService.findOne.mockRejectedValue(
+        new NotFoundException('Advancement data not found'),
+      );
 
       // Act & Assert
       await expect(controller.findOne()).rejects.toThrow(NotFoundException);

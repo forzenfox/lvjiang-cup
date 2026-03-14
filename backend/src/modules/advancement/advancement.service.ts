@@ -72,7 +72,7 @@ export class AdvancementService {
     if (updates.length > 0) {
       updates.push('updated_at = CURRENT_TIMESTAMP');
       values.push(1); // id = 1
-      
+
       await this.databaseService.run(
         `UPDATE advancement SET ${updates.join(', ')} WHERE id = ?`,
         values,
@@ -80,7 +80,7 @@ export class AdvancementService {
     }
 
     this.logger.log('Advancement info updated');
-    
+
     // 清除缓存
     this.cacheService.del(this.CACHE_KEY);
 

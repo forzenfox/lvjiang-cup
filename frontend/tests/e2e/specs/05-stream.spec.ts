@@ -1,7 +1,6 @@
 import { test, expect } from '@playwright/test';
-import { AdminLoginPage, DashboardPage, StreamPage, HomePage } from '../pages';
+import { AdminLoginPage, DashboardPage, HomePage } from '../pages';
 import { adminUser } from '../fixtures/users.fixture';
-import { initialStreamInfo } from '../../mock/data';
 
 /**
  * 直播管理测试用例
@@ -17,14 +16,10 @@ import { initialStreamInfo } from '../../mock/data';
 test.describe('【第二阶段-2】直播管理功能测试', () => {
   let loginPage: AdminLoginPage;
   let dashboardPage: DashboardPage;
-  let streamPage: StreamPage;
-  let homePage: HomePage;
 
   test.beforeEach(async ({ page }) => {
     loginPage = new AdminLoginPage(page);
     dashboardPage = new DashboardPage(page);
-    streamPage = new StreamPage(page);
-    homePage = new HomePage(page);
 
     // 先导航到页面并登录
     await loginPage.goto();
@@ -134,13 +129,11 @@ test.describe('【第二阶段-2】直播管理功能测试', () => {
 test.describe('【第三阶段-1】直播前台展示验证', () => {
   let loginPage: AdminLoginPage;
   let dashboardPage: DashboardPage;
-  let streamPage: StreamPage;
   let homePage: HomePage;
 
   test.beforeEach(async ({ page }) => {
     loginPage = new AdminLoginPage(page);
     dashboardPage = new DashboardPage(page);
-    streamPage = new StreamPage(page);
     homePage = new HomePage(page);
   });
 
@@ -204,12 +197,10 @@ test.describe('【第三阶段-1】直播前台展示验证', () => {
 test.describe('【边界测试】直播信息边界测试', () => {
   let loginPage: AdminLoginPage;
   let dashboardPage: DashboardPage;
-  let streamPage: StreamPage;
 
   test.beforeEach(async ({ page }) => {
     loginPage = new AdminLoginPage(page);
     dashboardPage = new DashboardPage(page);
-    streamPage = new StreamPage(page);
 
     // 先导航到页面并登录
     await loginPage.goto();

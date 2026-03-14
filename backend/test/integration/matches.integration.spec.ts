@@ -112,7 +112,16 @@ describe('Matches Integration Tests', () => {
       await databaseService.run(
         `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, swiss_record, swiss_day, status) 
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-        [match.id, match.teamAId, match.teamBId, match.stage, match.round, match.swissRecord, match.swissDay, 'upcoming']
+        [
+          match.id,
+          match.teamAId,
+          match.teamBId,
+          match.stage,
+          match.round,
+          match.swissRecord,
+          match.swissDay,
+          'upcoming',
+        ],
       );
 
       mockCacheService.get.mockReturnValue(undefined);
@@ -133,7 +142,7 @@ describe('Matches Integration Tests', () => {
       await databaseService.run(
         `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status) 
          VALUES (?, ?, ?, ?, ?, ?)`,
-        [match.id, match.teamAId, match.teamBId, match.stage, match.round, 'upcoming']
+        [match.id, match.teamAId, match.teamBId, match.stage, match.round, 'upcoming'],
       );
 
       mockCacheService.get.mockReturnValue(undefined);
@@ -161,7 +170,7 @@ describe('Matches Integration Tests', () => {
       await databaseService.run(
         `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status) 
          VALUES (?, ?, ?, ?, ?, ?)`,
-        ['match-1', 'team-1', 'team-2', 'swiss', '第一轮', 'upcoming']
+        ['match-1', 'team-1', 'team-2', 'swiss', '第一轮', 'upcoming'],
       );
 
       mockCacheService.get.mockReturnValue(undefined);
@@ -177,7 +186,7 @@ describe('Matches Integration Tests', () => {
       await databaseService.run(
         `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status) 
          VALUES (?, ?, ?, ?, ?, ?)`,
-        ['match-1', 'team-1', 'team-2', 'swiss', '第一轮', 'upcoming']
+        ['match-1', 'team-1', 'team-2', 'swiss', '第一轮', 'upcoming'],
       );
 
       mockCacheService.get.mockReturnValue(undefined);
@@ -193,11 +202,11 @@ describe('Matches Integration Tests', () => {
     it('should filter by stage', async () => {
       await databaseService.run(
         `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status) VALUES (?, ?, ?, ?, ?, ?)`,
-        ['match-1', 'team-1', 'team-2', 'swiss', '第一轮', 'upcoming']
+        ['match-1', 'team-1', 'team-2', 'swiss', '第一轮', 'upcoming'],
       );
       await databaseService.run(
         `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status) VALUES (?, ?, ?, ?, ?, ?)`,
-        ['match-2', 'team-3', 'team-4', 'elimination', '决赛', 'upcoming']
+        ['match-2', 'team-3', 'team-4', 'elimination', '决赛', 'upcoming'],
       );
 
       mockCacheService.get.mockReturnValue(undefined);
@@ -211,7 +220,7 @@ describe('Matches Integration Tests', () => {
     it('should clear scores', async () => {
       await databaseService.run(
         `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status, score_a, score_b, winner_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        ['match-1', 'team-1', 'team-2', 'swiss', '第一轮', 'finished', 2, 1, 'team-1']
+        ['match-1', 'team-1', 'team-2', 'swiss', '第一轮', 'finished', 2, 1, 'team-1'],
       );
 
       mockCacheService.get.mockReturnValue(undefined);
@@ -233,7 +242,7 @@ describe('Matches Integration Tests', () => {
       await databaseService.run(
         `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status, swiss_record, swiss_day) 
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-        ['match-1', 'team-1', 'team-2', 'swiss', '第一轮', 'upcoming', '0-0', 1]
+        ['match-1', 'team-1', 'team-2', 'swiss', '第一轮', 'upcoming', '0-0', 1],
       );
 
       mockCacheService.get.mockReturnValue(undefined);
@@ -244,10 +253,10 @@ describe('Matches Integration Tests', () => {
 
       // 更新为进行中
       mockCacheService.del.mockReturnValue(undefined);
-      await databaseService.run(
-        `UPDATE matches SET status = ? WHERE id = ?`,
-        ['ongoing', 'match-1']
-      );
+      await databaseService.run(`UPDATE matches SET status = ? WHERE id = ?`, [
+        'ongoing',
+        'match-1',
+      ]);
 
       // 更新比分
       match = await service.update('match-1', {
@@ -274,8 +283,22 @@ describe('Matches Integration Tests', () => {
          score_a, score_b, winner_id, start_time, swiss_record, swiss_day, 
          elimination_bracket, elimination_game_number) 
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        ['match-full', 'team-a', 'team-b', 'elimination', '决赛', 'finished',
-         3, 2, 'team-a', '2024-01-01T10:00:00Z', null, null, 'grand_finals', 8]
+        [
+          'match-full',
+          'team-a',
+          'team-b',
+          'elimination',
+          '决赛',
+          'finished',
+          3,
+          2,
+          'team-a',
+          '2024-01-01T10:00:00Z',
+          null,
+          null,
+          'grand_finals',
+          8,
+        ],
       );
 
       mockCacheService.get.mockReturnValue(undefined);
@@ -292,7 +315,7 @@ describe('Matches Integration Tests', () => {
       await databaseService.run(
         `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status) 
          VALUES (?, ?, ?, ?, ?, ?)`,
-        ['match-1', 'team-1', 'team-2', 'swiss', '第一轮', 'upcoming']
+        ['match-1', 'team-1', 'team-2', 'swiss', '第一轮', 'upcoming'],
       );
 
       mockCacheService.get.mockReturnValue(undefined);
@@ -319,7 +342,7 @@ describe('Matches Integration Tests', () => {
       await databaseService.run(
         `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status) 
          VALUES (?, ?, ?, ?, ?, ?)`,
-        ['match-1', 'team-1', 'team-2', 'swiss', '第一轮', 'upcoming']
+        ['match-1', 'team-1', 'team-2', 'swiss', '第一轮', 'upcoming'],
       );
 
       mockCacheService.get.mockReturnValue(undefined);
@@ -340,7 +363,7 @@ describe('Matches Integration Tests', () => {
       await databaseService.run(
         `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status) 
          VALUES (?, ?, ?, ?, ?, ?)`,
-        ['match-bo3', 'team-1', 'team-2', 'swiss', '第二轮', 'upcoming']
+        ['match-bo3', 'team-1', 'team-2', 'swiss', '第二轮', 'upcoming'],
       );
 
       mockCacheService.get.mockReturnValue(undefined);
@@ -358,7 +381,7 @@ describe('Matches Integration Tests', () => {
       await databaseService.run(
         `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status) 
          VALUES (?, ?, ?, ?, ?, ?)`,
-        ['match-bo5', 'team-3', 'team-4', 'elimination', '决赛', 'upcoming']
+        ['match-bo5', 'team-3', 'team-4', 'elimination', '决赛', 'upcoming'],
       );
 
       match = await service.update('match-bo5', {
@@ -377,7 +400,7 @@ describe('Matches Integration Tests', () => {
       await databaseService.run(
         `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status, swiss_record, swiss_day) 
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-        ['swiss-r1', 'team-1', 'team-2', 'swiss', 'Round 1', 'finished', '0-0', 1]
+        ['swiss-r1', 'team-1', 'team-2', 'swiss', 'Round 1', 'finished', '0-0', 1],
       );
 
       mockCacheService.get.mockReturnValue(undefined);
@@ -389,7 +412,7 @@ describe('Matches Integration Tests', () => {
       await databaseService.run(
         `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status, swiss_record, swiss_day) 
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-        ['swiss-r2h', 'team-1', 'team-3', 'swiss', 'Round 2 High', 'finished', '1-0', 1]
+        ['swiss-r2h', 'team-1', 'team-3', 'swiss', 'Round 2 High', 'finished', '1-0', 1],
       );
 
       match = await service.findOne('swiss-r2h');
@@ -399,7 +422,7 @@ describe('Matches Integration Tests', () => {
       await databaseService.run(
         `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status, swiss_record, swiss_day) 
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-        ['swiss-r2l', 'team-2', 'team-4', 'swiss', 'Round 2 Low', 'finished', '0-1', 1]
+        ['swiss-r2l', 'team-2', 'team-4', 'swiss', 'Round 2 Low', 'finished', '0-1', 1],
       );
 
       match = await service.findOne('swiss-r2l');
@@ -410,17 +433,18 @@ describe('Matches Integration Tests', () => {
       await databaseService.run(
         `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status, swiss_record, swiss_day) 
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-        ['day1-1', 'team-1', 'team-2', 'swiss', 'Round 1', 'upcoming', '0-0', 1]
+        ['day1-1', 'team-1', 'team-2', 'swiss', 'Round 1', 'upcoming', '0-0', 1],
       );
       await databaseService.run(
         `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status, swiss_record, swiss_day) 
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-        ['day2-1', 'team-3', 'team-4', 'swiss', 'Round 3', 'upcoming', '1-1', 2]
+        ['day2-1', 'team-3', 'team-4', 'swiss', 'Round 3', 'upcoming', '1-1', 2],
       );
 
-      const day1Matches = await databaseService.all<
-        { id: string; swiss_day: number }
-      >('SELECT * FROM matches WHERE swiss_day = ?', [1]);
+      const day1Matches = await databaseService.all<{ id: string; swiss_day: number }>(
+        'SELECT * FROM matches WHERE swiss_day = ?',
+        [1],
+      );
       expect(day1Matches).toHaveLength(1);
       expect(day1Matches[0].id).toBe('day1-1');
     });
@@ -433,7 +457,16 @@ describe('Matches Integration Tests', () => {
         `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status, 
          elimination_bracket, elimination_game_number) 
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-        ['elim-winners-1', 'team-1', 'team-2', 'elimination', '胜者组半决赛', 'finished', 'winners', 1]
+        [
+          'elim-winners-1',
+          'team-1',
+          'team-2',
+          'elimination',
+          '胜者组半决赛',
+          'finished',
+          'winners',
+          1,
+        ],
       );
 
       mockCacheService.get.mockReturnValue(undefined);
@@ -446,7 +479,16 @@ describe('Matches Integration Tests', () => {
         `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status, 
          elimination_bracket, elimination_game_number) 
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-        ['elim-losers-3', 'team-3', 'team-4', 'elimination', '败者组第一轮', 'finished', 'losers', 3]
+        [
+          'elim-losers-3',
+          'team-3',
+          'team-4',
+          'elimination',
+          '败者组第一轮',
+          'finished',
+          'losers',
+          3,
+        ],
       );
 
       match = await service.findOne('elim-losers-3');
@@ -457,7 +499,16 @@ describe('Matches Integration Tests', () => {
         `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status, 
          elimination_bracket, elimination_game_number) 
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-        ['elim-grand-8', 'team-1', 'team-3', 'elimination', '总决赛', 'finished', 'grand_finals', 8]
+        [
+          'elim-grand-8',
+          'team-1',
+          'team-3',
+          'elimination',
+          '总决赛',
+          'finished',
+          'grand_finals',
+          8,
+        ],
       );
 
       match = await service.findOne('elim-grand-8');
@@ -469,18 +520,19 @@ describe('Matches Integration Tests', () => {
         `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status, 
          elimination_bracket, elimination_game_number) 
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-        ['w1', 'team-1', 'team-2', 'elimination', '胜者组', 'upcoming', 'winners', 1]
+        ['w1', 'team-1', 'team-2', 'elimination', '胜者组', 'upcoming', 'winners', 1],
       );
       await databaseService.run(
         `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status, 
          elimination_bracket, elimination_game_number) 
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-        ['l1', 'team-3', 'team-4', 'elimination', '败者组', 'upcoming', 'losers', 3]
+        ['l1', 'team-3', 'team-4', 'elimination', '败者组', 'upcoming', 'losers', 3],
       );
 
-      const winnersMatches = await databaseService.all<
-        { id: string; elimination_bracket: string }
-      >('SELECT * FROM matches WHERE elimination_bracket = ?', ['winners']);
+      const winnersMatches = await databaseService.all<{ id: string; elimination_bracket: string }>(
+        'SELECT * FROM matches WHERE elimination_bracket = ?',
+        ['winners'],
+      );
       expect(winnersMatches).toHaveLength(1);
       expect(winnersMatches[0].id).toBe('w1');
     });
@@ -491,7 +543,7 @@ describe('Matches Integration Tests', () => {
       await databaseService.run(
         `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status) 
          VALUES (?, ?, ?, ?, ?, ?)`,
-        ['match-1', 'team-1', 'team-2', 'swiss', '第一轮', 'upcoming']
+        ['match-1', 'team-1', 'team-2', 'swiss', '第一轮', 'upcoming'],
       );
 
       mockCacheService.get.mockReturnValue(undefined);
@@ -511,7 +563,7 @@ describe('Matches Integration Tests', () => {
       await databaseService.run(
         `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status, score_a, score_b) 
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-        ['match-1', 'team-1', 'team-2', 'swiss', '第一轮', 'finished', 2, 1]
+        ['match-1', 'team-1', 'team-2', 'swiss', '第一轮', 'finished', 2, 1],
       );
 
       // 模拟缓存未命中
@@ -531,7 +583,7 @@ describe('Matches Integration Tests', () => {
       await databaseService.run(
         `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status, score_a, score_b) 
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-        ['match-1', 'team-1', 'team-2', 'swiss', '第一轮', 'upcoming', 0, 0]
+        ['match-1', 'team-1', 'team-2', 'swiss', '第一轮', 'upcoming', 0, 0],
       );
 
       mockCacheService.get.mockReturnValue(undefined);
@@ -552,7 +604,7 @@ describe('Matches Integration Tests', () => {
       await databaseService.run(
         `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status) 
          VALUES (?, ?, ?, ?, ?, ?)`,
-        ['match-1', 'team-1', 'team-2', 'swiss', '第一轮', 'upcoming']
+        ['match-1', 'team-1', 'team-2', 'swiss', '第一轮', 'upcoming'],
       );
 
       mockCacheService.get.mockReturnValue(undefined);
@@ -577,20 +629,22 @@ describe('Matches Integration Tests', () => {
   describe('与 Teams 模块集成', () => {
     it('should associate matches with teams', async () => {
       // 创建队伍
-      await databaseService.run(
-        `INSERT INTO teams (id, name, logo) VALUES (?, ?, ?)`,
-        ['team-1', 'Team One', 'logo1.png']
-      );
-      await databaseService.run(
-        `INSERT INTO teams (id, name, logo) VALUES (?, ?, ?)`,
-        ['team-2', 'Team Two', 'logo2.png']
-      );
+      await databaseService.run(`INSERT INTO teams (id, name, logo) VALUES (?, ?, ?)`, [
+        'team-1',
+        'Team One',
+        'logo1.png',
+      ]);
+      await databaseService.run(`INSERT INTO teams (id, name, logo) VALUES (?, ?, ?)`, [
+        'team-2',
+        'Team Two',
+        'logo2.png',
+      ]);
 
       // 创建比赛
       await databaseService.run(
         `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status) 
          VALUES (?, ?, ?, ?, ?, ?)`,
-        ['match-1', 'team-1', 'team-2', 'swiss', '第一轮', 'upcoming']
+        ['match-1', 'team-1', 'team-2', 'swiss', '第一轮', 'upcoming'],
       );
 
       mockCacheService.get.mockReturnValue(undefined);
@@ -604,7 +658,7 @@ describe('Matches Integration Tests', () => {
       await databaseService.run(
         `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status) 
          VALUES (?, ?, ?, ?, ?, ?)`,
-        ['slot-1', null, null, 'swiss', 'Round 1', 'upcoming']
+        ['slot-1', null, null, 'swiss', 'Round 1', 'upcoming'],
       );
 
       mockCacheService.get.mockReturnValue(undefined);
@@ -621,7 +675,7 @@ describe('Matches Integration Tests', () => {
         await databaseService.run(
           `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status) 
            VALUES (?, ?, ?, ?, ?, ?)`,
-          [`match-${i}`, `team-${i}`, `team-${i + 5}`, 'swiss', `Round ${i + 1}`, 'upcoming']
+          [`match-${i}`, `team-${i}`, `team-${i + 5}`, 'swiss', `Round ${i + 1}`, 'upcoming'],
         );
       }
 
@@ -638,29 +692,30 @@ describe('Matches Integration Tests', () => {
       await databaseService.run(
         `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status) 
          VALUES (?, ?, ?, ?, ?, ?)`,
-        ['match-1', 'team-1', 'team-2', 'swiss', '第一轮', 'upcoming']
+        ['match-1', 'team-1', 'team-2', 'swiss', '第一轮', 'upcoming'],
       );
 
       // 验证状态可以更新
-      await databaseService.run(
-        `UPDATE matches SET status = ? WHERE id = ?`,
-        ['ongoing', 'match-1']
-      );
+      await databaseService.run(`UPDATE matches SET status = ? WHERE id = ?`, [
+        'ongoing',
+        'match-1',
+      ]);
 
-      let match = await databaseService.get<
-        { status: string }
-      >('SELECT * FROM matches WHERE id = ?', ['match-1']);
+      let match = await databaseService.get<{ status: string }>(
+        'SELECT * FROM matches WHERE id = ?',
+        ['match-1'],
+      );
       expect(match!.status).toBe('ongoing');
 
       // 更新为完成
-      await databaseService.run(
-        `UPDATE matches SET status = ? WHERE id = ?`,
-        ['finished', 'match-1']
-      );
+      await databaseService.run(`UPDATE matches SET status = ? WHERE id = ?`, [
+        'finished',
+        'match-1',
+      ]);
 
-      match = await databaseService.get<
-        { status: string }
-      >('SELECT * FROM matches WHERE id = ?', ['match-1']);
+      match = await databaseService.get<{ status: string }>('SELECT * FROM matches WHERE id = ?', [
+        'match-1',
+      ]);
       expect(match!.status).toBe('finished');
     });
   });
@@ -670,7 +725,7 @@ describe('Matches Integration Tests', () => {
       await databaseService.run(
         `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status) 
          VALUES (?, ?, ?, ?, ?, ?)`,
-        ['match-1', 'team-1', 'team-2', 'swiss', '第一轮', 'upcoming']
+        ['match-1', 'team-1', 'team-2', 'swiss', '第一轮', 'upcoming'],
       );
 
       mockCacheService.get.mockReturnValue(undefined);
@@ -678,7 +733,7 @@ describe('Matches Integration Tests', () => {
 
       // 并发更新不同字段
       const promises = Array.from({ length: 5 }, (_, i) =>
-        service.update('match-1', { scoreA: i + 1 })
+        service.update('match-1', { scoreA: i + 1 }),
       );
 
       await Promise.all(promises);
@@ -694,8 +749,8 @@ describe('Matches Integration Tests', () => {
         databaseService.run(
           `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status) 
            VALUES (?, ?, ?, ?, ?, ?)`,
-          [`match-${i}`, `team-${i}`, `team-${i + 10}`, 'swiss', `Round ${i + 1}`, 'upcoming']
-        )
+          [`match-${i}`, `team-${i}`, `team-${i + 10}`, 'swiss', `Round ${i + 1}`, 'upcoming'],
+        ),
       );
 
       await Promise.all(promises);
@@ -710,13 +765,13 @@ describe('Matches Integration Tests', () => {
     it('should handle update of non-existent match', async () => {
       mockCacheService.get.mockReturnValue(undefined);
 
-      await expect(service.update('non-existent', { scoreA: 1 }))
-        .rejects.toThrow(NotFoundException);
+      await expect(service.update('non-existent', { scoreA: 1 })).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should handle clearScores of non-existent match', async () => {
-      await expect(service.clearScores('non-existent'))
-        .rejects.toThrow(NotFoundException);
+      await expect(service.clearScores('non-existent')).rejects.toThrow(NotFoundException);
     });
 
     it('should handle invalid match data gracefully', async () => {
@@ -725,8 +780,8 @@ describe('Matches Integration Tests', () => {
         databaseService.run(
           `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status) 
            VALUES (?, ?, ?, ?, ?, ?)`,
-          ['match-1', 'team-1', 'team-2', 'invalid_stage', '第一轮', 'upcoming']
-        )
+          ['match-1', 'team-1', 'team-2', 'invalid_stage', '第一轮', 'upcoming'],
+        ),
       ).rejects.toThrow();
     });
 
@@ -734,15 +789,15 @@ describe('Matches Integration Tests', () => {
       await databaseService.run(
         `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status) 
          VALUES (?, ?, ?, ?, ?, ?)`,
-        ['match-1', 'team-1', 'team-2', 'swiss', '第一轮', 'upcoming']
+        ['match-1', 'team-1', 'team-2', 'swiss', '第一轮', 'upcoming'],
       );
 
       // 尝试更新为无效状态
       await expect(
-        databaseService.run(
-          `UPDATE matches SET status = ? WHERE id = ?`,
-          ['invalid_status', 'match-1']
-        )
+        databaseService.run(`UPDATE matches SET status = ? WHERE id = ?`, [
+          'invalid_status',
+          'match-1',
+        ]),
       ).rejects.toThrow();
     });
   });

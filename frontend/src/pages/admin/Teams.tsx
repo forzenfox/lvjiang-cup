@@ -62,6 +62,7 @@ const toCreateTeamRequest = (team: Team): CreateTeamRequest => ({
       name: p.name,
       avatar: p.avatar,
       position: p.position as 'top' | 'jungle' | 'mid' | 'bot' | 'support',
+      teamId: team.id
     })) || [],
 });
 
@@ -78,18 +79,31 @@ const toUpdateTeamRequest = (team: Team): UpdateTeamRequest => ({
       name: p.name,
       avatar: p.avatar,
       position: p.position as 'top' | 'jungle' | 'mid' | 'bot' | 'support',
+      teamId: team.id
     })) || [],
 });
 
 // 将 API Team 转换为前端 Team
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const toFrontendTeam = (apiTeam: any): Team => ({
+interface ApiTeam {
+  id: string;
+  name: string;
+  logo?: string;
+  description?: string;
+  players?: Array<{
+    id: string;
+    name: string;
+    position: string;
+    avatar?: string;
+  }>;
+}
+
+const toFrontendTeam = (apiTeam: ApiTeam): Team => ({
   id: apiTeam.id,
   name: apiTeam.name,
   logo: apiTeam.logo || '',
   description: apiTeam.description || '',
   players: ensureAllPositions(
-    (apiTeam.players || []).map((p: any) => ({
+    (apiTeam.players || []).map((p) => ({
       id: p.id,
       name: p.name,
       position: p.position,
