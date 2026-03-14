@@ -4,13 +4,19 @@ async function globalSetup(config: FullConfig) {
   console.log('🚀 开始全局设置...');
   
   try {
-    await clearBackendData();
+    const enableDataCleanup = process.env.ENABLE_DATA_CLEANUP !== 'false';
+    
+    if (enableDataCleanup) {
+      await clearBackendData();
+    } else {
+      console.log('ℹ️ 数据清理已禁用');
+    }
     
     const browser = await chromium.launch();
     const context = await browser.newContext();
     const page = await context.newPage();
     
-    const baseURL = config.webServer?.url || 'http://localhost:5173';
+    const baseURL = process.env.FRONTEND_URL! || config.webServer?.url;
     await page.goto(baseURL, { waitUntil: 'domcontentloaded' });
     
     await page.evaluate(() => {
@@ -52,9 +58,9 @@ async function globalSetup(config: FullConfig) {
 }
 
 async function clearBackendData() {
-  const backendUrl = process.env.BACKEND_URL || 'http://localhost:3000';
-  const adminUsername = process.env.ADMIN_USERNAME || 'admin';
-  const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
+  const backendUrl = process.env.BACKEND_URL!;
+  const adminUsername = process.env.ADMIN_USERNAME!;
+  const adminPassword = process.env.ADMIN_PASSWORD!;
   
   try {
     const loginResponse = await fetch(`${backendUrl}/api/admin/auth/login`, {

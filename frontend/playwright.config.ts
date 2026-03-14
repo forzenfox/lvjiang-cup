@@ -1,4 +1,10 @@
 import { defineConfig, devices } from '@playwright/test';
+import dotenv from 'dotenv';
+import path from 'path';
+
+// 加载环境变量 - 使用 tests/e2e/.env
+const e2eEnvPath = path.resolve(__dirname, 'tests', 'e2e', '.env');
+dotenv.config({ path: e2eEnvPath });
 
 /**
  * Playwright Configuration for 驴酱杯赛事网站 E2E Tests
@@ -47,7 +53,7 @@ export default defineConfig({
   // 全局测试配置
   use: {
     // 基础URL
-    baseURL: 'http://localhost:5173',
+    baseURL: process.env.FRONTEND_URL || 'http://localhost:5173',
     
     // 追踪配置
     trace: 'on-first-retry',
