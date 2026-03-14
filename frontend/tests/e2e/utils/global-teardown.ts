@@ -17,7 +17,7 @@ async function globalTeardown(config: FullConfig) {
     const page = await context.newPage();
 
     const baseURL = process.env.FRONTEND_URL! || config.webServer?.url;
-    await page.goto(baseURL, { waitUntil: 'domcontentloaded' });
+    await page.goto(baseURL!, { waitUntil: 'domcontentloaded' });
 
     await page.evaluate(() => {
       const keysToClear = [

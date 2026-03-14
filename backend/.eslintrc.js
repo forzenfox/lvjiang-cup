@@ -20,7 +20,9 @@ module.exports = {
     '@typescript-eslint/interface-name-prefix': 'off',
     '@typescript-eslint/explicit-function-return-type': 'off',
     '@typescript-eslint/explicit-module-boundary-types': 'off',
-    '@typescript-eslint/no-explicit-any': 'warn',
+    // 将 any 和非空断言警告关闭（项目中大量使用）
+    '@typescript-eslint/no-explicit-any': 'off',
+    '@typescript-eslint/no-non-null-assertion': 'off',
     '@typescript-eslint/no-unused-vars': [
       'error',
       {
@@ -29,7 +31,6 @@ module.exports = {
         caughtErrorsIgnorePattern: '^_',
       },
     ],
-    '@typescript-eslint/no-non-null-assertion': 'warn',
     // 禁用需要 strictNullChecks 的规则
     '@typescript-eslint/prefer-optional-chain': 'off',
     '@typescript-eslint/prefer-nullish-coalescing': 'off',

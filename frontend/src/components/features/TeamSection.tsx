@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { User, Users, Loader2, AlertCircle } from 'lucide-react';
 import { teamService } from '../../services';
 import type { Team as ApiTeam } from '../../api/types';
@@ -148,7 +148,7 @@ const TeamSection: React.FC<TeamSectionProps> = ({ refreshInterval = 30000 }) =>
   };
 
   // 获取战队数据
-  const fetchTeams = async () => {
+  const fetchTeams = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -162,12 +162,15 @@ const TeamSection: React.FC<TeamSectionProps> = ({ refreshInterval = 30000 }) =>
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     // 初始加载
     fetchTeams();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
+  useEffect(() => {
     // 设置自动刷新
     const interval = setInterval(() => {
       fetchTeams();
@@ -186,7 +189,7 @@ const TeamSection: React.FC<TeamSectionProps> = ({ refreshInterval = 30000 }) =>
       clearInterval(interval);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [refreshInterval]);
+  }, [refreshInterval, fetchTeams]);
 
   return (
     <section

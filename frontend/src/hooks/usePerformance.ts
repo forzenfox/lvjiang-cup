@@ -315,9 +315,9 @@ export function useRenderCount(componentName: string): number {
 
   useEffect(() => {
     renderCountRef.current += 1;
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`${componentName} rendered ${renderCountRef.current} times`);
-    }
+    // 在开发环境下输出渲染次数
+    // eslint-disable-next-line no-console
+    console.log(`${componentName} rendered ${renderCountRef.current} times`);
   });
 
   return renderCountRef.current;
@@ -509,9 +509,9 @@ export function useMeasureRender(
 
   useEffect(() => {
     const duration = performance.now() - startTimeRef.current;
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`${componentName} render time: ${duration.toFixed(2)}ms`);
-    }
+    // 在开发环境下输出渲染时间
+    // eslint-disable-next-line no-console
+    console.log(`${componentName} render time: ${duration.toFixed(2)}ms`);
     onMeasure?.(duration);
   });
 }

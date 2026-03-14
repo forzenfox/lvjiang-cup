@@ -29,7 +29,11 @@ const getBaseUrl = (): string => {
 const BASE_URL = getBaseUrl();
 const TIMEOUT = 10000; // 10 秒超时
 
-console.log('[API] 使用 API 基础地址:', BASE_URL);
+// 在开发环境下输出 API 地址
+if (import.meta.env.DEV) {
+  // eslint-disable-next-line no-console
+  console.log('[API] 使用 API 基础地址:', BASE_URL);
+}
 
 /**
  * 创建 Axios 实例

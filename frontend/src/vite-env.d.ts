@@ -9,6 +9,6 @@ interface Window {
     API_BASE_URL?: string;
     APP_NAME?: string;
     VERSION?: string;
-    [key: string]: any;
+    [key: string]: unknown;
   };
 }

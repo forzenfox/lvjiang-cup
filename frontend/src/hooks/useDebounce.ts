@@ -110,7 +110,8 @@ export function useDebounceCallback<T extends (...args: unknown[]) => unknown>(
       // 处理 leading 选项
       if (options.leading) {
         const isFirstCall = lastCallTimeRef.current === null;
-        const shouldCallNow = isFirstCall || now - lastCallTimeRef.current! >= delay;
+        const shouldCallNow =
+          isFirstCall || (lastCallTimeRef.current && now - lastCallTimeRef.current >= delay);
 
         if (shouldCallNow) {
           invoke();
