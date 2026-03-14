@@ -1,18 +1,21 @@
 export default () => ({
-  port: parseInt(process.env.PORT, 10) || 3000,
-  nodeEnv: process.env.NODE_ENV || 'development',
+  port: parseInt(process.env.PORT!, 10),
+  nodeEnv: process.env.NODE_ENV!,
   jwt: {
-    secret: process.env.JWT_SECRET || 'default-secret-key',
-    expiresIn: process.env.JWT_EXPIRES_IN || '24h',
+    secret: process.env.JWT_SECRET!,
+    expiresIn: process.env.JWT_EXPIRES_IN!,
   },
   admin: {
-    username: process.env.ADMIN_USERNAME || 'admin',
-    password: process.env.ADMIN_PASSWORD || 'admin123',
+    username: process.env.ADMIN_USERNAME!,
+    password: process.env.ADMIN_PASSWORD!,
   },
   database: {
-    path: process.env.DATABASE_PATH || './data/lvjiang.db',
+    path: process.env.DATABASE_PATH!,
   },
   cache: {
-    ttl: 60, // 60 seconds
+    ttl: 60,
+  },
+  cors: {
+    origin: process.env.CORS_ORIGIN!,
   },
 });
