@@ -8,16 +8,16 @@ export class SchedulePage extends BasePage {
   // 页面标题
   readonly pageTitle: Locator;
   readonly matchCount: Locator;
-  
+
   // Tab切换
   readonly swissTab: Locator;
   readonly eliminationTab: Locator;
   readonly tabsList: Locator;
-  
+
   // 操作按钮
   readonly initSlotsButton: Locator;
   readonly refreshButton: Locator;
-  
+
   // 比赛列表
   readonly swissStage: Locator;
   readonly eliminationStage: Locator;
@@ -25,23 +25,25 @@ export class SchedulePage extends BasePage {
 
   constructor(page: Page) {
     super(page);
-    
+
     // 页面标题 - 使用 data-testid
     this.pageTitle = page.getByTestId('schedule-page-title');
     this.matchCount = page.getByTestId('schedule-match-count');
-    
+
     // Tab 切换 - 使用 data-testid
     this.tabsList = page.getByTestId('schedule-tabs');
     this.swissTab = page.getByTestId('swiss-tab');
     this.eliminationTab = page.getByTestId('elimination-tab');
-    
+
     // 操作按钮
     this.initSlotsButton = page.getByTestId('init-slots-button');
     this.refreshButton = page.getByTestId('refresh-schedule-button');
-    
+
     // 比赛阶段组件
     this.swissStage = page.locator('[data-testid="swiss-stage"], [data-value="swiss"]');
-    this.eliminationStage = page.locator('[data-testid="elimination-stage"], [data-value="elimination"]');
+    this.eliminationStage = page.locator(
+      '[data-testid="elimination-stage"], [data-value="elimination"]'
+    );
     this.emptyMessage = page.locator('text=请先添加战队数据, text=暂无比赛数据');
   }
 

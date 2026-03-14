@@ -1,5 +1,4 @@
 import { Page, Locator, expect } from '@playwright/test';
-import { Team } from '../../../src/types';
 
 /**
  * 战队管理页面 Page Object
@@ -49,7 +48,11 @@ export class TeamsPage {
 
     // 删除确认对话框
     this.deleteDialog = page.getByRole('alertdialog');
-    this.confirmDeleteButton = page.locator('[role="alertdialog"] button.bg-blue-600, [role="alertdialog"] button:has-text("删除")').first();
+    this.confirmDeleteButton = page
+      .locator(
+        '[role="alertdialog"] button.bg-blue-600, [role="alertdialog"] button:has-text("删除")'
+      )
+      .first();
     this.cancelDeleteButton = page.locator('[role="alertdialog"] button:has-text("取消")').first();
   }
 
@@ -73,7 +76,9 @@ export class TeamsPage {
    */
   async waitForLoading(): Promise<void> {
     // 等待加载动画消失
-    await this.page.waitForSelector('.animate-spin', { state: 'hidden', timeout: 10000 }).catch(() => {});
+    await this.page
+      .waitForSelector('.animate-spin', { state: 'hidden', timeout: 10000 })
+      .catch(() => {});
   }
 
   /**
@@ -226,7 +231,9 @@ export class TeamsPage {
    */
   async getTeamCount(): Promise<number> {
     // 尝试多种定位方式
-    const teamCards = this.page.locator('[data-testid="admin-team-card"], .card:has(.text-white), .bg-gray-800:has(.text-white)');
+    const teamCards = this.page.locator(
+      '[data-testid="admin-team-card"], .card:has(.text-white), .bg-gray-800:has(.text-white)'
+    );
     return await teamCards.count();
   }
 
@@ -247,7 +254,10 @@ export class TeamsPage {
    * 根据名称查找战队卡片
    */
   async findTeamCardByName(name: string): Promise<Locator | null> {
-    const card = this.page.locator('[data-testid="admin-team-card"], .card:has(.text-white)').filter({ hasText: name }).first();
+    const card = this.page
+      .locator('[data-testid="admin-team-card"], .card:has(.text-white)')
+      .filter({ hasText: name })
+      .first();
     if (await card.isVisible().catch(() => false)) {
       return card;
     }
@@ -298,7 +308,10 @@ export class TeamsPage {
    */
   async hasTeam(name: string): Promise<boolean> {
     // 尝试多种定位方式
-    const card = this.page.locator('.card, [data-testid="admin-team-card"]').filter({ hasText: name }).first();
+    const card = this.page
+      .locator('.card, [data-testid="admin-team-card"]')
+      .filter({ hasText: name })
+      .first();
     return await card.isVisible().catch(() => false);
   }
 
@@ -331,8 +344,8 @@ export class TeamsPage {
         body: JSON.stringify({
           name: '测试战队',
           logo: 'https://example.com/logo.png',
-          description: '测试描述'
-        })
+          description: '测试描述',
+        }),
       });
       return response.ok;
     });

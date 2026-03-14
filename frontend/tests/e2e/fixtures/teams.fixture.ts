@@ -1,4 +1,10 @@
-import { mockTeams, mockSwissMatches, mockEliminationMatches, mockTeamNames, getTeamById } from './mock-data.fixture';
+import {
+  mockTeams,
+  mockSwissMatches,
+  mockEliminationMatches,
+  mockTeamNames,
+  getTeamById,
+} from './mock-data.fixture';
 
 export interface Player {
   name: string;
@@ -19,8 +25,8 @@ export const testTeam: Team = {
   description: mockTeams[0].description,
   players: mockTeams[0].players!.map(p => ({
     name: p.name,
-    position: p.position
-  }))
+    position: p.position,
+  })),
 };
 
 export const shortNameTeam: Team = {
@@ -58,8 +64,8 @@ export const testTeamBeta: Team = {
   description: mockTeams[1].description,
   players: mockTeams[1].players!.map(p => ({
     name: p.name,
-    position: p.position
-  }))
+    position: p.position,
+  })),
 };
 
 export const getTestTeamForMatch = (index: number = 2): Team => {
@@ -70,8 +76,8 @@ export const getTestTeamForMatch = (index: number = 2): Team => {
     description: team.description,
     players: team.players!.map(p => ({
       name: p.name,
-      position: p.position
-    }))
+      position: p.position,
+    })),
   };
 };
 

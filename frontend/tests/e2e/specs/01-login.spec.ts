@@ -1,11 +1,17 @@
 import { test, expect } from '@playwright/test';
 import { AdminLoginPage, DashboardPage } from '../pages';
-import { adminUser, wrongPasswordUser, wrongUsernameUser, emptyUsernameUser, emptyPasswordUser } from '../fixtures/users.fixture';
+import {
+  adminUser,
+  wrongPasswordUser,
+  wrongUsernameUser,
+  emptyUsernameUser,
+  emptyPasswordUser,
+} from '../fixtures/users.fixture';
 
 /**
  * 管理员登录功能测试
  * 对应测试计划: TEST-101, TEST-102, TEST-113, TEST-E002
- * 
+ *
  * 测试依赖关系:
  * - TEST-101 (基础): 无依赖，首先执行
  * - TEST-102: 依赖 TEST-101
@@ -62,10 +68,10 @@ test.describe('【第二阶段-1】管理员登录功能测试', () => {
   test('TEST-101-NEG-1: 登录失败 - 错误密码 @P1', async ({ page }) => {
     await loginPage.goto();
     await loginPage.login(wrongPasswordUser);
-    
+
     // 验证仍在登录页面（说明登录失败）
     await expect(page).toHaveURL(/\/admin\/login/, { timeout: 10000 });
-    
+
     console.log('✅ 错误密码登录失败验证通过');
   });
 
@@ -77,10 +83,10 @@ test.describe('【第二阶段-1】管理员登录功能测试', () => {
   test('TEST-101-NEG-2: 登录失败 - 错误用户名 @P1', async ({ page }) => {
     await loginPage.goto();
     await loginPage.login(wrongUsernameUser);
-    
+
     // 验证仍在登录页面（说明登录失败）
     await expect(page).toHaveURL(/\/admin\/login/, { timeout: 10000 });
-    
+
     console.log('✅ 错误用户名登录失败验证通过');
   });
 
@@ -92,11 +98,11 @@ test.describe('【第二阶段-1】管理员登录功能测试', () => {
   test('TEST-101-NEG-3: 登录失败 - 空用户名 @P2', async ({ page }) => {
     await loginPage.goto();
     await loginPage.login(emptyUsernameUser);
-    
+
     // 验证仍在登录页面或/admin 页面（说明登录失败）
     const currentUrl = page.url();
     expect(currentUrl).toContain('/admin');
-    
+
     console.log('✅ 空用户名登录失败验证通过');
   });
 
@@ -108,11 +114,11 @@ test.describe('【第二阶段-1】管理员登录功能测试', () => {
   test('TEST-101-NEG-4: 登录失败 - 空密码 @P2', async ({ page }) => {
     await loginPage.goto();
     await loginPage.login(emptyPasswordUser);
-    
+
     // 验证仍在登录页面或/admin 页面（说明登录失败）
     const currentUrl = page.url();
     expect(currentUrl).toContain('/admin');
-    
+
     console.log('✅ 空密码登录失败验证通过');
   });
 });
@@ -142,20 +148,20 @@ test.describe('【第四阶段-5】退出登录功能测试', () => {
     await loginPage.goto();
     await loginPage.login(adminUser);
     await dashboardPage.expectPageLoaded();
-    
+
     // 验证当前在仪表盘
     await expect(page).toHaveURL(/\/admin\/dashboard/);
-    
+
     // 执行登出
     await dashboardPage.logout();
 
     // 验证被重定向到登录页面
     await expect(page).toHaveURL(/\/admin\/login/);
-    
+
     // 验证URL不包含dashboard
     const currentUrl = page.url();
     expect(currentUrl).not.toContain('/dashboard');
-    
+
     // 验证需要重新登录才能访问管理功能
     await page.goto('/admin/dashboard');
     await expect(page).toHaveURL(/\/admin/);
@@ -174,7 +180,7 @@ test.describe('【异常测试】未授权访问测试', () => {
     // 访问受保护的管理页面，验证重定向到登录页
     await page.goto('/admin/dashboard');
     await expect(page).toHaveURL(/\/admin\/login/, { timeout: 10000 });
-    
+
     // 验证当前 URL 是登录页
     expect(page.url()).toContain('/admin/login');
   });

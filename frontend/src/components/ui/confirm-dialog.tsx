@@ -24,12 +24,13 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div role="alertdialog" aria-modal="true" className="fixed inset-0 z-50 flex items-center justify-center">
+    <div
+      role="alertdialog"
+      aria-modal="true"
+      className="fixed inset-0 z-50 flex items-center justify-center"
+    >
       {/* 背景遮罩 */}
-      <div
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-        onClick={onCancel}
-      />
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onCancel} />
 
       {/* 弹框内容 */}
       <div className="relative bg-gray-800 border border-gray-700 rounded-lg shadow-2xl max-w-md w-full mx-4 overflow-hidden">
@@ -55,10 +56,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
           >
             {cancelText}
           </Button>
-          <Button
-            onClick={onConfirm}
-            className="bg-blue-600 hover:bg-blue-700 text-white"
-          >
+          <Button onClick={onConfirm} className="bg-blue-600 hover:bg-blue-700 text-white">
             {confirmText}
           </Button>
         </div>

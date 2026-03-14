@@ -3,7 +3,7 @@ import {
   swissRoundSlots,
   getRoundFormat,
   getSlotByRecord,
-  getTotalSlots
+  getTotalSlots,
 } from '@/pages/admin/swissRoundSlots';
 
 describe('swissRoundSlots', () => {

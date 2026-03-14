@@ -29,24 +29,24 @@ export class TestDataCleaner {
       const keysToClear = [
         // 缓存数据
         'lvjiang-cup-cache',
-        
+
         // 认证信息
         'token',
         'user',
         'auth-token',
-        
+
         // 测试数据
         'teams',
         'matches',
         'streams',
         'advancement',
-        
+
         // 主题设置
         'theme',
-        
+
         // 其他测试数据
         'test-data',
-        'e2e-data'
+        'e2e-data',
       ];
 
       // 删除指定的键
@@ -87,7 +87,7 @@ export class TestDataCleaner {
    */
   async cleanIndexedDB(): Promise<void> {
     await this.page.evaluate(() => {
-      return new Promise<void>((resolve) => {
+      return new Promise<void>(resolve => {
         const request = indexedDB.deleteDatabase('lvjiang-cup-db');
         request.onsuccess = () => resolve();
         request.onerror = () => resolve();
@@ -99,7 +99,7 @@ export class TestDataCleaner {
    * 清理特定的 localStorage 键
    */
   async cleanSpecificKeys(keys: string[]): Promise<void> {
-    await this.page.evaluate((keysToRemove) => {
+    await this.page.evaluate(keysToRemove => {
       keysToRemove.forEach(key => {
         if (localStorage.getItem(key)) {
           localStorage.removeItem(key);
@@ -112,10 +112,10 @@ export class TestDataCleaner {
    * 清理特定标签的缓存
    */
   async cleanCacheByTag(tag: string): Promise<void> {
-    await this.page.evaluate((tagToRemove) => {
+    await this.page.evaluate(tagToRemove => {
       const cacheKey = 'lvjiang-cup-cache';
       const cacheData = localStorage.getItem(cacheKey);
-      
+
       if (cacheData) {
         try {
           const parsed = JSON.parse(cacheData);
@@ -144,12 +144,12 @@ export class TestDataCleaner {
       return {
         localStorage: {
           keys: Object.keys(localStorage),
-          count: Object.keys(localStorage).length
+          count: Object.keys(localStorage).length,
         },
         sessionStorage: {
           keys: Object.keys(sessionStorage),
-          count: Object.keys(sessionStorage).length
-        }
+          count: Object.keys(sessionStorage).length,
+        },
       };
     });
   }

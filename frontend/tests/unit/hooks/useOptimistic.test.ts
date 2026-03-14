@@ -85,7 +85,7 @@ describe('useOptimistic', () => {
       let resolveSubmit: (value: { count: number }) => void;
       const onSubmit = vi.fn().mockImplementation(
         () =>
-          new Promise((resolve) => {
+          new Promise(resolve => {
             resolveSubmit = resolve;
           })
       );
@@ -117,7 +117,7 @@ describe('useOptimistic', () => {
     });
 
     it('should support functional update', async () => {
-      const onSubmit = vi.fn().mockImplementation((data) => Promise.resolve(data));
+      const onSubmit = vi.fn().mockImplementation(data => Promise.resolve(data));
 
       const { result } = renderHook(() =>
         useOptimistic({
@@ -128,7 +128,7 @@ describe('useOptimistic', () => {
       );
 
       await act(async () => {
-        await result.current.update((prev) => ({ count: prev.count + 1 }));
+        await result.current.update(prev => ({ count: prev.count + 1 }));
       });
 
       expect(result.current.data).toEqual({ count: 1 });
@@ -229,7 +229,7 @@ describe('useOptimistic', () => {
     });
 
     it('should update item optimistically', async () => {
-      const onSubmit = vi.fn().mockImplementation((item) => Promise.resolve(item));
+      const onSubmit = vi.fn().mockImplementation(item => Promise.resolve(item));
 
       const { result } = renderHook(() =>
         useBatchOptimistic({
@@ -244,7 +244,7 @@ describe('useOptimistic', () => {
       });
 
       // 检查更新后的数据
-      const updatedItem = result.current.items.find((i) => i.id === 1);
+      const updatedItem = result.current.items.find(i => i.id === 1);
       expect(updatedItem?.completed).toBe(true);
       expect(result.current.isPending(1)).toBe(false);
     });
@@ -253,7 +253,7 @@ describe('useOptimistic', () => {
       let resolveSubmit: (value: Item) => void;
       const onSubmit = vi.fn().mockImplementation(
         () =>
-          new Promise((resolve) => {
+          new Promise(resolve => {
             resolveSubmit = resolve;
           })
       );
@@ -300,13 +300,13 @@ describe('useOptimistic', () => {
       });
 
       // 应该回滚
-      const item = result.current.items.find((i) => i.id === 1);
+      const item = result.current.items.find(i => i.id === 1);
       expect(item?.completed).toBe(false);
       expect(onError).toHaveBeenCalled();
     });
 
     it('should handle multiple concurrent updates', async () => {
-      const onSubmit = vi.fn().mockImplementation((item) => Promise.resolve(item));
+      const onSubmit = vi.fn().mockImplementation(item => Promise.resolve(item));
 
       const { result } = renderHook(() =>
         useBatchOptimistic({

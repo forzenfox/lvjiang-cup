@@ -5,7 +5,7 @@ import { testTeam, longNameTeam, testTeamBeta } from '../fixtures/teams.fixture'
 /**
  * 战队管理测试用例
  * 对应测试计划: TEST-104, TEST-105, TEST-106, TEST-107, TEST-B001
- * 
+ *
  * 测试依赖关系:
  * - TEST-104: 依赖 TEST-101 (登录)
  * - TEST-105: 依赖 TEST-101 (登录)
@@ -37,24 +37,26 @@ test.describe('【第二阶段-3】战队列表功能测试', () => {
     // 导航到战队管理
     await dashboardPage.navigateToTeams();
     await teamsPage.expectPageLoaded();
-    
+
     // 验证页面标题
     await expect(page.locator('h1, h2').filter({ hasText: /战队/ })).toBeVisible();
-    
+
     // 验证以卡片网格展示所有战队
     const teamCards = await teamsPage.getTeamCards();
-    
+
     // 验证显示战队Logo、名称和队员数量
     if (teamCards.length > 0) {
       for (const card of teamCards.slice(0, 3)) {
         // 验证战队Logo（可能是图片或占位符）
-        const logo = card.locator('[data-testid="team-logo"], [data-testid="team-logo-placeholder"]');
+        const logo = card.locator(
+          '[data-testid="team-logo"], [data-testid="team-logo-placeholder"]'
+        );
         await expect(logo).toBeVisible();
-        
+
         // 验证战队名称
         const name = card.locator('[data-testid="team-name"]');
         await expect(name).toBeVisible();
-        
+
         // 验证队员数量显示
         const playerCount = card.locator('[data-testid="player-count"], text=/\\d+ 队员/');
         if (await playerCount.isVisible().catch(() => false)) {
@@ -63,16 +65,16 @@ test.describe('【第二阶段-3】战队列表功能测试', () => {
         }
       }
     }
-    
+
     // 验证搜索/筛选功能
     const searchInput = page.locator('input[placeholder*="搜索"], input[type="search"]');
     if (await searchInput.isVisible().catch(() => false)) {
       await expect(searchInput).toBeVisible();
     }
-    
+
     // 验证添加战队按钮
     await expect(teamsPage.addButton).toBeVisible();
-    
+
     // 验证空状态提示（如果没有数据）
     if (teamCards.length === 0) {
       const emptyState = page.locator('[data-testid="empty-state"]');
@@ -103,7 +105,7 @@ test.describe('【第二阶段-4】战队增删改功能测试', () => {
    * 优先级: P0
    * 验证可以成功添加新战队
    * 前置条件: TEST-101 登录成功
-   * 
+   *
    * 注意: 此测试是后续TEST-003/004/106/107/108/109的关键依赖
    */
   test('TEST-105: 添加新战队 @P0', async ({ page }) => {
@@ -130,7 +132,7 @@ test.describe('【第二阶段-4】战队增删改功能测试', () => {
 
     // 验证新战队存在且包含正确信息
     await teamsPage.expectTeamExists(testTeam.name);
-    
+
     // 验证前台页面可以访问
     await homePage.goto();
     await homePage.scrollToTeams();
@@ -155,11 +157,11 @@ test.describe('【第二阶段-4】战队增删改功能测试', () => {
 
     // 等待操作完成
     await page.waitForTimeout(2000);
-    
+
     // 刷新页面确保数据加载
     await page.reload();
     await teamsPage.expectPageLoaded();
-    
+
     // 验证战队数量增加了
     const newCount = await teamsPage.getTeamCount();
     expect(newCount).toBeGreaterThanOrEqual(initialCount);
@@ -175,12 +177,12 @@ test.describe('【第二阶段-4】战队增删改功能测试', () => {
     // 导航到战队管理
     await dashboardPage.navigateToTeams();
     await teamsPage.expectPageLoaded();
-    
+
     // 检查是否已经有战队数据
     const initialCount = await teamsPage.getTeamCount();
     const originalTeamName = testTeam.name;
     const updatedTeamName = `${originalTeamName}-已编辑`;
-    
+
     if (initialCount === 0) {
       // 如果没有数据，添加一个测试战队
       await teamsPage.addNewTeam(testTeam);
@@ -188,27 +190,27 @@ test.describe('【第二阶段-4】战队增删改功能测试', () => {
       await page.reload();
       await teamsPage.expectPageLoaded();
     }
-    
+
     // 尝试编辑已存在的战队
     const hasOriginalTeam = await teamsPage.hasTeam(originalTeamName);
     if (hasOriginalTeam) {
       // 执行编辑操作
       await teamsPage.editTeam(originalTeamName, { name: updatedTeamName });
       await page.waitForTimeout(1500);
-      
+
       // 刷新并验证
       await page.reload();
       await teamsPage.expectPageLoaded();
-      
+
       // 验证战队已更新
       const hasUpdatedTeam = await teamsPage.hasTeam(updatedTeamName);
       expect(hasUpdatedTeam).toBe(true);
-      
+
       console.log(`✅ 战队编辑成功: ${originalTeamName} -> ${updatedTeamName}`);
     } else {
       console.log('⚠️ 未找到可编辑的测试战队');
     }
-    
+
     // 验证前台数据同步更新
     await homePage.goto();
     await homePage.expectPageLoaded();
@@ -220,33 +222,33 @@ test.describe('【第二阶段-4】战队增删改功能测试', () => {
    * 优先级: P2
    * 验证可以成功删除战队
    * 前置条件: TEST-106 已编辑战队（使用非关键测试数据）
-   * 
+   *
    * 注意: 此测试放在最后执行，避免影响其他测试
    */
   test('TEST-107: 删除战队 @P2', async ({ page }) => {
     // 导航到战队管理
     await dashboardPage.navigateToTeams();
     await teamsPage.expectPageLoaded();
-    
+
     // 记录删除前的战队数量
     const initialCount = await teamsPage.getTeamCount();
-    
+
     // 如果没有战队，先创建一个测试战队用于删除
     const teamToDeleteName = `待删除战队-${Date.now()}`;
     if (initialCount === 0) {
       await teamsPage.addNewTeam({
         ...testTeam,
-        name: teamToDeleteName
+        name: teamToDeleteName,
       });
       await page.waitForTimeout(2000);
       await page.reload();
       await teamsPage.expectPageLoaded();
     }
-    
+
     // 找到一个可以删除的战队（优先使用刚才创建的测试战队）
     let targetTeamName = teamToDeleteName;
     const hasTargetTeam = await teamsPage.hasTeam(targetTeamName);
-    
+
     if (!hasTargetTeam) {
       // 如果没有目标战队，使用第一个战队
       const cards = await teamsPage.getTeamCards();
@@ -255,21 +257,21 @@ test.describe('【第二阶段-4】战队增删改功能测试', () => {
         targetTeamName = testTeamBeta.name;
       }
     }
-    
+
     // 执行删除操作（如果找到目标战队）
     const canDelete = await teamsPage.hasTeam(targetTeamName);
     if (canDelete) {
       await teamsPage.deleteTeam(targetTeamName);
       await page.waitForTimeout(1500);
-      
+
       // 刷新并验证战队已被删除
       await page.reload();
       await teamsPage.expectPageLoaded();
-      
+
       await teamsPage.expectTeamNotExists(targetTeamName);
       console.log(`✅ 战队删除成功: ${targetTeamName}`);
     }
-    
+
     // 验证前台页面可以访问
     await homePage.goto();
     await homePage.expectPageLoaded();
@@ -299,11 +301,15 @@ test.describe('【边界测试】战队名称边界测试', () => {
   test('TEST-B001-1: 战队名称边界 - 短名称 (1 字符) @P2', async ({ page }) => {
     await dashboardPage.navigateToTeams();
     await teamsPage.expectPageLoaded();
-    
+
     // 验证页面可以正常操作
-    const hasForm = await page.locator('input, button').first().isVisible().catch(() => false);
+    const hasForm = await page
+      .locator('input, button')
+      .first()
+      .isVisible()
+      .catch(() => false);
     expect(hasForm).toBe(true);
-    
+
     console.log('✅ 战队管理页面可以正常操作（短名称测试）');
   });
 
@@ -316,11 +322,15 @@ test.describe('【边界测试】战队名称边界测试', () => {
   test('TEST-B001-2: 战队名称边界 - 长名称 (50 字符) @P2', async ({ page }) => {
     await dashboardPage.navigateToTeams();
     await teamsPage.expectPageLoaded();
-    
+
     // 验证页面可以正常操作
-    const hasForm = await page.locator('input, button').first().isVisible().catch(() => false);
+    const hasForm = await page
+      .locator('input, button')
+      .first()
+      .isVisible()
+      .catch(() => false);
     expect(hasForm).toBe(true);
-    
+
     console.log('✅ 战队管理页面可以正常操作（长名称测试）');
   });
 
@@ -333,26 +343,26 @@ test.describe('【边界测试】战队名称边界测试', () => {
   test('TEST-B001-3: 战队名称边界 - 超长名称 (100+ 字符) @P2', async ({ page }) => {
     await dashboardPage.navigateToTeams();
     await teamsPage.expectPageLoaded();
-    
+
     // 记录添加前的数量
     const initialCount = await teamsPage.getTeamCount();
-    
+
     const superLongTeam = {
       ...longNameTeam,
       name: 'A'.repeat(100),
     };
-    
+
     // 尝试添加超长名称战队
     await teamsPage.addNewTeam(superLongTeam);
     await page.waitForTimeout(2000);
-    
+
     // 刷新页面验证
     await page.reload();
     await teamsPage.expectPageLoaded();
-    
+
     // 验证系统行为：要么拒绝，要么截断/保存
     const newCount = await teamsPage.getTeamCount();
-    
+
     // 两种可能：1. 被拒绝（数量不变） 2. 被接受（数量增加）
     // 这里只验证页面没有崩溃，能正常操作
     expect(newCount).toBeGreaterThanOrEqual(initialCount);
@@ -385,7 +395,7 @@ test.describe('【异常测试】战队管理异常场景', () => {
     const nonExistentTeam = '不存在的战队-12345';
     const exists = await teamsPage.hasTeam(nonExistentTeam);
     expect(exists).toBe(false);
-    
+
     // 尝试删除（如果页面提供了删除不存在战队的功能）
     // 这里主要验证系统不会因此崩溃
     console.log('✅ 系统正确处理了不存在战队的查询');
@@ -402,7 +412,7 @@ test.describe('【异常测试】战队管理异常场景', () => {
 
     // 记录初始战队数量
     const initialCount = await teamsPage.getTeamCount();
-    
+
     // 打开添加战队弹窗
     await teamsPage.clickAddTeam();
     await teamsPage.fillTeamForm({
@@ -421,7 +431,7 @@ test.describe('【异常测试】战队管理异常场景', () => {
     // 验证战队数量没有减少
     const newCount = await teamsPage.getTeamCount();
     expect(newCount).toBeGreaterThanOrEqual(initialCount);
-    
+
     console.log('✅ 系统正确处理了快速点击保存操作');
   });
 });

@@ -64,7 +64,13 @@ test.describe('【第四阶段-1】瑞士轮晋级名单管理测试', () => {
     await expect(advancementTitle).toHaveText('晋级名单管理');
 
     // 验证晋级分类存在
-    const categories = ['winners2_0', 'winners2_1', 'losersBracket', 'eliminated3rd', 'eliminated0_3'];
+    const categories = [
+      'winners2_0',
+      'winners2_1',
+      'losersBracket',
+      'eliminated3rd',
+      'eliminated0_3',
+    ];
     for (const category of categories) {
       const categoryCard = page.getByTestId(`advancement-category-${category}`);
       await expect(categoryCard).toBeVisible();
@@ -114,7 +120,13 @@ test.describe('【第四阶段-1】瑞士轮晋级名单管理测试', () => {
     }
 
     // 验证各个晋级分类可见
-    const categories = ['winners2_0', 'winners2_1', 'losersBracket', 'eliminated3rd', 'eliminated0_3'];
+    const categories = [
+      'winners2_0',
+      'winners2_1',
+      'losersBracket',
+      'eliminated3rd',
+      'eliminated0_3',
+    ];
     for (const category of categories) {
       const categoryCard = page.getByTestId(`advancement-category-${category}`);
       await expect(categoryCard).toBeVisible();
@@ -232,7 +244,13 @@ test.describe('【边界测试】晋级名单边界测试', () => {
     await expect(advancementPanel).toBeVisible();
 
     // 验证各个分类的计数显示
-    const categories = ['winners2_0', 'winners2_1', 'losersBracket', 'eliminated3rd', 'eliminated0_3'];
+    const categories = [
+      'winners2_0',
+      'winners2_1',
+      'losersBracket',
+      'eliminated3rd',
+      'eliminated0_3',
+    ];
     for (const category of categories) {
       const categoryCount = page.getByTestId(`advancement-category-count-${category}`);
       await expect(categoryCount).toBeVisible();
@@ -272,7 +290,13 @@ test.describe('【边界测试】晋级名单边界测试', () => {
     }
 
     // 检查各个分类的空状态
-    const categories = ['winners2_0', 'winners2_1', 'losersBracket', 'eliminated3rd', 'eliminated0_3'];
+    const categories = [
+      'winners2_0',
+      'winners2_1',
+      'losersBracket',
+      'eliminated3rd',
+      'eliminated0_3',
+    ];
     for (const category of categories) {
       const emptyState = page.getByTestId(`advancement-category-empty-${category}`);
       const hasEmptyState = await emptyState.isVisible().catch(() => false);

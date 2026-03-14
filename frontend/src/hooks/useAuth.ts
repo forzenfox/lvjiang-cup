@@ -38,29 +38,29 @@ const TOKEN_KEY = 'token';
 
 /**
  * 认证 Hook
- * 
+ *
  * 提供完整的认证功能：
  * - 登录/登出逻辑
  * - 认证状态检查
  * - Token 管理（localStorage）
  * - 用户信息管理
- * 
+ *
  * @returns UseAuthReturn 认证相关的状态和方法
- * 
+ *
  * @example
  * ```tsx
  * const { isAuthenticated, user, login, logout, loading } = useAuth();
- * 
+ *
  * // 登录
  * await login({ username: 'admin', password: '123456' });
- * 
+ *
  * // 登出
  * logout();
  * ```
  */
 export function useAuth(): UseAuthReturn {
   const navigate = useNavigate();
-  
+
   const [state, setState] = useState<AuthState>({
     isAuthenticated: false,
     user: null,
@@ -74,7 +74,7 @@ export function useAuth(): UseAuthReturn {
   useEffect(() => {
     const checkAuth = async () => {
       const token = localStorage.getItem(TOKEN_KEY);
-      
+
       if (!token) {
         setState(prev => ({ ...prev, loading: false }));
         return;
@@ -90,8 +90,8 @@ export function useAuth(): UseAuthReturn {
           error: null,
         });
       } catch {
-      // Token 无效或过期，清除本地存储
-      localStorage.removeItem(TOKEN_KEY);
+        // Token 无效或过期，清除本地存储
+        localStorage.removeItem(TOKEN_KEY);
         setState({
           isAuthenticated: false,
           user: null,
@@ -108,48 +108,51 @@ export function useAuth(): UseAuthReturn {
    * 登录函数
    * @param credentials 登录凭证（用户名和密码）
    */
-  const login = useCallback(async (credentials: LoginRequest): Promise<void> => {
-    setState(prev => ({ ...prev, loading: true, error: null }));
-    
-    try {
-      const response = await loginApi(credentials);
-      
-      // 后端返回 access_token，适配前端存储
-      const token = response.access_token || response.token;
-      
-      // 保存 Token 到 localStorage
-      if (token) {
-        localStorage.setItem(TOKEN_KEY, token);
+  const login = useCallback(
+    async (credentials: LoginRequest): Promise<void> => {
+      setState(prev => ({ ...prev, loading: true, error: null }));
+
+      try {
+        const response = await loginApi(credentials);
+
+        // 后端返回 access_token，适配前端存储
+        const token = response.access_token || response.token;
+
+        // 保存 Token 到 localStorage
+        if (token) {
+          localStorage.setItem(TOKEN_KEY, token);
+        }
+
+        // 后端不返回user信息，根据登录用户名构造
+        const userInfo: UserInfo = response.user || {
+          id: 'admin',
+          username: credentials.username,
+          role: 'admin',
+        };
+
+        setState({
+          isAuthenticated: true,
+          user: userInfo,
+          loading: false,
+          error: null,
+        });
+
+        // 登录成功后跳转到管理后台
+        navigate('/admin/dashboard');
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : '登录失败，请检查用户名和密码';
+        setState(prev => ({
+          ...prev,
+          isAuthenticated: false,
+          user: null,
+          loading: false,
+          error: errorMessage,
+        }));
+        throw err;
       }
-      
-      // 后端不返回user信息，根据登录用户名构造
-      const userInfo: UserInfo = response.user || {
-        id: 'admin',
-        username: credentials.username,
-        role: 'admin',
-      };
-      
-      setState({
-        isAuthenticated: true,
-        user: userInfo,
-        loading: false,
-        error: null,
-      });
-      
-      // 登录成功后跳转到管理后台
-      navigate('/admin/dashboard');
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : '登录失败，请检查用户名和密码';
-      setState(prev => ({
-        ...prev,
-        isAuthenticated: false,
-        user: null,
-        loading: false,
-        error: errorMessage,
-      }));
-      throw err;
-    }
-  }, [navigate]);
+    },
+    [navigate]
+  );
 
   /**
    * 登出函数
@@ -157,7 +160,7 @@ export function useAuth(): UseAuthReturn {
   const logout = useCallback((): void => {
     // 调用 API 层的登出函数清除 Token
     logoutApi();
-    
+
     // 重置状态
     setState({
       isAuthenticated: false,
@@ -165,7 +168,7 @@ export function useAuth(): UseAuthReturn {
       loading: false,
       error: null,
     });
-    
+
     // 跳转到登录页
     navigate('/admin/login');
   }, [navigate]);
@@ -182,7 +185,7 @@ export function useAuth(): UseAuthReturn {
    */
   const refreshUser = useCallback(async (): Promise<void> => {
     if (!state.isAuthenticated) return;
-    
+
     try {
       const userInfo = await getCurrentUser();
       setState(prev => ({

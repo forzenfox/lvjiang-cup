@@ -49,11 +49,11 @@ apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     // 从 localStorage 获取 Token
     const token = localStorage.getItem('token');
-    
+
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    
+
     return config;
   },
   (error: AxiosError) => {
@@ -74,7 +74,7 @@ apiClient.interceptors.response.use(
       showToast: true,
       redirectToLogin: true,
     });
-    
+
     return Promise.reject(error);
   }
 );

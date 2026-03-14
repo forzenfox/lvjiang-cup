@@ -1,10 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
-import {
-  useDebounce,
-  useDebounceCallback,
-  useDebouncedInput,
-} from '@/hooks/useDebounce';
+import { useDebounce, useDebounceCallback, useDebouncedInput } from '@/hooks/useDebounce';
 
 describe('useDebounce', () => {
   beforeEach(() => {
@@ -23,10 +19,9 @@ describe('useDebounce', () => {
     });
 
     it('should debounce value changes', () => {
-      const { result, rerender } = renderHook(
-        ({ value }) => useDebounce(value, 500),
-        { initialProps: { value: 'initial' } }
-      );
+      const { result, rerender } = renderHook(({ value }) => useDebounce(value, 500), {
+        initialProps: { value: 'initial' },
+      });
 
       rerender({ value: 'changed' });
       expect(result.current).toBe('initial'); // 还未更新
@@ -39,10 +34,9 @@ describe('useDebounce', () => {
     });
 
     it('should reset timer on rapid changes', () => {
-      const { result, rerender } = renderHook(
-        ({ value }) => useDebounce(value, 500),
-        { initialProps: { value: 'initial' } }
-      );
+      const { result, rerender } = renderHook(({ value }) => useDebounce(value, 500), {
+        initialProps: { value: 'initial' },
+      });
 
       rerender({ value: 'change1' });
       act(() => {
@@ -87,9 +81,7 @@ describe('useDebounce', () => {
 
     it('should support leading option', () => {
       const callback = vi.fn();
-      const { result } = renderHook(() =>
-        useDebounceCallback(callback, 500, { leading: true })
-      );
+      const { result } = renderHook(() => useDebounceCallback(callback, 500, { leading: true }));
 
       act(() => {
         result.current.run('arg1');

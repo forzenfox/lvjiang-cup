@@ -7,50 +7,52 @@ import { BasePage } from './BasePage';
 export class AdvancementPage extends BasePage {
   // 页面标题
   readonly pageTitle: Locator;
-  
+
   // 晋级队伍列表
   readonly advancementList: Locator;
   readonly teamItems: Locator;
   readonly emptyMessage: Locator;
-  
+
   // 操作按钮
   readonly addTeamButton: Locator;
   readonly autoGenerateButton: Locator;
   readonly clearButton: Locator;
-  
+
   // 添加队伍弹窗
   readonly teamModal: Locator;
   readonly teamSelect: Locator;
   readonly seedInput: Locator;
   readonly saveButton: Locator;
   readonly cancelButton: Locator;
-  
+
   // 删除确认
   readonly deleteConfirmButton: Locator;
 
   constructor(page: Page) {
     super(page);
-    
+
     // 页面标题
     this.pageTitle = page.locator('h1:has-text("晋级名单"), h2:has-text("晋级名单")');
-    
+
     // 晋级队伍列表
     this.advancementList = page.locator('[data-testid="advancement-list"], .advancement-list');
     this.teamItems = page.locator('[data-testid="team-item"], .team-item');
     this.emptyMessage = page.locator('text=暂无晋级队伍, text=暂无数据');
-    
+
     // 操作按钮
     this.addTeamButton = page.locator('button:has-text("添加队伍")');
-    this.autoGenerateButton = page.locator('button:has-text("自动生成"), button:has-text("自动晋级")');
+    this.autoGenerateButton = page.locator(
+      'button:has-text("自动生成"), button:has-text("自动晋级")'
+    );
     this.clearButton = page.locator('button:has-text("清空")');
-    
+
     // 添加队伍弹窗
     this.teamModal = page.locator('.el-dialog, [role="dialog"]').filter({ hasText: '添加队伍' });
     this.teamSelect = page.locator('select[name="team"], .el-select').first();
     this.seedInput = page.locator('input[name="seed"], input[placeholder*="种子"]').first();
     this.saveButton = page.locator('button:has-text("保存")');
     this.cancelButton = page.locator('button:has-text("取消")');
-    
+
     // 删除确认
     this.deleteConfirmButton = page.locator('button:has-text("确定"), button:has-text("确认")');
   }

@@ -55,7 +55,7 @@ class MemoryCache {
     if (!params) return key;
     const sortedParams = Object.keys(params)
       .sort()
-      .map((k) => `${k}=${JSON.stringify(params[k])}`)
+      .map(k => `${k}=${JSON.stringify(params[k])}`)
       .join('&');
     return `${key}?${sortedParams}`;
   }
@@ -202,7 +202,7 @@ class MemoryCache {
    */
   invalidateByTagPrefix(prefix: string): void {
     for (const [key, item] of this.cache.entries()) {
-      if (item.tags?.some((tag) => tag.startsWith(prefix))) {
+      if (item.tags?.some(tag => tag.startsWith(prefix))) {
         this.cache.delete(key);
       }
     }
@@ -342,10 +342,10 @@ export function prefetch<T>(
 
   // 异步预取数据
   fetcher()
-    .then((data) => {
+    .then(data => {
       globalCache.set(key, data, options);
     })
-    .catch((error) => {
+    .catch(error => {
       console.warn(`Prefetch failed for ${key}:`, error);
     });
 }

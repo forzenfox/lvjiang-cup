@@ -13,14 +13,14 @@ interface ProtectedRouteProps {
 
 /**
  * 受保护路由组件
- * 
+ *
  * 功能：
  * - 基于 Token 验证用户认证状态
  * - 未登录时重定向到 /admin/login
  * - 已登录时显示子组件
  * - 支持加载状态显示
  * - 保留原始访问路径，登录后可跳转回来
- * 
+ *
  * @example
  * ```tsx
  * <Route path="/admin/dashboard" element={
@@ -48,13 +48,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
 
   // 未登录，重定向到登录页，并保留原始路径
   if (!isAuthenticated) {
-    return (
-      <Navigate 
-        to="/admin/login" 
-        state={{ from: location.pathname }} 
-        replace 
-      />
-    );
+    return <Navigate to="/admin/login" state={{ from: location.pathname }} replace />;
   }
 
   // 已登录，显示子组件

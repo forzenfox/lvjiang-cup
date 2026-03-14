@@ -1,11 +1,7 @@
 import React from 'react';
 import { Match, Team } from '@/types';
 import { useAdvancementStore } from '@/store/advancementStore';
-import {
-  SwissMatchCard,
-  SwissStatusBadge,
-  SwissTeamList,
-} from './swiss';
+import { SwissMatchCard, SwissStatusBadge, SwissTeamList } from './swiss';
 
 interface SwissStageProps {
   matches: Match[];
@@ -27,24 +23,30 @@ const RoundColumn: React.FC<{
   className?: string;
 }> = ({ roundName, isBo3, matches, teams, className }) => {
   return (
-    <div className={`flex flex-col gap-3 min-w-[200px] ${className}`} data-testid="swiss-round-column">
+    <div
+      className={`flex flex-col gap-3 min-w-[200px] ${className}`}
+      data-testid="swiss-round-column"
+    >
       <div className="text-center pb-2 border-b border-gray-800">
         <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider">{roundName}</h3>
         <div className="flex items-center justify-center mt-1">
-          <span className={`text-[10px] px-1.5 py-0.5 rounded font-mono ${
-            isBo3 ? 'bg-blue-600/20 text-blue-400' : 'bg-green-600/20 text-green-400'
-          }`}>
+          <span
+            className={`text-[10px] px-1.5 py-0.5 rounded font-mono ${
+              isBo3 ? 'bg-blue-600/20 text-blue-400' : 'bg-green-600/20 text-green-400'
+            }`}
+          >
             {isBo3 ? 'BO3' : 'BO1'}
           </span>
         </div>
       </div>
       <div className="flex flex-col gap-3 min-h-[60px]" data-testid="swiss-match-list">
         {matches.length > 0 ? (
-          matches.map(match => (
-            <SwissMatchCard key={match.id} match={match} teams={teams} />
-          ))
+          matches.map(match => <SwissMatchCard key={match.id} match={match} teams={teams} />)
         ) : (
-          <div className="flex items-center justify-center h-20 border border-dashed border-gray-800 rounded bg-gray-900/30 text-xs text-gray-600" data-testid="swiss-empty-slot">
+          <div
+            className="flex items-center justify-center h-20 border border-dashed border-gray-800 rounded bg-gray-900/30 text-xs text-gray-600"
+            data-testid="swiss-empty-slot"
+          >
             等待对阵
           </div>
         )}
@@ -53,7 +55,11 @@ const RoundColumn: React.FC<{
   );
 };
 
-const SwissStage: React.FC<SwissStageProps> = ({ matches, teams, advancement: propAdvancement }) => {
+const SwissStage: React.FC<SwissStageProps> = ({
+  matches,
+  teams,
+  advancement: propAdvancement,
+}) => {
   // 从 store 获取晋级名单（如果没有传入 props）
   const storeAdvancement = useAdvancementStore(state => state.advancement);
   const advancement = propAdvancement || storeAdvancement;

@@ -70,20 +70,20 @@ function handleError(error: unknown, defaultMessage: string): never {
 
 /**
  * 晋级数据服务
- * 
+ *
  * 提供晋级规则的获取和更新操作，包含状态管理和错误处理
  * 支持按阶段查询晋级规则
- * 
+ *
  * @example
  * ```ts
  * // 获取所有晋级规则
  * const rules = await advancementService.get();
- * 
+ *
  * // 获取指定阶段的晋级规则
  * const swissRule = await advancementService.get('swiss');
  * // 或使用 getByStage
  * const swissRule = await advancementService.getByStage('swiss');
- * 
+ *
  * // 更新晋级规则
  * await advancementService.update({
  *   winners2_0: ['team1', 'team2'],
@@ -101,27 +101,28 @@ export const advancementService: AdvancementService = {
    */
   async get(): Promise<Advancement> {
     setState({ loading: true, error: null });
-    
+
     try {
       const result = await advancementApi.get();
-      
+
       // 获取到单个规则
       const updatedRulesByStage = new Map(state.rulesByStage);
       updatedRulesByStage.set('default', result);
-      
+
       // 更新规则列表
       const existingIndex = state.rules.findIndex(r => r === result);
-      const updatedRules = existingIndex >= 0
-        ? state.rules.map(r => r === result ? result : r)
-        : [...state.rules, result];
-      
+      const updatedRules =
+        existingIndex >= 0
+          ? state.rules.map(r => (r === result ? result : r))
+          : [...state.rules, result];
+
       setState({
         rules: updatedRules,
         rulesByStage: updatedRulesByStage,
         currentRule: result,
         loading: false,
       });
-      
+
       return result;
     } catch (error) {
       handleError(error, '获取晋级规则失败');
@@ -135,33 +136,32 @@ export const advancementService: AdvancementService = {
    */
   async getByStage(stage: string): Promise<Advancement> {
     setState({ loading: true, error: null });
-    
+
     try {
       // 验证阶段参数
       if (!stage || stage.trim() === '') {
         throw new Error('阶段名称不能为空');
       }
-      
+
       // 由于 API 没有 getByStage 方法，使用 get() 获取所有数据
       const rule = await advancementApi.get();
-      
+
       // 更新阶段分组缓存
       const updatedRulesByStage = new Map(state.rulesByStage);
       updatedRulesByStage.set(stage, rule);
-      
+
       // 更新规则列表
       const existingIndex = state.rules.findIndex(r => r === rule);
-      const updatedRules = existingIndex >= 0
-        ? state.rules.map(r => r === rule ? rule : r)
-        : [...state.rules, rule];
-      
+      const updatedRules =
+        existingIndex >= 0 ? state.rules.map(r => (r === rule ? rule : r)) : [...state.rules, rule];
+
       setState({
         rules: updatedRules,
         rulesByStage: updatedRulesByStage,
         currentRule: rule,
         loading: false,
       });
-      
+
       return rule;
     } catch (error) {
       handleError(error, `获取 ${stage} 阶段晋级规则失败`);
@@ -175,27 +175,26 @@ export const advancementService: AdvancementService = {
    */
   async update(data: UpdateAdvancementRequest): Promise<Advancement> {
     setState({ loading: true, error: null });
-    
+
     try {
       const rule = await advancementApi.update(data);
-      
+
       // 更新本地列表中的规则
       const existingIndex = state.rules.findIndex(r => r === rule);
-      const updatedRules = existingIndex >= 0
-        ? state.rules.map(r => r === rule ? rule : r)
-        : [...state.rules, rule];
-      
+      const updatedRules =
+        existingIndex >= 0 ? state.rules.map(r => (r === rule ? rule : r)) : [...state.rules, rule];
+
       // 更新阶段分组缓存
       const updatedRulesByStage = new Map(state.rulesByStage);
       updatedRulesByStage.set('default', rule);
-      
+
       setState({
         rules: updatedRules,
         rulesByStage: updatedRulesByStage,
         currentRule: rule,
         loading: false,
       });
-      
+
       return rule;
     } catch (error) {
       handleError(error, '更新晋级规则失败');
@@ -237,10 +236,12 @@ export const advancementService: AdvancementService = {
  * @param callback 状态变化回调函数
  * @returns 取消订阅函数
  */
-export function subscribeToAdvancementService(callback: (state: AdvancementServiceState) => void): () => void {
+export function subscribeToAdvancementService(
+  callback: (state: AdvancementServiceState) => void
+): () => void {
   listeners.add(callback);
   callback(state); // 立即通知当前状态
-  
+
   return () => {
     listeners.delete(callback);
   };

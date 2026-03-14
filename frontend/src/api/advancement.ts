@@ -12,11 +12,11 @@ import type { ApiResponse, Advancement, UpdateAdvancementRequest } from './types
 export async function get(): Promise<Advancement> {
   const response = await apiClient.get<ApiResponse<Advancement>>('/advancement');
   const responseData = response.data;
-  
+
   if (!responseData.success || !responseData.data) {
     throw new Error(responseData.message || '获取晋级名单失败');
   }
-  
+
   return responseData.data;
 }
 

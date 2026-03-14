@@ -24,7 +24,7 @@ export async function delay(ms: number) {
 export async function takeScreenshot(page: Page, name: string) {
   await page.screenshot({
     path: `./tests/e2e/screenshots/${name}-${Date.now()}.png`,
-    fullPage: true
+    fullPage: true,
   });
 }
 

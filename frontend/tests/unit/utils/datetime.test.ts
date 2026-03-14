@@ -4,7 +4,7 @@ import {
   formatShortDate,
   formatFullDateTime,
   toDateTimeLocal,
-  fromDateTimeLocal
+  fromDateTimeLocal,
 } from '@/utils/datetime';
 
 describe('datetime 工具函数', () => {

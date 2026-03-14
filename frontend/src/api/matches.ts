@@ -1,5 +1,11 @@
 import apiClient from './axios';
-import type { ApiResponse, Match, UpdateMatchRequest, PaginatedResponse, FindMatchesByStageRequest } from './types';
+import type {
+  ApiResponse,
+  Match,
+  UpdateMatchRequest,
+  PaginatedResponse,
+  FindMatchesByStageRequest,
+} from './types';
 
 /**
  * 比赛 API
@@ -16,11 +22,11 @@ export async function getAll(page = 1, pageSize = 10): Promise<PaginatedResponse
     params: { page, pageSize },
   });
   const responseData = response.data;
-  
+
   if (!responseData.success || !responseData.data) {
     throw new Error(responseData.message || '获取比赛列表失败');
   }
-  
+
   return responseData.data;
 }
 
@@ -32,11 +38,11 @@ export async function getAll(page = 1, pageSize = 10): Promise<PaginatedResponse
 export async function getById(id: string): Promise<Match> {
   const response = await apiClient.get<ApiResponse<Match>>(`/matches/${id}`);
   const responseData = response.data;
-  
+
   if (!responseData.success || !responseData.data) {
     throw new Error(responseData.message || '获取比赛信息失败');
   }
-  
+
   return responseData.data;
 }
 
@@ -68,11 +74,11 @@ export async function findByStage(params: FindMatchesByStageRequest): Promise<Ma
     params: { round },
   });
   const responseData = response.data;
-  
+
   if (!responseData.success || !responseData.data) {
     throw new Error(responseData.message || '获取比赛列表失败');
   }
-  
+
   return responseData.data;
 }
 
@@ -84,11 +90,11 @@ export async function findByStage(params: FindMatchesByStageRequest): Promise<Ma
 export async function findByRound(round: number): Promise<Match[]> {
   const response = await apiClient.get<ApiResponse<Match[]>>(`/matches/round/${round}`);
   const responseData = response.data;
-  
+
   if (!responseData.success || !responseData.data) {
     throw new Error(responseData.message || '获取比赛列表失败');
   }
-  
+
   return responseData.data;
 }
 

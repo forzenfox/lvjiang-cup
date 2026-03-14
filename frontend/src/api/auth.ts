@@ -36,18 +36,18 @@ function parseToken(token: string): UserInfo {
 export async function login(data: LoginRequest): Promise<LoginResponse> {
   const response = await apiClient.post<ApiResponse<LoginResponse>>('/admin/auth/login', data);
   const responseData = response.data;
-  
+
   if (!responseData.success || !responseData.data) {
     throw new Error(responseData.message || '登录失败');
   }
-  
+
   // 登录成功后自动保存 Token
   // 后端返回 access_token，前端使用 token
   const token = responseData.data.access_token || responseData.data.token;
   if (token) {
     localStorage.setItem('token', token);
   }
-  
+
   return responseData.data;
 }
 
@@ -58,11 +58,11 @@ export async function login(data: LoginRequest): Promise<LoginResponse> {
  */
 export async function getCurrentUser(): Promise<UserInfo> {
   const token = localStorage.getItem('token');
-  
+
   if (!token) {
     throw new Error('未登录');
   }
-  
+
   // 从 token 中解析用户信息
   return parseToken(token);
 }
@@ -73,7 +73,7 @@ export async function getCurrentUser(): Promise<UserInfo> {
 export function logout(): void {
   // 清除 Token
   localStorage.removeItem('token');
-  
+
   // 跳转到登录页
   window.location.href = '/admin/login';
 }

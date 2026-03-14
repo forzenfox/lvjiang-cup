@@ -4,7 +4,7 @@ import { DashboardPage } from '../pages';
 /**
  * 管理仪表盘功能测试
  * 对应测试计划: TEST-102
- * 
+ *
  * 测试依赖关系:
  * - TEST-102: 依赖 TEST-101 (登录，已通过全局设置完成)
  */
@@ -14,7 +14,7 @@ test.describe('【第二阶段-2】管理仪表盘功能测试', () => {
 
   test.beforeEach(async ({ page }) => {
     dashboardPage = new DashboardPage(page);
-    
+
     // 直接导航到管理后台（已有登录状态）
     await page.goto('/admin/dashboard');
     await dashboardPage.expectPageLoaded();

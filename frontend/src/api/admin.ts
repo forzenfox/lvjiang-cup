@@ -10,7 +10,8 @@ import type { ApiResponse } from './types';
  * @returns 初始化结果
  */
 export async function initSlots(): Promise<{ message: string; count: number }> {
-  const response = await apiClient.post<ApiResponse<{ message: string; count: number }>>('/admin/init-slots');
+  const response =
+    await apiClient.post<ApiResponse<{ message: string; count: number }>>('/admin/init-slots');
   const responseData = response.data;
 
   if (!responseData.success || !responseData.data) {

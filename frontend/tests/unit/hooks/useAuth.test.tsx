@@ -23,7 +23,7 @@ vi.mock('react-router-dom', async () => {
 
 /**
  * useAuth Hook 测试套件
- * 
+ *
  * 测试覆盖：
  * - 初始状态检查
  * - 登录功能
@@ -172,7 +172,10 @@ describe('useAuth Hook', () => {
 
     it('登录时应该显示加载状态', async () => {
       vi.mocked(authApi.login).mockImplementation(
-        () => new Promise((resolve) => setTimeout(() => resolve({ user: { id: '1', username: 'admin' }, token: 'token' }), 100))
+        () =>
+          new Promise(resolve =>
+            setTimeout(() => resolve({ user: { id: '1', username: 'admin' }, token: 'token' }), 100)
+          )
       );
 
       const wrapper = ({ children }: { children: React.ReactNode }) => (
@@ -202,7 +205,7 @@ describe('useAuth Hook', () => {
       const mockUser = { id: '1', username: 'admin', role: 'admin' };
       localStorage.setItem('token', 'valid-token');
       vi.mocked(authApi.getCurrentUser).mockResolvedValue(mockUser);
-      
+
       // Mock logout 函数来实际清除 token
       vi.mocked(authApi.logout).mockImplementation(() => {
         localStorage.removeItem('token');
@@ -274,7 +277,7 @@ describe('useAuth Hook', () => {
     it('refreshUser 应该更新用户信息', async () => {
       const mockUser = { id: '1', username: 'admin', role: 'admin' };
       const updatedUser = { id: '1', username: 'admin', role: 'superadmin' };
-      
+
       localStorage.setItem('token', 'valid-token');
       vi.mocked(authApi.getCurrentUser)
         .mockResolvedValueOnce(mockUser)

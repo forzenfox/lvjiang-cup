@@ -5,7 +5,7 @@ import { testTeam, testTeamBeta } from '../fixtures/teams.fixture';
 /**
  * 赛程管理测试用例
  * 对应测试计划: TEST-108, TEST-109, TEST-110, TEST-B002
- * 
+ *
  * 测试依赖关系:
  * - TEST-108: 依赖 TEST-101 (登录), TEST-105 (战队数据)
  * - TEST-109: 依赖 TEST-101 (登录), TEST-105 (战队数据)
@@ -33,18 +33,18 @@ test.describe('【第二阶段-5】瑞士轮赛程管理测试', () => {
    * 优先级: P0
    * 验证可以成功管理瑞士轮比赛
    * 前置条件: TEST-101 登录成功, TEST-105 已创建至少2支战队
-   * 
+   *
    * 注意: 此测试是TEST-005/110/111的关键依赖
    */
   test('TEST-108: 管理瑞士轮赛程 - 添加比赛 @P0', async ({ page }) => {
     // 确保有战队数据
     await dashboardPage.navigateToTeams();
     await teamsPage.expectPageLoaded();
-    
+
     // 检查并创建测试战队
     const hasTeamA = await teamsPage.hasTeam(testTeam.name);
     const hasTeamB = await teamsPage.hasTeam(testTeamBeta.name);
-    
+
     if (!hasTeamA) {
       await teamsPage.addNewTeam(testTeam);
     }
@@ -55,21 +55,21 @@ test.describe('【第二阶段-5】瑞士轮赛程管理测试', () => {
     // 导航到赛程管理
     await dashboardPage.navigateToSchedule();
     await schedulePage.expectPageLoaded();
-    
+
     // 确保在瑞士轮 Tab
     await schedulePage.switchToSwiss();
-    
+
     // 验证页面标题可见
     await expect(schedulePage.pageTitle).toBeVisible();
-    
+
     // 验证 Tab 切换正常
     await schedulePage.expectSwissTabVisible();
     await schedulePage.expectEliminationTabVisible();
-    
+
     // 验证比赛数量信息可见
     const matchCountText = await schedulePage.getMatchCountText();
     console.log(`✅ 当前比赛数量: ${matchCountText}`);
-    
+
     console.log('✅ 瑞士轮赛程管理页面正常加载');
   });
 
@@ -83,14 +83,14 @@ test.describe('【第二阶段-5】瑞士轮赛程管理测试', () => {
     await dashboardPage.navigateToSchedule();
     await schedulePage.expectPageLoaded();
     await schedulePage.switchToSwiss();
-    
+
     // 验证页面标题可见
     await expect(schedulePage.pageTitle).toBeVisible();
-    
+
     // 验证比赛数量信息可见
     const matchCountText = await schedulePage.getMatchCountText();
     expect(matchCountText).toContain('瑞士轮');
-    
+
     console.log('✅ 瑞士轮赛程管理页面正常加载（多战绩分组测试）');
   });
 });
@@ -113,24 +113,24 @@ test.describe('【第二阶段-6】淘汰赛赛程管理测试', () => {
    * 优先级: P0
    * 验证可以成功管理淘汰赛比赛
    * 前置条件: TEST-101 登录成功, TEST-105 已创建至少2支战队
-   * 
+   *
    * 注意: 此测试是TEST-006的关键依赖
    */
   test('TEST-109: 管理淘汰赛赛程 @P0', async ({ page }) => {
     // 导航到赛程管理
     await dashboardPage.navigateToSchedule();
     await schedulePage.expectPageLoaded();
-    
+
     // 切换到淘汰赛 Tab
     await schedulePage.switchToElimination();
-    
+
     // 验证页面标题可见
     await expect(schedulePage.pageTitle).toBeVisible();
-    
+
     // 验证比赛数量信息可见
     const matchCountText = await schedulePage.getMatchCountText();
     expect(matchCountText).toContain('淘汰赛');
-    
+
     console.log('✅ 淘汰赛赛程管理页面正常加载');
   });
 
@@ -144,14 +144,14 @@ test.describe('【第二阶段-6】淘汰赛赛程管理测试', () => {
     await dashboardPage.navigateToSchedule();
     await schedulePage.expectPageLoaded();
     await schedulePage.switchToElimination();
-    
+
     // 验证页面标题可见
     await expect(schedulePage.pageTitle).toBeVisible();
-    
+
     // 验证比赛数量信息可见
     const matchCountText = await schedulePage.getMatchCountText();
     console.log(`✅ 当前比赛数量: ${matchCountText}`);
-    
+
     console.log('✅ 淘汰赛赛程管理页面正常加载（败者组和总决赛测试）');
   });
 });
@@ -174,7 +174,7 @@ test.describe('【第二阶段-7】比赛结果更新测试', () => {
    * 优先级: P0
    * 验证可以成功更新比赛结果
    * 前置条件: TEST-101 登录成功, TEST-108 已创建瑞士轮比赛
-   * 
+   *
    * 注意: 此测试是TEST-007/111的关键依赖
    */
   test('TEST-110: 更新比赛结果 @P0', async ({ page }) => {
@@ -182,14 +182,14 @@ test.describe('【第二阶段-7】比赛结果更新测试', () => {
     await dashboardPage.navigateToSchedule();
     await schedulePage.expectPageLoaded();
     await schedulePage.switchToSwiss();
-    
+
     // 验证页面标题可见
     await expect(schedulePage.pageTitle).toBeVisible();
-    
+
     // 验证比赛数量信息可见
     const matchCountText = await schedulePage.getMatchCountText();
     console.log(`✅ 当前比赛数量: ${matchCountText}`);
-    
+
     console.log('✅ 瑞士轮赛程管理页面正常加载（更新比赛结果测试）');
   });
 
@@ -203,14 +203,14 @@ test.describe('【第二阶段-7】比赛结果更新测试', () => {
     await dashboardPage.navigateToSchedule();
     await schedulePage.expectPageLoaded();
     await schedulePage.switchToSwiss();
-    
+
     // 验证页面标题可见
     await expect(schedulePage.pageTitle).toBeVisible();
-    
+
     // 验证比赛数量信息可见
     const matchCountText = await schedulePage.getMatchCountText();
     console.log(`✅ 当前比赛数量: ${matchCountText}`);
-    
+
     console.log('✅ 瑞士轮赛程管理页面正常加载（更新比赛状态测试）');
   });
 });
@@ -239,14 +239,14 @@ test.describe('【边界测试】比分输入边界测试', () => {
     await dashboardPage.navigateToSchedule();
     await schedulePage.expectPageLoaded();
     await schedulePage.switchToSwiss();
-    
+
     // 验证页面标题可见
     await expect(schedulePage.pageTitle).toBeVisible();
-    
+
     // 验证比赛数量信息可见
     const matchCountText = await schedulePage.getMatchCountText();
     console.log(`✅ 当前比赛数量: ${matchCountText}`);
-    
+
     console.log('✅ 瑞士轮赛程管理页面正常加载（比分输入边界测试）');
   });
 });
@@ -276,20 +276,20 @@ test.describe('【第三阶段-4】赛程前台展示验证', () => {
     await dashboardPage.navigateToSchedule();
     await schedulePage.expectPageLoaded();
     await schedulePage.switchToSwiss();
-    
+
     // 验证页面标题可见
     await expect(schedulePage.pageTitle).toBeVisible();
-    
+
     // 验证比赛数量信息可见
     const matchCountText = await schedulePage.getMatchCountText();
     console.log(`✅ 后台比赛数量: ${matchCountText}`);
-    
+
     console.log('✅ 瑞士轮赛程管理页面正常加载（前台同步验证）');
-    
+
     // 访问前台验证
     await homePage.goto();
     await homePage.expectPageLoaded();
-    
+
     console.log('✅ 首页可以正常访问');
   });
 });

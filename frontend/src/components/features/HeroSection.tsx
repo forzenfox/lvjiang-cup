@@ -63,12 +63,15 @@ const HeroSection: React.FC<HeroSectionProps> = ({ refreshInterval = 30000 }) =>
   // 加载状态
   if (loading && !streamInfo) {
     return (
-      <section id="hero" className="relative h-screen flex items-center justify-center overflow-hidden">
+      <section
+        id="hero"
+        className="relative h-screen flex items-center justify-center overflow-hidden"
+      >
         {/* Background Image with Overlay */}
         <div className="absolute inset-0 z-0">
-          <img 
-            src="https://coresg-normal.trae.ai/api/ide/v1/text_to_image?prompt=league+of+legends+champions+battle+epic+scene+blue+and+gold+theme&image_size=landscape_16_9" 
-            alt="Hero Background" 
+          <img
+            src="https://coresg-normal.trae.ai/api/ide/v1/text_to_image?prompt=league+of+legends+champions+battle+epic+scene+blue+and+gold+theme&image_size=landscape_16_9"
+            alt="Hero Background"
             className="w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-background"></div>
@@ -88,12 +91,15 @@ const HeroSection: React.FC<HeroSectionProps> = ({ refreshInterval = 30000 }) =>
   // 错误状态
   if (error && !streamInfo) {
     return (
-      <section id="hero" className="relative h-screen flex items-center justify-center overflow-hidden">
+      <section
+        id="hero"
+        className="relative h-screen flex items-center justify-center overflow-hidden"
+      >
         {/* Background Image with Overlay */}
         <div className="absolute inset-0 z-0">
-          <img 
-            src="https://coresg-normal.trae.ai/api/ide/v1/text_to_image?prompt=league+of+legends+champions+battle+epic+scene+blue+and+gold+theme&image_size=landscape_16_9" 
-            alt="Hero Background" 
+          <img
+            src="https://coresg-normal.trae.ai/api/ide/v1/text_to_image?prompt=league+of+legends+champions+battle+epic+scene+blue+and+gold+theme&image_size=landscape_16_9"
+            alt="Hero Background"
             className="w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-background"></div>
@@ -104,8 +110,8 @@ const HeroSection: React.FC<HeroSectionProps> = ({ refreshInterval = 30000 }) =>
           <div className="bg-black/50 backdrop-blur-sm p-8 rounded-xl border border-red-500/30">
             <p className="text-xl text-red-400 mb-4">加载失败</p>
             <p className="text-gray-300 mb-6">{error}</p>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={fetchStreamInfo}
               className="border-yellow-400 text-yellow-400 hover:bg-yellow-400/10"
             >
@@ -118,12 +124,15 @@ const HeroSection: React.FC<HeroSectionProps> = ({ refreshInterval = 30000 }) =>
   }
 
   return (
-    <section id="hero" className="relative h-screen flex items-center justify-center overflow-hidden">
+    <section
+      id="hero"
+      className="relative h-screen flex items-center justify-center overflow-hidden"
+    >
       {/* Background Image with Overlay */}
       <div className="absolute inset-0 z-0">
-        <img 
-          src="https://coresg-normal.trae.ai/api/ide/v1/text_to_image?prompt=league+of+legends+champions+battle+epic+scene+blue+and+gold+theme&image_size=landscape_16_9" 
-          alt="Hero Background" 
+        <img
+          src="https://coresg-normal.trae.ai/api/ide/v1/text_to_image?prompt=league+of+legends+champions+battle+epic+scene+blue+and+gold+theme&image_size=landscape_16_9"
+          alt="Hero Background"
           className="w-full h-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-background"></div>
@@ -137,7 +146,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ refreshInterval = 30000 }) =>
         <p className="text-xl md:text-2xl text-gray-200 mb-8 font-light tracking-wide">
           驴酱公会终极对决
         </p>
-        
+
         {streamInfo?.isLive ? (
           <div className="flex flex-col items-center space-y-4">
             <Button
@@ -151,9 +160,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ refreshInterval = 30000 }) =>
             </Button>
             <div className="flex items-center space-x-2">
               <Radio className="w-4 h-4 text-red-500 animate-pulse" />
-              <p className="text-yellow-400 font-semibold">
-                正在直播：{streamInfo.title}
-              </p>
+              <p className="text-yellow-400 font-semibold">正在直播：{streamInfo.title}</p>
             </div>
           </div>
         ) : (
@@ -175,7 +182,12 @@ const HeroSection: React.FC<HeroSectionProps> = ({ refreshInterval = 30000 }) =>
       {/* Scroll Indicator */}
       <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2 animate-bounce text-white/50">
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M19 14l-7 7m0 0l-7-7m7 7V3"
+          />
         </svg>
       </div>
     </section>

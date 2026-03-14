@@ -25,7 +25,7 @@ const defaultAdvancement: SwissAdvancementResult = {
   winners2_1: ['team4', 'team8'], // 小熊 / 雨酱
   losersBracket: ['team3', 'team7'], // PLG / 69
   eliminated3rd: ['team5'], // 搓搓鸟
-  eliminated0_3: ['team6'] // 100J
+  eliminated0_3: ['team6'], // 100J
 };
 
 export const useAdvancementStore = create<AdvancementStore>()(
@@ -40,7 +40,7 @@ export const useAdvancementStore = create<AdvancementStore>()(
         set({
           advancement: data,
           lastUpdated: new Date().toISOString(),
-          updatedBy: user
+          updatedBy: user,
         }),
 
       // 移动队伍从一个分类到另一个分类
@@ -62,7 +62,7 @@ export const useAdvancementStore = create<AdvancementStore>()(
         set({
           advancement: newAdvancement,
           lastUpdated: new Date().toISOString(),
-          updatedBy: 'admin'
+          updatedBy: 'admin',
         });
       },
 
@@ -76,7 +76,7 @@ export const useAdvancementStore = create<AdvancementStore>()(
               set({
                 advancement: data.state.advancement || defaultAdvancement,
                 lastUpdated: data.state.lastUpdated || new Date().toISOString(),
-                updatedBy: data.state.updatedBy || 'system'
+                updatedBy: data.state.updatedBy || 'system',
               });
             }
           } catch (e) {
@@ -90,7 +90,7 @@ export const useAdvancementStore = create<AdvancementStore>()(
         set({
           advancement: defaultAdvancement,
           lastUpdated: new Date().toISOString(),
-          updatedBy: 'system'
+          updatedBy: 'system',
         }),
 
       // 获取所有已分配的队��ID
@@ -101,7 +101,7 @@ export const useAdvancementStore = create<AdvancementStore>()(
           ...advancement.winners2_1,
           ...advancement.losersBracket,
           ...advancement.eliminated3rd,
-          ...advancement.eliminated0_3
+          ...advancement.eliminated0_3,
         ];
       },
 
@@ -109,15 +109,15 @@ export const useAdvancementStore = create<AdvancementStore>()(
       getUnassignedTeams: (allTeamIds: string[]) => {
         const assignedIds = get().getAllTeamIds();
         return allTeamIds.filter(id => !assignedIds.includes(id));
-      }
+      },
     }),
     {
       name: 'advancement-storage',
       partialize: state => ({
         advancement: state.advancement,
         lastUpdated: state.lastUpdated,
-        updatedBy: state.updatedBy
-      })
+        updatedBy: state.updatedBy,
+      }),
     }
   )
 );
@@ -130,28 +130,28 @@ export const categoryConfig: Record<
   winners2_0: {
     label: '2-0 晋级（胜者组）',
     color: 'bg-green-500',
-    description: '2胜0负直接晋级胜者组'
+    description: '2胜0负直接晋级胜者组',
   },
   winners2_1: {
     label: '2-1 晋级（胜者组）',
     color: 'bg-green-400',
-    description: '2胜1负晋级胜者组'
+    description: '2胜1负晋级胜者组',
   },
   losersBracket: {
     label: '晋级败者组',
     color: 'bg-orange-500',
-    description: '1胜2负但积分前2名，晋级败者组'
+    description: '1胜2负但积分前2名，晋级败者组',
   },
   eliminated3rd: {
     label: '积分第三淘汰',
     color: 'bg-red-500',
-    description: '1胜2负积分第3名，被淘汰'
+    description: '1胜2负积分第3名，被淘汰',
   },
   eliminated0_3: {
     label: '0-3 淘汰',
     color: 'bg-red-600',
-    description: '0胜3负直接淘汰'
-  }
+    description: '0胜3负直接淘汰',
+  },
 };
 
 // 分类顺序（用于界面展示）
@@ -160,5 +160,5 @@ export const categoryOrder: AdvancementCategory[] = [
   'winners2_1',
   'losersBracket',
   'eliminated3rd',
-  'eliminated0_3'
+  'eliminated0_3',
 ];

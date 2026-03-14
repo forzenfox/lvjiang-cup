@@ -1,7 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../../components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from '../../components/ui/card';
 import { Trophy, Loader2, User, Lock } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 
@@ -15,7 +21,7 @@ interface FormErrors {
 
 /**
  * 管理员登录页面
- * 
+ *
  * 功能：
  * - 集成 useAuth Hook 进行认证
  * - 调用真实登录 API
@@ -27,7 +33,7 @@ interface FormErrors {
 const AdminLogin: React.FC = () => {
   const navigate = useNavigate();
   const { login, isAuthenticated, loading: authLoading, error: authError, clearError } = useAuth();
-  
+
   // 表单状态
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -54,17 +60,17 @@ const AdminLogin: React.FC = () => {
    */
   const validateForm = (): boolean => {
     const errors: FormErrors = {};
-    
+
     if (!username.trim()) {
       errors.username = '请输入用户名';
     }
-    
+
     if (!password) {
       errors.password = '请输入密码';
     } else if (password.length < 6) {
       errors.password = '密码长度至少为 6 位';
     }
-    
+
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -101,12 +107,12 @@ const AdminLogin: React.FC = () => {
     e.preventDefault();
     setSubmitError('');
     clearError();
-    
+
     // 表单验证
     if (!validateForm()) {
       return;
     }
-    
+
     try {
       await login({ username: username.trim(), password });
       // 登录成功后的跳转由 useAuth 处理
@@ -145,8 +151,8 @@ const AdminLogin: React.FC = () => {
                   placeholder="请输入用户名"
                   disabled={authLoading}
                   className={`w-full pl-10 pr-3 py-2 bg-gray-700 border rounded-md text-white placeholder-gray-500 focus:outline-none focus:ring-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
-                    formErrors.username 
-                      ? 'border-red-500 focus:ring-red-500' 
+                    formErrors.username
+                      ? 'border-red-500 focus:ring-red-500'
                       : 'border-gray-600 focus:ring-secondary'
                   }`}
                 />
@@ -171,8 +177,8 @@ const AdminLogin: React.FC = () => {
                   placeholder="请输入密码"
                   disabled={authLoading}
                   className={`w-full pl-10 pr-3 py-2 bg-gray-700 border rounded-md text-white placeholder-gray-500 focus:outline-none focus:ring-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
-                    formErrors.password 
-                      ? 'border-red-500 focus:ring-red-500' 
+                    formErrors.password
+                      ? 'border-red-500 focus:ring-red-500'
                       : 'border-gray-600 focus:ring-secondary'
                   }`}
                 />
@@ -190,8 +196,8 @@ const AdminLogin: React.FC = () => {
             )}
 
             {/* 登录按钮 */}
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               disabled={authLoading}
               className="w-full bg-secondary text-secondary-foreground hover:bg-secondary/90 disabled:opacity-50 disabled:cursor-not-allowed"
             >

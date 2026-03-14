@@ -7,14 +7,14 @@ import { BasePage } from './BasePage';
 export class StreamPage extends BasePage {
   // 页面标题
   readonly pageTitle: Locator;
-  
+
   // 直播配置表单
   readonly streamTitleInput: Locator;
   readonly streamUrlInput: Locator;
   readonly isLiveToggle: Locator;
   readonly saveButton: Locator;
   readonly resetButton: Locator;
-  
+
   // 预览区域
   readonly previewArea: Locator;
   readonly liveBadge: Locator;
@@ -22,17 +22,17 @@ export class StreamPage extends BasePage {
 
   constructor(page: Page) {
     super(page);
-    
+
     // 页面标题
     this.pageTitle = page.locator('h1:has-text("直播配置"), h2:has-text("直播配置")');
-    
+
     // 直播配置表单 - 使用 data-testid
     this.streamTitleInput = page.getByTestId('stream-title-input');
     this.streamUrlInput = page.getByTestId('stream-url-input');
     this.isLiveToggle = page.getByTestId('stream-status-toggle');
     this.saveButton = page.getByTestId('stream-save-button');
     this.resetButton = page.getByTestId('stream-reset-button');
-    
+
     // 预览区域
     this.previewArea = page.getByTestId('stream-status-section');
     this.liveBadge = page.locator('.bg-green-500, text=直播中');
@@ -101,14 +101,14 @@ export class StreamPage extends BasePage {
   async configureStream(title: string, url: string, isLive: boolean) {
     await this.fillStreamTitle(title);
     await this.fillStreamUrl(url);
-    
+
     // 检查当前状态并切换
     const currentStatusText = await this.streamStatusText.textContent();
     const currentIsLive = currentStatusText?.includes('正在直播');
     if (currentIsLive !== isLive) {
       await this.toggleLiveStatus();
     }
-    
+
     await this.saveConfig();
   }
 

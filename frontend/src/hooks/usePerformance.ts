@@ -38,11 +38,11 @@ export function usePerformanceMonitoring(
 
     // 监听 LCP (Largest Contentful Paint)
     try {
-      const lcpObserver = new PerformanceObserver((list) => {
+      const lcpObserver = new PerformanceObserver(list => {
         const entries = list.getEntries();
         const lastEntry = entries[entries.length - 1] as PerformanceEntry & { startTime: number };
         newMetrics.lcp = lastEntry.startTime;
-        setMetrics((prev) => ({ ...prev, lcp: lastEntry.startTime }));
+        setMetrics(prev => ({ ...prev, lcp: lastEntry.startTime }));
       });
       lcpObserver.observe({ entryTypes: ['largest-contentful-paint'] });
       observersRef.current.push(lcpObserver);
@@ -52,13 +52,16 @@ export function usePerformanceMonitoring(
 
     // 监听 FID (First Input Delay)
     try {
-      const fidObserver = new PerformanceObserver((list) => {
+      const fidObserver = new PerformanceObserver(list => {
         const entries = list.getEntries();
-        entries.forEach((entry) => {
-          const fidEntry = entry as PerformanceEntry & { processingStart: number; startTime: number };
+        entries.forEach(entry => {
+          const fidEntry = entry as PerformanceEntry & {
+            processingStart: number;
+            startTime: number;
+          };
           const fid = fidEntry.processingStart - fidEntry.startTime;
           newMetrics.fid = fid;
-          setMetrics((prev) => ({ ...prev, fid }));
+          setMetrics(prev => ({ ...prev, fid }));
         });
       });
       fidObserver.observe({ entryTypes: ['first-input'] });
@@ -70,14 +73,14 @@ export function usePerformanceMonitoring(
     // 监听 CLS (Cumulative Layout Shift)
     try {
       let clsValue = 0;
-      const clsObserver = new PerformanceObserver((list) => {
+      const clsObserver = new PerformanceObserver(list => {
         const entries = list.getEntries();
-        entries.forEach((entry) => {
+        entries.forEach(entry => {
           const clsEntry = entry as PerformanceEntry & { hadRecentInput: boolean; value: number };
           if (!clsEntry.hadRecentInput) {
             clsValue += clsEntry.value;
             newMetrics.cls = clsValue;
-            setMetrics((prev) => ({ ...prev, cls: clsValue }));
+            setMetrics(prev => ({ ...prev, cls: clsValue }));
           }
         });
       });
@@ -89,13 +92,13 @@ export function usePerformanceMonitoring(
 
     // 获取 FCP (First Contentful Paint)
     try {
-      const paintObserver = new PerformanceObserver((list) => {
+      const paintObserver = new PerformanceObserver(list => {
         const entries = list.getEntries();
-        entries.forEach((entry) => {
+        entries.forEach(entry => {
           if (entry.name === 'first-contentful-paint') {
             const fcpEntry = entry as PerformanceEntry & { startTime: number };
             newMetrics.fcp = fcpEntry.startTime;
-            setMetrics((prev) => ({ ...prev, fcp: fcpEntry.startTime }));
+            setMetrics(prev => ({ ...prev, fcp: fcpEntry.startTime }));
           }
         });
       });
@@ -107,10 +110,12 @@ export function usePerformanceMonitoring(
 
     // 获取 TTFB (Time to First Byte)
     try {
-      const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
+      const navigation = performance.getEntriesByType(
+        'navigation'
+      )[0] as PerformanceNavigationTiming;
       if (navigation) {
         newMetrics.ttfb = navigation.responseStart - navigation.startTime;
-        setMetrics((prev) => ({ ...prev, ttfb: newMetrics.ttfb }));
+        setMetrics(prev => ({ ...prev, ttfb: newMetrics.ttfb }));
       }
     } catch {
       // 浏览器不支持
@@ -118,7 +123,7 @@ export function usePerformanceMonitoring(
 
     // 清理函数
     return () => {
-      observersRef.current.forEach((observer) => observer.disconnect());
+      observersRef.current.forEach(observer => observer.disconnect());
       observersRef.current = [];
     };
   }, []);
@@ -193,30 +198,33 @@ export function useIntersectionObserver(
     const element = ref.current;
     if (!element) return;
 
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        setEntry(entry);
-        setIsIntersecting(entry.isIntersecting);
+    const observer = new IntersectionObserver(([entry]) => {
+      setEntry(entry);
+      setIsIntersecting(entry.isIntersecting);
 
-        if (onIntersect) {
-          onIntersect(entry.isIntersecting, entry);
-        }
+      if (onIntersect) {
+        onIntersect(entry.isIntersecting, entry);
+      }
 
-        if (triggerOnce && entry.isIntersecting) {
-          hasTriggeredRef.current = true;
-          observer.unobserve(element);
-        }
-      },
-      observerOptions
-    );
+      if (triggerOnce && entry.isIntersecting) {
+        hasTriggeredRef.current = true;
+        observer.unobserve(element);
+      }
+    }, observerOptions);
 
     observer.observe(element);
 
     return () => {
       observer.disconnect();
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [onIntersect, triggerOnce, observerOptions.threshold, observerOptions.root, observerOptions.rootMargin]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    onIntersect,
+    triggerOnce,
+    observerOptions.threshold,
+    observerOptions.root,
+    observerOptions.rootMargin,
+  ]);
 
   return { ref: ref as React.RefObject<HTMLElement>, isIntersecting, entry };
 }
@@ -329,9 +337,9 @@ export function useLongTaskMonitoring(
     }
 
     try {
-      const observer = new PerformanceObserver((list) => {
+      const observer = new PerformanceObserver(list => {
         const entries = list.getEntries();
-        entries.forEach((entry) => {
+        entries.forEach(entry => {
           const longTaskEntry = entry as PerformanceEntry & { duration: number };
           if (longTaskEntry.duration > threshold) {
             onLongTask?.(longTaskEntry.duration, entry);
@@ -363,9 +371,9 @@ export function useResourceMonitoring(
     }
 
     try {
-      const observer = new PerformanceObserver((list) => {
+      const observer = new PerformanceObserver(list => {
         const entries = list.getEntries();
-        entries.forEach((entry) => {
+        entries.forEach(entry => {
           onResourceLoad?.(entry as PerformanceResourceTiming);
         });
       });
@@ -394,14 +402,23 @@ export function useMemoryMonitoring(
   interval: number = 5000
 ): void {
   useEffect(() => {
-     
-    if (typeof window === 'undefined' || !(performance as unknown as { memory?: { usedJSHeapSize: number; totalJSHeapSize: number; jsHeapSizeLimit: number } }).memory) {
+    if (
+      typeof window === 'undefined' ||
+      !(
+        performance as unknown as {
+          memory?: { usedJSHeapSize: number; totalJSHeapSize: number; jsHeapSizeLimit: number };
+        }
+      ).memory
+    ) {
       return;
     }
 
     const timer = setInterval(() => {
-       
-      const memory = (performance as unknown as { memory: { usedJSHeapSize: number; totalJSHeapSize: number; jsHeapSizeLimit: number } }).memory;
+      const memory = (
+        performance as unknown as {
+          memory: { usedJSHeapSize: number; totalJSHeapSize: number; jsHeapSizeLimit: number };
+        }
+      ).memory;
       if (memory) {
         onMemoryInfo?.({
           usedJSHeapSize: memory.usedJSHeapSize,

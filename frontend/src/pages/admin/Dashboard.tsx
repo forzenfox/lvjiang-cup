@@ -48,10 +48,14 @@ const AdminDashboard: React.FC = () => {
       // 计算统计数据 - 将 API 状态映射到前端状态
       const mapStatus = (status: string): string => {
         switch (status) {
-          case 'scheduled': return 'upcoming';
-          case 'live': return 'ongoing';
-          case 'completed': return 'finished';
-          default: return 'upcoming';
+          case 'scheduled':
+            return 'upcoming';
+          case 'live':
+            return 'ongoing';
+          case 'completed':
+            return 'finished';
+          default:
+            return 'upcoming';
         }
       };
 
@@ -80,7 +84,7 @@ const AdminDashboard: React.FC = () => {
     value,
     icon: Icon,
     color,
-    subtitle
+    subtitle,
   }: {
     title: string;
     value: number | string;
@@ -153,7 +157,7 @@ const AdminDashboard: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div
           className="bg-gray-800 p-6 rounded-lg border border-gray-700 hover:border-blue-500/50 transition-colors cursor-pointer"
-          onClick={() => window.location.href = '/admin/stream'}
+          onClick={() => (window.location.href = '/admin/stream')}
         >
           <h3 className="text-xl font-semibold text-secondary mb-2">直播管理</h3>
           <p className="text-gray-400">管理直播链接和状态</p>
@@ -164,7 +168,7 @@ const AdminDashboard: React.FC = () => {
         </div>
         <div
           className="bg-gray-800 p-6 rounded-lg border border-gray-700 hover:border-blue-500/50 transition-colors cursor-pointer"
-          onClick={() => window.location.href = '/admin/teams'}
+          onClick={() => (window.location.href = '/admin/teams')}
         >
           <h3 className="text-xl font-semibold text-secondary mb-2">战队管理</h3>
           <p className="text-gray-400">管理参赛战队和队员信息</p>
@@ -175,7 +179,7 @@ const AdminDashboard: React.FC = () => {
         </div>
         <div
           className="bg-gray-800 p-6 rounded-lg border border-gray-700 hover:border-blue-500/50 transition-colors cursor-pointer"
-          onClick={() => window.location.href = '/admin/schedule'}
+          onClick={() => (window.location.href = '/admin/schedule')}
         >
           <h3 className="text-xl font-semibold text-secondary mb-2">赛程管理</h3>
           <p className="text-gray-400">更新比赛结果和赛程安排</p>

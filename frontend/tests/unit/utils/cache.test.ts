@@ -38,7 +38,7 @@ describe('Cache', () => {
       cache.set('key', { data: 'value' }, { ttl: 10 }); // 10ms TTL
 
       // 等待过期
-      await new Promise((resolve) => setTimeout(resolve, 20));
+      await new Promise(resolve => setTimeout(resolve, 20));
 
       const result = cache.get('key');
 
@@ -145,7 +145,7 @@ describe('Cache', () => {
       const fetcher = vi.fn().mockResolvedValue({ data: 'fetched' });
 
       await withCache('test-key', fetcher);
-      
+
       // 清理全局缓存，然后强制刷新
       globalCache.delete('test-key');
       await withCache('test-key', fetcher, { forceRefresh: true });
@@ -159,7 +159,7 @@ describe('Cache', () => {
       await withCache('test-key', fetcher, { ttl: 50 });
 
       // 等待过期
-      await new Promise((resolve) => setTimeout(resolve, 60));
+      await new Promise(resolve => setTimeout(resolve, 60));
 
       await withCache('test-key', fetcher);
 

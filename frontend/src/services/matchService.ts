@@ -1,5 +1,10 @@
 import * as matchApi from '@/api/matches';
-import type { Match, UpdateMatchRequest, PaginatedResponse, FindMatchesByStageRequest } from '@/api/types';
+import type {
+  Match,
+  UpdateMatchRequest,
+  PaginatedResponse,
+  FindMatchesByStageRequest,
+} from '@/api/types';
 
 /**
  * 比赛服务状态接口
@@ -85,18 +90,18 @@ function handleError(error: unknown, defaultMessage: string): never {
 
 /**
  * 比赛数据服务
- * 
+ *
  * 提供完整的比赛查询和更新操作，包含状态管理和错误处理
  * 支持按阶段、轮次筛选比赛
- * 
+ *
  * @example
  * ```ts
  * // 获取所有比赛
  * const result = await matchService.getAll(1, 20);
- * 
+ *
  * // 获取比赛详情
  * const match = await matchService.getById('match1');
- * 
+ *
  * // 更新比赛比分
  * await matchService.update({
  *   id: 'match1',
@@ -105,10 +110,10 @@ function handleError(error: unknown, defaultMessage: string): never {
  *   winnerId: 'team1',
  *   status: 'finished'
  * });
- * 
+ *
  * // 按阶段筛选比赛
  * const swissMatches = await matchService.findByStage({ stage: 'swiss', round: 1 });
- * 
+ *
  * // 按轮次筛选
  * const round1Matches = await matchService.findByRound(1);
  * ```
@@ -122,10 +127,10 @@ export const matchService: MatchService = {
    */
   async getAll(page = 1, pageSize = 10): Promise<PaginatedResponse<Match>> {
     setState({ loading: true, error: null });
-    
+
     try {
       const response = await matchApi.getAll(page, pageSize);
-      
+
       setState({
         matches: response.data,
         pagination: {
@@ -135,7 +140,7 @@ export const matchService: MatchService = {
         },
         loading: false,
       });
-      
+
       return response;
     } catch (error) {
       handleError(error, '获取比赛列表失败');
@@ -149,15 +154,15 @@ export const matchService: MatchService = {
    */
   async getById(id: string): Promise<Match> {
     setState({ loading: true, error: null });
-    
+
     try {
       const match = await matchApi.getById(id);
-      
+
       setState({
         currentMatch: match,
         loading: false,
       });
-      
+
       return match;
     } catch (error) {
       handleError(error, `获取比赛 ${id} 信息失败`);
@@ -171,13 +176,13 @@ export const matchService: MatchService = {
    */
   async update(data: UpdateMatchRequest): Promise<Match> {
     setState({ loading: true, error: null });
-    
+
     try {
       // 验证 ID
       if (!data.id) {
         throw new Error('比赛 ID 不能为空');
       }
-      
+
       // 验证比分数据
       if (data.scoreA !== undefined && data.scoreA < 0) {
         throw new Error('队伍1比分不能为负数');
@@ -185,34 +190,34 @@ export const matchService: MatchService = {
       if (data.scoreB !== undefined && data.scoreB < 0) {
         throw new Error('队伍2比分不能为负数');
       }
-      
+
       // 验证获胜方
       if (data.winnerId && data.scoreA === undefined && data.scoreB === undefined) {
         throw new Error('设置获胜方时必须提供比分');
       }
-      
+
       const match = await matchApi.update(data);
-      
+
       // 更新本地列表中的比赛
-      const updatedMatches = state.matches.map(m => m.id === match.id ? match : m);
-      
+      const updatedMatches = state.matches.map(m => (m.id === match.id ? match : m));
+
       // 更新阶段分组缓存
       const updatedMatchesByStage = new Map(state.matchesByStage);
       if (updatedMatchesByStage.has(match.stage)) {
         const stageMatches = updatedMatchesByStage.get(match.stage) || [];
         updatedMatchesByStage.set(
           match.stage,
-          stageMatches.map(m => m.id === match.id ? match : m)
+          stageMatches.map(m => (m.id === match.id ? match : m))
         );
       }
-      
+
       setState({
         matches: updatedMatches,
         matchesByStage: updatedMatchesByStage,
         currentMatch: state.currentMatch?.id === match.id ? match : state.currentMatch,
         loading: false,
       });
-      
+
       return match;
     } catch (error) {
       handleError(error, '更新比赛失败');
@@ -226,28 +231,27 @@ export const matchService: MatchService = {
    */
   async findByStage(params: FindMatchesByStageRequest): Promise<Match[]> {
     setState({ loading: true, error: null });
-    
+
     try {
       // 验证阶段参数
       if (!params.stage) {
         throw new Error('阶段参数不能为空');
       }
-      
+
       const matches = await matchApi.findByStage(params);
-      
+
       // 更新阶段分组缓存
-      const cacheKey = params.round !== undefined 
-        ? `${params.stage}_round_${params.round}` 
-        : params.stage;
-      
+      const cacheKey =
+        params.round !== undefined ? `${params.stage}_round_${params.round}` : params.stage;
+
       const updatedMatchesByStage = new Map(state.matchesByStage);
       updatedMatchesByStage.set(cacheKey, matches);
-      
+
       setState({
         matchesByStage: updatedMatchesByStage,
         loading: false,
       });
-      
+
       return matches;
     } catch (error) {
       handleError(error, `获取 ${params.stage} 阶段比赛失败`);
@@ -261,17 +265,17 @@ export const matchService: MatchService = {
    */
   async findByRound(round: number): Promise<Match[]> {
     setState({ loading: true, error: null });
-    
+
     try {
       // 验证轮次参数
       if (round < 1) {
         throw new Error('轮次必须大于等于 1');
       }
-      
+
       const matches = await matchApi.findByRound(round);
-      
+
       setState({ loading: false });
-      
+
       return matches;
     } catch (error) {
       handleError(error, `获取第 ${round} 轮比赛失败`);
@@ -321,7 +325,7 @@ export const matchService: MatchService = {
 export function subscribeToMatchService(callback: (state: MatchServiceState) => void): () => void {
   listeners.add(callback);
   callback(state); // 立即通知当前状态
-  
+
   return () => {
     listeners.delete(callback);
   };

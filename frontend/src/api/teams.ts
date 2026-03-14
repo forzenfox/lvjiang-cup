@@ -1,5 +1,11 @@
 import apiClient from './axios';
-import type { ApiResponse, Team, CreateTeamRequest, UpdateTeamRequest, PaginatedResponse } from './types';
+import type {
+  ApiResponse,
+  Team,
+  CreateTeamRequest,
+  UpdateTeamRequest,
+  PaginatedResponse,
+} from './types';
 
 /**
  * 战队 API
@@ -16,11 +22,11 @@ export async function getAll(page = 1, pageSize = 10): Promise<PaginatedResponse
     params: { page, pageSize },
   });
   const responseData = response.data;
-  
+
   if (!responseData.success || !responseData.data) {
     throw new Error(responseData.message || '获取战队列表失败');
   }
-  
+
   return responseData.data;
 }
 
@@ -32,11 +38,11 @@ export async function getAll(page = 1, pageSize = 10): Promise<PaginatedResponse
 export async function getById(id: string): Promise<Team> {
   const response = await apiClient.get<ApiResponse<Team>>(`/teams/${id}`);
   const responseData = response.data;
-  
+
   if (!responseData.success || !responseData.data) {
     throw new Error(responseData.message || '获取战队信息失败');
   }
-  
+
   return responseData.data;
 }
 

@@ -6,7 +6,7 @@ import { testTeam } from '../fixtures/teams.fixture';
 /**
  * 边界和异常测试用例
  * 对应测试计划: TEST-B001, TEST-B002, TEST-B003, TEST-B004, TEST-E001, TEST-E002, TEST-E003
- * 
+ *
  * 此文件汇总所有边界和异常测试场景
  */
 
@@ -32,7 +32,7 @@ test.describe('【边界测试】综合边界测试', () => {
     // 访问前台首页
     await homePage.goto();
     await homePage.expectPageLoaded();
-    
+
     // 验证页面可以正常操作
     console.log('✅ 首页可以正常访问（空数据状态测试）');
   });
@@ -64,7 +64,7 @@ test.describe('【异常测试】系统异常处理测试', () => {
     const nonExistentTeam = '不存在的战队-12345-ABCDE';
     const exists = await teamsPage.hasTeam(nonExistentTeam);
     expect(exists).toBe(false);
-    
+
     // 验证系统不会崩溃
     console.log('✅ 系统正确处理了不存在战队的查询');
   });
@@ -80,13 +80,13 @@ test.describe('【异常测试】系统异常处理测试', () => {
 
     // 记录添加前的数量
     const initialCount = await teamsPage.getTeamCount();
-    
+
     // 打开添加战队弹窗
     await teamsPage.clickAddTeam();
-    
+
     const timestamp = Date.now();
     const testTeamName = `连续点击测试-${timestamp}`;
-    
+
     await teamsPage.fillTeamForm({
       ...testTeam,
       name: testTeamName,
@@ -94,10 +94,10 @@ test.describe('【异常测试】系统异常处理测试', () => {
 
     // 点击保存按钮一次
     await teamsPage.saveButton.click();
-    
+
     // 等待操作完成
     await page.waitForTimeout(2000);
-    
+
     // 刷新页面验证
     await page.reload();
     await teamsPage.expectPageLoaded();
@@ -105,7 +105,7 @@ test.describe('【异常测试】系统异常处理测试', () => {
     // 验证战队数量增加或保持不变（系统可能拒绝重复提交）
     const newCount = await teamsPage.getTeamCount();
     expect(newCount).toBeGreaterThanOrEqual(initialCount);
-    
+
     console.log('✅ 系统正确处理了保存操作');
   });
 
@@ -117,18 +117,18 @@ test.describe('【异常测试】系统异常处理测试', () => {
   test('网络异常处理 @P2', async ({ page }) => {
     // 模拟网络断开
     await page.route('**/api/**', route => route.abort('internetdisconnected'));
-    
+
     // 尝试访问需要网络的操作
     await dashboardPage.navigateToTeams();
-    
+
     // 验证错误提示
     const errorMessage = page.locator('text=网络错误, text=连接失败, text=请检查网络');
     const hasError = await errorMessage.isVisible().catch(() => false);
-    
+
     if (hasError) {
       console.log('✅ 系统正确显示了网络错误提示');
     }
-    
+
     // 恢复网络
     await page.unroute('**/api/**');
   });
@@ -152,7 +152,7 @@ test.describe('【性能测试】页面性能测试', () => {
   test('首页加载性能 @P1', async () => {
     await homePage.goto();
     await homePage.expectPageLoaded();
-    
+
     console.log('✅ 首页可以正常加载');
   });
 
@@ -164,18 +164,18 @@ test.describe('【性能测试】页面性能测试', () => {
   test('数据刷新性能 @P2', async ({ page }) => {
     await homePage.goto();
     await homePage.expectPageLoaded();
-    
+
     const startTime = Date.now();
-    
+
     // 触发刷新
     await page.reload();
     await homePage.expectPageLoaded();
-    
+
     const refreshTime = Date.now() - startTime;
-    
+
     // 验证刷新时间不超过2秒
     expect(refreshTime).toBeLessThan(2000);
-    
+
     console.log(`✅ 数据刷新时间: ${refreshTime}ms`);
   });
 });
@@ -194,20 +194,20 @@ test.describe('【安全测试】基础安全测试', () => {
    */
   test('XSS防护测试 @P1', async ({ page }) => {
     await loginPage.goto();
-    
+
     // 尝试XSS攻击
     const xssPayload = '<script>alert("XSS")</script>';
-    
+
     const usernameInput = page.locator('input[name="username"], input[type="text"]').first();
     if (await usernameInput.isVisible().catch(() => false)) {
       await usernameInput.fill(xssPayload);
-      
+
       // 提交表单
       const submitButton = page.locator('button[type="submit"], button:has-text("登录")').first();
       if (await submitButton.isVisible().catch(() => false)) {
         await submitButton.click();
       }
-      
+
       // 验证没有执行脚本
       const alertHandled = await page.evaluate(() => {
         return new Promise(resolve => {
@@ -215,7 +215,7 @@ test.describe('【安全测试】基础安全测试', () => {
           setTimeout(() => resolve(true), 100);
         });
       });
-      
+
       expect(alertHandled).toBe(true);
       console.log('✅ XSS防护测试通过');
     }
@@ -228,7 +228,7 @@ test.describe('【安全测试】基础安全测试', () => {
    */
   test('SQL 注入防护测试 @P1', async () => {
     await loginPage.goto();
-    
+
     // 验证登录页面可以正常访问
     console.log('✅ 登录页面可以正常访问（SQL 注入防护测试）');
   });

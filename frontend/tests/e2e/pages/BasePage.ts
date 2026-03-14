@@ -25,9 +25,9 @@ export abstract class BasePage {
    * 截图并保存
    */
   async screenshot(name: string) {
-    await this.page.screenshot({ 
+    await this.page.screenshot({
       path: `./tests/e2e/screenshots/${name}.png`,
-      fullPage: true 
+      fullPage: true,
     });
   }
 
@@ -56,7 +56,10 @@ export abstract class BasePage {
    * 检查元素是否存在
    */
   async isElementVisible(selector: string): Promise<boolean> {
-    return await this.page.locator(selector).isVisible().catch(() => false);
+    return await this.page
+      .locator(selector)
+      .isVisible()
+      .catch(() => false);
   }
 
   /**
@@ -77,7 +80,7 @@ export abstract class BasePage {
    * 获取元素文本
    */
   async getText(selector: string): Promise<string> {
-    return await this.page.locator(selector).textContent() || '';
+    return (await this.page.locator(selector).textContent()) || '';
   }
 
   /**

@@ -1,5 +1,5 @@
-import { describe, it, expect, beforeEach } from "vitest";
-import { useAdvancementStore, categoryConfig, categoryOrder } from "@/store/advancementStore";
+import { describe, it, expect, beforeEach } from 'vitest';
+import { useAdvancementStore, categoryConfig, categoryOrder } from '@/store/advancementStore';
 import type { SwissAdvancementResult } from '@/types';
 
 // 清理 localStorage 和 store 状态
@@ -43,7 +43,7 @@ describe('advancementStore', () => {
         winners2_1: ['team2', 'team4'],
         losersBracket: ['team3', 'team7', 'team8'],
         eliminated3rd: ['team5'],
-        eliminated0_3: ['team6']
+        eliminated0_3: ['team6'],
       };
 
       store.setAdvancement(newAdvancement, 'admin');
@@ -112,7 +112,17 @@ describe('advancementStore', () => {
     it('应该返回未分配的队伍', () => {
       const store = useAdvancementStore.getState();
 
-      const allTeamIds = ['team1', 'team2', 'team3', 'team4', 'team5', 'team6', 'team7', 'team8', 'team9'];
+      const allTeamIds = [
+        'team1',
+        'team2',
+        'team3',
+        'team4',
+        'team5',
+        'team6',
+        'team7',
+        'team8',
+        'team9',
+      ];
       const unassigned = store.getUnassignedTeams(allTeamIds);
 
       expect(unassigned).toEqual(['team9']);
@@ -171,7 +181,7 @@ describe('advancementStore', () => {
         'winners2_1',
         'losersBracket',
         'eliminated3rd',
-        'eliminated0_3'
+        'eliminated0_3',
       ]);
     });
   });

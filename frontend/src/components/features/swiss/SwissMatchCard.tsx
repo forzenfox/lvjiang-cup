@@ -19,8 +19,8 @@ const SwissMatchCard: React.FC<SwissMatchCardProps> = ({
   onClick,
   className = '',
 }) => {
-  const teamA = teams.find((t) => t.id === match.teamAId);
-  const teamB = teams.find((t) => t.id === match.teamBId);
+  const teamA = teams.find(t => t.id === match.teamAId);
+  const teamB = teams.find(t => t.id === match.teamBId);
   const isFinished = match.status === 'finished';
 
   return (
@@ -47,8 +47,8 @@ const SwissMatchCard: React.FC<SwissMatchCardProps> = ({
             match.winnerId === match.teamAId
               ? 'opacity-100'
               : isFinished
-              ? 'opacity-50'
-              : 'opacity-100'
+                ? 'opacity-50'
+                : 'opacity-100'
           }`}
           data-testid="team-a"
         >
@@ -79,8 +79,8 @@ const SwissMatchCard: React.FC<SwissMatchCardProps> = ({
             match.winnerId === match.teamBId
               ? 'opacity-100'
               : isFinished
-              ? 'opacity-50'
-              : 'opacity-100'
+                ? 'opacity-50'
+                : 'opacity-100'
           }`}
           data-testid="team-b"
         >

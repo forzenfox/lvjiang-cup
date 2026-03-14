@@ -14,13 +14,13 @@ interface AdminLayoutProps {
 
 /**
  * 管理后台布局组件
- * 
+ *
  * 功能：
  * - 侧边栏导航
  * - 集成 useAuth Hook 的登出功能
  * - 显示当前登录用户信息
  * - 响应式布局
- * 
+ *
  * @example
  * ```tsx
  * <AdminLayout>
@@ -59,22 +59,22 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
             <span className="text-secondary">驴酱杯</span> 管理后台
           </h2>
         </div>
-        
+
         {/* 导航菜单 */}
         <nav className="flex-1 p-4 space-y-2">
-          {navItems.map((item) => {
+          {navItems.map(item => {
             const Icon = item.icon;
             const isActive = location.pathname === item.path;
-            
+
             return (
               <Link
                 key={item.path}
                 to={item.path}
                 className={cn(
-                  "flex items-center space-x-3 px-4 py-3 rounded-md transition-colors",
-                  isActive 
-                    ? "bg-secondary/20 text-secondary" 
-                    : "text-gray-400 hover:bg-gray-700 hover:text-white"
+                  'flex items-center space-x-3 px-4 py-3 rounded-md transition-colors',
+                  isActive
+                    ? 'bg-secondary/20 text-secondary'
+                    : 'text-gray-400 hover:bg-gray-700 hover:text-white'
                 )}
               >
                 <Icon className="w-5 h-5" />
@@ -94,20 +94,14 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
           ) : user ? (
             <div className="px-4 py-2">
               <p className="text-sm text-gray-400">当前用户</p>
-              <p className="text-sm font-medium text-white truncate">
-                {user.username}
-              </p>
-              {user.role && (
-                <p className="text-xs text-gray-500 capitalize">
-                  {user.role}
-                </p>
-              )}
+              <p className="text-sm font-medium text-white truncate">{user.username}</p>
+              {user.role && <p className="text-xs text-gray-500 capitalize">{user.role}</p>}
             </div>
           ) : null}
 
           {/* 返回网站链接 */}
-          <Link 
-            to="/" 
+          <Link
+            to="/"
             className="flex items-center space-x-3 px-4 py-2 rounded-md text-gray-400 hover:bg-gray-700 hover:text-white transition-colors"
           >
             <Home className="w-5 h-5" />
@@ -115,9 +109,9 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
           </Link>
 
           {/* 登出按钮 */}
-          <Button 
-            variant="destructive" 
-            className="w-full justify-start" 
+          <Button
+            variant="destructive"
+            className="w-full justify-start"
             onClick={handleLogout}
             disabled={loading}
           >
@@ -129,9 +123,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
 
       {/* 主内容区域 */}
       <main className="flex-1 overflow-auto">
-        <div className="p-8">
-          {children}
-        </div>
+        <div className="p-8">{children}</div>
       </main>
     </div>
   );

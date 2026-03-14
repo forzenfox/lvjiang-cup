@@ -82,24 +82,24 @@ function handleError(error: unknown, defaultMessage: string): never {
 
 /**
  * 战队数据服务
- * 
+ *
  * 提供完整的战队 CRUD 操作，包含状态管理和错误处理
- * 
+ *
  * @example
  * ```ts
  * // 获取所有战队
  * const result = await teamService.getAll(1, 20);
- * 
+ *
  * // 创建战队
  * const newTeam = await teamService.create({
  *   name: '新战队',
  *   logo: 'https://example.com/logo.png',
  *   description: '战队描述'
  * });
- * 
+ *
  * // 更新战队
  * await teamService.update({ id: 'team1', name: '更新后的名称' });
- * 
+ *
  * // 删除战队
  * await teamService.remove('team1');
  * ```
@@ -113,10 +113,10 @@ export const teamService: TeamService = {
    */
   async getAll(page = 1, pageSize = 10): Promise<PaginatedResponse<Team>> {
     setState({ loading: true, error: null });
-    
+
     try {
       const response = await teamApi.getAll(page, pageSize);
-      
+
       setState({
         teams: response.data,
         pagination: {
@@ -126,7 +126,7 @@ export const teamService: TeamService = {
         },
         loading: false,
       });
-      
+
       return response;
     } catch (error) {
       handleError(error, '获取战队列表失败');
@@ -140,15 +140,15 @@ export const teamService: TeamService = {
    */
   async getById(id: string): Promise<Team> {
     setState({ loading: true, error: null });
-    
+
     try {
       const team = await teamApi.getById(id);
-      
+
       setState({
         currentTeam: team,
         loading: false,
       });
-      
+
       return team;
     } catch (error) {
       handleError(error, `获取战队 ${id} 信息失败`);
@@ -162,21 +162,21 @@ export const teamService: TeamService = {
    */
   async create(data: CreateTeamRequest): Promise<Team> {
     setState({ loading: true, error: null });
-    
+
     try {
       // 验证必填字段
       if (!data.name || data.name.trim() === '') {
         throw new Error('战队名称不能为空');
       }
-      
+
       const team = await teamApi.create(data);
-      
+
       // 更新本地列表
       setState({
         teams: [...state.teams, team],
         loading: false,
       });
-      
+
       return team;
     } catch (error) {
       handleError(error, '创建战队失败');
@@ -190,22 +190,22 @@ export const teamService: TeamService = {
    */
   async update(data: UpdateTeamRequest): Promise<Team> {
     setState({ loading: true, error: null });
-    
+
     try {
       // 验证 ID
       if (!data.id) {
         throw new Error('战队 ID 不能为空');
       }
-      
+
       const team = await teamApi.update(data);
-      
+
       // 更新本地列表中的战队
       setState({
-        teams: state.teams.map(t => t.id === team.id ? team : t),
+        teams: state.teams.map(t => (t.id === team.id ? team : t)),
         currentTeam: state.currentTeam?.id === team.id ? team : state.currentTeam,
         loading: false,
       });
-      
+
       return team;
     } catch (error) {
       handleError(error, '更新战队失败');
@@ -218,10 +218,10 @@ export const teamService: TeamService = {
    */
   async remove(id: string): Promise<void> {
     setState({ loading: true, error: null });
-    
+
     try {
       await teamApi.remove(id);
-      
+
       // 从本地列表中移除
       setState({
         teams: state.teams.filter(t => t.id !== id),
@@ -275,7 +275,7 @@ export const teamService: TeamService = {
 export function subscribeToTeamService(callback: (state: TeamServiceState) => void): () => void {
   listeners.add(callback);
   callback(state); // 立即通知当前状态
-  
+
   return () => {
     listeners.delete(callback);
   };

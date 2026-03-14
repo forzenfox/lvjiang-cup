@@ -10,13 +10,13 @@ export class HomePage extends BasePage {
   readonly heroSubtitle: Locator;
   readonly liveButton: Locator;
   readonly adminLink: Locator;
-  
+
   // 战队区域元素
   readonly teamsSection: Locator;
   readonly teamsTitle: Locator;
   readonly teamCards: Locator;
   readonly noTeamsMessage: Locator;
-  
+
   // 赛程区域元素
   readonly scheduleSection: Locator;
   readonly scheduleTitle: Locator;
@@ -26,19 +26,21 @@ export class HomePage extends BasePage {
 
   constructor(page: Page) {
     super(page);
-    
+
     // 英雄区域
     this.heroTitle = page.getByRole('heading', { name: /驴酱杯/ });
     this.heroSubtitle = page.getByText('驴酱公会终极对决');
     this.liveButton = page.getByRole('button', { name: /观看直播/ });
     this.adminLink = page.getByRole('link', { name: /管理/ });
-    
+
     // 战队区域
-    this.teamsSection = page.locator('section').filter({ has: page.getByRole('heading', { name: '参赛战队' }) });
+    this.teamsSection = page
+      .locator('section')
+      .filter({ has: page.getByRole('heading', { name: '参赛战队' }) });
     this.teamsTitle = page.getByRole('heading', { name: '参赛战队' });
     this.teamCards = page.getByTestId('team-card');
     this.noTeamsMessage = page.getByText(/暂无战队|还没有战队/);
-    
+
     // 赛程区域
     this.scheduleSection = page.locator('#schedule');
     this.scheduleTitle = page.getByRole('heading', { name: '赛程安排' });
@@ -145,9 +147,9 @@ export class HomePage extends BasePage {
    */
   async expectEmptyState() {
     // 检查是否有战队卡片或空状态消息
-    const hasTeamCards = await this.teamCards.count() > 0;
+    const hasTeamCards = (await this.teamCards.count()) > 0;
     const hasEmptyMessage = await this.noTeamsMessage.isVisible().catch(() => false);
-    
+
     expect(hasTeamCards || hasEmptyMessage).toBeTruthy();
   }
 
@@ -157,7 +159,9 @@ export class HomePage extends BasePage {
   async waitForTeamsLoaded(): Promise<void> {
     await this.page.waitForLoadState('networkidle');
     // 等待战队数据加载完成（有卡片或空状态）
-    await this.page.waitForSelector('[data-testid="team-card"], [data-testid="empty-teams"]', { timeout: 10000 });
+    await this.page.waitForSelector('[data-testid="team-card"], [data-testid="empty-teams"]', {
+      timeout: 10000,
+    });
   }
 
   /**
