@@ -18,7 +18,8 @@ export class CacheService {
       deleteOnExpire: true,
     });
 
-    this.cache.on('expired', (key: string, value: any) => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    this.cache.on('expired', (key: string, _value: any) => {
       this.logger.debug(`Cache expired: ${key}`);
     });
   }

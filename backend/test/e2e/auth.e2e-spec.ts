@@ -9,8 +9,6 @@ import { CacheModule } from '../../src/cache/cache.module';
 
 describe('Auth API (e2e)', () => {
   let app: INestApplication;
-  let authToken: string;
-  let refreshToken: string;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({

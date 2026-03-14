@@ -8,7 +8,6 @@ import { NotFoundException } from '@nestjs/common';
 describe('Matches Integration Tests', () => {
   let service: MatchesService;
   let databaseService: DatabaseService;
-  let cacheService: CacheService;
   let module: TestingModule;
 
   const mockCacheService = {

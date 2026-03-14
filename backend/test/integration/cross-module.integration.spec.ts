@@ -217,7 +217,7 @@ describe('Cross-Module Integration Tests', () => {
         scoreA: 2,
         scoreB: 1,
         winnerId: team1.id,
-        status: 'finished' as 'finished' as any,
+        status: 'finished' as const as any,
       });
 
       expect(updated.winnerId).toBe(team1.id);
@@ -303,7 +303,7 @@ describe('Cross-Module Integration Tests', () => {
         scoreA: 2,
         scoreB: 1,
         winnerId: teams[0].id,
-        status: 'finished' as 'finished' as any,
+        status: 'finished' as const as any,
       });
 
       // 验证更新后的数据
