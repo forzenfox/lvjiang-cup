@@ -43,7 +43,18 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       <footer className="bg-black/50 py-8 border-t border-white/10">
         <div className="container mx-auto px-4 text-center text-gray-400">
           <p>&copy; 2026 驴酱公会. 保留所有权利.</p>
-          <p className="text-sm mt-2">粉丝自制项目</p>
+          <p className="text-sm mt-2">
+            粉丝
+            <a
+              href="https://yuba.douyu.com/member/0LW7rv5967GY/main/news"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-400 hover:text-blue-300 underline mx-1"
+            >
+              @YangATree
+            </a>
+            自制项目
+          </p>
         </div>
       </footer>
     </div>

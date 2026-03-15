@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/ca
 import { Plus, Trash2, Edit2, Save, X } from 'lucide-react';
 
 // LOL固定位置
-const LOL_POSITIONS = ['上单', '打野', '中单', 'AD', '辅助'];
+const LOL_POSITIONS = ['上单', '打野', '中单', 'ADC', '辅助'];
 
 // 创建默认队员列表
 const createDefaultPlayers = (teamId: string): Player[] => {
