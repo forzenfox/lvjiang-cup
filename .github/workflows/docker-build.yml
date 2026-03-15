@@ -1,10 +1,13 @@
 name: Build and Push Docker Images
 
 on:
-  push:
-    branches: [main, master]
-    tags: ['v*']
   workflow_dispatch:
+    inputs:
+      tag:
+        description: '镜像标签 (例如: latest, v1.0.0)'
+        required: true
+        default: 'latest'
+        type: string
 
 env:
   REGISTRY: ghcr.io
@@ -50,7 +53,7 @@ jobs:
         with:
           context: ./backend
           push: true
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:${{ github.ref_name == 'main' && 'latest' || github.ref_name }}
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:${{ inputs.tag }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -61,6 +64,6 @@ jobs:
         with:
           context: ./frontend
           push: true
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:${{ github.ref_name == 'main' && 'latest' || github.ref_name }}
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:${{ inputs.tag }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
