@@ -49,7 +49,7 @@ export const createPlaceholderMatch = (gameNum?: number): Match => ({
   status: 'upcoming',
   startTime: '',
   stage: 'elimination',
-  eliminationGameNumber: gameNum
+  eliminationGameNumber: gameNum,
 });
 
 // 根据比赛编号获取位置

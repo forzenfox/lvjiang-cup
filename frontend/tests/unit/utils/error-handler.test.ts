@@ -62,8 +62,14 @@ describe('Error Handler', () => {
 
     it('should return false for non-network errors', () => {
       const error = new AxiosError('Server Error');
-       
-      error.response = { status: 500, statusText: 'Internal Server Error', data: {}, headers: {}, config: {} as unknown as AxiosError['config'] };
+
+      error.response = {
+        status: 500,
+        statusText: 'Internal Server Error',
+        data: {},
+        headers: {},
+        config: {} as unknown as AxiosError['config'],
+      };
 
       expect(isNetworkError(error)).toBe(false);
     });
@@ -93,7 +99,9 @@ describe('Error Handler', () => {
       expect(getHttpErrorMessage(HttpStatusCode.BAD_REQUEST)).toBe('请求参数错误，请检查输入');
       expect(getHttpErrorMessage(HttpStatusCode.UNAUTHORIZED)).toBe('登录已过期，请重新登录');
       expect(getHttpErrorMessage(HttpStatusCode.NOT_FOUND)).toBe('请求的资源不存在');
-      expect(getHttpErrorMessage(HttpStatusCode.INTERNAL_SERVER_ERROR)).toBe('服务器内部错误，请稍后再试');
+      expect(getHttpErrorMessage(HttpStatusCode.INTERNAL_SERVER_ERROR)).toBe(
+        '服务器内部错误，请稍后再试'
+      );
     });
 
     it('should return generic message for unknown status codes', () => {
@@ -129,7 +137,7 @@ describe('Error Handler', () => {
         statusText: 'Unauthorized',
         data: { message: 'Unauthorized' },
         headers: {},
-         
+
         config: {} as unknown as AxiosError['config'],
       };
 
@@ -146,7 +154,7 @@ describe('Error Handler', () => {
         statusText: 'Internal Server Error',
         data: { message: 'Internal Server Error' },
         headers: {},
-         
+
         config: {} as unknown as AxiosError['config'],
       };
 

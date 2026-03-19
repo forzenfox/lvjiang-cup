@@ -14,11 +14,11 @@ export async function get(id?: string): Promise<Stream> {
   const url = id ? `/streams/${id}` : '/streams/active';
   const response = await apiClient.get<ApiResponse<Stream>>(url);
   const responseData = response.data;
-  
+
   if (!responseData.success || !responseData.data) {
     throw new Error(responseData.message || '获取直播信息失败');
   }
-  
+
   return responseData.data;
 }
 
@@ -29,11 +29,11 @@ export async function get(id?: string): Promise<Stream> {
 export async function getAll(): Promise<Stream[]> {
   const response = await apiClient.get<ApiResponse<Stream[]>>('/streams');
   const responseData = response.data;
-  
+
   if (!responseData.success || !responseData.data) {
     throw new Error(responseData.message || '获取直播列表失败');
   }
-  
+
   return responseData.data;
 }
 
@@ -46,11 +46,11 @@ export async function update(data: UpdateStreamRequest): Promise<Stream> {
   const { id, ...updateData } = data;
   const response = await apiClient.patch<ApiResponse<Stream>>(`/streams/${id}`, updateData);
   const responseData = response.data;
-  
+
   if (!responseData.success || !responseData.data) {
     throw new Error(responseData.message || '更新直播失败');
   }
-  
+
   return responseData.data;
 }
 
@@ -62,11 +62,11 @@ export async function update(data: UpdateStreamRequest): Promise<Stream> {
 export async function create(data: Partial<Stream>): Promise<Stream> {
   const response = await apiClient.post<ApiResponse<Stream>>('/streams', data);
   const responseData = response.data;
-  
+
   if (!responseData.success || !responseData.data) {
     throw new Error(responseData.message || '创建直播失败');
   }
-  
+
   return responseData.data;
 }
 
@@ -77,7 +77,7 @@ export async function create(data: Partial<Stream>): Promise<Stream> {
 export async function remove(id: string): Promise<void> {
   const response = await apiClient.delete<ApiResponse<void>>(`/streams/${id}`);
   const responseData = response.data;
-  
+
   if (!responseData.success) {
     throw new Error(responseData.message || '删除直播失败');
   }

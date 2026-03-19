@@ -78,10 +78,24 @@ export class ErrorBoundary extends Component<Props, State> {
 
   reportError(error: Error, errorInfo: ErrorInfo) {
     // 可以集成 Sentry、LogRocket 等错误监控服务
-     
-    if (typeof window !== 'undefined' && (window as unknown as { Sentry?: { captureException: (e: Error, opts: { extra: { componentStack: string } }) => void } }).Sentry) {
-       
-      (window as unknown as { Sentry: { captureException: (e: Error, opts: { extra: { componentStack: string } }) => void } }).Sentry.captureException(error, {
+
+    if (
+      typeof window !== 'undefined' &&
+      (
+        window as unknown as {
+          Sentry?: {
+            captureException: (e: Error, opts: { extra: { componentStack: string } }) => void;
+          };
+        }
+      ).Sentry
+    ) {
+      (
+        window as unknown as {
+          Sentry: {
+            captureException: (e: Error, opts: { extra: { componentStack: string } }) => void;
+          };
+        }
+      ).Sentry.captureException(error, {
         extra: {
           componentStack: errorInfo.componentStack,
         },
@@ -118,19 +132,13 @@ export class ErrorBoundary extends Component<Props, State> {
             </div>
 
             <div className="space-y-2">
-              <h1 className="text-2xl font-bold text-foreground">
-                出错了
-              </h1>
-              <p className="text-muted-foreground">
-                抱歉，应用程序遇到了意外错误
-              </p>
+              <h1 className="text-2xl font-bold text-foreground">出错了</h1>
+              <p className="text-muted-foreground">抱歉，应用程序遇到了意外错误</p>
             </div>
 
             {error && (
               <div className="bg-muted rounded-lg p-4 text-left overflow-auto max-h-48">
-                <p className="text-sm font-mono text-destructive">
-                  {error.toString()}
-                </p>
+                <p className="text-sm font-mono text-destructive">{error.toString()}</p>
                 {errorInfo && (
                   <pre className="text-xs text-muted-foreground mt-2 overflow-auto">
                     {errorInfo.componentStack}
@@ -140,27 +148,15 @@ export class ErrorBoundary extends Component<Props, State> {
             )}
 
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Button
-                onClick={this.resetErrorBoundary}
-                variant="default"
-                className="gap-2"
-              >
+              <Button onClick={this.resetErrorBoundary} variant="default" className="gap-2">
                 <RefreshCw className="w-4 h-4" />
                 重试
               </Button>
-              <Button
-                onClick={this.handleReload}
-                variant="outline"
-                className="gap-2"
-              >
+              <Button onClick={this.handleReload} variant="outline" className="gap-2">
                 <RefreshCw className="w-4 h-4" />
                 刷新页面
               </Button>
-              <Button
-                onClick={this.handleGoHome}
-                variant="ghost"
-                className="gap-2"
-              >
+              <Button onClick={this.handleGoHome} variant="ghost" className="gap-2">
                 <Home className="w-4 h-4" />
                 返回首页
               </Button>
@@ -197,19 +193,14 @@ export const MiniErrorBoundary: React.FC<MiniErrorBoundaryProps> = ({
               <AlertTriangle className="w-4 h-4" />
               <span className="font-medium">组件加载失败</span>
             </div>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={onReset}
-              className="gap-1"
-            >
+            <Button size="sm" variant="outline" onClick={onReset} className="gap-1">
               <RefreshCw className="w-3 h-3" />
               重试
             </Button>
           </div>
         )
       }
-      onError={(error) => {
+      onError={error => {
         console.error('MiniErrorBoundary caught error:', error);
       }}
     >

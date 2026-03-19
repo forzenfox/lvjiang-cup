@@ -52,18 +52,18 @@ describe('SwissStageVisualEditor 点击编辑功能', () => {
     // 找到比赛卡片 - 通过查找包含 "已结束" 状态的卡片
     const statusBadge = screen.getByText('已结束');
     expect(statusBadge).toBeInTheDocument();
-    
+
     // 向上查找到卡片容器（带有 cursor-pointer 类的元素）
     let matchCard = statusBadge.parentElement;
     while (matchCard && !matchCard.className.includes('cursor-pointer')) {
       matchCard = matchCard.parentElement;
     }
-    
+
     expect(matchCard).toBeTruthy();
-    
+
     if (matchCard) {
       fireEvent.click(matchCard);
-      
+
       // 应该显示编辑表单（包含保存按钮）
       expect(screen.queryByText('保存')).toBeInTheDocument();
       expect(screen.queryByText('取消')).toBeInTheDocument();
@@ -89,18 +89,18 @@ describe('SwissStageVisualEditor 点击编辑功能', () => {
     // 找到第一个空槽位（显示"等待对阵"的元素）
     const waitingElements = screen.getAllByText('等待对阵');
     expect(waitingElements.length).toBeGreaterThan(0);
-    
+
     // 向上查找到可点击的容器
     let emptySlot = waitingElements[0].parentElement;
     while (emptySlot && !emptySlot.className.includes('cursor-pointer')) {
       emptySlot = emptySlot.parentElement;
     }
-    
+
     expect(emptySlot).toBeTruthy();
-    
+
     if (emptySlot) {
       fireEvent.click(emptySlot);
-      
+
       // 应该显示编辑表单
       expect(screen.queryByText('保存')).toBeInTheDocument();
       expect(screen.queryByText('取消')).toBeInTheDocument();
@@ -125,18 +125,18 @@ describe('SwissStageVisualEditor 点击编辑功能', () => {
     // 找到第一个空槽位
     const waitingElements = screen.getAllByText('等待对阵');
     expect(waitingElements.length).toBeGreaterThan(0);
-    
+
     // 向上查找到容器
     let emptySlot = waitingElements[0].parentElement;
     while (emptySlot && !emptySlot.className.includes('cursor-pointer')) {
       emptySlot = emptySlot.parentElement;
     }
-    
+
     expect(emptySlot).toBeTruthy();
-    
+
     if (emptySlot) {
       fireEvent.click(emptySlot);
-      
+
       // 不应该显示编辑表单
       expect(screen.queryByText('保存')).not.toBeInTheDocument();
       expect(screen.queryByText('取消')).not.toBeInTheDocument();

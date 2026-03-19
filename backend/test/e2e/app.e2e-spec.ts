@@ -23,22 +23,24 @@ describe('AppController (e2e)', () => {
         ConfigModule.forRoot({
           isGlobal: true,
           ignoreEnvFile: true,
-          load: [() => ({
-            jwt: {
-              secret: 'test-secret-key-for-jwt-signing-in-test-environment',
-              expiresIn: '1h',
-            },
-            database: {
-              path: ':memory:',
-            },
-            cache: {
-              ttl: 60,
-            },
-            admin: {
-              username: 'admin',
-              password: 'admin123',
-            },
-          })],
+          load: [
+            () => ({
+              jwt: {
+                secret: 'test-secret-key-for-jwt-signing-in-test-environment',
+                expiresIn: '1h',
+              },
+              database: {
+                path: ':memory:',
+              },
+              cache: {
+                ttl: 60,
+              },
+              admin: {
+                username: 'admin',
+                password: 'admin123',
+              },
+            }),
+          ],
         }),
         DatabaseModule,
         CacheModule,
@@ -50,11 +52,13 @@ describe('AppController (e2e)', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
-    app.useGlobalPipes(new ValidationPipe({
-      whitelist: true,
-      forbidNonWhitelisted: true,
-      transform: true,
-    }));
+    app.useGlobalPipes(
+      new ValidationPipe({
+        whitelist: true,
+        forbidNonWhitelisted: true,
+        transform: true,
+      }),
+    );
     await app.init();
 
     // 初始化比赛槽位
@@ -79,14 +83,18 @@ describe('AppController (e2e)', () => {
       expect(response.body).toHaveProperty('access_token');
       expect(response.body).toHaveProperty('token_type');
       expect(response.body.token_type).toBe('Bearer');
-      
+
       authToken = response.body.access_token;
     });
 
     it('2. 创建8支战队 - 应该成功创建所有战队', async () => {
       const teamNames = [
         { name: '驴酱战队', tag: 'LJ', players: ['洞主', '凯哥', '阿松', '小C', '余小C'] },
-        { name: '小卖部战队', tag: 'XMB', players: ['小卖部老板', '店员A', '店员B', '店员C', '店员D'] },
+        {
+          name: '小卖部战队',
+          tag: 'XMB',
+          players: ['小卖部老板', '店员A', '店员B', '店员C', '店员D'],
+        },
         { name: '鱼酱战队', tag: 'YJ', players: ['鱼人', '水母', '鲨鱼', '鲸鱼', '海豚'] },
         { name: '胡氏集团', tag: 'HS', players: ['胡凯莉', '凯利', '凯哥', '洞主', '阿洞'] },
         { name: '银剑君战队', tag: 'YJJ', players: ['银剑君', '剑君', '银酱', '银哥', '剑哥'] },
@@ -116,7 +124,7 @@ describe('AppController (e2e)', () => {
         expect(response.body).toHaveProperty('id');
         expect(response.body.name).toBe(teamData.name);
         expect(response.body.players).toHaveLength(5);
-        
+
         createdTeamIds.push(response.body.id);
       }
 
@@ -124,15 +132,13 @@ describe('AppController (e2e)', () => {
     });
 
     it('3. 验证8支战队已创建 - 应该返回8支战队', async () => {
-      const response = await request(app.getHttpServer())
-        .get('/teams')
-        .expect(200);
+      const response = await request(app.getHttpServer()).get('/teams').expect(200);
 
       expect(response.body).toHaveProperty('data');
       expect(Array.isArray(response.body.data)).toBe(true);
       expect(response.body.data.length).toBe(8);
       expect(response.body.total).toBe(8);
-      
+
       // 验证战队名称
       const teamNames = response.body.data.map((team: any) => team.name);
       expect(teamNames).toContain('驴酱战队');
@@ -142,14 +148,12 @@ describe('AppController (e2e)', () => {
     });
 
     it('4. 获取比赛列表 - 应该返回初始化的比赛槽位', async () => {
-      const response = await request(app.getHttpServer())
-        .get('/matches')
-        .expect(200);
+      const response = await request(app.getHttpServer()).get('/matches').expect(200);
 
       expect(response.body).toHaveProperty('data');
       expect(Array.isArray(response.body.data)).toBe(true);
       expect(response.body.data.length).toBeGreaterThan(0);
-      
+
       // 保存一个比赛ID用于后续测试
       matchId = response.body.data[0].id;
     });
@@ -176,10 +180,8 @@ describe('AppController (e2e)', () => {
 
     it('6. 更新比赛状态 - 应该成功更新比赛状态为进行中', async () => {
       // 获取另一个比赛ID
-      const matchesResponse = await request(app.getHttpServer())
-        .get('/matches')
-        .expect(200);
-      
+      const matchesResponse = await request(app.getHttpServer()).get('/matches').expect(200);
+
       const anotherMatchId = matchesResponse.body.data[1]?.id || matchId;
 
       const response = await request(app.getHttpServer())
@@ -221,18 +223,14 @@ describe('AppController (e2e)', () => {
 
     it('8. 验证数据一致性 - 战队和比赛数据应该一致', async () => {
       // 获取所有战队
-      const teamsResponse = await request(app.getHttpServer())
-        .get('/teams')
-        .expect(200);
+      const teamsResponse = await request(app.getHttpServer()).get('/teams').expect(200);
 
       // 获取所有比赛
-      const matchesResponse = await request(app.getHttpServer())
-        .get('/matches')
-        .expect(200);
+      const matchesResponse = await request(app.getHttpServer()).get('/matches').expect(200);
 
       // 验证所有比赛中的战队ID都存在于战队列表中
       const teamIds = new Set(teamsResponse.body.data.map((team: any) => team.id));
-      
+
       // 检查已分配战队的比赛
       matchesResponse.body.data.forEach((match: any) => {
         if (match.teamAId) {
@@ -295,17 +293,13 @@ describe('AppController (e2e)', () => {
       expect(response.body.message).toBe('Team deleted successfully');
 
       // 验证战队已被删除
-      await request(app.getHttpServer())
-        .get(`/teams/${teamIdToDelete}`)
-        .expect(404);
+      await request(app.getHttpServer()).get(`/teams/${teamIdToDelete}`).expect(404);
     });
   });
 
   describe('404 处理', () => {
     it('应该返回 404 对于不存在的路由', async () => {
-      const response = await request(app.getHttpServer())
-        .get('/non-existent-route')
-        .expect(404);
+      const response = await request(app.getHttpServer()).get('/non-existent-route').expect(404);
 
       expect(response.body).toHaveProperty('message');
       expect(response.body.statusCode).toBe(404);
@@ -321,9 +315,7 @@ describe('AppController (e2e)', () => {
     });
 
     it('应该返回 404 当战队不存在', async () => {
-      const response = await request(app.getHttpServer())
-        .get('/teams/non-existent-id')
-        .expect(404);
+      const response = await request(app.getHttpServer()).get('/teams/non-existent-id').expect(404);
 
       expect(response.body).toHaveProperty('message');
       expect(response.body.statusCode).toBe(404);
@@ -380,9 +372,7 @@ describe('AppController (e2e)', () => {
     });
 
     it('应该处理未处理的HTTP方法', async () => {
-      const response = await request(app.getHttpServer())
-        .patch('/teams')
-        .expect(404);
+      const response = await request(app.getHttpServer()).patch('/teams').expect(404);
 
       expect(response.body).toHaveProperty('message');
       expect(response.body.statusCode).toBe(404);
@@ -392,26 +382,23 @@ describe('AppController (e2e)', () => {
   describe('性能测试', () => {
     it('应该在合理时间内响应', async () => {
       const startTime = Date.now();
-      
-      await request(app.getHttpServer())
-        .get('/teams')
-        .expect(200);
-      
+
+      await request(app.getHttpServer()).get('/teams').expect(200);
+
       const endTime = Date.now();
       const responseTime = endTime - startTime;
-      
+
       expect(responseTime).toBeLessThan(500);
     });
 
     it('并发请求应该正常处理', async () => {
-      const promises = Array(10).fill(null).map(() =>
-        request(app.getHttpServer())
-          .get('/teams')
-      );
+      const promises = Array(10)
+        .fill(null)
+        .map(() => request(app.getHttpServer()).get('/teams'));
 
       const responses = await Promise.all(promises);
 
-      responses.forEach(response => {
+      responses.forEach((response) => {
         expect(response.status).toBe(200);
         expect(response.body).toHaveProperty('data');
         expect(Array.isArray(response.body.data)).toBe(true);

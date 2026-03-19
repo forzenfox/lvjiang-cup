@@ -143,8 +143,12 @@ describe('Cross-Module Integration Tests', () => {
     await databaseService.run('DELETE FROM matches');
     await databaseService.run('DELETE FROM players');
     await databaseService.run('DELETE FROM teams');
-    await databaseService.run(`UPDATE stream_info SET title = '', url = '', is_live = 0, updated_at = CURRENT_TIMESTAMP WHERE id = 1`);
-    await databaseService.run(`UPDATE advancement SET winners2_0 = '[]', winners2_1 = '[]', losers_bracket = '[]', eliminated_3rd = '[]', eliminated_0_3 = '[]', updated_at = CURRENT_TIMESTAMP WHERE id = 1`);
+    await databaseService.run(
+      `UPDATE stream_info SET title = '', url = '', is_live = 0, updated_at = CURRENT_TIMESTAMP WHERE id = 1`,
+    );
+    await databaseService.run(
+      `UPDATE advancement SET winners2_0 = '[]', winners2_1 = '[]', losers_bracket = '[]', eliminated_3rd = '[]', eliminated_0_3 = '[]', updated_at = CURRENT_TIMESTAMP WHERE id = 1`,
+    );
   }
 
   describe('Team-Match Data Flow', () => {
@@ -169,7 +173,7 @@ describe('Cross-Module Integration Tests', () => {
       // 创建比赛
       await databaseService.run(
         `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status) VALUES (?, ?, ?, ?, ?, ?)`,
-        ['match-1', team1.id, team2.id, 'swiss', '第一轮', 'upcoming']
+        ['match-1', team1.id, team2.id, 'swiss', '第一轮', 'upcoming'],
       );
 
       // 验证战队存在
@@ -205,7 +209,7 @@ describe('Cross-Module Integration Tests', () => {
       // 创建比赛
       await databaseService.run(
         `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status) VALUES (?, ?, ?, ?, ?, ?)`,
-        ['match-1', team1.id, team2.id, 'swiss', '第一轮', 'upcoming']
+        ['match-1', team1.id, team2.id, 'swiss', '第一轮', 'upcoming'],
       );
 
       // 更新比赛结果
@@ -213,7 +217,7 @@ describe('Cross-Module Integration Tests', () => {
         scoreA: 2,
         scoreB: 1,
         winnerId: team1.id,
-        status: 'finished' as 'finished' as any,
+        status: 'finished' as const as any,
       });
 
       expect(updated.winnerId).toBe(team1.id);
@@ -245,7 +249,7 @@ describe('Cross-Module Integration Tests', () => {
       // 创建比赛
       await databaseService.run(
         `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status) VALUES (?, ?, ?, ?, ?, ?)`,
-        ['match-1', team1.id, team2.id, 'swiss', '第一轮', 'upcoming']
+        ['match-1', team1.id, team2.id, 'swiss', '第一轮', 'upcoming'],
       );
 
       // 删除战队
@@ -276,7 +280,14 @@ describe('Cross-Module Integration Tests', () => {
       for (let i = 0; i < 2; i++) {
         await databaseService.run(
           `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status) VALUES (?, ?, ?, ?, ?, ?)`,
-          [`match-${i + 1}`, teams[i * 2].id, teams[i * 2 + 1].id, 'swiss', `第${i + 1}轮`, 'upcoming']
+          [
+            `match-${i + 1}`,
+            teams[i * 2].id,
+            teams[i * 2 + 1].id,
+            'swiss',
+            `第${i + 1}轮`,
+            'upcoming',
+          ],
         );
       }
 
@@ -292,7 +303,7 @@ describe('Cross-Module Integration Tests', () => {
         scoreA: 2,
         scoreB: 1,
         winnerId: teams[0].id,
-        status: 'finished' as 'finished' as any,
+        status: 'finished' as const as any,
       });
 
       // 验证更新后的数据
@@ -320,7 +331,7 @@ describe('Cross-Module Integration Tests', () => {
       // 创建比赛
       await databaseService.run(
         `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status) VALUES (?, ?, ?, ?, ?, ?)`,
-        ['match-1', team.id, 'team-2', 'swiss', '第一轮', 'upcoming']
+        ['match-1', team.id, 'team-2', 'swiss', '第一轮', 'upcoming'],
       );
 
       // 查询战队和比赛，写入缓存
@@ -364,12 +375,12 @@ describe('Cross-Module Integration Tests', () => {
       await databaseService.run(
         `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status, swiss_record) 
          VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        ['swiss-1', teams[0].id, teams[1].id, 'swiss', 'Round 1', 'finished', '0-0']
+        ['swiss-1', teams[0].id, teams[1].id, 'swiss', 'Round 1', 'finished', '0-0'],
       );
       await databaseService.run(
         `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status, swiss_record) 
          VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        ['swiss-2', teams[2].id, teams[3].id, 'swiss', 'Round 1', 'finished', '0-0']
+        ['swiss-2', teams[2].id, teams[3].id, 'swiss', 'Round 1', 'finished', '0-0'],
       );
 
       // 3. 更新比赛结果
@@ -422,7 +433,16 @@ describe('Cross-Module Integration Tests', () => {
         await databaseService.run(
           `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status, swiss_record, swiss_day) 
            VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-          [`swiss-${i}`, teams[i * 2].id, teams[i * 2 + 1].id, 'swiss', 'Round 1', 'finished', '0-0', 1]
+          [
+            `swiss-${i}`,
+            teams[i * 2].id,
+            teams[i * 2 + 1].id,
+            'swiss',
+            'Round 1',
+            'finished',
+            '0-0',
+            1,
+          ],
         );
       }
 
@@ -453,12 +473,12 @@ describe('Cross-Module Integration Tests', () => {
       await databaseService.run(
         `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status, swiss_record, winner_id) 
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-        ['match-1', teams[0].id, teams[1].id, 'swiss', 'Round 1', 'finished', '0-0', teams[0].id]
+        ['match-1', teams[0].id, teams[1].id, 'swiss', 'Round 1', 'finished', '0-0', teams[0].id],
       );
       await databaseService.run(
         `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status, swiss_record, winner_id) 
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-        ['match-2', teams[2].id, teams[3].id, 'swiss', 'Round 1', 'finished', '0-0', teams[2].id]
+        ['match-2', teams[2].id, teams[3].id, 'swiss', 'Round 1', 'finished', '0-0', teams[2].id],
       );
 
       // 根据比赛结果更新晋级名单
@@ -493,7 +513,7 @@ describe('Cross-Module Integration Tests', () => {
       await databaseService.run(
         `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status, winner_id) 
          VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        ['swiss-match', team.id, 'team-2', 'swiss', 'Round 1', 'finished', team.id]
+        ['swiss-match', team.id, 'team-2', 'swiss', 'Round 1', 'finished', team.id],
       );
 
       // 淘汰赛比赛
@@ -501,7 +521,17 @@ describe('Cross-Module Integration Tests', () => {
         `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status, 
          elimination_bracket, elimination_game_number, winner_id) 
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        ['elim-match', team.id, 'team-3', 'elimination', '胜者组决赛', 'finished', 'winners', 5, team.id]
+        [
+          'elim-match',
+          team.id,
+          'team-3',
+          'elimination',
+          '胜者组决赛',
+          'finished',
+          'winners',
+          5,
+          team.id,
+        ],
       );
 
       // 总决赛
@@ -509,7 +539,17 @@ describe('Cross-Module Integration Tests', () => {
         `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status, 
          elimination_bracket, elimination_game_number, winner_id) 
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        ['final-match', team.id, 'team-4', 'elimination', '总决赛', 'finished', 'grand_finals', 8, team.id]
+        [
+          'final-match',
+          team.id,
+          'team-4',
+          'elimination',
+          '总决赛',
+          'finished',
+          'grand_finals',
+          8,
+          team.id,
+        ],
       );
 
       // 验证战队在所有阶段的比赛
@@ -597,7 +637,7 @@ describe('Cross-Module Integration Tests', () => {
       await databaseService.run(
         `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status) 
          VALUES (?, ?, ?, ?, ?, ?)`,
-        ['match-1', team.id, 'team-2', 'swiss', 'Round 1', 'upcoming']
+        ['match-1', team.id, 'team-2', 'swiss', 'Round 1', 'upcoming'],
       );
 
       // 3. 更新直播信息
@@ -636,7 +676,7 @@ describe('Cross-Module Integration Tests', () => {
       await databaseService.run(
         `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status) 
          VALUES (?, ?, ?, ?, ?, ?)`,
-        ['match-1', team.id, 'team-2', 'swiss', 'Round 1', 'upcoming']
+        ['match-1', team.id, 'team-2', 'swiss', 'Round 1', 'upcoming'],
       );
 
       // 更新战队名称
@@ -675,7 +715,16 @@ describe('Cross-Module Integration Tests', () => {
         await databaseService.run(
           `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status, swiss_record, swiss_day) 
            VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-          [`swiss-${i}`, teams[i * 2].id, teams[i * 2 + 1].id, 'swiss', 'Round 1', 'upcoming', '0-0', 1]
+          [
+            `swiss-${i}`,
+            teams[i * 2].id,
+            teams[i * 2 + 1].id,
+            'swiss',
+            'Round 1',
+            'upcoming',
+            '0-0',
+            1,
+          ],
         );
       }
 
@@ -697,8 +746,8 @@ describe('Cross-Module Integration Tests', () => {
       }
 
       // 5. 更新晋级名单
-      const winners = teams.filter((_, i) => i % 2 === 0).map(t => t.id);
-      const losers = teams.filter((_, i) => i % 2 === 1).map(t => t.id);
+      const winners = teams.filter((_, i) => i % 2 === 0).map((t) => t.id);
+      const losers = teams.filter((_, i) => i % 2 === 1).map((t) => t.id);
 
       await advancementService.update({
         winners2_0: winners,
@@ -734,7 +783,7 @@ describe('Cross-Module Integration Tests', () => {
       await databaseService.run(
         `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status, winner_id) 
          VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        ['match-1', team.id, 'team-2', 'swiss', 'Round 1', 'finished', team.id]
+        ['match-1', team.id, 'team-2', 'swiss', 'Round 1', 'finished', team.id],
       );
 
       await advancementService.update({
@@ -765,8 +814,7 @@ describe('Cross-Module Integration Tests', () => {
       });
 
       // 尝试对不存在的比赛进行操作（应该失败）
-      await expect(matchesService.update('non-existent', { scoreA: 1 }))
-        .rejects.toThrow();
+      await expect(matchesService.update('non-existent', { scoreA: 1 })).rejects.toThrow();
 
       // 验证战队服务仍然正常工作
       const foundTeam = await teamsService.findOne(team.id);
@@ -788,8 +836,15 @@ describe('Cross-Module Integration Tests', () => {
         databaseService.run(
           `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status) 
            VALUES (?, ?, ?, ?, ?, ?)`,
-          ['match-1', 'invalid-team-id', 'another-invalid', 'invalid_stage', 'Round 1', 'invalid_status']
-        )
+          [
+            'match-1',
+            'invalid-team-id',
+            'another-invalid',
+            'invalid_stage',
+            'Round 1',
+            'invalid_status',
+          ],
+        ),
       ).rejects.toThrow();
 
       // 验证战队数据不受影响
@@ -820,7 +875,7 @@ describe('Cross-Module Integration Tests', () => {
       await databaseService.run(
         `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status) 
          VALUES (?, ?, ?, ?, ?, ?)`,
-        ['match-1', team1.id, team2.id, 'swiss', 'Round 1', 'upcoming']
+        ['match-1', team1.id, team2.id, 'swiss', 'Round 1', 'upcoming'],
       );
 
       // 更新比赛结果
@@ -904,7 +959,7 @@ describe('Cross-Module Integration Tests', () => {
             logo: `logo${i}.png`,
             description: `Description ${i}`,
             players: [],
-          })
+          }),
         );
       }
 
@@ -914,8 +969,8 @@ describe('Cross-Module Integration Tests', () => {
           databaseService.run(
             `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status) 
              VALUES (?, ?, ?, ?, ?, ?)`,
-            [`match-${i}`, `team-a-${i}`, `team-b-${i}`, 'swiss', `Round ${i}`, 'upcoming']
-          )
+            [`match-${i}`, `team-a-${i}`, `team-b-${i}`, 'swiss', `Round ${i}`, 'upcoming'],
+          ),
         );
       }
 
@@ -981,7 +1036,14 @@ describe('Cross-Module Integration Tests', () => {
         await databaseService.run(
           `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status) 
            VALUES (?, ?, ?, ?, ?, ?)`,
-          [`perf-match-${i}`, `perf-team-${i * 2}`, `perf-team-${i * 2 + 1}`, 'swiss', `Round ${i}`, 'upcoming']
+          [
+            `perf-match-${i}`,
+            `perf-team-${i * 2}`,
+            `perf-team-${i * 2 + 1}`,
+            'swiss',
+            `Round ${i}`,
+            'upcoming',
+          ],
         );
       }
 
@@ -1010,7 +1072,7 @@ describe('Cross-Module Integration Tests', () => {
       await databaseService.run(
         `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status, winner_id) 
          VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        ['perf-match', team.id, 'team-2', 'swiss', 'Round 1', 'finished', team.id]
+        ['perf-match', team.id, 'team-2', 'swiss', 'Round 1', 'finished', team.id],
       );
 
       await streamsService.update('1', {

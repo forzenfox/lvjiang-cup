@@ -49,8 +49,22 @@ describe('MatchesController', () => {
     it('应该返回分页比赛列表', async () => {
       // Arrange
       const mockMatches: Match[] = [
-        { id: 'match1', round: 'Round 1', stage: 'swiss', scoreA: 0, scoreB: 0, status: 'upcoming' },
-        { id: 'match2', round: 'Round 2', stage: 'swiss', scoreA: 2, scoreB: 1, status: 'finished' },
+        {
+          id: 'match1',
+          round: 'Round 1',
+          stage: 'swiss',
+          scoreA: 0,
+          scoreB: 0,
+          status: 'upcoming',
+        },
+        {
+          id: 'match2',
+          round: 'Round 2',
+          stage: 'swiss',
+          scoreA: 2,
+          scoreB: 1,
+          status: 'finished',
+        },
       ];
       mockMatchesService.findAll.mockResolvedValue(mockMatches);
 
@@ -70,7 +84,14 @@ describe('MatchesController', () => {
     it('应该按阶段筛选返回比赛列表', async () => {
       // Arrange
       const mockSwissMatches: Match[] = [
-        { id: 'match1', round: 'Round 1', stage: 'swiss', scoreA: 0, scoreB: 0, status: 'upcoming' },
+        {
+          id: 'match1',
+          round: 'Round 1',
+          stage: 'swiss',
+          scoreA: 0,
+          scoreB: 0,
+          status: 'upcoming',
+        },
       ];
       mockMatchesService.findAll.mockResolvedValue(mockSwissMatches);
 
@@ -84,7 +105,9 @@ describe('MatchesController', () => {
 
     it('应该使用默认分页值', async () => {
       // Arrange
-      const mockMatches: Match[] = [{ id: '1', round: 'Round 1', stage: 'swiss', scoreA: 0, scoreB: 0, status: 'upcoming' }];
+      const mockMatches: Match[] = [
+        { id: '1', round: 'Round 1', stage: 'swiss', scoreA: 0, scoreB: 0, status: 'upcoming' },
+      ];
       mockMatchesService.findAll.mockResolvedValue(mockMatches);
 
       // Act
@@ -250,7 +273,9 @@ describe('MatchesController', () => {
       mockMatchesService.update.mockRejectedValue(new BadRequestException('Invalid data'));
 
       // Act & Assert
-      await expect(controller.update('match1', invalidDto as any)).rejects.toThrow(BadRequestException);
+      await expect(controller.update('match1', invalidDto as any)).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('应该在状态值无效时抛出错误', async () => {
@@ -259,7 +284,9 @@ describe('MatchesController', () => {
       mockMatchesService.update.mockRejectedValue(new BadRequestException('Invalid status'));
 
       // Act & Assert
-      await expect(controller.update('match1', invalidDto as any)).rejects.toThrow(BadRequestException);
+      await expect(controller.update('match1', invalidDto as any)).rejects.toThrow(
+        BadRequestException,
+      );
     });
   });
 
@@ -277,7 +304,9 @@ describe('MatchesController', () => {
       mockMatchesService.update.mockRejectedValue(new NotFoundException('Match not found'));
 
       // Act & Assert
-      await expect(controller.update('nonexistent', { scoreA: 2 })).rejects.toThrow(NotFoundException);
+      await expect(controller.update('nonexistent', { scoreA: 2 })).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('应该在清空不存在比赛的比分时抛出NotFoundException', async () => {

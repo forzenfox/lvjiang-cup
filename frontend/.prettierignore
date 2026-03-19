@@ -1,0 +1,10 @@
+dist
+node_modules
+*.log
+.env
+.env.*
+coverage
+.vite
+*.min.js
+*.min.css
+public

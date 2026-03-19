@@ -13,7 +13,7 @@ export interface ApiResponse<T> {
 export class TransformInterceptor<T> implements NestInterceptor<T, ApiResponse<T>> {
   intercept(context: ExecutionContext, next: CallHandler): Observable<ApiResponse<T>> {
     return next.handle().pipe(
-      map(data => {
+      map((data) => {
         // 如果已经是标准响应格式，直接返回
         if (data && typeof data === 'object' && 'success' in data && 'code' in data) {
           return data;

@@ -18,23 +18,25 @@ describe('Auth API (e2e)', () => {
         ConfigModule.forRoot({
           isGlobal: true,
           ignoreEnvFile: true,
-          load: [() => ({
-            jwt: {
-              secret: 'test-secret-key-for-jwt-signing-in-test-environment',
-              expiresIn: '1h',
-              refreshExpiresIn: '7d',
-            },
-            database: {
-              path: ':memory:',
-            },
-            cache: {
-              ttl: 60,
-            },
-            admin: {
-              username: 'admin',
-              password: 'admin123',
-            },
-          })],
+          load: [
+            () => ({
+              jwt: {
+                secret: 'test-secret-key-for-jwt-signing-in-test-environment',
+                expiresIn: '1h',
+                refreshExpiresIn: '7d',
+              },
+              database: {
+                path: ':memory:',
+              },
+              cache: {
+                ttl: 60,
+              },
+              admin: {
+                username: 'admin',
+                password: 'admin123',
+              },
+            }),
+          ],
         }),
         DatabaseModule,
         CacheModule,
@@ -44,11 +46,13 @@ describe('Auth API (e2e)', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
-    app.useGlobalPipes(new ValidationPipe({
-      whitelist: true,
-      forbidNonWhitelisted: true,
-      transform: true,
-    }));
+    app.useGlobalPipes(
+      new ValidationPipe({
+        whitelist: true,
+        forbidNonWhitelisted: true,
+        transform: true,
+      }),
+    );
     await app.init();
   });
 
@@ -71,7 +75,7 @@ describe('Auth API (e2e)', () => {
       expect(response.body).toHaveProperty('access_token');
       expect(response.body).toHaveProperty('token_type');
       expect(response.body.token_type).toBe('Bearer');
-      
+
       authToken = response.body.access_token;
       if (response.body.refresh_token) {
         refreshToken = response.body.refresh_token;
@@ -167,8 +171,9 @@ describe('Auth API (e2e)', () => {
 
     it('过期 token - 应该拒绝访问受保护路由', async () => {
       // 使用一个伪造的过期 token
-      const expiredToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJleHAiOjE1MTYyMzkwMjJ9.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c';
-      
+      const expiredToken =
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJleHAiOjE1MTYyMzkwMjJ9.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c';
+
       const response = await request(app.getHttpServer())
         .post('/admin/teams')
         .set('Authorization', `Bearer ${expiredToken}`)
@@ -196,13 +201,11 @@ describe('Auth API (e2e)', () => {
 
     it('有效 token - 应该允许访问受保护路由', async () => {
       // 先登录获取 token
-      const loginResponse = await request(app.getHttpServer())
-        .post('/admin/auth/login')
-        .send({
-          username: 'admin',
-          password: 'admin123',
-        });
-      
+      const loginResponse = await request(app.getHttpServer()).post('/admin/auth/login').send({
+        username: 'admin',
+        password: 'admin123',
+      });
+
       const token = loginResponse.body.access_token;
 
       // 访问受保护的路由（例如 teams）
@@ -219,13 +222,11 @@ describe('Auth API (e2e)', () => {
   describe('Token Refresh - token 刷新', () => {
     it('应该成功刷新 access token', async () => {
       // 先登录获取 token
-      const loginResponse = await request(app.getHttpServer())
-        .post('/admin/auth/login')
-        .send({
-          username: 'admin',
-          password: 'admin123',
-        });
-      
+      const loginResponse = await request(app.getHttpServer()).post('/admin/auth/login').send({
+        username: 'admin',
+        password: 'admin123',
+      });
+
       const currentToken = loginResponse.body.access_token;
 
       // 使用当前token访问受保护接口，验证token有效
@@ -240,13 +241,11 @@ describe('Auth API (e2e)', () => {
 
     it('应该拒绝使用已注销的 token', async () => {
       // 先登录获取 token
-      const loginResponse = await request(app.getHttpServer())
-        .post('/admin/auth/login')
-        .send({
-          username: 'admin',
-          password: 'admin123',
-        });
-      
+      const loginResponse = await request(app.getHttpServer()).post('/admin/auth/login').send({
+        username: 'admin',
+        password: 'admin123',
+      });
+
       const token = loginResponse.body.access_token;
 
       // 如果有注销端点，先注销
@@ -265,13 +264,11 @@ describe('Auth API (e2e)', () => {
   describe('Token Logout - token 注销', () => {
     it('应该成功注销并失效token', async () => {
       // 先登录获取 token
-      const loginResponse = await request(app.getHttpServer())
-        .post('/admin/auth/login')
-        .send({
-          username: 'admin',
-          password: 'admin123',
-        });
-      
+      const loginResponse = await request(app.getHttpServer()).post('/admin/auth/login').send({
+        username: 'admin',
+        password: 'admin123',
+      });
+
       const token = loginResponse.body.access_token;
 
       // 验证token有效
@@ -291,19 +288,19 @@ describe('Auth API (e2e)', () => {
   describe('Concurrent Login - 并发登录限制', () => {
     it('应该允许多个并发登录请求', async () => {
       // 同时发起多个登录请求
-      const loginPromises = Array(5).fill(null).map(() =>
-        request(app.getHttpServer())
-          .post('/admin/auth/login')
-          .send({
+      const loginPromises = Array(5)
+        .fill(null)
+        .map(() =>
+          request(app.getHttpServer()).post('/admin/auth/login').send({
             username: 'admin',
             password: 'admin123',
-          })
-      );
+          }),
+        );
 
       const responses = await Promise.all(loginPromises);
 
       // 所有请求都应该成功
-      responses.forEach(response => {
+      responses.forEach((response) => {
         expect(response.status).toBe(201);
         expect(response.body).toHaveProperty('access_token');
         expect(response.body).toHaveProperty('token_type');
@@ -311,10 +308,10 @@ describe('Auth API (e2e)', () => {
       });
 
       // 验证所有token都是有效的（由于JWT包含时间戳，理论上应该不同）
-      const tokens = responses.map(r => r.body.access_token);
+      const tokens = responses.map((r) => r.body.access_token);
       // 注意：如果后端使用mock JWT，token可能相同
       expect(tokens.length).toBe(5);
-      expect(tokens.every(t => typeof t === 'string' && t.length > 0)).toBe(true);
+      expect(tokens.every((t) => typeof t === 'string' && t.length > 0)).toBe(true);
     });
 
     it('应该处理并发登录中的失败请求', async () => {

@@ -39,7 +39,9 @@ export class TeamsService {
     }
 
     // 获取所有战队
-    const teams = await this.databaseService.all<any>('SELECT * FROM teams ORDER BY created_at DESC');
+    const teams = await this.databaseService.all<any>(
+      'SELECT * FROM teams ORDER BY created_at DESC',
+    );
 
     // 获取所有队员
     const players = await this.databaseService.all<any>('SELECT * FROM players');
@@ -69,7 +71,7 @@ export class TeamsService {
 
   async findOne(id: string): Promise<Team> {
     const cacheKey = `${this.CACHE_KEY_PREFIX}${id}`;
-    
+
     // 尝试从缓存获取
     const cached = this.cacheService.get<Team>(cacheKey);
     if (cached) {
@@ -84,7 +86,9 @@ export class TeamsService {
     }
 
     // 获取队员
-    const players = await this.databaseService.all<any>('SELECT * FROM players WHERE team_id = ?', [id]);
+    const players = await this.databaseService.all<any>('SELECT * FROM players WHERE team_id = ?', [
+      id,
+    ]);
 
     const result: Team = {
       id: team.id,
@@ -123,19 +127,13 @@ export class TeamsService {
       for (const player of createTeamDto.players) {
         await this.databaseService.run(
           `INSERT INTO players (id, name, avatar, position, team_id) VALUES (?, ?, ?, ?, ?)`,
-          [
-            player.id,
-            player.name,
-            player.avatar || null,
-            player.position,
-            createTeamDto.id,
-          ],
+          [player.id, player.name, player.avatar || null, player.position, createTeamDto.id],
         );
       }
     }
 
     this.logger.log(`Team created: ${createTeamDto.id}`);
-    
+
     // 清除缓存
     this.cacheService.del(this.CACHE_KEY_ALL);
 
@@ -169,11 +167,8 @@ export class TeamsService {
     if (updates.length > 0) {
       updates.push('updated_at = CURRENT_TIMESTAMP');
       values.push(id);
-      
-      await this.databaseService.run(
-        `UPDATE teams SET ${updates.join(', ')} WHERE id = ?`,
-        values,
-      );
+
+      await this.databaseService.run(`UPDATE teams SET ${updates.join(', ')} WHERE id = ?`, values);
     }
 
     // 更新队员（如果提供了队员列表）
@@ -199,7 +194,7 @@ export class TeamsService {
     }
 
     this.logger.log(`Team updated: ${id}`);
-    
+
     // 清除缓存
     this.cacheService.del(this.CACHE_KEY_ALL);
     this.cacheService.del(`${this.CACHE_KEY_PREFIX}${id}`);
@@ -218,7 +213,7 @@ export class TeamsService {
     await this.databaseService.run('DELETE FROM teams WHERE id = ?', [id]);
 
     this.logger.log(`Team deleted: ${id}`);
-    
+
     // 清除缓存
     this.cacheService.del(this.CACHE_KEY_ALL);
     this.cacheService.del(`${this.CACHE_KEY_PREFIX}${id}`);

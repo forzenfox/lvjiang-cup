@@ -1,13 +1,4 @@
-import {
-  Controller,
-  Get,
-  Put,
-  Delete,
-  Body,
-  Param,
-  Query,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Get, Put, Delete, Body, Param, Query, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiParam, ApiQuery } from '@nestjs/swagger';
 import { MatchesService, Match } from './matches.service';
 import { UpdateMatchDto } from './dto/update-match.dto';
@@ -29,13 +20,13 @@ export class MatchesController {
     const allMatches = await this.matchesService.findAll(stage);
     const page = paginationDto.page || 1;
     const pageSize = paginationDto.pageSize || 100;
-    
+
     // 计算分页
     const total = allMatches.length;
     const start = (page - 1) * pageSize;
     const end = start + pageSize;
     const paginatedData = allMatches.slice(start, end);
-    
+
     return {
       data: paginatedData,
       total,
@@ -56,10 +47,7 @@ export class MatchesController {
   @ApiBearerAuth()
   @ApiOperation({ summary: '更新比赛（需认证）' })
   @ApiParam({ name: 'id', description: '比赛ID' })
-  async update(
-    @Param('id') id: string,
-    @Body() updateMatchDto: UpdateMatchDto,
-  ): Promise<Match> {
+  async update(@Param('id') id: string, @Body() updateMatchDto: UpdateMatchDto): Promise<Match> {
     return this.matchesService.update(id, updateMatchDto);
   }
 

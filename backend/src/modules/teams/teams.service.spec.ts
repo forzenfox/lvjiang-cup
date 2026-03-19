@@ -2,7 +2,6 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { TeamsService } from './teams.service';
 import { DatabaseService } from '../../database/database.service';
 import { CacheService } from '../../cache/cache.service';
-import { ConfigService } from '@nestjs/config';
 import { NotFoundException } from '@nestjs/common';
 
 describe('TeamsService', () => {

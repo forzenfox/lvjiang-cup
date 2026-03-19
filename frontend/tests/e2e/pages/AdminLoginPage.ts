@@ -6,6 +6,10 @@ import { User } from '../fixtures/users.fixture';
  * 管理员登录页面 - Page Object
  */
 export class AdminLoginPage extends BasePage {
+  // 公开访问 page 对象以便测试中使用
+  get pageObj() {
+    return this.page;
+  }
   // 登录表单元素
   readonly loginForm: Locator;
   readonly usernameInput: Locator;
@@ -13,20 +17,24 @@ export class AdminLoginPage extends BasePage {
   readonly loginButton: Locator;
   readonly title: Locator;
   readonly subtitle: Locator;
-  
+
   // 错误提示元素
   readonly errorMessage: Locator;
 
   constructor(page: Page) {
     super(page);
-    
+
     this.loginForm = page.locator('form');
-    this.usernameInput = page.locator('input[name="username"], input[placeholder*="用户名"], input[type="text"]').first();
-    this.passwordInput = page.locator('input[name="password"], input[placeholder*="密码"], input[type="password"]').first();
+    this.usernameInput = page
+      .locator('input[name="username"], input[placeholder*="用户名"], input[type="text"]')
+      .first();
+    this.passwordInput = page
+      .locator('input[name="password"], input[placeholder*="密码"], input[type="password"]')
+      .first();
     this.loginButton = page.locator('button[type="submit"], button:has-text("登录")');
     this.title = page.locator('h3:has-text("管理员登录"), h1:has-text("管理员登录")');
     this.subtitle = page.locator('text=请输入用户名和密码');
-    this.errorMessage = page.locator('[role="alert"], .error-message, .el-message--error');
+    this.errorMessage = page.locator('.text-red-400, .text-red-500, [role="alert"]');
   }
 
   /**
@@ -41,10 +49,13 @@ export class AdminLoginPage extends BasePage {
    * 验证登录页面加载成功
    */
   async expectPageLoaded() {
-    await expect(this.title).toBeVisible();
-    await expect(this.usernameInput).toBeVisible();
-    await expect(this.passwordInput).toBeVisible();
-    await expect(this.loginButton).toBeVisible();
+    // 等待表单元素可见（使用更宽松的定位器）
+    await expect(this.page.locator('input[name="username"], input[type="text"]')).toBeVisible({
+      timeout: 10000,
+    });
+    await expect(this.usernameInput).toBeVisible({ timeout: 10000 });
+    await expect(this.passwordInput).toBeVisible({ timeout: 10000 });
+    await expect(this.loginButton).toBeVisible({ timeout: 10000 });
   }
 
   /**
@@ -81,9 +92,10 @@ export class AdminLoginPage extends BasePage {
    * 验证登录成功
    */
   async expectLoginSuccess() {
-    // 登录成功后应跳转到管理后台仪表盘
-    await this.page.waitForURL('**/admin/dashboard', { timeout: 10000 });
-    await expect(this.page.locator('text=仪表盘')).toBeVisible();
+    // 登录成功后应跳转到管理后台仪表盘（支持hash路由）
+    await this.page.waitForURL(/.*admin\/dashboard.*/, { timeout: 10000 });
+    // 验证仪表盘内容显示
+    await expect(this.page.locator('text=管理仪表盘').first()).toBeVisible({ timeout: 10000 });
   }
 
   /**

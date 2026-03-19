@@ -38,7 +38,7 @@ interface OptimisticConfig<T> {
 /**
  * 乐观更新 Hook
  * 用于实现乐观更新模式，先更新 UI 再发送请求
- * 
+ *
  * @example
  * const { data, isPending, update, rollback } = useOptimistic({
  *   initialData: { count: 0 },
@@ -177,7 +177,7 @@ export function useOptimistic<T>(config: OptimisticConfig<T>) {
    * 手动设置数据
    */
   const setData = useCallback((data: T | ((prev: T) => T)) => {
-    setState((prev) => ({
+    setState(prev => ({
       ...prev,
       data: typeof data === 'function' ? (data as (prev: T) => T)(prev.data) : data,
       isOptimistic: false,
@@ -229,7 +229,7 @@ export function useBatchOptimistic<T extends { id: string | number }>(
    */
   const updateItem = useCallback(
     async (id: string | number, updates: Partial<T>) => {
-      const item = items.find((i) => i.id === id);
+      const item = items.find(i => i.id === id);
       if (!item) return { success: false, error: new Error('Item not found') };
 
       const updatedItem = { ...item, ...updates };
@@ -238,15 +238,15 @@ export function useBatchOptimistic<T extends { id: string | number }>(
       originalItemsRef.current.set(id, item);
 
       // 乐观更新
-      setItems((prev) => prev.map((i) => (i.id === id ? updatedItem : i)));
-      setPendingIds((prev) => new Set(prev).add(id));
+      setItems(prev => prev.map(i => (i.id === id ? updatedItem : i)));
+      setPendingIds(prev => new Set(prev).add(id));
 
       try {
         const result = await onSubmit(updatedItem);
 
         // 更新为真实数据
-        setItems((prev) => prev.map((i) => (i.id === id ? result : i)));
-        setPendingIds((prev) => {
+        setItems(prev => prev.map(i => (i.id === id ? result : i)));
+        setPendingIds(prev => {
           const next = new Set(prev);
           next.delete(id);
           return next;
@@ -263,10 +263,10 @@ export function useBatchOptimistic<T extends { id: string | number }>(
         // 回滚
         const originalItem = originalItemsRef.current.get(id);
         if (originalItem) {
-          setItems((prev) => prev.map((i) => (i.id === id ? originalItem : i)));
+          setItems(prev => prev.map(i => (i.id === id ? originalItem : i)));
         }
 
-        setPendingIds((prev) => {
+        setPendingIds(prev => {
           const next = new Set(prev);
           next.delete(id);
           return next;
@@ -291,10 +291,7 @@ export function useBatchOptimistic<T extends { id: string | number }>(
   /**
    * 检查项目是否正在提交
    */
-  const isPending = useCallback(
-    (id: string | number) => pendingIds.has(id),
-    [pendingIds]
-  );
+  const isPending = useCallback((id: string | number) => pendingIds.has(id), [pendingIds]);
 
   /**
    * 设置数据

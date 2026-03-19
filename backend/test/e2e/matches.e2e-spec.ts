@@ -23,22 +23,24 @@ describe('Matches API (e2e)', () => {
         ConfigModule.forRoot({
           isGlobal: true,
           ignoreEnvFile: true,
-          load: [() => ({
-            jwt: {
-              secret: 'test-secret-key-for-jwt-signing-in-test-environment',
-              expiresIn: '1h',
-            },
-            database: {
-              path: ':memory:',
-            },
-            cache: {
-              ttl: 60,
-            },
-            admin: {
-              username: 'admin',
-              password: 'admin123',
-            },
-          })],
+          load: [
+            () => ({
+              jwt: {
+                secret: 'test-secret-key-for-jwt-signing-in-test-environment',
+                expiresIn: '1h',
+              },
+              database: {
+                path: ':memory:',
+              },
+              cache: {
+                ttl: 60,
+              },
+              admin: {
+                username: 'admin',
+                password: 'admin123',
+              },
+            }),
+          ],
         }),
         DatabaseModule,
         CacheModule,
@@ -49,21 +51,21 @@ describe('Matches API (e2e)', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
-    app.useGlobalPipes(new ValidationPipe({
-      whitelist: true,
-      forbidNonWhitelisted: true,
-      transform: true,
-    }));
+    app.useGlobalPipes(
+      new ValidationPipe({
+        whitelist: true,
+        forbidNonWhitelisted: true,
+        transform: true,
+      }),
+    );
     await app.init();
 
     // 登录获取 token
-    const loginResponse = await request(app.getHttpServer())
-      .post('/admin/auth/login')
-      .send({
-        username: 'admin',
-        password: 'admin123',
-      });
-    
+    const loginResponse = await request(app.getHttpServer()).post('/admin/auth/login').send({
+      username: 'admin',
+      password: 'admin123',
+    });
+
     authToken = loginResponse.body.access_token;
 
     // 创建两个战队用于比赛
@@ -94,10 +96,8 @@ describe('Matches API (e2e)', () => {
     await matchesService.initSlots();
 
     // 获取一个比赛ID用于测试
-    const matchesResponse = await request(app.getHttpServer())
-      .get('/matches')
-      .expect(200);
-    
+    const matchesResponse = await request(app.getHttpServer()).get('/matches').expect(200);
+
     if (matchesResponse.body.data && matchesResponse.body.data.length > 0) {
       matchId = matchesResponse.body.data[0].id;
     }
@@ -109,9 +109,7 @@ describe('Matches API (e2e)', () => {
 
   describe('GET /api/matches', () => {
     it('列表查询 - 应该返回比赛列表', async () => {
-      const response = await request(app.getHttpServer())
-        .get('/matches')
-        .expect(200);
+      const response = await request(app.getHttpServer()).get('/matches').expect(200);
 
       expect(response.body).toHaveProperty('data');
       expect(response.body).toHaveProperty('total');
@@ -121,9 +119,7 @@ describe('Matches API (e2e)', () => {
     });
 
     it('筛选查询 - 应该按阶段筛选瑞士轮比赛', async () => {
-      const response = await request(app.getHttpServer())
-        .get('/matches?stage=swiss')
-        .expect(200);
+      const response = await request(app.getHttpServer()).get('/matches?stage=swiss').expect(200);
 
       expect(response.body).toHaveProperty('data');
       expect(Array.isArray(response.body.data)).toBe(true);
@@ -147,9 +143,7 @@ describe('Matches API (e2e)', () => {
 
   describe('GET /api/matches/:id', () => {
     it('单个比赛 - 应该返回单个比赛', async () => {
-      const response = await request(app.getHttpServer())
-        .get(`/matches/${matchId}`)
-        .expect(200);
+      const response = await request(app.getHttpServer()).get(`/matches/${matchId}`).expect(200);
 
       expect(response.body).toHaveProperty('id');
       expect(response.body.id).toBe(matchId);
@@ -190,10 +184,8 @@ describe('Matches API (e2e)', () => {
 
     it('更新状态 - 应该更新比赛状态', async () => {
       // 先获取另一个比赛ID
-      const matchesResponse = await request(app.getHttpServer())
-        .get('/matches')
-        .expect(200);
-      
+      const matchesResponse = await request(app.getHttpServer()).get('/matches').expect(200);
+
       const anotherMatchId = matchesResponse.body.data[1]?.id || matchId;
 
       const response = await request(app.getHttpServer())
@@ -249,8 +241,9 @@ describe('Matches API (e2e)', () => {
     });
 
     it('认证失败 - 应该拒绝过期token', async () => {
-      const expiredToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJleHAiOjE1MTYyMzkwMjJ9.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c';
-      
+      const expiredToken =
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJleHAiOjE1MTYyMzkwMjJ9.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c';
+
       const response = await request(app.getHttpServer())
         .put(`/admin/matches/${matchId}`)
         .set('Authorization', `Bearer ${expiredToken}`)
@@ -347,8 +340,9 @@ describe('Matches API (e2e)', () => {
     });
 
     it('认证失败 - 应该拒绝过期token', async () => {
-      const expiredToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJleHAiOjE1MTYyMzkwMjJ9.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c';
-      
+      const expiredToken =
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJleHAiOjE1MTYyMzkwMjJ9.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c';
+
       const response = await request(app.getHttpServer())
         .delete(`/admin/matches/${matchId}/scores`)
         .set('Authorization', `Bearer ${expiredToken}`)

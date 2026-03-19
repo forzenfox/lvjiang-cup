@@ -89,7 +89,7 @@ const AdminSchedule: React.FC = () => {
         matchService.getAll(1, 100),
         teamService.getAll(1, 100),
       ]);
-      
+
       const frontendMatches = matchesResult.data.map(toFrontendMatch);
       const frontendTeams = teamsResult.data.map(t => ({
         id: t.id,
@@ -102,10 +102,10 @@ const AdminSchedule: React.FC = () => {
           position: player.position || ['top', 'jungle', 'mid', 'bot', 'support'][index] || 'sub',
           avatar: player.avatar || '',
           description: '',
-          teamId: t.id
+          teamId: t.id,
         })),
       }));
-      
+
       setMatches(frontendMatches);
       setTeams(frontendTeams as Team[]);
     } catch (error) {
@@ -143,10 +143,14 @@ const AdminSchedule: React.FC = () => {
     try {
       // 找到对应战绩分组的空槽位
       const swissRecord = newMatch.swissRecord;
-      const existingMatches = matches.filter(m => m.stage === 'swiss' && m.swissRecord === swissRecord);
+      const existingMatches = matches.filter(
+        m => m.stage === 'swiss' && m.swissRecord === swissRecord
+      );
 
       // 查找没有队伍的槽位（teamAId 或 teamBId 为空或空字符串）
-      const emptySlot = existingMatches.find(m => !m.teamAId || m.teamAId === '' || !m.teamBId || m.teamBId === '');
+      const emptySlot = existingMatches.find(
+        m => !m.teamAId || m.teamAId === '' || !m.teamBId || m.teamBId === ''
+      );
 
       if (emptySlot) {
         // 更新现有槽位
@@ -228,14 +232,18 @@ const AdminSchedule: React.FC = () => {
       <div className="flex flex-col h-full">
         <div className="flex justify-between items-center mb-6">
           <div>
-            <h1 className="text-3xl font-bold text-white">赛程管理</h1>
-            <p className="text-sm text-gray-400 mt-1">
-              共 {matches.length} 场比赛 · {swissMatches.length} 场瑞士轮 · {eliminationMatches.length} 场淘汰赛
+            <h1 data-testid="schedule-page-title" className="text-3xl font-bold text-white">
+              赛程管理
+            </h1>
+            <p data-testid="schedule-match-count" className="text-sm text-gray-400 mt-1">
+              共 {matches.length} 场比赛 · {swissMatches.length} 场瑞士轮 ·{' '}
+              {eliminationMatches.length} 场淘汰赛
             </p>
           </div>
           <div className="flex gap-2">
             {matches.length === 0 && (
               <Button
+                data-testid="init-slots-button"
                 variant="default"
                 onClick={handleInitSlots}
                 disabled={initSlotsLoading}
@@ -245,8 +253,9 @@ const AdminSchedule: React.FC = () => {
                 {initSlotsLoading ? '初始化中...' : '初始化比赛槽位'}
               </Button>
             )}
-            <Button 
-              variant="outline" 
+            <Button
+              data-testid="refresh-schedule-button"
+              variant="outline"
               onClick={loadData}
               disabled={loading}
               className="border-gray-600 text-gray-300 hover:bg-gray-700"
@@ -265,13 +274,24 @@ const AdminSchedule: React.FC = () => {
             </div>
           ) : (
             <Tabs defaultValue="swiss" className="w-full">
-              <TabsList className="mb-6 bg-gray-800/50 border border-gray-700">
-                <TabsTrigger value="swiss" className="px-6 data-[state=active]:bg-blue-600 data-[state=active]:text-white flex items-center gap-2">
+              <TabsList
+                data-testid="schedule-tabs"
+                className="mb-6 bg-gray-800/50 border border-gray-700"
+              >
+                <TabsTrigger
+                  data-testid="swiss-tab"
+                  value="swiss"
+                  className="px-6 data-[state=active]:bg-blue-600 data-[state=active]:text-white flex items-center gap-2"
+                >
                   <Calendar className="w-4 h-4" />
                   瑞士轮 (Swiss Stage)
                   <span className="ml-1 text-xs opacity-70">({swissMatches.length})</span>
                 </TabsTrigger>
-                <TabsTrigger value="elimination" className="px-6 data-[state=active]:bg-blue-600 data-[state=active]:text-white flex items-center gap-2">
+                <TabsTrigger
+                  data-testid="elimination-tab"
+                  value="elimination"
+                  className="px-6 data-[state=active]:bg-blue-600 data-[state=active]:text-white flex items-center gap-2"
+                >
                   <Trophy className="w-4 h-4" />
                   淘汰赛 (Elimination Stage)
                   <span className="ml-1 text-xs opacity-70">({eliminationMatches.length})</span>

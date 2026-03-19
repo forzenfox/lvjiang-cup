@@ -11,8 +11,8 @@ type PromiseMessages<T> = {
   error: string | ((error: Error) => string);
 };
 
-// 导出基础 toast 对象
-export const toast = {
+// 基础 toast 对象
+const toastObject = {
   success: (message: string, options?: ToastOptions) => {
     return sonnerToast.success(message, options);
   },
@@ -38,3 +38,7 @@ export const toast = {
     return sonnerToast.promise(promise, messages);
   },
 };
+
+// 导出 toast 对象
+// eslint-disable-next-line react-refresh/only-export-components
+export { toastObject as toast };

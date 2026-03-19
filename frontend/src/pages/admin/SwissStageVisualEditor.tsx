@@ -48,11 +48,13 @@ const MatchStatusBadge: React.FC<MatchStatusBadgeProps> = ({ status }) => {
   const styles = {
     upcoming: 'bg-blue-900/40 text-blue-400 border-blue-700/30',
     ongoing: 'bg-green-900/50 text-green-400 border-green-700/30 animate-pulse',
-    finished: 'bg-gray-700/50 text-gray-400 border-gray-600/30'
+    finished: 'bg-gray-700/50 text-gray-400 border-gray-600/30',
   };
-  
+
   return (
-    <span className={`absolute top-0 right-0 px-1.5 py-0.5 text-[10px] rounded-bl border ${styles[status]}`}>
+    <span
+      className={`absolute top-0 right-0 px-1.5 py-0.5 text-[10px] rounded-bl border ${styles[status]}`}
+    >
       {status === 'upcoming' ? '未开始' : status === 'ongoing' ? '进行中' : '已结束'}
     </span>
   );
@@ -67,7 +69,14 @@ interface FixedSlotMatchCardProps {
   onCreate?: (match: Omit<Match, 'id'>) => void;
 }
 
-const FixedSlotMatchCard: React.FC<FixedSlotMatchCardProps> = ({ match, teams, slot, slotIndex, onUpdate, onCreate }) => {
+const FixedSlotMatchCard: React.FC<FixedSlotMatchCardProps> = ({
+  match,
+  teams,
+  slot,
+  slotIndex,
+  onUpdate,
+  onCreate,
+}) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const isEmpty = !match;
 
@@ -114,7 +123,7 @@ const FixedSlotMatchCard: React.FC<FixedSlotMatchCardProps> = ({ match, teams, s
   if (isEmpty) {
     return (
       <>
-        <div 
+        <div
           className="bg-gray-800/40 border-2 border-dashed border-gray-700 rounded-lg p-2.5 cursor-pointer hover:border-blue-500/50 hover:bg-gray-800/60 transition-colors min-h-[80px] flex items-center justify-center"
           onClick={handleClick}
         >
@@ -150,26 +159,38 @@ const FixedSlotMatchCard: React.FC<FixedSlotMatchCardProps> = ({ match, teams, s
           </div>
         )}
         <div className="flex flex-col gap-2 pt-4">
-          <div className={`flex items-center justify-between ${match.winnerId === match.teamAId ? 'opacity-100' : isFinished ? 'opacity-50' : 'opacity-100'}`}>
+          <div
+            className={`flex items-center justify-between ${match.winnerId === match.teamAId ? 'opacity-100' : isFinished ? 'opacity-50' : 'opacity-100'}`}
+          >
             <div className="flex items-center gap-2">
               <TeamLogo team={teamA} />
-              <span className={`text-sm font-medium ${match.winnerId === match.teamAId ? 'text-yellow-400' : 'text-gray-300'}`}>
+              <span
+                className={`text-sm font-medium ${match.winnerId === match.teamAId ? 'text-yellow-400' : 'text-gray-300'}`}
+              >
                 {teamA?.name || '待定'}
               </span>
             </div>
-            <span className={`text-sm font-bold ${match.winnerId === match.teamAId ? 'text-yellow-400' : 'text-gray-500'}`}>
+            <span
+              className={`text-sm font-bold ${match.winnerId === match.teamAId ? 'text-yellow-400' : 'text-gray-500'}`}
+            >
               {match.scoreA}
             </span>
           </div>
 
-          <div className={`flex items-center justify-between ${match.winnerId === match.teamBId ? 'opacity-100' : isFinished ? 'opacity-50' : 'opacity-100'}`}>
+          <div
+            className={`flex items-center justify-between ${match.winnerId === match.teamBId ? 'opacity-100' : isFinished ? 'opacity-50' : 'opacity-100'}`}
+          >
             <div className="flex items-center gap-2">
               <TeamLogo team={teamB} />
-              <span className={`text-sm font-medium ${match.winnerId === match.teamBId ? 'text-yellow-400' : 'text-gray-300'}`}>
+              <span
+                className={`text-sm font-medium ${match.winnerId === match.teamBId ? 'text-yellow-400' : 'text-gray-300'}`}
+              >
                 {teamB?.name || '待定'}
               </span>
             </div>
-            <span className={`text-sm font-bold ${match.winnerId === match.teamBId ? 'text-yellow-400' : 'text-gray-500'}`}>
+            <span
+              className={`text-sm font-bold ${match.winnerId === match.teamBId ? 'text-yellow-400' : 'text-gray-500'}`}
+            >
               {match.scoreB}
             </span>
           </div>
@@ -195,7 +216,14 @@ interface RoundColumnProps {
   onMatchCreate?: (match: Omit<Match, 'id'>) => void;
 }
 
-const RoundColumn: React.FC<RoundColumnProps> = ({ slot, matches, teams, className, onMatchUpdate, onMatchCreate }) => {
+const RoundColumn: React.FC<RoundColumnProps> = ({
+  slot,
+  matches,
+  teams,
+  className,
+  onMatchUpdate,
+  onMatchCreate,
+}) => {
   const slots = Array.from({ length: slot.maxMatches }, (_, i) => {
     const match = matches[i] || null;
     return { match, index: i };
@@ -206,14 +234,18 @@ const RoundColumn: React.FC<RoundColumnProps> = ({ slot, matches, teams, classNa
   return (
     <div className={`flex flex-col gap-3 min-w-[200px] ${className}`}>
       <div className="text-center pb-2 border-b border-gray-800">
-        <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider">{slot.roundName}</h3>
+        <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider">
+          {slot.roundName}
+        </h3>
         <div className="flex items-center justify-center gap-2 mt-1">
           <span className="text-xs text-gray-500">({slot.swissRecord})</span>
-          <span className={`text-[10px] px-1.5 py-0.5 rounded font-mono ${
-            roundFormat === 'BO1'
-              ? 'bg-green-600/20 text-green-400'
-              : 'bg-blue-600/20 text-blue-400'
-          }`}>
+          <span
+            className={`text-[10px] px-1.5 py-0.5 rounded font-mono ${
+              roundFormat === 'BO1'
+                ? 'bg-green-600/20 text-green-400'
+                : 'bg-blue-600/20 text-blue-400'
+            }`}
+          >
             {roundFormat}
           </span>
         </div>
@@ -242,11 +274,17 @@ interface DraggableTeamItemProps {
   onRemove: (teamId: string, category: string) => void;
 }
 
-const DraggableTeamItem: React.FC<DraggableTeamItemProps> = ({ team, category, onDragStart, onRemove }) => {
+const DraggableTeamItem: React.FC<DraggableTeamItemProps> = ({
+  team,
+  category,
+  onDragStart,
+  onRemove,
+}) => {
   return (
     <div
+      data-testid={`draggable-team-${team.id}`}
       draggable
-      onDragStart={(e) => onDragStart(e, team.id, category)}
+      onDragStart={e => onDragStart(e, team.id, category)}
       className="flex items-center justify-between text-sm text-gray-300 bg-gray-800/50 p-2 rounded border border-gray-700 cursor-move hover:bg-gray-800 hover:border-gray-600 transition-colors group"
     >
       <div className="flex items-center gap-2">
@@ -256,10 +294,13 @@ const DraggableTeamItem: React.FC<DraggableTeamItemProps> = ({ team, category, o
         ) : (
           <div className="w-5 h-5 rounded-full bg-gray-700" />
         )}
-        <span className="font-medium">{team.name}</span>
+        <span data-testid={`draggable-team-name-${team.id}`} className="font-medium">
+          {team.name}
+        </span>
       </div>
       <button
-        onClick={(e) => {
+        data-testid={`remove-team-${team.id}`}
+        onClick={e => {
           e.stopPropagation();
           onRemove(team.id, category);
         }}
@@ -299,21 +340,46 @@ const AdvancementCategoryCard: React.FC<AdvancementCategoryCardProps> = ({
 
   return (
     <div
+      data-testid={`advancement-category-${category}`}
       className="bg-gray-900/50 rounded-lg border border-gray-700 overflow-hidden"
       onDragOver={onDragOver}
-      onDrop={(e) => onDrop(e, category)}
+      onDrop={e => onDrop(e, category)}
     >
-      <div className={`px-3 py-2 border-b border-gray-700 ${config.color.replace('bg-', 'bg-opacity-20 bg-')}`}>
+      <div
+        data-testid={`advancement-category-header-${category}`}
+        className={`px-3 py-2 border-b border-gray-700 ${config.color.replace('bg-', 'bg-opacity-20 bg-')}`}
+      >
         <div className="flex items-center gap-2">
           <div className={`w-2 h-2 rounded-full ${config.color}`} />
-          <h4 className="text-sm font-semibold text-white">{config.label}</h4>
-          <span className="text-xs text-gray-500 ml-auto">{categoryTeams.length}</span>
+          <h4
+            data-testid={`advancement-category-label-${category}`}
+            className="text-sm font-semibold text-white"
+          >
+            {config.label}
+          </h4>
+          <span
+            data-testid={`advancement-category-count-${category}`}
+            className="text-xs text-gray-500 ml-auto"
+          >
+            {categoryTeams.length}
+          </span>
         </div>
-        <p className="text-xs text-gray-500 mt-0.5">{config.description}</p>
+        <p
+          data-testid={`advancement-category-desc-${category}`}
+          className="text-xs text-gray-500 mt-0.5"
+        >
+          {config.description}
+        </p>
       </div>
-      <div className="p-2 space-y-1 min-h-[60px]">
+      <div
+        data-testid={`advancement-category-teams-${category}`}
+        className="p-2 space-y-1 min-h-[60px]"
+      >
         {categoryTeams.length === 0 ? (
-          <div className="text-center py-4 text-gray-600 text-xs">
+          <div
+            data-testid={`advancement-category-empty-${category}`}
+            className="text-center py-4 text-gray-600 text-xs"
+          >
             拖拽队伍到此处
           </div>
         ) : (
@@ -342,7 +408,9 @@ const SwissStageVisualEditor: React.FC<SwissStageVisualEditorProps> = ({
 }) => {
   const [localAdvancement, setLocalAdvancement] = useState(advancement);
   const [hasChanges, setHasChanges] = useState(false);
-  const [draggedTeam, setDraggedTeam] = useState<{ teamId: string; fromCategory: string } | null>(null);
+  const [draggedTeam, setDraggedTeam] = useState<{ teamId: string; fromCategory: string } | null>(
+    null
+  );
 
   // 当外部 advancement 变化时更新本地状态
   useEffect(() => {
@@ -351,15 +419,17 @@ const SwissStageVisualEditor: React.FC<SwissStageVisualEditorProps> = ({
 
   // 检测是否有未保存的更改
   useEffect(() => {
-    const changed = 
-      JSON.stringify(localAdvancement) !== JSON.stringify(advancement);
+    const changed = JSON.stringify(localAdvancement) !== JSON.stringify(advancement);
     setHasChanges(changed);
   }, [localAdvancement, advancement]);
 
-  const matchesByRecord = swissRoundSlots.reduce((acc, slot) => {
-    acc[slot.swissRecord] = matches.filter(m => m.swissRecord === slot.swissRecord);
-    return acc;
-  }, {} as Record<string, Match[]>);
+  const matchesByRecord = swissRoundSlots.reduce(
+    (acc, slot) => {
+      acc[slot.swissRecord] = matches.filter(m => m.swissRecord === slot.swissRecord);
+      return acc;
+    },
+    {} as Record<string, Match[]>
+  );
 
   // 拖拽开始
   const handleDragStart = (e: React.DragEvent, teamId: string, fromCategory: string) => {
@@ -384,7 +454,7 @@ const SwissStageVisualEditor: React.FC<SwissStageVisualEditorProps> = ({
     if (!draggedTeam) return;
 
     const { teamId, fromCategory } = draggedTeam;
-    
+
     // 如果拖放到同一分类，不做任何操作
     if (fromCategory === toCategory) {
       setDraggedTeam(null);
@@ -394,21 +464,22 @@ const SwissStageVisualEditor: React.FC<SwissStageVisualEditorProps> = ({
     // 更新本地状态
     setLocalAdvancement(prev => {
       const newAdvancement = { ...prev };
-      
+
       // 从原分类移除
       if (fromCategory && newAdvancement[fromCategory as keyof typeof newAdvancement]) {
-        newAdvancement[fromCategory as keyof typeof newAdvancement] = 
-          newAdvancement[fromCategory as keyof typeof newAdvancement].filter(id => id !== teamId);
+        newAdvancement[fromCategory as keyof typeof newAdvancement] = newAdvancement[
+          fromCategory as keyof typeof newAdvancement
+        ].filter(id => id !== teamId);
       }
-      
+
       // 添加到新分类（如果不存在）
       if (!newAdvancement[toCategory as keyof typeof newAdvancement].includes(teamId)) {
         newAdvancement[toCategory as keyof typeof newAdvancement] = [
           ...newAdvancement[toCategory as keyof typeof newAdvancement],
-          teamId
+          teamId,
         ];
       }
-      
+
       return newAdvancement;
     });
 
@@ -420,7 +491,7 @@ const SwissStageVisualEditor: React.FC<SwissStageVisualEditorProps> = ({
   const handleRemoveTeam = (teamId: string, category: string) => {
     setLocalAdvancement(prev => ({
       ...prev,
-      [category]: prev[category as keyof typeof prev].filter(id => id !== teamId)
+      [category]: prev[category as keyof typeof prev].filter(id => id !== teamId),
     }));
     toast.info('队伍已移除，记得保存更改');
   };
@@ -447,11 +518,14 @@ const SwissStageVisualEditor: React.FC<SwissStageVisualEditorProps> = ({
   const unassignedTeams = getUnassignedTeams();
 
   return (
-    <div className="w-full">
+    <div data-testid="swiss-stage-editor" className="w-full">
       {/* 操作栏 */}
-      <div className="flex justify-between items-center mb-4 p-3 bg-gray-800/50 rounded-lg border border-gray-700">
+      <div
+        data-testid="advancement-toolbar"
+        className="flex justify-between items-center mb-4 p-3 bg-gray-800/50 rounded-lg border border-gray-700"
+      >
         <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-400">
+          <span data-testid="advancement-sync-status" className="text-sm text-gray-400">
             {hasChanges ? (
               <span className="text-yellow-400 flex items-center gap-1">
                 <span className="w-2 h-2 rounded-full bg-yellow-400" />
@@ -468,6 +542,7 @@ const SwissStageVisualEditor: React.FC<SwissStageVisualEditorProps> = ({
         <div className="flex gap-2">
           {hasChanges && (
             <Button
+              data-testid="advancement-reset-button"
               variant="outline"
               size="sm"
               onClick={handleReset}
@@ -478,6 +553,7 @@ const SwissStageVisualEditor: React.FC<SwissStageVisualEditorProps> = ({
             </Button>
           )}
           <Button
+            data-testid="advancement-save-button"
             size="sm"
             onClick={handleSave}
             disabled={!hasChanges}
@@ -492,45 +568,45 @@ const SwissStageVisualEditor: React.FC<SwissStageVisualEditorProps> = ({
       <div className="flex gap-8 min-w-[1400px] p-4 overflow-x-auto">
         <div className="flex gap-8 flex-1">
           <div className="flex flex-col gap-4 w-64">
-            <RoundColumn 
-              slot={swissRoundSlots[0]} 
-              matches={matchesByRecord['0-0'] || []} 
-              teams={teams} 
+            <RoundColumn
+              slot={swissRoundSlots[0]}
+              matches={matchesByRecord['0-0'] || []}
+              teams={teams}
               onMatchUpdate={onMatchUpdate}
               onMatchCreate={onMatchCreate}
             />
           </div>
 
           <div className="flex flex-col gap-8 w-64 mt-8">
-            <RoundColumn 
-              slot={swissRoundSlots[1]} 
-              matches={matchesByRecord['1-0'] || []} 
-              teams={teams} 
+            <RoundColumn
+              slot={swissRoundSlots[1]}
+              matches={matchesByRecord['1-0'] || []}
+              teams={teams}
               onMatchUpdate={onMatchUpdate}
               onMatchCreate={onMatchCreate}
             />
-            <RoundColumn 
-              slot={swissRoundSlots[2]} 
-              matches={matchesByRecord['0-1'] || []} 
-              teams={teams} 
+            <RoundColumn
+              slot={swissRoundSlots[2]}
+              matches={matchesByRecord['0-1'] || []}
+              teams={teams}
               onMatchUpdate={onMatchUpdate}
               onMatchCreate={onMatchCreate}
             />
           </div>
 
           <div className="flex flex-col gap-8 w-64">
-            <RoundColumn 
-              slot={swissRoundSlots[3]} 
-              matches={matchesByRecord['1-1'] || []} 
-              teams={teams} 
+            <RoundColumn
+              slot={swissRoundSlots[3]}
+              matches={matchesByRecord['1-1'] || []}
+              teams={teams}
               onMatchUpdate={onMatchUpdate}
               onMatchCreate={onMatchCreate}
             />
             <div className="mt-4">
-              <RoundColumn 
-                slot={swissRoundSlots[4]} 
-                matches={matchesByRecord['0-2'] || []} 
-                teams={teams} 
+              <RoundColumn
+                slot={swissRoundSlots[4]}
+                matches={matchesByRecord['0-2'] || []}
+                teams={teams}
                 onMatchUpdate={onMatchUpdate}
                 onMatchCreate={onMatchCreate}
               />
@@ -538,10 +614,10 @@ const SwissStageVisualEditor: React.FC<SwissStageVisualEditorProps> = ({
           </div>
 
           <div className="flex flex-col gap-8 w-64 mt-16">
-            <RoundColumn 
-              slot={swissRoundSlots[5]} 
-              matches={matchesByRecord['1-2'] || []} 
-              teams={teams} 
+            <RoundColumn
+              slot={swissRoundSlots[5]}
+              matches={matchesByRecord['1-2'] || []}
+              teams={teams}
               onMatchUpdate={onMatchUpdate}
               onMatchCreate={onMatchCreate}
             />
@@ -549,25 +625,34 @@ const SwissStageVisualEditor: React.FC<SwissStageVisualEditorProps> = ({
         </div>
 
         {/* 晋级名单管理面板 */}
-        <div className="w-80 flex-shrink-0 space-y-4">
-          <Card className="bg-gray-800/80 border-gray-700 p-4 sticky top-4">
-            <h3 className="text-lg font-bold text-white mb-2">晋级名单管理</h3>
-            <p className="text-xs text-gray-400 mb-4">
+        <div data-testid="advancement-panel" className="w-80 flex-shrink-0 space-y-4">
+          <Card
+            data-testid="advancement-card"
+            className="bg-gray-800/80 border-gray-700 p-4 sticky top-4"
+          >
+            <h3 data-testid="advancement-title" className="text-lg font-bold text-white mb-2">
+              晋级名单管理
+            </h3>
+            <p data-testid="advancement-description" className="text-xs text-gray-400 mb-4">
               拖拽队伍调整晋级状态，或点击 × 移除
             </p>
-            
+
             {/* 未分配队伍 */}
             {unassignedTeams.length > 0 && (
-              <div className="mb-4 p-3 bg-yellow-900/20 border border-yellow-800/50 rounded-lg">
-                <p className="text-xs text-yellow-400 mb-2">
+              <div
+                data-testid="unassigned-teams"
+                className="mb-4 p-3 bg-yellow-900/20 border border-yellow-800/50 rounded-lg"
+              >
+                <p data-testid="unassigned-count" className="text-xs text-yellow-400 mb-2">
                   未分配 ({unassignedTeams.length})
                 </p>
                 <div className="flex flex-wrap gap-1">
                   {unassignedTeams.map(team => (
                     <div
                       key={team.id}
+                      data-testid={`unassigned-team-${team.id}`}
                       draggable
-                      onDragStart={(e) => handleDragStart(e, team.id, '')}
+                      onDragStart={e => handleDragStart(e, team.id, '')}
                       className="px-2 py-1 bg-gray-800 text-gray-300 text-xs rounded border border-gray-700 cursor-move hover:border-yellow-600/50"
                     >
                       {team.name}
@@ -578,7 +663,7 @@ const SwissStageVisualEditor: React.FC<SwissStageVisualEditorProps> = ({
             )}
 
             {/* 晋级分类 */}
-            <div className="space-y-3">
+            <div data-testid="advancement-categories" className="space-y-3">
               {categoryOrder.map(category => (
                 <AdvancementCategoryCard
                   key={category}

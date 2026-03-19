@@ -26,7 +26,10 @@ interface HomeDataState {
 /**
  * 全局错误提示组件
  */
-const GlobalErrorToast: React.FC<{ message: string; onClose: () => void }> = ({ message, onClose }) => (
+const GlobalErrorToast: React.FC<{ message: string; onClose: () => void }> = ({
+  message,
+  onClose,
+}) => (
   <div className="fixed top-4 right-4 z-50 bg-red-500/90 text-white px-6 py-4 rounded-lg shadow-lg flex items-center space-x-3 animate-in slide-in-from-top-2">
     <AlertCircle className="w-5 h-5" />
     <span>{message}</span>
@@ -52,7 +55,10 @@ const GlobalLoadingIndicator: React.FC<{ visible: boolean }> = ({ visible }) => 
 /**
  * 手动刷新按钮
  */
-const RefreshButton: React.FC<{ onRefresh: () => void; loading: boolean }> = ({ onRefresh, loading }) => (
+const RefreshButton: React.FC<{ onRefresh: () => void; loading: boolean }> = ({
+  onRefresh,
+  loading,
+}) => (
   <Button
     variant="outline"
     size="sm"
@@ -67,7 +73,7 @@ const RefreshButton: React.FC<{ onRefresh: () => void; loading: boolean }> = ({ 
 
 /**
  * 首页组件
- * 
+ *
  * 功能：
  * 1. 整合 HeroSection、TeamSection、ScheduleSection 三大模块
  * 2. 统一管理数据自动刷新（默认 30 秒）
@@ -94,74 +100,81 @@ const Home: React.FC = () => {
   /**
    * 更新加载状态
    */
-  const updateLoadingState = useCallback((module: keyof HomeDataState['modules'], loading: boolean) => {
-    setState(prev => ({
-      ...prev,
-      modules: {
-        ...prev.modules,
-        [module]: loading,
-      },
-      loading: loading || Object.entries(prev.modules).some(([key, value]) => key !== module && value),
-    }));
-  }, []);
+  const updateLoadingState = useCallback(
+    (module: keyof HomeDataState['modules'], loading: boolean) => {
+      setState(prev => ({
+        ...prev,
+        modules: {
+          ...prev.modules,
+          [module]: loading,
+        },
+        loading:
+          loading || Object.entries(prev.modules).some(([key, value]) => key !== module && value),
+      }));
+    },
+    []
+  );
 
   /**
    * 加载所有数据
    */
-  const loadAllData = useCallback(async (isBackground = false) => {
-    if (!isBackground) {
-      setState(prev => ({ ...prev, loading: true, error: null }));
-    }
+  const loadAllData = useCallback(
+    async (isBackground = false) => {
+      if (!isBackground) {
+        setState(prev => ({ ...prev, loading: true, error: null }));
+      }
 
-    try {
-      // 并行加载所有数据
-      await Promise.all([
-        // 直播信息
-        (async () => {
-          updateLoadingState('stream', true);
-          try {
-            await streamService.get();
-          } finally {
-            updateLoadingState('stream', false);
-          }
-        })(),
-        // 战队数据
-        (async () => {
-          updateLoadingState('teams', true);
-          try {
-            await teamService.getAll(1, 100);
-          } finally {
-            updateLoadingState('teams', false);
-          }
-        })(),
-        // 比赛数据
-        (async () => {
-          updateLoadingState('matches', true);
-          try {
-            await matchService.getAll(1, 100);
-          } finally {
-            updateLoadingState('matches', false);
-          }
-        })(),
-        // 晋级名单数据
-        (async () => {
-          if (isBackground) {
-            advancementService.resetState();
-          }
-          await advancementService.get();
-        })(),
-      ]);
+      try {
+        // 并行加载所有数据
+        await Promise.all([
+          // 直播信息
+          (async () => {
+            updateLoadingState('stream', true);
+            try {
+              await streamService.get();
+            } finally {
+              updateLoadingState('stream', false);
+            }
+          })(),
+          // 战队数据
+          (async () => {
+            updateLoadingState('teams', true);
+            try {
+              await teamService.getAll(1, 100);
+            } finally {
+              updateLoadingState('teams', false);
+            }
+          })(),
+          // 比赛数据
+          (async () => {
+            updateLoadingState('matches', true);
+            try {
+              await matchService.getAll(1, 100);
+            } finally {
+              updateLoadingState('matches', false);
+            }
+          })(),
+          // 晋级名单数据
+          (async () => {
+            if (isBackground) {
+              advancementService.resetState();
+            }
+            await advancementService.get();
+          })(),
+        ]);
 
-      setState(prev => ({ ...prev, error: null }));
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : '数据加载失败';
-      setState(prev => ({ ...prev, error: errorMessage }));
-      setShowError(true);
-      console.error('[Home] 数据加载失败:', err);
-    } finally {
-      setState(prev => ({ ...prev, loading: false }));
-    }
-  }, [updateLoadingState]);
+        setState(prev => ({ ...prev, error: null }));
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : '数据加载失败';
+        setState(prev => ({ ...prev, error: errorMessage }));
+        setShowError(true);
+        console.error('[Home] 数据加载失败:', err);
+      } finally {
+        setState(prev => ({ ...prev, loading: false }));
+      }
+    },
+    [updateLoadingState]
+  );
 
   /**
    * 手动刷新
@@ -208,10 +221,7 @@ const Home: React.FC = () => {
     <Layout>
       {/* 全局错误提示 */}
       {showError && state.error && (
-        <GlobalErrorToast 
-          message={state.error} 
-          onClose={() => setShowError(false)} 
-        />
+        <GlobalErrorToast message={state.error} onClose={() => setShowError(false)} />
       )}
 
       {/* 全局加载指示器 */}

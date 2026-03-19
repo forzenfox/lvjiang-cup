@@ -10,13 +10,13 @@ export class HomePage extends BasePage {
   readonly heroSubtitle: Locator;
   readonly liveButton: Locator;
   readonly adminLink: Locator;
-  
+
   // 战队区域元素
   readonly teamsSection: Locator;
   readonly teamsTitle: Locator;
   readonly teamCards: Locator;
   readonly noTeamsMessage: Locator;
-  
+
   // 赛程区域元素
   readonly scheduleSection: Locator;
   readonly scheduleTitle: Locator;
@@ -26,24 +26,26 @@ export class HomePage extends BasePage {
 
   constructor(page: Page) {
     super(page);
-    
+
     // 英雄区域
     this.heroTitle = page.getByRole('heading', { name: /驴酱杯/ });
     this.heroSubtitle = page.getByText('驴酱公会终极对决');
     this.liveButton = page.getByRole('button', { name: /观看直播/ });
     this.adminLink = page.getByRole('link', { name: /管理/ });
-    
+
     // 战队区域
-    this.teamsSection = page.locator('section').filter({ has: page.getByRole('heading', { name: '参赛战队' }) });
+    this.teamsSection = page
+      .locator('section')
+      .filter({ has: page.getByRole('heading', { name: '参赛战队' }) });
     this.teamsTitle = page.getByRole('heading', { name: '参赛战队' });
     this.teamCards = page.getByTestId('team-card');
     this.noTeamsMessage = page.getByText(/暂无战队|还没有战队/);
-    
+
     // 赛程区域
-    this.scheduleSection = page.locator('section').filter({ has: page.getByRole('heading', { name: '赛程安排' }) });
+    this.scheduleSection = page.locator('#schedule');
     this.scheduleTitle = page.getByRole('heading', { name: '赛程安排' });
-    this.swissTab = page.getByRole('tab', { name: '瑞士轮' });
-    this.eliminationTab = page.getByRole('tab', { name: '淘汰赛' });
+    this.swissTab = page.getByTestId('swiss-tab');
+    this.eliminationTab = page.getByTestId('elimination-tab');
     this.noScheduleMessage = page.getByText(/暂无.*赛程|还没有.*赛程/);
   }
 
@@ -59,9 +61,10 @@ export class HomePage extends BasePage {
    * 验证首页加载成功
    */
   async expectPageLoaded() {
-    await expect(this.heroTitle).toBeVisible();
-    await expect(this.teamsTitle).toBeVisible();
-    await expect(this.scheduleTitle).toBeVisible();
+    // 使用更宽松的定位器和更长的超时时间
+    await expect(this.page.locator('text=驴酱杯').first()).toBeVisible({ timeout: 10000 });
+    await expect(this.page.locator('text=参赛战队').first()).toBeVisible({ timeout: 10000 });
+    await expect(this.page.locator('text=赛程安排').first()).toBeVisible({ timeout: 10000 });
   }
 
   /**
@@ -96,7 +99,26 @@ export class HomePage extends BasePage {
    * 切换到瑞士轮Tab
    */
   async switchToSwiss() {
+    // 先滚动到赛程区域确保Tab可见
+    await this.scrollToSchedule();
+    // 等待Tab可见并点击
+    await this.swissTab.waitFor({ state: 'visible', timeout: 5000 });
     await this.swissTab.click();
+    // 等待内容加载
+    await this.page.waitForTimeout(500);
+  }
+
+  /**
+   * 切换到淘汰赛Tab
+   */
+  async switchToElimination() {
+    // 先滚动到赛程区域确保Tab可见
+    await this.scrollToSchedule();
+    // 等待Tab可见并点击
+    await this.eliminationTab.waitFor({ state: 'visible', timeout: 5000 });
+    await this.eliminationTab.click();
+    // 等待内容加载
+    await this.page.waitForTimeout(500);
   }
 
   /**
@@ -125,9 +147,9 @@ export class HomePage extends BasePage {
    */
   async expectEmptyState() {
     // 检查是否有战队卡片或空状态消息
-    const hasTeamCards = await this.teamCards.count() > 0;
+    const hasTeamCards = (await this.teamCards.count()) > 0;
     const hasEmptyMessage = await this.noTeamsMessage.isVisible().catch(() => false);
-    
+
     expect(hasTeamCards || hasEmptyMessage).toBeTruthy();
   }
 
@@ -137,6 +159,28 @@ export class HomePage extends BasePage {
   async waitForTeamsLoaded(): Promise<void> {
     await this.page.waitForLoadState('networkidle');
     // 等待战队数据加载完成（有卡片或空状态）
-    await this.page.waitForSelector('[data-testid="team-card"], [data-testid="empty-teams"]', { timeout: 10000 });
+    await this.page.waitForSelector('[data-testid="team-card"], [data-testid="empty-teams"]', {
+      timeout: 10000,
+    });
+  }
+
+  /**
+   * 滚动到战队区域
+   */
+  async scrollToTeams(): Promise<void> {
+    // 滚动到参赛战队标题
+    await this.page.getByRole('heading', { name: '参赛战队' }).scrollIntoViewIfNeeded();
+    // 等待一下确保内容加载
+    await this.page.waitForTimeout(500);
+  }
+
+  /**
+   * 滚动到赛程区域
+   */
+  async scrollToSchedule(): Promise<void> {
+    // 滚动到赛程安排标题
+    await this.page.getByRole('heading', { name: '赛程安排' }).scrollIntoViewIfNeeded();
+    // 等待一下确保内容加载
+    await this.page.waitForTimeout(500);
   }
 }

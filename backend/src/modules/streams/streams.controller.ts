@@ -43,10 +43,7 @@ export class StreamsController {
   @ApiBearerAuth()
   @ApiOperation({ summary: '更新直播（需认证）' })
   @ApiParam({ name: 'id', description: '直播ID' })
-  async update(
-    @Param('id') id: string,
-    @Body() updateStreamDto: UpdateStreamDto,
-  ): Promise<Stream> {
+  async update(@Param('id') id: string, @Body() updateStreamDto: UpdateStreamDto): Promise<Stream> {
     return this.streamsService.update(id, updateStreamDto);
   }
 

@@ -243,7 +243,9 @@ describe('StreamsController', () => {
       mockStreamsService.update.mockRejectedValue(new NotFoundException('Stream not found'));
 
       // Act & Assert
-      await expect(controller.update('nonexistent', { title: 'Test' })).rejects.toThrow(NotFoundException);
+      await expect(controller.update('nonexistent', { title: 'Test' })).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('应该在删除不存在的直播时抛出NotFoundException', async () => {

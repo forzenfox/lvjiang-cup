@@ -34,7 +34,7 @@ describe('eliminationConstants', () => {
     });
 
     it('每个位置应该包含x和y坐标', () => {
-      Object.values(ELIMINATION_POSITIONS).forEach((pos) => {
+      Object.values(ELIMINATION_POSITIONS).forEach(pos => {
         expect(pos).toHaveProperty('x');
         expect(pos).toHaveProperty('y');
         expect(typeof pos.x).toBe('number');
@@ -49,7 +49,7 @@ describe('eliminationConstants', () => {
     });
 
     it('每条连接线应该包含from和to属性', () => {
-      ELIMINATION_CONNECTORS.forEach((conn) => {
+      ELIMINATION_CONNECTORS.forEach(conn => {
         expect(conn).toHaveProperty('from');
         expect(conn).toHaveProperty('to');
         expect(typeof conn.from).toBe('string');
@@ -68,9 +68,9 @@ describe('eliminationConstants', () => {
         { from: 'g7', to: 'g8' },
       ];
 
-      expectedConnections.forEach((expected) => {
+      expectedConnections.forEach(expected => {
         const found = ELIMINATION_CONNECTORS.some(
-          (conn) => conn.from === expected.from && conn.to === expected.to
+          conn => conn.from === expected.from && conn.to === expected.to
         );
         expect(found).toBe(true);
       });
@@ -107,7 +107,7 @@ describe('eliminationConstants', () => {
     });
 
     it('应该返回所有有效的游戏键位置', () => {
-      GAME_KEYS.forEach((key) => {
+      GAME_KEYS.forEach(key => {
         const pos = getPositionByGameKey(key);
         expect(pos).toBeDefined();
         expect(pos).toHaveProperty('x');

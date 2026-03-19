@@ -26,7 +26,7 @@ export interface RunResult {
 // 运行 SQL
 function run(db: sqlite3.Database, sql: string, params: any[] = []): Promise<RunResult> {
   return new Promise((resolve, reject) => {
-    db.run(sql, params, function(err) {
+    db.run(sql, params, function (err) {
       if (err) {
         reject(err);
       } else {
@@ -68,13 +68,14 @@ function all<T>(db: sqlite3.Database, sql: string, params: any[] = []): Promise<
 @Injectable()
 export class DatabaseService implements OnModuleInit, OnModuleDestroy {
   private db: sqlite3.Database;
+  private isConnected = false;
   private readonly logger = new Logger(DatabaseService.name);
 
   constructor(private configService: ConfigService) {}
 
   async onModuleInit() {
     const dbPath = this.configService.get<string>('database.path');
-    
+
     // 确保数据目录存在
     const dataDir = path.dirname(dbPath);
     if (!fs.existsSync(dataDir)) {
@@ -84,14 +85,15 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     // 创建数据库连接
     try {
       this.db = await openDatabase(dbPath);
+      this.isConnected = true;
       this.logger.log('Database connected');
-      
+
       // 启用 WAL 模式提升性能
       await run(this.db, 'PRAGMA journal_mode = WAL');
       await run(this.db, 'PRAGMA synchronous = NORMAL');
       await run(this.db, 'PRAGMA temp_store = MEMORY');
       await run(this.db, 'PRAGMA mmap_size = 30000000000');
-      
+
       // 初始化表结构
       await this.initTables();
     } catch (err) {
@@ -101,10 +103,14 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
   }
 
   onModuleDestroy() {
-    if (this.db) {
+    if (this.db && this.isConnected) {
+      this.isConnected = false;
       this.db.close((err) => {
         if (err) {
-          this.logger.error('Error closing database', err.message);
+          // 只记录非"Database handle is closed"的错误
+          if (!err.message?.includes('Database handle is closed')) {
+            this.logger.error('Error closing database', err.message);
+          }
         } else {
           this.logger.log('Database connection closed');
         }
@@ -131,7 +137,9 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
 
   private async initTables() {
     // teams 表
-    await run(this.db, `
+    await run(
+      this.db,
+      `
       CREATE TABLE IF NOT EXISTS teams (
         id TEXT PRIMARY KEY,
         name TEXT NOT NULL,
@@ -140,10 +148,13 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
       )
-    `);
+    `,
+    );
 
     // players 表
-    await run(this.db, `
+    await run(
+      this.db,
+      `
       CREATE TABLE IF NOT EXISTS players (
         id TEXT PRIMARY KEY,
         name TEXT NOT NULL,
@@ -154,10 +165,13 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (team_id) REFERENCES teams(id) ON DELETE CASCADE
       )
-    `);
+    `,
+    );
 
     // matches 表
-    await run(this.db, `
+    await run(
+      this.db,
+      `
       CREATE TABLE IF NOT EXISTS matches (
         id TEXT PRIMARY KEY,
         team_a_id TEXT,
@@ -179,10 +193,13 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
         FOREIGN KEY (team_b_id) REFERENCES teams(id),
         FOREIGN KEY (winner_id) REFERENCES teams(id)
       )
-    `);
+    `,
+    );
 
     // stream_info 表
-    await run(this.db, `
+    await run(
+      this.db,
+      `
       CREATE TABLE IF NOT EXISTS stream_info (
         id INTEGER PRIMARY KEY CHECK(id = 1),
         title TEXT,
@@ -190,10 +207,13 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
         is_live INTEGER DEFAULT 0,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
       )
-    `);
+    `,
+    );
 
     // advancement 表
-    await run(this.db, `
+    await run(
+      this.db,
+      `
       CREATE TABLE IF NOT EXISTS advancement (
         id INTEGER PRIMARY KEY CHECK(id = 1),
         winners2_0 TEXT DEFAULT '[]',
@@ -203,26 +223,33 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
         eliminated_0_3 TEXT DEFAULT '[]',
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
       )
-    `);
+    `,
+    );
 
     // 初始化 stream_info 和 advancement 的默认数据
     await this.initDefaultData();
-    
+
     this.logger.log('Database tables initialized');
   }
 
   private async initDefaultData() {
     // 初始化 stream_info
-    await run(this.db, `
+    await run(
+      this.db,
+      `
       INSERT OR IGNORE INTO stream_info (id, title, url, is_live)
       VALUES (1, '', '', 0)
-    `);
+    `,
+    );
 
     // 初始化 advancement
-    await run(this.db, `
+    await run(
+      this.db,
+      `
       INSERT OR IGNORE INTO advancement (id, winners2_0, winners2_1, losers_bracket, eliminated_3rd, eliminated_0_3)
       VALUES (1, '[]', '[]', '[]', '[]', '[]')
-    `);
+    `,
+    );
   }
 
   // 清空所有数据
@@ -230,18 +257,27 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     await run(this.db, 'DELETE FROM players');
     await run(this.db, 'DELETE FROM teams');
     await run(this.db, 'DELETE FROM matches');
-    await run(this.db, `UPDATE stream_info SET title = '', url = '', is_live = 0, updated_at = CURRENT_TIMESTAMP WHERE id = 1`);
-    await run(this.db, `UPDATE advancement SET winners2_0 = '[]', winners2_1 = '[]', losers_bracket = '[]', eliminated_3rd = '[]', eliminated_0_3 = '[]', updated_at = CURRENT_TIMESTAMP WHERE id = 1`);
+    await run(
+      this.db,
+      `UPDATE stream_info SET title = '', url = '', is_live = 0, updated_at = CURRENT_TIMESTAMP WHERE id = 1`,
+    );
+    await run(
+      this.db,
+      `UPDATE advancement SET winners2_0 = '[]', winners2_1 = '[]', losers_bracket = '[]', eliminated_3rd = '[]', eliminated_0_3 = '[]', updated_at = CURRENT_TIMESTAMP WHERE id = 1`,
+    );
     this.logger.log('All data cleared');
   }
 
   // 重置比赛槽位（清空战队和比分，保留槽位结构）
   async resetMatchSlots() {
-    await run(this.db, `
+    await run(
+      this.db,
+      `
       UPDATE matches 
       SET team_a_id = NULL, team_b_id = NULL, score_a = 0, score_b = 0, 
           winner_id = NULL, status = 'upcoming', updated_at = CURRENT_TIMESTAMP
-    `);
+    `,
+    );
     this.logger.log('Match slots reset');
   }
 }

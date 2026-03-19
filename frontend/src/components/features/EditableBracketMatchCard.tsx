@@ -14,7 +14,7 @@ interface EditableBracketMatchCardProps {
 const EditableBracketMatchCard = forwardRef<HTMLDivElement, EditableBracketMatchCardProps>(
   ({ match, teams, onUpdate }, ref) => {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
-    
+
     const teamA = teams.find(t => t.id === match.teamAId);
     const teamB = teams.find(t => t.id === match.teamBId);
 
@@ -25,11 +25,13 @@ const EditableBracketMatchCard = forwardRef<HTMLDivElement, EditableBracketMatch
       const styles = {
         upcoming: 'bg-blue-900/40 text-blue-400 border-blue-700/30',
         ongoing: 'bg-green-900/50 text-green-400 border-green-700/30 animate-pulse',
-        finished: 'bg-gray-700/50 text-gray-400 border-gray-600/30'
+        finished: 'bg-gray-700/50 text-gray-400 border-gray-600/30',
       };
-      
+
       return (
-        <span className={`absolute top-0 right-0 px-1.5 py-0.5 text-[10px] rounded-bl border ${styles[status]}`}>
+        <span
+          className={`absolute top-0 right-0 px-1.5 py-0.5 text-[10px] rounded-bl border ${styles[status]}`}
+        >
           {status === 'upcoming' ? '未开始' : status === 'ongoing' ? '进行中' : '已结束'}
         </span>
       );
@@ -47,7 +49,7 @@ const EditableBracketMatchCard = forwardRef<HTMLDivElement, EditableBracketMatch
     return (
       <>
         <div className="flex flex-col gap-1 relative group cursor-pointer" onClick={handleClick}>
-          <Card 
+          <Card
             ref={ref}
             className="
               relative overflow-hidden transition-all duration-300
@@ -66,7 +68,7 @@ const EditableBracketMatchCard = forwardRef<HTMLDivElement, EditableBracketMatch
               </div>
             </div>
 
-            <div 
+            <div
               data-team="a"
               className={`
                 flex items-center justify-between px-3 py-2 border-b border-gray-700/50
@@ -75,15 +77,15 @@ const EditableBracketMatchCard = forwardRef<HTMLDivElement, EditableBracketMatch
             >
               <div className="flex items-center gap-2">
                 {teamA?.logo ? (
-                  <img 
-                    src={teamA.logo} 
+                  <img
+                    src={teamA.logo}
                     alt={teamA.name}
                     className="w-5 h-5 rounded-full object-cover"
                   />
                 ) : (
                   <div className="w-5 h-5 rounded-full bg-gray-700" />
                 )}
-                <span 
+                <span
                   className={`
                     text-sm font-medium truncate max-w-[90px]
                     ${teamAWon ? 'text-yellow-400' : 'text-gray-300'}
@@ -92,7 +94,7 @@ const EditableBracketMatchCard = forwardRef<HTMLDivElement, EditableBracketMatch
                   {teamA?.name || '待定'}
                 </span>
               </div>
-              <span 
+              <span
                 className={`
                   text-sm font-bold w-6 text-center
                   ${teamAWon ? 'text-yellow-400' : 'text-gray-500'}
@@ -102,7 +104,7 @@ const EditableBracketMatchCard = forwardRef<HTMLDivElement, EditableBracketMatch
               </span>
             </div>
 
-            <div 
+            <div
               data-team="b"
               className={`
                 flex items-center justify-between px-3 py-2
@@ -111,15 +113,15 @@ const EditableBracketMatchCard = forwardRef<HTMLDivElement, EditableBracketMatch
             >
               <div className="flex items-center gap-2">
                 {teamB?.logo ? (
-                  <img 
-                    src={teamB.logo} 
+                  <img
+                    src={teamB.logo}
                     alt={teamB.name}
                     className="w-5 h-5 rounded-full object-cover"
                   />
                 ) : (
                   <div className="w-5 h-5 rounded-full bg-gray-700" />
                 )}
-                <span 
+                <span
                   className={`
                     text-sm font-medium truncate max-w-[90px]
                     ${teamBWon ? 'text-yellow-400' : 'text-gray-300'}
@@ -128,7 +130,7 @@ const EditableBracketMatchCard = forwardRef<HTMLDivElement, EditableBracketMatch
                   {teamB?.name || '待定'}
                 </span>
               </div>
-              <span 
+              <span
                 className={`
                   text-sm font-bold w-6 text-center
                   ${teamBWon ? 'text-yellow-400' : 'text-gray-500'}
@@ -140,7 +142,7 @@ const EditableBracketMatchCard = forwardRef<HTMLDivElement, EditableBracketMatch
 
             <div className="absolute inset-0 bg-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
           </Card>
-          
+
           <div className="flex justify-end gap-1 opacity-60 hover:opacity-100 transition-opacity px-1">
             <button className="flex items-center gap-1 text-[10px] text-gray-400 hover:text-white bg-gray-800/50 px-1.5 py-0.5 rounded border border-gray-700">
               <BarChart2 className="w-3 h-3" />

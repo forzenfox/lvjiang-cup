@@ -18,26 +18,38 @@ function App() {
         <Route path="/admin" element={<AdminLogin />} />
 
         {/* Protected Routes */}
-        <Route path="/admin/dashboard" element={
-          <ProtectedRoute>
-            <AdminDashboard />
-          </ProtectedRoute>
-        } />
-        <Route path="/admin/stream" element={
-          <ProtectedRoute>
-            <AdminStream />
-          </ProtectedRoute>
-        } />
-        <Route path="/admin/teams" element={
-          <ProtectedRoute>
-            <AdminTeams />
-          </ProtectedRoute>
-        } />
-        <Route path="/admin/schedule" element={
-          <ProtectedRoute>
-            <AdminSchedule />
-          </ProtectedRoute>
-        } />
+        <Route
+          path="/admin/dashboard"
+          element={
+            <ProtectedRoute>
+              <AdminDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/stream"
+          element={
+            <ProtectedRoute>
+              <AdminStream />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/teams"
+          element={
+            <ProtectedRoute>
+              <AdminTeams />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/schedule"
+          element={
+            <ProtectedRoute>
+              <AdminSchedule />
+            </ProtectedRoute>
+          }
+        />
         {/* [REMOVE] 晋级名单管理页面已废弃
         <Route path="/admin/advancement" element={
           <ProtectedRoute>

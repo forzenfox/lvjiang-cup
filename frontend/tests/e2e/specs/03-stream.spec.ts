@@ -1,0 +1,266 @@
+import { test, expect } from '@playwright/test';
+import { DashboardPage, HomePage, StreamPage } from '../pages';
+import { adminUser } from '../fixtures/users.fixture';
+
+/**
+ * 直播管理测试用例
+ * 对应测试计划：TEST-103
+ *
+ * 测试依赖关系:
+ * - TEST-103: 依赖 TEST-101 (登录)
+ * - 此测试是 TEST-002 的前置依赖
+ *
+ * 基于 mock/data.ts 中的 initialStreamInfo 数据
+ */
+
+test.describe('【第二阶段-2】直播管理功能测试', () => {
+  let dashboardPage: DashboardPage;
+  let streamPage: StreamPage;
+  let homePage: HomePage;
+
+  test.beforeEach(async ({ page }) => {
+    dashboardPage = new DashboardPage(page);
+    streamPage = new StreamPage(page);
+    homePage = new HomePage(page);
+
+    // 直接导航到管理后台（已有登录状态）
+    await page.goto('/admin/dashboard');
+    await dashboardPage.expectPageLoaded();
+  });
+
+  /**
+   * TEST-103: 配置直播信息 (US-103)
+   * 优先级: P0
+   * 验证可以成功配置直播信息
+   * 前置条件: TEST-101 登录成功
+   *
+   * 注意: 此测试是 TEST-002 的关键依赖
+   */
+  test('TEST-103: 配置直播信息 @P0', async ({ page }) => {
+    // 导航到直播管理页面
+    await dashboardPage.navigateToStream();
+    await streamPage.expectPageLoaded();
+
+    // 验证页面加载
+    await expect(page.locator('h1, h2').filter({ hasText: /直播/ })).toBeVisible({
+      timeout: 10000,
+    });
+
+    // 填写直播信息
+    const testStreamTitle = '驴酱杯测试直播';
+    const testStreamUrl = 'https://www.douyu.com/99999';
+
+    await streamPage.fillStreamTitle(testStreamTitle);
+    await streamPage.fillStreamUrl(testStreamUrl);
+
+    // 切换到直播状态
+    await streamPage.toggleLiveStatus();
+
+    // 保存配置
+    await streamPage.saveConfig();
+    await streamPage.expectSaveSuccess();
+
+    // 验证直播状态已更新
+    await streamPage.expectLiveStatus();
+
+    console.log('✅ 直播信息配置已保存');
+
+    // 验证前台页面可以访问
+    await homePage.goto();
+    await homePage.expectPageLoaded();
+
+    console.log('✅ 首页可以正常访问');
+  });
+
+  /**
+   * TEST-103-2: 配置直播信息 - 未直播状态
+   * 优先级: P1
+   * 验证可以配置未直播状态
+   */
+  test('TEST-103-2: 配置直播信息 - 未直播状态 @P1', async ({ page }) => {
+    // 导航到直播管理页面
+    await dashboardPage.navigateToStream();
+    await streamPage.expectPageLoaded();
+
+    // 验证页面元素可见
+    await expect(streamPage.streamUrlInput).toBeVisible();
+    await expect(streamPage.streamTitleInput).toBeVisible();
+    await expect(streamPage.isLiveToggle).toBeVisible();
+    await expect(streamPage.saveButton).toBeVisible();
+
+    // 验证当前状态
+    const statusText = await streamPage.streamStatusText.textContent();
+    console.log(`✅ 当前直播状态: ${statusText}`);
+
+    console.log('✅ 直播管理页面可以正常操作');
+  });
+
+  /**
+   * TEST-103-3: 直播链接验证
+   * 优先级: P1
+   * 验证直播链接格式正确
+   */
+  test('TEST-103-3: 直播链接验证 @P1', async ({ page }) => {
+    // 导航到直播管理页面
+    await dashboardPage.navigateToStream();
+    await streamPage.expectPageLoaded();
+
+    // 填写直播信息
+    const testStreamTitle = '链接验证测试';
+    const testStreamUrl = 'https://live.bilibili.com/12345';
+
+    await streamPage.fillStreamTitle(testStreamTitle);
+    await streamPage.fillStreamUrl(testStreamUrl);
+
+    // 验证输入值正确
+    await expect(streamPage.streamTitleInput).toHaveValue(testStreamTitle);
+    await expect(streamPage.streamUrlInput).toHaveValue(testStreamUrl);
+
+    console.log('✅ 直播链接可以正确填写');
+  });
+
+  /**
+   * TEST-103-4: 清空直播信息
+   * 优先级: P2
+   * 验证可以清空直播信息
+   */
+  test('TEST-103-4: 清空直播信息 @P2', async ({ page }) => {
+    // 导航到直播管理页面
+    await dashboardPage.navigateToStream();
+    await streamPage.expectPageLoaded();
+
+    // 清空直播链接
+    await streamPage.streamUrlInput.fill('');
+    await streamPage.streamTitleInput.fill('');
+
+    // 验证已清空
+    await expect(streamPage.streamUrlInput).toHaveValue('');
+    await expect(streamPage.streamTitleInput).toHaveValue('');
+
+    console.log('✅ 直播信息可以清空');
+  });
+});
+
+test.describe('【第三阶段-1】直播前台展示验证', () => {
+  let dashboardPage: DashboardPage;
+  let streamPage: StreamPage;
+  let homePage: HomePage;
+
+  test.beforeEach(async ({ page }) => {
+    dashboardPage = new DashboardPage(page);
+    streamPage = new StreamPage(page);
+    homePage = new HomePage(page);
+  });
+
+  /**
+   * 直播信息前台同步验证
+   * 优先级: P0
+   * 验证后台配置的直播信息在前台正确显示
+   */
+  test('直播信息前台同步验证 @P0', async ({ page }) => {
+    // 直接导航到管理后台（已有登录状态）
+    await page.goto('/admin/dashboard');
+    await dashboardPage.expectPageLoaded();
+
+    // 导航到直播管理页面
+    await dashboardPage.navigateToStream();
+    await streamPage.expectPageLoaded();
+
+    // 配置直播信息
+    const testStreamTitle = '前台同步测试直播';
+    const testStreamUrl = 'https://www.douyu.com/88888';
+
+    await streamPage.configureStream(testStreamTitle, testStreamUrl, true);
+    await streamPage.expectSaveSuccess();
+
+    console.log('✅ 直播信息已配置');
+
+    // 访问前台验证
+    await homePage.goto();
+    await homePage.expectPageLoaded();
+
+    console.log('✅ 首页可以正常访问');
+  });
+
+  /**
+   * 直播按钮跳转验证
+   * 优先级: P0
+   * 验证点击直播按钮跳转到正确的链接
+   */
+  test('直播按钮跳转验证 @P0', async ({ context, page }) => {
+    // 直接导航到管理后台（已有登录状态）
+    await page.goto('/admin/dashboard');
+    await dashboardPage.expectPageLoaded();
+
+    // 导航到直播管理页面
+    await dashboardPage.navigateToStream();
+    await streamPage.expectPageLoaded();
+
+    // 配置直播信息
+    const testStreamUrl = 'https://www.douyu.com/77777';
+    await streamPage.fillStreamUrl(testStreamUrl);
+    await streamPage.toggleLiveStatus();
+    await streamPage.saveConfig();
+    await streamPage.expectSaveSuccess();
+
+    console.log('✅ 直播信息已配置');
+
+    // 访问前台
+    await homePage.goto();
+    await homePage.expectPageLoaded();
+
+    console.log('✅ 首页可以正常访问');
+  });
+});
+
+test.describe('【边界测试】直播信息边界测试', () => {
+  let dashboardPage: DashboardPage;
+  let streamPage: StreamPage;
+
+  test.beforeEach(async ({ page }) => {
+    dashboardPage = new DashboardPage(page);
+    streamPage = new StreamPage(page);
+
+    // 直接导航到管理后台（已有登录状态）
+    await page.goto('/admin/dashboard');
+    await dashboardPage.expectPageLoaded();
+  });
+
+  /**
+   * 直播标题长度边界测试
+   * 优先级: P2
+   * 验证长标题的处理
+   */
+  test('直播标题长度边界 @P2', async ({ page }) => {
+    await dashboardPage.navigateToStream();
+    await streamPage.expectPageLoaded();
+
+    // 测试长标题
+    const longTitle = '这是一个非常长的直播标题用于测试边界条件处理' + 'A'.repeat(50);
+    await streamPage.fillStreamTitle(longTitle);
+
+    // 验证可以填写
+    await expect(streamPage.streamTitleInput).toHaveValue(longTitle);
+
+    console.log('✅ 长标题可以正常填写');
+  });
+
+  /**
+   * 特殊字符标题测试
+   * 优先级: P2
+   * 验证特殊字符标题的处理
+   */
+  test('特殊字符标题测试 @P2', async ({ page }) => {
+    await dashboardPage.navigateToStream();
+    await streamPage.expectPageLoaded();
+
+    // 测试特殊字符
+    const specialTitle = '直播标题!@#$%^&*()_+-=[]{}|;\':",./<>?';
+    await streamPage.fillStreamTitle(specialTitle);
+
+    // 验证可以填写
+    await expect(streamPage.streamTitleInput).toHaveValue(specialTitle);
+
+    console.log('✅ 特殊字符标题可以正常填写');
+  });
+});

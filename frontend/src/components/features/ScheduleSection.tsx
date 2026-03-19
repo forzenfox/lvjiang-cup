@@ -99,7 +99,7 @@ const convertApiTeamToLocal = (apiTeam: ApiTeam): Team => {
 
 // 加载骨架屏组件
 const ScheduleSkeleton: React.FC = () => (
-  <div className="w-full">
+  <div className="w-full" data-testid="schedule-skeleton">
     <div className="flex justify-center mb-8">
       <div className="flex space-x-2 bg-gray-800/50 p-1 rounded-lg">
         <div className="w-24 h-10 bg-white/10 rounded animate-pulse" />
@@ -107,7 +107,7 @@ const ScheduleSkeleton: React.FC = () => (
       </div>
     </div>
     <div className="space-y-4">
-      {[1, 2, 3].map((i) => (
+      {[1, 2, 3].map(i => (
         <div key={i} className="h-20 bg-white/5 rounded-lg animate-pulse" />
       ))}
     </div>
@@ -116,12 +116,12 @@ const ScheduleSkeleton: React.FC = () => (
 
 // 错误状态组件
 const ErrorState: React.FC<{ message: string; onRetry: () => void }> = ({ message, onRetry }) => (
-  <div className="flex flex-col items-center justify-center py-20">
+  <div className="flex flex-col items-center justify-center py-20" data-testid="schedule-error">
     <AlertCircle className="w-16 h-16 text-red-500 mb-4" />
     <p className="text-xl text-red-400 mb-2">加载失败</p>
     <p className="text-sm text-gray-400 mb-6">{message}</p>
-    <Button 
-      variant="outline" 
+    <Button
+      variant="outline"
       onClick={onRetry}
       className="border-red-400 text-red-400 hover:bg-red-400/10"
     >
@@ -129,8 +129,6 @@ const ErrorState: React.FC<{ message: string; onRetry: () => void }> = ({ messag
     </Button>
   </div>
 );
-
-
 
 interface ScheduleSectionProps {
   /** 自动刷新间隔（毫秒），默认 30000ms (30秒) */
@@ -146,44 +144,52 @@ const ScheduleSection: React.FC<ScheduleSectionProps> = ({ refreshInterval = 300
   const { advancement, setAdvancement } = useAdvancementStore();
 
   // 加载数据
-  const loadData = useCallback(async (forceRefresh = false) => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      if (forceRefresh) {
-        advancementService.resetState();
-      }
-      
-      const [matchesResponse, teamsResponse, advancementData] = await Promise.all([
-        matchService.getAll(1, 100),
-        teamService.getAll(1, 100),
-        advancementService.get()
-      ]);
+  const loadData = useCallback(
+    async (forceRefresh = false) => {
+      try {
+        setLoading(true);
+        setError(null);
 
-      const convertedTeams = teamsResponse.data.map(convertApiTeamToLocal);
-      const convertedMatches = matchesResponse.data.map(m => convertApiMatchToLocal(m, convertedTeams));
-      
-      setTeams(convertedTeams);
-      setMatches(convertedMatches);
-      
-      if (advancementData) {
-        setAdvancement({
-          winners2_0: advancementData.winners2_0 || [],
-          winners2_1: advancementData.winners2_1 || [],
-          losersBracket: advancementData.losersBracket || [],
-          eliminated3rd: advancementData.eliminated3rd || [],
-          eliminated0_3: advancementData.eliminated0_3 || []
-        }, 'api');
+        if (forceRefresh) {
+          advancementService.resetState();
+        }
+
+        const [matchesResponse, teamsResponse, advancementData] = await Promise.all([
+          matchService.getAll(1, 100),
+          teamService.getAll(1, 100),
+          advancementService.get(),
+        ]);
+
+        const convertedTeams = teamsResponse.data.map(convertApiTeamToLocal);
+        const convertedMatches = matchesResponse.data.map(m =>
+          convertApiMatchToLocal(m, convertedTeams)
+        );
+
+        setTeams(convertedTeams);
+        setMatches(convertedMatches);
+
+        if (advancementData) {
+          setAdvancement(
+            {
+              winners2_0: advancementData.winners2_0 || [],
+              winners2_1: advancementData.winners2_1 || [],
+              losersBracket: advancementData.losersBracket || [],
+              eliminated3rd: advancementData.eliminated3rd || [],
+              eliminated0_3: advancementData.eliminated0_3 || [],
+            },
+            'api'
+          );
+        }
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : '获取赛程数据失败';
+        setError(errorMessage);
+        console.error('[ScheduleSection] 获取赛程数据失败:', err);
+      } finally {
+        setLoading(false);
       }
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : '获取赛程数据失败';
-      setError(errorMessage);
-      console.error('[ScheduleSection] 获取赛程数据失败:', err);
-    } finally {
-      setLoading(false);
-    }
-  }, [setAdvancement]);
+    },
+    [setAdvancement]
+  );
 
   // 按阶段筛选比赛
   const swissMatches = matches.filter(m => m.stage === 'swiss');
@@ -221,9 +227,12 @@ const ScheduleSection: React.FC<ScheduleSectionProps> = ({ refreshInterval = 300
   }, [loadData, refreshInterval]);
 
   return (
-    <section id="schedule" className="py-20 px-4 bg-gradient-to-b from-primary via-primary to-gray-900">
+    <section
+      id="schedule"
+      className="py-20 px-4 bg-gradient-to-b from-primary via-primary to-gray-900"
+    >
       <div className="max-w-7xl mx-auto">
-        <motion.h2 
+        <motion.h2
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
@@ -239,36 +248,38 @@ const ScheduleSection: React.FC<ScheduleSectionProps> = ({ refreshInterval = 300
           // 错误状态
           <ErrorState message={error} onRetry={loadData} />
         ) : (
-          <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-            <TabsList className="w-full max-w-md mx-auto mb-8 flex">
-              <TabsTrigger value="swiss" className="flex-1">瑞士轮</TabsTrigger>
-              <TabsTrigger value="elimination" className="flex-1">淘汰赛</TabsTrigger>
+          <Tabs
+            value={activeTab}
+            onValueChange={handleTabChange}
+            className="w-full"
+            data-testid="schedule-tabs"
+          >
+            <TabsList className="w-full max-w-md mx-auto mb-8 flex" data-testid="schedule-tab-list">
+              <TabsTrigger value="swiss" className="flex-1" data-testid="swiss-tab">
+                瑞士轮
+              </TabsTrigger>
+              <TabsTrigger value="elimination" className="flex-1" data-testid="elimination-tab">
+                淘汰赛
+              </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="swiss" className="mt-0">
+            <TabsContent value="swiss" className="mt-0" data-testid="swiss-content">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3 }}
               >
-                <SwissStage 
-                    matches={swissMatches} 
-                    teams={teams}
-                    advancement={advancement}
-                  />
+                <SwissStage matches={swissMatches} teams={teams} advancement={advancement} />
               </motion.div>
             </TabsContent>
 
-            <TabsContent value="elimination" className="mt-0">
+            <TabsContent value="elimination" className="mt-0" data-testid="elimination-content">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3 }}
               >
-                <EliminationStage 
-                    matches={eliminationMatches} 
-                    teams={teams}
-                  />
+                <EliminationStage matches={eliminationMatches} teams={teams} />
               </motion.div>
             </TabsContent>
           </Tabs>

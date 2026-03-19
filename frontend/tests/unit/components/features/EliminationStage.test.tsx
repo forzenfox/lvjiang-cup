@@ -13,7 +13,14 @@ const mockTeams: Team[] = [
   { id: 'team6', name: '69', logo: '/logo6.png', players: [], description: '测试队伍6' },
 ];
 
-const createMockMatch = (gameNum: number, teamAId: string, teamBId: string, scoreA: number, scoreB: number, status: Match['status'] = 'finished'): Match => ({
+const createMockMatch = (
+  gameNum: number,
+  teamAId: string,
+  teamBId: string,
+  scoreA: number,
+  scoreB: number,
+  status: Match['status'] = 'finished'
+): Match => ({
   id: `match-${gameNum}`,
   teamAId,
   teamBId,
@@ -77,9 +84,7 @@ describe('EliminationStage 组件', () => {
   });
 
   it('应该正确显示比赛信息（队伍、比分、时间）', () => {
-    const mockMatches: Match[] = [
-      createMockMatch(1, 'team1', 'team2', 3, 2),
-    ];
+    const mockMatches: Match[] = [createMockMatch(1, 'team1', 'team2', 3, 2)];
 
     render(
       <MemoryRouter>
@@ -127,9 +132,7 @@ describe('EliminationStage 组件', () => {
   });
 
   it('应该响应式显示（水平滚动容器）', () => {
-    const mockMatches: Match[] = [
-      createMockMatch(1, 'team1', 'team2', 3, 2),
-    ];
+    const mockMatches: Match[] = [createMockMatch(1, 'team1', 'team2', 3, 2)];
 
     const { container } = render(
       <MemoryRouter>
@@ -148,7 +151,12 @@ describe('EliminationStage 组件', () => {
 
   it('应该正确处理未开始和进行中的比赛', () => {
     const mockMatches: Match[] = [
-      { ...createMockMatch(1, 'team1', 'team2', 0, 0, 'upcoming'), scoreA: 0, scoreB: 0, winnerId: null },
+      {
+        ...createMockMatch(1, 'team1', 'team2', 0, 0, 'upcoming'),
+        scoreA: 0,
+        scoreB: 0,
+        winnerId: null,
+      },
       { ...createMockMatch(2, 'team3', 'team4', 1, 1, 'ongoing'), winnerId: null },
     ];
 
@@ -165,9 +173,7 @@ describe('EliminationStage 组件', () => {
 
   describe('editable 模式', () => {
     it('应该在 editable=true 时渲染可编辑卡片', () => {
-      const mockMatches: Match[] = [
-        createMockMatch(1, 'team1', 'team2', 3, 2),
-      ];
+      const mockMatches: Match[] = [createMockMatch(1, 'team1', 'team2', 3, 2)];
       const mockOnUpdate = vi.fn();
 
       const { container } = render(
@@ -187,9 +193,7 @@ describe('EliminationStage 组件', () => {
     });
 
     it('应该在 editable=false 时渲染只读卡片', () => {
-      const mockMatches: Match[] = [
-        createMockMatch(1, 'team1', 'team2', 3, 2),
-      ];
+      const mockMatches: Match[] = [createMockMatch(1, 'team1', 'team2', 3, 2)];
 
       const { container } = render(
         <MemoryRouter>
@@ -205,9 +209,7 @@ describe('EliminationStage 组件', () => {
     });
 
     it('应该在 editable=true 但无 onMatchUpdate 时渲染只读卡片', () => {
-      const mockMatches: Match[] = [
-        createMockMatch(1, 'team1', 'team2', 3, 2),
-      ];
+      const mockMatches: Match[] = [createMockMatch(1, 'team1', 'team2', 3, 2)];
 
       const { container } = render(
         <MemoryRouter>

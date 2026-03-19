@@ -19,8 +19,8 @@ const SwissMatchCard: React.FC<SwissMatchCardProps> = ({
   onClick,
   className = '',
 }) => {
-  const teamA = teams.find((t) => t.id === match.teamAId);
-  const teamB = teams.find((t) => t.id === match.teamBId);
+  const teamA = teams.find(t => t.id === match.teamAId);
+  const teamB = teams.find(t => t.id === match.teamBId);
   const isFinished = match.status === 'finished';
 
   return (
@@ -29,6 +29,7 @@ const SwissMatchCard: React.FC<SwissMatchCardProps> = ({
         onClick ? 'cursor-pointer hover:border-blue-500/50' : ''
       } ${className}`}
       onClick={onClick}
+      data-testid="swiss-match"
     >
       <SwissMatchStatusBadge status={match.status} />
 
@@ -46,9 +47,10 @@ const SwissMatchCard: React.FC<SwissMatchCardProps> = ({
             match.winnerId === match.teamAId
               ? 'opacity-100'
               : isFinished
-              ? 'opacity-50'
-              : 'opacity-100'
+                ? 'opacity-50'
+                : 'opacity-100'
           }`}
+          data-testid="team-a"
         >
           <div className="flex items-center gap-2">
             <SwissTeamLogo team={teamA} />
@@ -56,6 +58,7 @@ const SwissMatchCard: React.FC<SwissMatchCardProps> = ({
               className={`text-sm font-medium ${
                 match.winnerId === match.teamAId ? 'text-yellow-400' : 'text-gray-300'
               }`}
+              data-testid="team-a-name"
             >
               {teamA?.name || '待定'}
             </span>
@@ -64,6 +67,7 @@ const SwissMatchCard: React.FC<SwissMatchCardProps> = ({
             className={`text-sm font-bold ${
               match.winnerId === match.teamAId ? 'text-yellow-400' : 'text-gray-500'
             }`}
+            data-testid="team-a-score"
           >
             {match.scoreA}
           </span>
@@ -75,9 +79,10 @@ const SwissMatchCard: React.FC<SwissMatchCardProps> = ({
             match.winnerId === match.teamBId
               ? 'opacity-100'
               : isFinished
-              ? 'opacity-50'
-              : 'opacity-100'
+                ? 'opacity-50'
+                : 'opacity-100'
           }`}
+          data-testid="team-b"
         >
           <div className="flex items-center gap-2">
             <SwissTeamLogo team={teamB} />
@@ -85,6 +90,7 @@ const SwissMatchCard: React.FC<SwissMatchCardProps> = ({
               className={`text-sm font-medium ${
                 match.winnerId === match.teamBId ? 'text-yellow-400' : 'text-gray-300'
               }`}
+              data-testid="team-b-name"
             >
               {teamB?.name || '待定'}
             </span>
@@ -93,6 +99,7 @@ const SwissMatchCard: React.FC<SwissMatchCardProps> = ({
             className={`text-sm font-bold ${
               match.winnerId === match.teamBId ? 'text-yellow-400' : 'text-gray-500'
             }`}
+            data-testid="team-b-score"
           >
             {match.scoreB}
           </span>

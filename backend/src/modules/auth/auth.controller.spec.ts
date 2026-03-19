@@ -58,9 +58,7 @@ describe('AuthController', () => {
         password: 'wrongpassword',
       };
 
-      mockAuthService.login.mockRejectedValue(
-        new UnauthorizedException('Invalid credentials'),
-      );
+      mockAuthService.login.mockRejectedValue(new UnauthorizedException('Invalid credentials'));
 
       await expect(controller.login(loginDto)).rejects.toThrow(UnauthorizedException);
     });
@@ -71,9 +69,7 @@ describe('AuthController', () => {
         password: 'admin123',
       };
 
-      mockAuthService.login.mockRejectedValue(
-        new UnauthorizedException('Invalid credentials'),
-      );
+      mockAuthService.login.mockRejectedValue(new UnauthorizedException('Invalid credentials'));
 
       await expect(controller.login(loginDto)).rejects.toThrow(UnauthorizedException);
     });
@@ -118,13 +114,9 @@ describe('AuthController', () => {
         password: null,
       };
 
-      mockAuthService.login.mockRejectedValue(
-        new BadRequestException('Invalid request format'),
-      );
+      mockAuthService.login.mockRejectedValue(new BadRequestException('Invalid request format'));
 
-      await expect(controller.login(invalidLoginDto as any)).rejects.toThrow(
-        BadRequestException,
-      );
+      await expect(controller.login(invalidLoginDto as any)).rejects.toThrow(BadRequestException);
     });
   });
 });

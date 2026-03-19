@@ -76,11 +76,7 @@ export const Skeleton: React.FC<SkeletonProps> = ({
   style,
   ...props
 }) => {
-  const baseClasses = cn(
-    'bg-muted',
-    animate && 'animate-pulse',
-    variantStyles[variant]
-  );
+  const baseClasses = cn('bg-muted', animate && 'animate-pulse', variantStyles[variant]);
 
   // 如果是多行文本
   if (variant === 'text' && lines > 1) {
@@ -148,10 +144,7 @@ export const CardSkeleton: React.FC<CardSkeletonProps> = ({
 }) => {
   return (
     <div
-      className={cn(
-        'rounded-lg border border-border bg-card p-6 space-y-4',
-        className
-      )}
+      className={cn('rounded-lg border border-border bg-card p-6 space-y-4', className)}
       {...props}
     >
       {/* 头部 */}
@@ -167,11 +160,7 @@ export const CardSkeleton: React.FC<CardSkeletonProps> = ({
 
       {/* 内容 */}
       <div className="space-y-2 pt-2">
-        <Skeleton
-          variant="text"
-          lines={contentLines}
-          animate={animate}
-        />
+        <Skeleton variant="text" lines={contentLines} animate={animate} />
       </div>
 
       {/* 操作按钮 */}
@@ -211,23 +200,14 @@ export const ListItemSkeleton: React.FC<ListItemSkeletonProps> = ({
       )}
       {...props}
     >
-      {showImage && (
-        <Skeleton
-          variant="image"
-          width={64}
-          height={64}
-          animate={animate}
-        />
-      )}
+      {showImage && <Skeleton variant="image" width={64} height={64} animate={animate} />}
 
       <div className="flex-1 space-y-2">
         <Skeleton variant="text" width="40%" height={20} animate={animate} />
         <Skeleton variant="text" width="70%" height={16} animate={animate} />
       </div>
 
-      {showActions && (
-        <Skeleton variant="button" width={80} height={36} animate={animate} />
-      )}
+      {showActions && <Skeleton variant="button" width={80} height={36} animate={animate} />}
     </div>
   );
 };
@@ -312,13 +292,7 @@ export const PageSkeleton: React.FC<PageSkeletonProps> = ({
     <div className={cn('space-y-6 p-6', className)} {...props}>
       {/* 标题 */}
       {showTitle && (
-        <Skeleton
-          variant="text"
-          width={200}
-          height={32}
-          animate={animate}
-          className="mb-8"
-        />
+        <Skeleton variant="text" width={200} height={32} animate={animate} className="mb-8" />
       )}
 
       {/* 内容区块 */}
@@ -348,10 +322,7 @@ export const MatchCardSkeleton: React.FC<MatchCardSkeletonProps> = ({
 }) => {
   return (
     <div
-      className={cn(
-        'rounded-lg border border-border bg-card p-4 space-y-4',
-        className
-      )}
+      className={cn('rounded-lg border border-border bg-card p-4 space-y-4', className)}
       {...props}
     >
       {/* 比赛状态 */}
@@ -409,13 +380,7 @@ export const SwissTableSkeleton: React.FC<SwissTableSkeletonProps> = ({
         <Skeleton variant="text" width={60} height={24} animate={animate} />
         <Skeleton variant="text" className="flex-1" height={24} animate={animate} />
         {Array.from({ length: 5 }).map((_, i) => (
-          <Skeleton
-            key={i}
-            variant="text"
-            width={40}
-            height={24}
-            animate={animate}
-          />
+          <Skeleton key={i} variant="text" width={40} height={24} animate={animate} />
         ))}
       </div>
 
@@ -428,13 +393,7 @@ export const SwissTableSkeleton: React.FC<SwissTableSkeletonProps> = ({
             <Skeleton variant="text" width={120} height={20} animate={animate} />
           </div>
           {Array.from({ length: 5 }).map((_, i) => (
-            <Skeleton
-              key={i}
-              variant="text"
-              width={40}
-              height={32}
-              animate={animate}
-            />
+            <Skeleton key={i} variant="text" width={40} height={32} animate={animate} />
           ))}
         </div>
       ))}

@@ -52,7 +52,7 @@ export class StreamsService {
 
     const results = await this.databaseService.all<any>('SELECT * FROM stream_info ORDER BY id');
 
-    const streams: Stream[] = results.map(row => ({
+    const streams: Stream[] = results.map((row) => ({
       id: String(row.id),
       title: row.title || '',
       url: row.url || '',
@@ -68,10 +68,9 @@ export class StreamsService {
   }
 
   async findById(id: string): Promise<Stream> {
-    const result = await this.databaseService.get<any>(
-      'SELECT * FROM stream_info WHERE id = ?',
-      [id],
-    );
+    const result = await this.databaseService.get<any>('SELECT * FROM stream_info WHERE id = ?', [
+      id,
+    ]);
 
     if (!result) {
       throw new NotFoundException(`直播信息不存在: ${id}`);
@@ -95,11 +94,7 @@ export class StreamsService {
   async create(createStreamDto: CreateStreamDto): Promise<Stream> {
     const result: RunResult = await this.databaseService.run(
       'INSERT INTO stream_info (title, url, is_live, created_at, updated_at) VALUES (?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)',
-      [
-        createStreamDto.title,
-        createStreamDto.url,
-        createStreamDto.isLive ? 1 : 0,
-      ],
+      [createStreamDto.title, createStreamDto.url, createStreamDto.isLive ? 1 : 0],
     );
 
     this.logger.log(`Stream created with id: ${result.lastID}`);

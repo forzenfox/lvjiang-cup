@@ -67,20 +67,20 @@ function handleError(error: unknown, defaultMessage: string): never {
 
 /**
  * 直播数据服务
- * 
+ *
  * 提供直播信息的获取和更新操作，包含状态管理和错误处理
- * 
+ *
  * @example
  * ```ts
  * // 获取当前活跃直播
  * const stream = await streamService.get();
- * 
+ *
  * // 获取指定直播
  * const stream = await streamService.get('stream1');
- * 
+ *
  * // 获取所有直播
  * const streams = await streamService.getAll();
- * 
+ *
  * // 更新直播信息
  * await streamService.update({
  *   id: 'stream1',
@@ -98,15 +98,15 @@ export const streamService: StreamService = {
    */
   async get(id?: string): Promise<Stream> {
     setState({ loading: true, error: null });
-    
+
     try {
       const stream = await streamApi.get(id);
-      
+
       setState({
         currentStream: stream,
         loading: false,
       });
-      
+
       return stream;
     } catch (error) {
       handleError(error, id ? `获取直播 ${id} 信息失败` : '获取当前直播信息失败');
@@ -119,15 +119,15 @@ export const streamService: StreamService = {
    */
   async getAll(): Promise<Stream[]> {
     setState({ loading: true, error: null });
-    
+
     try {
       const streams = await streamApi.getAll();
-      
+
       setState({
         streams,
         loading: false,
       });
-      
+
       return streams;
     } catch (error) {
       handleError(error, '获取直播列表失败');
@@ -141,13 +141,13 @@ export const streamService: StreamService = {
    */
   async update(data: UpdateStreamRequest): Promise<Stream> {
     setState({ loading: true, error: null });
-    
+
     try {
       // 验证 ID
       if (!data.id) {
         throw new Error('直播 ID 不能为空');
       }
-      
+
       // 验证 URL 格式（如果提供了 URL）
       if (data.url) {
         try {
@@ -156,16 +156,16 @@ export const streamService: StreamService = {
           throw new Error('直播地址格式不正确');
         }
       }
-      
+
       const stream = await streamApi.update(data);
-      
+
       // 更新本地列表中的直播
       setState({
-        streams: state.streams.map(s => s.id === stream.id ? stream : s),
+        streams: state.streams.map(s => (s.id === stream.id ? stream : s)),
         currentStream: state.currentStream?.id === stream.id ? stream : state.currentStream,
         loading: false,
       });
-      
+
       return stream;
     } catch (error) {
       handleError(error, '更新直播信息失败');
@@ -206,10 +206,12 @@ export const streamService: StreamService = {
  * @param callback 状态变化回调函数
  * @returns 取消订阅函数
  */
-export function subscribeToStreamService(callback: (state: StreamServiceState) => void): () => void {
+export function subscribeToStreamService(
+  callback: (state: StreamServiceState) => void
+): () => void {
   listeners.add(callback);
   callback(state); // 立即通知当前状态
-  
+
   return () => {
     listeners.delete(callback);
   };

@@ -15,6 +15,8 @@ import appConfig from './config/app.config';
     ConfigModule.forRoot({
       isGlobal: true,
       load: [appConfig],
+      envFilePath: `.env.${process.env.NODE_ENV || 'development'}`,
+      ignoreEnvFile: false,
     }),
     DatabaseModule,
     CacheModule,

@@ -36,7 +36,7 @@ export class MatchesService {
 
   async findAll(stage?: string): Promise<Match[]> {
     const cacheKey = stage ? `${this.CACHE_KEY_ALL}:${stage}` : this.CACHE_KEY_ALL;
-    
+
     // 尝试从缓存获取
     const cached = this.cacheService.get<Match[]>(cacheKey);
     if (cached) {
@@ -46,14 +46,14 @@ export class MatchesService {
     // 构建查询
     let query = 'SELECT * FROM matches';
     const params: any[] = [];
-    
+
     if (stage) {
       query += ' WHERE stage = ?';
       params.push(stage);
     }
-    
+
     query += ' ORDER BY created_at ASC';
-    
+
     const matches = await this.databaseService.all<any>(query, params);
 
     // 获取所有战队信息用于关联
@@ -87,7 +87,7 @@ export class MatchesService {
 
   async findOne(id: string): Promise<Match> {
     const cacheKey = `${this.CACHE_KEY_PREFIX}${id}`;
-    
+
     // 尝试从缓存获取
     const cached = this.cacheService.get<Match>(cacheKey);
     if (cached) {
@@ -104,10 +104,14 @@ export class MatchesService {
     // 获取战队信息
     let teamA, teamB;
     if (match.team_a_id) {
-      teamA = await this.databaseService.get<any>('SELECT id, name, logo FROM teams WHERE id = ?', [match.team_a_id]);
+      teamA = await this.databaseService.get<any>('SELECT id, name, logo FROM teams WHERE id = ?', [
+        match.team_a_id,
+      ]);
     }
     if (match.team_b_id) {
-      teamB = await this.databaseService.get<any>('SELECT id, name, logo FROM teams WHERE id = ?', [match.team_b_id]);
+      teamB = await this.databaseService.get<any>('SELECT id, name, logo FROM teams WHERE id = ?', [
+        match.team_b_id,
+      ]);
     }
 
     const result: Match = {
@@ -137,7 +141,9 @@ export class MatchesService {
 
   async update(id: string, updateMatchDto: UpdateMatchDto): Promise<Match> {
     // 检查比赛是否存在
-    const existing = await this.databaseService.get<any>('SELECT id FROM matches WHERE id = ?', [id]);
+    const existing = await this.databaseService.get<any>('SELECT id FROM matches WHERE id = ?', [
+      id,
+    ]);
     if (!existing) {
       throw new NotFoundException(`Match with id ${id} not found`);
     }
@@ -178,7 +184,7 @@ export class MatchesService {
     if (updates.length > 0) {
       updates.push('updated_at = CURRENT_TIMESTAMP');
       values.push(id);
-      
+
       await this.databaseService.run(
         `UPDATE matches SET ${updates.join(', ')} WHERE id = ?`,
         values,
@@ -186,7 +192,7 @@ export class MatchesService {
     }
 
     this.logger.log(`Match updated: ${id}`);
-    
+
     // 清除缓存
     this.cacheService.del(this.CACHE_KEY_ALL);
     this.cacheService.del(`${this.CACHE_KEY_PREFIX}${id}`);
@@ -196,7 +202,9 @@ export class MatchesService {
 
   async clearScores(id: string): Promise<Match> {
     // 检查比赛是否存在
-    const existing = await this.databaseService.get<any>('SELECT id FROM matches WHERE id = ?', [id]);
+    const existing = await this.databaseService.get<any>('SELECT id FROM matches WHERE id = ?', [
+      id,
+    ]);
     if (!existing) {
       throw new NotFoundException(`Match with id ${id} not found`);
     }
@@ -208,7 +216,7 @@ export class MatchesService {
     );
 
     this.logger.log(`Match scores cleared: ${id}`);
-    
+
     // 清除缓存
     this.cacheService.del(this.CACHE_KEY_ALL);
     this.cacheService.del(`${this.CACHE_KEY_PREFIX}${id}`);
@@ -219,8 +227,10 @@ export class MatchesService {
   // 初始化比赛槽位
   async initSlots(): Promise<void> {
     // 检查是否已初始化
-    const result = await this.databaseService.get<{ count: number }>('SELECT COUNT(*) as count FROM matches');
-    
+    const result = await this.databaseService.get<{ count: number }>(
+      'SELECT COUNT(*) as count FROM matches',
+    );
+
     if (result.count > 0) {
       this.logger.log('Match slots already initialized');
       return;
@@ -253,19 +263,67 @@ export class MatchesService {
     // 淘汰赛槽位（8场）
     const eliminationSlots = [
       // 胜者组半决赛 (2场)
-      { id: 'elim-winners-1', round: '胜者组半决赛', stage: 'elimination', eliminationBracket: 'winners', eliminationGameNumber: 1 },
-      { id: 'elim-winners-2', round: '胜者组半决赛', stage: 'elimination', eliminationBracket: 'winners', eliminationGameNumber: 2 },
+      {
+        id: 'elim-winners-1',
+        round: '胜者组半决赛',
+        stage: 'elimination',
+        eliminationBracket: 'winners',
+        eliminationGameNumber: 1,
+      },
+      {
+        id: 'elim-winners-2',
+        round: '胜者组半决赛',
+        stage: 'elimination',
+        eliminationBracket: 'winners',
+        eliminationGameNumber: 2,
+      },
       // 败者组第一轮 (2场)
-      { id: 'elim-losers-3', round: '败者组第一轮', stage: 'elimination', eliminationBracket: 'losers', eliminationGameNumber: 3 },
-      { id: 'elim-losers-4', round: '败者组第一轮', stage: 'elimination', eliminationBracket: 'losers', eliminationGameNumber: 4 },
+      {
+        id: 'elim-losers-3',
+        round: '败者组第一轮',
+        stage: 'elimination',
+        eliminationBracket: 'losers',
+        eliminationGameNumber: 3,
+      },
+      {
+        id: 'elim-losers-4',
+        round: '败者组第一轮',
+        stage: 'elimination',
+        eliminationBracket: 'losers',
+        eliminationGameNumber: 4,
+      },
       // 胜者组决赛 (1场)
-      { id: 'elim-winners-5', round: '胜者组决赛', stage: 'elimination', eliminationBracket: 'winners', eliminationGameNumber: 5 },
+      {
+        id: 'elim-winners-5',
+        round: '胜者组决赛',
+        stage: 'elimination',
+        eliminationBracket: 'winners',
+        eliminationGameNumber: 5,
+      },
       // 败者组第二轮 (1场)
-      { id: 'elim-losers-6', round: '败者组第二轮', stage: 'elimination', eliminationBracket: 'losers', eliminationGameNumber: 6 },
+      {
+        id: 'elim-losers-6',
+        round: '败者组第二轮',
+        stage: 'elimination',
+        eliminationBracket: 'losers',
+        eliminationGameNumber: 6,
+      },
       // 败者组决赛 (1场)
-      { id: 'elim-losers-7', round: '败者组决赛', stage: 'elimination', eliminationBracket: 'losers', eliminationGameNumber: 7 },
+      {
+        id: 'elim-losers-7',
+        round: '败者组决赛',
+        stage: 'elimination',
+        eliminationBracket: 'losers',
+        eliminationGameNumber: 7,
+      },
       // 总决赛 (1场)
-      { id: 'elim-grand-8', round: '总决赛', stage: 'elimination', eliminationBracket: 'grand_finals', eliminationGameNumber: 8 },
+      {
+        id: 'elim-grand-8',
+        round: '总决赛',
+        stage: 'elimination',
+        eliminationBracket: 'grand_finals',
+        eliminationGameNumber: 8,
+      },
     ];
 
     // 插入瑞士轮槽位
@@ -301,7 +359,7 @@ export class MatchesService {
     }
 
     this.logger.log(`Initialized ${swissSlots.length + eliminationSlots.length} match slots`);
-    
+
     // 清除缓存
     this.cacheService.del(this.CACHE_KEY_ALL);
   }

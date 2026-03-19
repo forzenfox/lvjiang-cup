@@ -13,8 +13,8 @@ const SwissTeamList: React.FC<SwissTeamListProps> = ({ teams, ids, onRemove }) =
 
   return (
     <div className="flex flex-col gap-1.5 mt-2">
-      {ids.map((id) => {
-        const team = teams.find((t) => t.id === id);
+      {ids.map(id => {
+        const team = teams.find(t => t.id === id);
         if (!team) return null;
 
         return (
@@ -28,7 +28,7 @@ const SwissTeamList: React.FC<SwissTeamListProps> = ({ teams, ids, onRemove }) =
             </div>
             {onRemove && (
               <button
-                onClick={(e) => {
+                onClick={e => {
                   e.stopPropagation();
                   onRemove(id);
                 }}

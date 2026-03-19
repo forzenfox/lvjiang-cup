@@ -55,7 +55,11 @@ describe('Button 组件', () => {
 
   it('应该在禁用时不可点击', () => {
     const handleClick = vi.fn();
-    render(<Button disabled onClick={handleClick}>Disabled</Button>);
+    render(
+      <Button disabled onClick={handleClick}>
+        Disabled
+      </Button>
+    );
 
     const button = screen.getByRole('button');
     expect(button).toBeDisabled();

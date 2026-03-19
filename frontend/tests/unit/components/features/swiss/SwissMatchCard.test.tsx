@@ -50,7 +50,9 @@ describe('SwissMatchCard', () => {
   it('应该支持点击事件', () => {
     const match = createMockMatch();
     const handleClick = vi.fn();
-    const { container } = render(<SwissMatchCard match={match} teams={mockTeams} onClick={handleClick} />);
+    const { container } = render(
+      <SwissMatchCard match={match} teams={mockTeams} onClick={handleClick} />
+    );
 
     const card = container.querySelector('.cursor-pointer');
     expect(card).toBeInTheDocument();
@@ -85,7 +87,9 @@ describe('SwissMatchCard', () => {
 
   it('应该支持自定义className', () => {
     const match = createMockMatch();
-    const { container } = render(<SwissMatchCard match={match} teams={mockTeams} className="custom-class" />);
+    const { container } = render(
+      <SwissMatchCard match={match} teams={mockTeams} className="custom-class" />
+    );
 
     const card = container.querySelector('.custom-class');
     expect(card).toBeInTheDocument();

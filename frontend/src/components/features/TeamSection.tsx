@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { User, Users, Loader2, AlertCircle } from 'lucide-react';
 import { teamService } from '../../services';
 import type { Team as ApiTeam } from '../../api/types';
@@ -27,12 +27,18 @@ interface Team {
 
 const PositionIcon: React.FC<{ position: string }> = ({ position }) => {
   switch (position.toLowerCase()) {
-    case 'top': return <TopIcon className="w-4 h-4" />;
-    case 'jungle': return <JungleIcon className="w-4 h-4" />;
-    case 'mid': return <MidIcon className="w-4 h-4" />;
-    case 'bot': return <AdcIcon className="w-4 h-4" />;
-    case 'support': return <SupportIcon className="w-4 h-4" />;
-    default: return <User className="w-4 h-4 text-gray-400" />;
+    case 'top':
+      return <TopIcon className="w-4 h-4" />;
+    case 'jungle':
+      return <JungleIcon className="w-4 h-4" />;
+    case 'mid':
+      return <MidIcon className="w-4 h-4" />;
+    case 'bot':
+      return <AdcIcon className="w-4 h-4" />;
+    case 'support':
+      return <SupportIcon className="w-4 h-4" />;
+    default:
+      return <User className="w-4 h-4 text-gray-400" />;
   }
 };
 
@@ -48,7 +54,7 @@ const TeamCardSkeleton: React.FC = () => (
     </CardHeader>
     <CardContent>
       <div className="space-y-3">
-        {[1, 2, 3, 4, 5].map((i) => (
+        {[1, 2, 3, 4, 5].map(i => (
           <div key={i} className="flex items-center justify-between p-2 rounded bg-black/20">
             <div className="flex items-center space-x-3">
               <div className="w-8 h-8 rounded-full bg-white/10 animate-pulse" />
@@ -64,12 +70,15 @@ const TeamCardSkeleton: React.FC = () => (
 
 // 空数据状态组件
 const EmptyState: React.FC<{ onRetry: () => void }> = ({ onRetry }) => (
-  <div className="col-span-full flex flex-col items-center justify-center py-20">
+  <div
+    className="col-span-full flex flex-col items-center justify-center py-20"
+    data-testid="empty-teams"
+  >
     <Users className="w-16 h-16 text-gray-500 mb-4" />
     <p className="text-xl text-gray-400 mb-2">暂无战队数据</p>
     <p className="text-sm text-gray-500 mb-6">当前没有可用的战队信息</p>
-    <Button 
-      variant="outline" 
+    <Button
+      variant="outline"
       onClick={onRetry}
       className="border-secondary text-secondary hover:bg-secondary/10"
     >
@@ -84,8 +93,8 @@ const ErrorState: React.FC<{ message: string; onRetry: () => void }> = ({ messag
     <AlertCircle className="w-16 h-16 text-red-500 mb-4" />
     <p className="text-xl text-red-400 mb-2">加载失败</p>
     <p className="text-sm text-gray-400 mb-6">{message}</p>
-    <Button 
-      variant="outline" 
+    <Button
+      variant="outline"
       onClick={onRetry}
       className="border-red-400 text-red-400 hover:bg-red-400/10"
     >
@@ -109,10 +118,11 @@ const TeamSection: React.FC<TeamSectionProps> = ({ refreshInterval = 30000 }) =>
     // 如果 API 返回了 players 数据，使用真实数据；否则生成模拟数据
     let players: Player[];
     if (apiTeam.players && apiTeam.players.length > 0) {
-      players = apiTeam.players.map((apiPlayer) => ({
+      players = apiTeam.players.map(apiPlayer => ({
         id: apiPlayer.id,
         name: apiPlayer.name,
-        avatar: apiPlayer.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${apiPlayer.id}`,
+        avatar:
+          apiPlayer.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${apiPlayer.id}`,
         position: apiPlayer.position,
         description: '',
       }));
@@ -138,7 +148,7 @@ const TeamSection: React.FC<TeamSectionProps> = ({ refreshInterval = 30000 }) =>
   };
 
   // 获取战队数据
-  const fetchTeams = async () => {
+  const fetchTeams = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -152,12 +162,15 @@ const TeamSection: React.FC<TeamSectionProps> = ({ refreshInterval = 30000 }) =>
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     // 初始加载
     fetchTeams();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
+  useEffect(() => {
     // 设置自动刷新
     const interval = setInterval(() => {
       fetchTeams();
@@ -176,10 +189,13 @@ const TeamSection: React.FC<TeamSectionProps> = ({ refreshInterval = 30000 }) =>
       clearInterval(interval);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [refreshInterval]);
+  }, [refreshInterval, fetchTeams]);
 
   return (
-    <section id="teams" className="min-h-screen py-20 bg-gradient-to-b from-background to-black relative">
+    <section
+      id="teams"
+      className="min-h-screen py-20 bg-gradient-to-b from-background to-black relative"
+    >
       <div className="container mx-auto px-4">
         <h2 className="text-4xl md:text-5xl font-bold text-center mb-16 text-white uppercase tracking-wider">
           参赛战队
@@ -188,7 +204,7 @@ const TeamSection: React.FC<TeamSectionProps> = ({ refreshInterval = 30000 }) =>
         {/* 加载骨架屏 */}
         {loading && teams.length === 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {[1, 2, 3, 4].map((i) => (
+            {[1, 2, 3, 4].map(i => (
               <TeamCardSkeleton key={i} />
             ))}
           </div>
@@ -204,19 +220,34 @@ const TeamSection: React.FC<TeamSectionProps> = ({ refreshInterval = 30000 }) =>
           </div>
         ) : (
           /* 正常数据展示 */
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {teams.map((team) => (
-              <Card key={team.id} className="bg-white/5 border-white/10 hover:border-secondary/50 transition-all duration-300 hover:transform hover:-translate-y-2 group overflow-hidden">
+          <div
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8"
+            data-testid="teams-grid"
+          >
+            {teams.map(team => (
+              <Card
+                key={team.id}
+                className="bg-white/5 border-white/10 hover:border-secondary/50 transition-all duration-300 hover:transform hover:-translate-y-2 group overflow-hidden"
+                data-testid="team-card"
+              >
                 <div className="h-32 bg-gradient-to-br from-blue-900/50 to-purple-900/50 relative flex items-center justify-center p-4">
-                  <img 
-                    src={team.logo} 
-                    alt={team.name} 
-                    className="w-24 h-24 object-contain drop-shadow-lg transform group-hover:scale-110 transition-transform duration-300" 
+                  <img
+                    src={team.logo}
+                    alt={team.name}
+                    className="w-24 h-24 object-contain drop-shadow-lg transform group-hover:scale-110 transition-transform duration-300"
+                    data-testid="team-logo"
                   />
                 </div>
                 <CardHeader>
-                  <CardTitle className="text-xl text-center text-secondary group-hover:text-white transition-colors">{team.name}</CardTitle>
-                  <CardDescription className="text-center">{team.description}</CardDescription>
+                  <CardTitle
+                    className="text-xl text-center text-secondary group-hover:text-white transition-colors"
+                    data-testid="team-name"
+                  >
+                    {team.name}
+                  </CardTitle>
+                  <CardDescription className="text-center" data-testid="team-description">
+                    {team.description}
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
@@ -226,7 +257,11 @@ const TeamSection: React.FC<TeamSectionProps> = ({ refreshInterval = 30000 }) =>
                           <img src={player.avatar} alt={player.name} className="w-8 h-8 rounded-full bg-gray-300 object-cover ring-2 ring-white/50" />
                           <span className="text-sm font-semibold text-gray-700">{player.name}</span>
                         </div>
-                        <div className="flex items-center" title={getPositionLabel(player.position)}>
+                        <div
+                          className="flex items-center"
+                          title={getPositionLabel(player.position)}
+                          data-testid="position-icon"
+                        >
                           <PositionIcon position={player.position} />
                         </div>
                       </div>

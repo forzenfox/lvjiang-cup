@@ -153,9 +153,7 @@ describe('Teams Integration Tests', () => {
         name: 'Test Team',
         logo: 'logo.png',
         description: 'Test description',
-        players: [
-          { id: 'p1', name: 'Player1', position: 'top' as const },
-        ],
+        players: [{ id: 'p1', name: 'Player1', position: 'top' as const }],
       };
 
       const created = await service.create(createDto);
@@ -321,7 +319,13 @@ describe('Teams Integration Tests', () => {
       });
 
       expect(updated.players).toHaveLength(5);
-      expect(updated.players.map(p => p.position).sort()).toEqual(['bot', 'jungle', 'mid', 'support', 'top']);
+      expect(updated.players.map((p) => p.position).sort()).toEqual([
+        'bot',
+        'jungle',
+        'mid',
+        'support',
+        'top',
+      ]);
     });
 
     it('should remove all players from team', async () => {
@@ -355,9 +359,7 @@ describe('Teams Integration Tests', () => {
         name: 'Test Team',
         logo: 'logo.png',
         description: 'Test description',
-        players: [
-          { id: 'p1', name: 'OldName', position: 'top' as const, avatar: 'old.png' },
-        ],
+        players: [{ id: 'p1', name: 'OldName', position: 'top' as const, avatar: 'old.png' }],
       };
 
       const created = await service.create(createDto);
@@ -366,9 +368,7 @@ describe('Teams Integration Tests', () => {
       mockCacheService.del.mockReturnValue(undefined);
 
       const updated = await service.update(created.id, {
-        players: [
-          { id: 'p1', name: 'NewName', position: 'jungle' as const, avatar: 'new.png' },
-        ],
+        players: [{ id: 'p1', name: 'NewName', position: 'jungle' as const, avatar: 'new.png' }],
       });
 
       expect(updated.players).toHaveLength(1);
@@ -386,16 +386,16 @@ describe('Teams Integration Tests', () => {
         name: 'Test Team',
         logo: 'logo.png',
         description: 'Test description',
-        players: [
-          { id: 'p1', name: 'Player1', position: 'top' as const },
-        ],
+        players: [{ id: 'p1', name: 'Player1', position: 'top' as const }],
       };
 
       // 先创建队伍，然后手动删除，模拟并发冲突
       await service.create(createDto);
 
       // 验证队员已创建
-      let players = await databaseService.all('SELECT * FROM players WHERE team_id = ?', ['team-1']);
+      let players = await databaseService.all('SELECT * FROM players WHERE team_id = ?', [
+        'team-1',
+      ]);
       expect(players).toHaveLength(1);
 
       // 删除队伍 - 由于外键约束启用了级联删除，队员也应该被删除
@@ -423,7 +423,9 @@ describe('Teams Integration Tests', () => {
       expect(created.players).toHaveLength(10);
 
       // 验证所有队员都被正确插入
-      const dbPlayers = await databaseService.all('SELECT * FROM players WHERE team_id = ?', ['team-1']);
+      const dbPlayers = await databaseService.all('SELECT * FROM players WHERE team_id = ?', [
+        'team-1',
+      ]);
       expect(dbPlayers).toHaveLength(10);
     });
   });
@@ -450,9 +452,7 @@ describe('Teams Integration Tests', () => {
         name: 'Test Team',
         logo: 'logo.png',
         description: 'Test description',
-        players: [
-          { id: 'p1', name: 'Player1', position: '无效位置' as any },
-        ],
+        players: [{ id: 'p1', name: 'Player1', position: '无效位置' as any }],
       };
 
       await expect(service.create(createDto)).rejects.toThrow();
@@ -461,13 +461,13 @@ describe('Teams Integration Tests', () => {
     it('should handle update of non-existent team', async () => {
       mockCacheService.get.mockReturnValue(undefined);
 
-      await expect(service.update('non-existent', { name: 'New Name' }))
-        .rejects.toThrow(NotFoundException);
+      await expect(service.update('non-existent', { name: 'New Name' })).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should handle delete of non-existent team', async () => {
-      await expect(service.remove('non-existent'))
-        .rejects.toThrow(NotFoundException);
+      await expect(service.remove('non-existent')).rejects.toThrow(NotFoundException);
     });
   });
 
@@ -480,7 +480,7 @@ describe('Teams Integration Tests', () => {
           logo: `logo${i}.png`,
           description: `Description ${i}`,
           players: [],
-        })
+        }),
       );
 
       const results = await Promise.all(promises);
@@ -505,7 +505,7 @@ describe('Teams Integration Tests', () => {
 
       // 并发更新
       const promises = Array.from({ length: 3 }, (_, i) =>
-        service.update(team.id, { name: `Updated Name ${i}` })
+        service.update(team.id, { name: `Updated Name ${i}` }),
       );
 
       await Promise.all(promises);
@@ -575,9 +575,7 @@ describe('Teams Integration Tests', () => {
         name: 'Test Team',
         logo: 'logo.png',
         description: 'Description',
-        players: [
-          { id: 'p1', name: 'Player1', position: 'top' as const },
-        ],
+        players: [{ id: 'p1', name: 'Player1', position: 'top' as const }],
       });
 
       // 验证队员已创建
@@ -607,12 +605,14 @@ describe('Teams Integration Tests', () => {
       // 然后插入队员到存在的队伍应该成功
       const result = await databaseService.run(
         'INSERT INTO players (id, name, position, team_id) VALUES (?, ?, ?, ?)',
-        ['p1', 'Player1', 'top', 'team-1']
+        ['p1', 'Player1', 'top', 'team-1'],
       );
       expect(result.changes).toBe(1);
 
       // 验证队员已插入
-      const players = await databaseService.all('SELECT * FROM players WHERE team_id = ?', ['team-1']);
+      const players = await databaseService.all('SELECT * FROM players WHERE team_id = ?', [
+        'team-1',
+      ]);
       expect(players).toHaveLength(1);
     });
 
@@ -675,9 +675,7 @@ describe('Teams Integration Tests', () => {
         name: 'Team 1',
         logo: 'logo1.png',
         description: 'Description 1',
-        players: [
-          { id: 't1p1', name: 'T1Player1', position: 'top' as const },
-        ],
+        players: [{ id: 't1p1', name: 'T1Player1', position: 'top' as const }],
       });
 
       const team2 = await service.create({
@@ -685,14 +683,16 @@ describe('Teams Integration Tests', () => {
         name: 'Team 2',
         logo: 'logo2.png',
         description: 'Description 2',
-        players: [
-          { id: 't2p1', name: 'T2Player1', position: 'jungle' as const },
-        ],
+        players: [{ id: 't2p1', name: 'T2Player1', position: 'jungle' as const }],
       });
 
       // 验证两个队伍的队员都存在
-      let team1Players = await databaseService.all('SELECT * FROM players WHERE team_id = ?', [team1.id]);
-      let team2Players = await databaseService.all('SELECT * FROM players WHERE team_id = ?', [team2.id]);
+      let team1Players = await databaseService.all('SELECT * FROM players WHERE team_id = ?', [
+        team1.id,
+      ]);
+      let team2Players = await databaseService.all('SELECT * FROM players WHERE team_id = ?', [
+        team2.id,
+      ]);
       expect(team1Players).toHaveLength(1);
       expect(team2Players).toHaveLength(1);
 
@@ -700,11 +700,15 @@ describe('Teams Integration Tests', () => {
       await service.remove(team1.id);
 
       // 验证 team2 的队员仍然存在
-      team2Players = await databaseService.all('SELECT * FROM players WHERE team_id = ?', [team2.id]);
+      team2Players = await databaseService.all('SELECT * FROM players WHERE team_id = ?', [
+        team2.id,
+      ]);
       expect(team2Players).toHaveLength(1);
 
       // 验证 team1 的队员已被删除
-      team1Players = await databaseService.all('SELECT * FROM players WHERE team_id = ?', [team1.id]);
+      team1Players = await databaseService.all('SELECT * FROM players WHERE team_id = ?', [
+        team1.id,
+      ]);
       expect(team1Players).toHaveLength(0);
     });
   });

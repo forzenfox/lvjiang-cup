@@ -129,35 +129,28 @@ export function getHttpErrorMessage(statusCode: number): string {
 export function parseAxiosError(error: AxiosError): AppError {
   // 网络错误
   if (isNetworkError(error)) {
-    return new AppError(
-      '网络连接失败，请检查网络设置',
-      ErrorType.NETWORK,
-      undefined,
-      error
-    );
+    return new AppError('网络连接失败，请检查网络设置', ErrorType.NETWORK, undefined, error);
   }
 
   // 超时错误
   if (isTimeoutError(error)) {
-    return new AppError(
-      '请求超时，请稍后再试',
-      ErrorType.TIMEOUT,
-      undefined,
-      error
-    );
+    return new AppError('请求超时，请稍后再试', ErrorType.TIMEOUT, undefined, error);
   }
 
   // 服务器返回错误
   if (error.response) {
     const { status, data } = error.response;
-     
+
     const message = (data as { message?: string })?.message || getHttpErrorMessage(status);
 
     // 根据状态码分类错误
     let type = ErrorType.SERVER;
     if (status === HttpStatusCode.UNAUTHORIZED) {
       type = ErrorType.AUTH;
-    } else if (status === HttpStatusCode.BAD_REQUEST || status === HttpStatusCode.UNPROCESSABLE_ENTITY) {
+    } else if (
+      status === HttpStatusCode.BAD_REQUEST ||
+      status === HttpStatusCode.UNPROCESSABLE_ENTITY
+    ) {
       type = ErrorType.VALIDATION;
     } else if (status >= 400 && status < 500) {
       type = ErrorType.CLIENT;
@@ -168,21 +161,11 @@ export function parseAxiosError(error: AxiosError): AppError {
 
   // 请求配置错误
   if (error.request) {
-    return new AppError(
-      '请求发送失败，请检查网络连接',
-      ErrorType.NETWORK,
-      undefined,
-      error
-    );
+    return new AppError('请求发送失败，请检查网络连接', ErrorType.NETWORK, undefined, error);
   }
 
   // 其他错误
-  return new AppError(
-    error.message || '发生未知错误',
-    ErrorType.UNKNOWN,
-    undefined,
-    error
-  );
+  return new AppError(error.message || '发生未知错误', ErrorType.UNKNOWN, undefined, error);
 }
 
 /**

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import AdminLayout from '../../components/layout/AdminLayout';
 import { teamService } from '@/services/teamService';
 import type { Team, Player } from '@/types';
-import type { CreateTeamRequest, UpdateTeamRequest } from '@/api/types';
+import type { CreateTeamRequest, UpdateTeamRequest, CreatePlayerRequest } from '@/api/types';
 import { Button } from '../../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Plus, Trash2, Edit2, Save, X, RefreshCw, Users } from 'lucide-react';
@@ -21,7 +21,7 @@ const createDefaultPlayers = (teamId: string): Player[] => {
     position,
     avatar: '',
     description: '',
-    teamId
+    teamId,
   }));
 };
 
@@ -29,7 +29,7 @@ const createDefaultPlayers = (teamId: string): Player[] => {
 const ensureAllPositions = (players: Player[] = [], teamId: string): Player[] => {
   const existingPlayers = [...players];
   const result: Player[] = [];
-  
+
   LOL_POSITIONS.forEach((position, index) => {
     const existingPlayer = existingPlayers.find(p => p.position === position);
     if (existingPlayer) {
@@ -41,11 +41,11 @@ const ensureAllPositions = (players: Player[] = [], teamId: string): Player[] =>
         position,
         avatar: '',
         description: '',
-        teamId
+        teamId,
       });
     }
   });
-  
+
   return result;
 };
 
@@ -55,14 +55,18 @@ const toCreateTeamRequest = (team: Team): CreateTeamRequest => ({
   name: team.name,
   logo: team.logo,
   description: team.description,
-  players: team.players
-    ?.filter(p => p.name.trim())
-    .map(p => ({
-      id: p.id,
-      name: p.name,
-      avatar: p.avatar,
-      position: p.position as 'top' | 'jungle' | 'mid' | 'bot' | 'support',
-    })) || [],
+  players:
+    team.players
+      ?.filter(p => p.name.trim())
+      .map(
+        p =>
+          ({
+            id: p.id,
+            name: p.name,
+            avatar: p.avatar,
+            position: p.position as 'top' | 'jungle' | 'mid' | 'bot' | 'support',
+          }) as CreatePlayerRequest
+      ) || [],
 });
 
 // 将前端 Team 转换为 API UpdateTeamRequest
@@ -71,31 +75,47 @@ const toUpdateTeamRequest = (team: Team): UpdateTeamRequest => ({
   name: team.name,
   logo: team.logo,
   description: team.description,
-  players: team.players
-    ?.filter(p => p.name.trim())
-    .map(p => ({
-      id: p.id,
-      name: p.name,
-      avatar: p.avatar,
-      position: p.position as 'top' | 'jungle' | 'mid' | 'bot' | 'support',
-    })) || [],
+  players:
+    team.players
+      ?.filter(p => p.name.trim())
+      .map(
+        p =>
+          ({
+            id: p.id,
+            name: p.name,
+            avatar: p.avatar,
+            position: p.position as 'top' | 'jungle' | 'mid' | 'bot' | 'support',
+          }) as CreatePlayerRequest
+      ) || [],
 });
 
 // 将 API Team 转换为前端 Team
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const toFrontendTeam = (apiTeam: any): Team => ({
+interface ApiTeam {
+  id: string;
+  name: string;
+  logo?: string;
+  description?: string;
+  players?: Array<{
+    id: string;
+    name: string;
+    position: string;
+    avatar?: string;
+  }>;
+}
+
+const toFrontendTeam = (apiTeam: ApiTeam): Team => ({
   id: apiTeam.id,
   name: apiTeam.name,
   logo: apiTeam.logo || '',
   description: apiTeam.description || '',
   players: ensureAllPositions(
-    (apiTeam.players || []).map((p: any) => ({
+    (apiTeam.players || []).map(p => ({
       id: p.id,
       name: p.name,
       position: p.position,
       avatar: p.avatar || '',
       description: '',
-      teamId: apiTeam.id
+      teamId: apiTeam.id,
     })),
     apiTeam.id
   ),
@@ -130,14 +150,14 @@ const AdminTeams: React.FC = () => {
     // 确保编辑时包含所有5个位置
     const teamWithAllPositions = {
       ...team,
-      players: ensureAllPositions(team.players, team.id)
+      players: ensureAllPositions(team.players, team.id),
     };
     setEditingTeam(teamWithAllPositions);
   };
 
   const handleSave = async () => {
     if (!editingTeam) return;
-    
+
     // 验证战队名称
     if (!editingTeam.name.trim()) {
       toast.error('战队名称不能为空');
@@ -147,7 +167,7 @@ const AdminTeams: React.FC = () => {
     setLoading(true);
     try {
       const isExisting = teams.find(t => t.id === editingTeam.id);
-      
+
       if (isExisting) {
         // 更新现有战队
         const updateData = toUpdateTeamRequest(editingTeam);
@@ -159,7 +179,7 @@ const AdminTeams: React.FC = () => {
         await teamService.create(createData);
         toast.success('战队创建成功');
       }
-      
+
       setEditingTeam(null);
       await loadTeams();
     } catch (error) {
@@ -177,7 +197,7 @@ const AdminTeams: React.FC = () => {
 
   const handleConfirmDelete = async () => {
     if (!teamToDelete) return;
-    
+
     setLoading(true);
     try {
       await teamService.remove(teamToDelete);
@@ -207,7 +227,7 @@ const AdminTeams: React.FC = () => {
       name: '',
       logo: '',
       description: '',
-      players: createDefaultPlayers(newTeamId)
+      players: createDefaultPlayers(newTeamId),
     });
   };
 
@@ -216,8 +236,8 @@ const AdminTeams: React.FC = () => {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-white">战队管理</h1>
         <div className="flex gap-2">
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             onClick={loadTeams}
             disabled={loading}
             className="border-gray-600 text-gray-300 hover:bg-gray-700"
@@ -249,7 +269,7 @@ const AdminTeams: React.FC = () => {
                 </label>
                 <input
                   value={editingTeam.name}
-                  onChange={(e) => setEditingTeam({ ...editingTeam, name: e.target.value })}
+                  onChange={e => setEditingTeam({ ...editingTeam, name: e.target.value })}
                   placeholder="请输入战队名称"
                   className="w-full px-3 py-2 bg-gray-700 rounded border border-gray-600 text-white focus:outline-none focus:border-blue-500"
                 />
@@ -258,7 +278,7 @@ const AdminTeams: React.FC = () => {
                 <label className="block text-sm text-gray-400 mb-1">队标链接</label>
                 <input
                   value={editingTeam.logo}
-                  onChange={(e) => setEditingTeam({ ...editingTeam, logo: e.target.value })}
+                  onChange={e => setEditingTeam({ ...editingTeam, logo: e.target.value })}
                   placeholder="https://example.com/logo.png"
                   className="w-full px-3 py-2 bg-gray-700 rounded border border-gray-600 text-white focus:outline-none focus:border-blue-500"
                 />
@@ -267,7 +287,7 @@ const AdminTeams: React.FC = () => {
                 <label className="block text-sm text-gray-400 mb-1">战队简介</label>
                 <textarea
                   value={editingTeam.description}
-                  onChange={(e) => setEditingTeam({ ...editingTeam, description: e.target.value })}
+                  onChange={e => setEditingTeam({ ...editingTeam, description: e.target.value })}
                   placeholder="请输入战队简介"
                   rows={3}
                   className="w-full px-3 py-2 bg-gray-700 rounded border border-gray-600 text-white focus:outline-none focus:border-blue-500 resize-none"
@@ -282,21 +302,26 @@ const AdminTeams: React.FC = () => {
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                 {editingTeam.players.map((player, idx) => (
-                  <div key={player.id} className="p-3 bg-gray-900/50 rounded border border-gray-700">
+                  <div
+                    key={player.id}
+                    className="p-3 bg-gray-900/50 rounded border border-gray-700"
+                  >
                     <div className="flex items-center gap-2 mb-2">
                       <span className="px-2 py-0.5 bg-blue-600/30 text-blue-400 text-xs rounded font-medium">
                         {getPositionLabel(player.position)}
                       </span>
                     </div>
                     <input
+                      data-testid="player-name-input"
                       value={player.name}
-                      onChange={(e) => handlePlayerChange(idx, 'name', e.target.value)}
+                      onChange={e => handlePlayerChange(idx, 'name', e.target.value)}
                       placeholder="队员姓名"
                       className="w-full px-2 py-1.5 bg-gray-700 rounded text-white text-sm focus:outline-none focus:border-blue-500 border border-transparent mb-2"
                     />
                     <input
+                      data-testid="player-avatar-input"
                       value={player.avatar || ''}
-                      onChange={(e) => handlePlayerChange(idx, 'avatar', e.target.value)}
+                      onChange={e => handlePlayerChange(idx, 'avatar', e.target.value)}
                       placeholder="头像链接"
                       className="w-full px-2 py-1.5 bg-gray-700 rounded text-white text-sm focus:outline-none focus:border-blue-500 border border-transparent"
                     />
@@ -306,15 +331,11 @@ const AdminTeams: React.FC = () => {
             </div>
 
             <div className="flex justify-end gap-2 mt-4">
-              <Button 
-                variant="ghost" 
-                onClick={() => setEditingTeam(null)}
-                disabled={loading}
-              >
+              <Button variant="ghost" onClick={() => setEditingTeam(null)} disabled={loading}>
                 取消
               </Button>
-              <Button 
-                onClick={handleSave} 
+              <Button
+                onClick={handleSave}
                 disabled={loading}
                 className="bg-secondary text-secondary-foreground"
               >
@@ -340,39 +361,52 @@ const AdminTeams: React.FC = () => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {teams.map(team => (
-            <Card key={team.id} className="bg-gray-800 border-gray-700 hover:border-gray-600 transition-colors">
+            <Card
+              key={team.id}
+              data-testid="admin-team-card"
+              className="bg-gray-800 border-gray-700 hover:border-gray-600 transition-colors"
+            >
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <div className="flex items-center space-x-3">
                   {team.logo ? (
-                    <img 
-                      src={team.logo} 
-                      alt={team.name} 
+                    <img
+                      data-testid="team-logo"
+                      src={team.logo}
+                      alt={team.name}
                       className="w-10 h-10 rounded object-contain bg-black/20"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40"><rect width="40" height="40" fill="%23333"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%23666" font-size="14">?</text></svg>';
+                      onError={e => {
+                        (e.target as HTMLImageElement).src =
+                          'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40"><rect width="40" height="40" fill="%23333"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%23666" font-size="14">?</text></svg>';
                       }}
                     />
                   ) : (
-                    <div className="w-10 h-10 rounded bg-gray-700 flex items-center justify-center text-gray-500">
+                    <div
+                      data-testid="team-logo-placeholder"
+                      className="w-10 h-10 rounded bg-gray-700 flex items-center justify-center text-gray-500"
+                    >
                       <Users className="w-5 h-5" />
                     </div>
                   )}
-                  <CardTitle className="text-white text-lg">{team.name}</CardTitle>
+                  <CardTitle data-testid="team-name" className="text-white text-lg">
+                    {team.name}
+                  </CardTitle>
                 </div>
                 <div className="flex space-x-1">
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
+                  <Button
+                    variant="ghost"
+                    size="icon"
                     onClick={() => handleEdit(team)}
                     disabled={loading}
+                    aria-label="编辑"
                   >
                     <Edit2 className="w-4 h-4 text-blue-400" />
                   </Button>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
+                  <Button
+                    variant="ghost"
+                    size="icon"
                     onClick={() => handleDeleteClick(team.id)}
                     disabled={loading}
+                    aria-label="删除"
                   >
                     <Trash2 className="w-4 h-4 text-red-400" />
                   </Button>
@@ -386,9 +420,7 @@ const AdminTeams: React.FC = () => {
                   <span className="text-gray-500">
                     {team.players.filter(p => p.name).length} / {LOL_POSITIONS.length} 名队员
                   </span>
-                  <span className="text-gray-600 text-xs">
-                    ID: {team.id.slice(0, 8)}...
-                  </span>
+                  <span className="text-gray-600 text-xs">ID: {team.id.slice(0, 8)}...</span>
                 </div>
                 {/* 显示队员列表预览 */}
                 <div className="mt-3 pt-3 border-t border-gray-700">
@@ -397,8 +429,8 @@ const AdminTeams: React.FC = () => {
                       .filter(p => p.name)
                       .slice(0, 5)
                       .map((player, idx) => (
-                        <span 
-                          key={idx} 
+                        <span
+                          key={idx}
                           className="px-2 py-0.5 bg-gray-700/50 text-gray-300 text-xs rounded"
                         >
                           {getPositionLabel(player.position)}: {player.name}

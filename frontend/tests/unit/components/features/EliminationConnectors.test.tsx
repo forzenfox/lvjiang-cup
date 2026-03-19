@@ -28,7 +28,7 @@ describe('EliminationConnectors 组件', () => {
 
     const connectors = container.querySelectorAll('.elimination-connector');
 
-    connectors.forEach((connector) => {
+    connectors.forEach(connector => {
       const lines = connector.querySelectorAll('.bg-gray-600');
       // 每个连接器应该包含3个div线段（水平-垂直-水平）
       expect(lines.length).toBe(3);
@@ -36,9 +36,7 @@ describe('EliminationConnectors 组件', () => {
   });
 
   it('应该接受自定义卡片尺寸', () => {
-    const { container } = render(
-      <EliminationConnectors cardWidth={200} cardHeight={120} />
-    );
+    const { container } = render(<EliminationConnectors cardWidth={200} cardHeight={120} />);
 
     // 验证组件正确渲染，没有报错
     const connectors = container.querySelectorAll('.elimination-connector');

@@ -3,11 +3,11 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 /**
  * 防抖 Hook
  * 用于延迟执行函数，直到停止调用一段时间后才执行
- * 
+ *
  * @example
  * const [searchTerm, setSearchTerm] = useState('');
  * const debouncedSearchTerm = useDebounce(searchTerm, 500);
- * 
+ *
  * useEffect(() => {
  *   // 500ms 后执行搜索
  *   performSearch(debouncedSearchTerm);
@@ -32,7 +32,7 @@ export function useDebounce<T>(value: T, delay: number): T {
 /**
  * 防抖函数 Hook
  * 返回一个防抖后的函数
- * 
+ *
  * @example
  * const debouncedSearch = useDebounceCallback(
  *   (query: string) => {
@@ -40,7 +40,7 @@ export function useDebounce<T>(value: T, delay: number): T {
  *   },
  *   500
  * );
- * 
+ *
  * // 在输入时调用
  * debouncedSearch(inputValue);
  */
@@ -48,7 +48,7 @@ export function useDebounceCallback<T extends (...args: unknown[]) => unknown>(
   callback: T,
   delay: number,
   options: {
-    leading?: boolean;  // 是否在延迟开始前调用
+    leading?: boolean; // 是否在延迟开始前调用
     trailing?: boolean; // 是否在延迟结束后调用
   } = { leading: false, trailing: true }
 ): {
@@ -110,7 +110,8 @@ export function useDebounceCallback<T extends (...args: unknown[]) => unknown>(
       // 处理 leading 选项
       if (options.leading) {
         const isFirstCall = lastCallTimeRef.current === null;
-        const shouldCallNow = isFirstCall || (now - lastCallTimeRef.current! >= delay);
+        const shouldCallNow =
+          isFirstCall || (lastCallTimeRef.current && now - lastCallTimeRef.current >= delay);
 
         if (shouldCallNow) {
           invoke();
@@ -139,7 +140,7 @@ export function useDebounceCallback<T extends (...args: unknown[]) => unknown>(
 /**
  * 防抖请求 Hook
  * 专门用于处理 API 请求的防抖
- * 
+ *
  * @example
  * const { run: search, loading, error, data } = useDebouncedRequest(
  *   async (query: string) => {
@@ -232,18 +233,15 @@ export function useDebouncedRequest<T, Args extends unknown[]>(
 /**
  * 防抖输入 Hook
  * 用于处理输入框的防抖
- * 
+ *
  * @example
  * const { value, onChange, debouncedValue } = useDebouncedInput('', 500);
- * 
+ *
  * useEffect(() => {
  *   search(debouncedValue);
  * }, [debouncedValue]);
  */
-export function useDebouncedInput(
-  initialValue: string = '',
-  delay: number = 500
-) {
+export function useDebouncedInput(initialValue: string = '', delay: number = 500) {
   const [value, setValue] = useState(initialValue);
   const debouncedValue = useDebounce(value, delay);
 
@@ -267,7 +265,7 @@ export function useDebouncedInput(
 /**
  * 防抖搜索 Hook
  * 专门用于搜索功能的防抖封装
- * 
+ *
  * @example
  * const {
  *   query,
@@ -290,13 +288,7 @@ export function useDebouncedSearch<T>(
     onError?: (error: Error) => void;
   } = {}
 ) {
-  const {
-    delay = 300,
-    minLength = 2,
-    initialQuery = '',
-    onSuccess,
-    onError,
-  } = options;
+  const { delay = 300, minLength = 2, initialQuery = '', onSuccess, onError } = options;
 
   const [query, setQuery] = useState(initialQuery);
   const [results, setResults] = useState<T | null>(null);

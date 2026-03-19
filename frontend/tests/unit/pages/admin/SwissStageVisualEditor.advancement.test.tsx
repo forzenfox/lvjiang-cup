@@ -109,9 +109,9 @@ describe('AdvancementEditor 拖拽交互', () => {
     // 找到 2-0 晋级区域中的移除按钮
     const winners2_0Section = screen.getByText('2-0 晋级（胜者组）').closest('.bg-gray-900\\/50');
     const removeButton = winners2_0Section?.querySelector('button[title="移除"]');
-    
+
     expect(removeButton).toBeInTheDocument();
-    
+
     if (removeButton) {
       fireEvent.click(removeButton);
       // 验证移除后队伍回到未分配区域
@@ -160,15 +160,15 @@ describe('AdvancementEditor 拖拽交互', () => {
     // 点击移除按钮
     const winners2_0Section = screen.getByText('2-0 晋级（胜者组）').closest('.bg-gray-900\\/50');
     const removeButton = winners2_0Section?.querySelector('button[title="移除"]');
-    
+
     if (removeButton) {
       fireEvent.click(removeButton);
-      
+
       // 点击重置按钮
       const resetButton = screen.getByText('重置').closest('button');
       if (resetButton) {
         fireEvent.click(resetButton);
-        
+
         // 验证状态恢复
         expect(screen.getByText('未分配 (2)')).toBeInTheDocument();
       }
