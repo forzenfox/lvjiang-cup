@@ -251,25 +251,11 @@ const TeamSection: React.FC<TeamSectionProps> = ({ refreshInterval = 30000 }) =>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    {team.players.map(player => (
-                      <div
-                        key={player.id}
-                        className="flex items-center justify-between p-2 rounded bg-black/20 hover:bg-white/10 transition-colors"
-                        data-testid="player-row"
-                      >
+                    {team.players.map((player) => (
+                      <div key={player.id} className="flex items-center justify-between p-2 rounded bg-gray-200/90 hover:bg-gray-100/95 transition-colors shadow-sm">
                         <div className="flex items-center space-x-3">
-                          <img
-                            src={player.avatar}
-                            alt={player.name}
-                            className="w-8 h-8 rounded-full bg-gray-700 object-cover"
-                            data-testid="player-avatar"
-                          />
-                          <span
-                            className="text-sm font-medium text-gray-200"
-                            data-testid="player-name"
-                          >
-                            {player.name}
-                          </span>
+                          <img src={player.avatar} alt={player.name} className="w-8 h-8 rounded-full bg-gray-300 object-cover ring-2 ring-white/50" />
+                          <span className="text-sm font-semibold text-gray-700">{player.name}</span>
                         </div>
                         <div
                           className="flex items-center"
