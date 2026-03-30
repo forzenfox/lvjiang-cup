@@ -66,7 +66,7 @@
 
 ```bash
 # 下载并执行部署脚本
-curl -fsSL https://raw.githubusercontent.com/你的用户名/lvjiang-cup/main/deploy/deploy.sh | bash
+curl -fsSL https://raw.githubusercontent.com/forzenfox/lvjiang-cup/main/deploy/deploy.sh | bash
 ```
 
 脚本会自动：
@@ -84,7 +84,7 @@ vim .env
 
 修改以下配置：
 ```bash
-GITHUB_OWNER=你的GitHub用户名
+GITHUB_OWNER=forzenfox
 GITHUB_REPO=lvjiang-cup
 JWT_SECRET=随机字符串（openssl rand -base64 32）
 ADMIN_PASSWORD=管理员密码

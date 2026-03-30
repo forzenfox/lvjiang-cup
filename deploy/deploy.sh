@@ -19,16 +19,15 @@ echo ""
 
 # 检查 Docker
 if ! command -v docker &> /dev/null; then
-    echo "安装 Docker..."
-    curl -fsSL https://get.docker.com | sh
-    systemctl start docker
-    systemctl enable docker
+    echo "❌ 未检测到 Docker，请先安装 Docker"
+    echo "安装指南：https://docs.docker.com/get-docker/"
+    exit 1
 fi
 
 if ! command -v docker-compose &> /dev/null; then
-    echo "安装 Docker Compose..."
-    curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-    chmod +x /usr/local/bin/docker-compose
+    echo "❌ 未检测到 Docker Compose，请先安装 Docker Compose"
+    echo "安装指南：https://docs.docker.com/compose/install/"
+    exit 1
 fi
 
 # 创建目录
@@ -38,7 +37,7 @@ cd $DEPLOY_DIR
 # 下载配置文件（如果不存在）
 if [ ! -f "docker-compose.yml" ]; then
     echo "下载 docker-compose.yml..."
-    curl -fsSL https://raw.githubusercontent.com/your-username/lvjiang-cup/main/deploy/docker-compose.yml -o docker-compose.yml
+    curl -fsSL https://raw.githubusercontent.com/forzenfox/lvjiang-cup/main/deploy/docker-compose.yml -o docker-compose.yml
 fi
 
 # 创建配置目录
@@ -47,28 +46,50 @@ mkdir -p config
 # 下载 nginx 配置（如果不存在）
 if [ ! -f "config/nginx.conf" ]; then
     echo "下载 nginx.conf..."
-    curl -fsSL https://raw.githubusercontent.com/your-username/lvjiang-cup/main/deploy/config/nginx.conf -o config/nginx.conf
+    curl -fsSL https://raw.githubusercontent.com/forzenfox/lvjiang-cup/main/deploy/config/nginx.conf -o config/nginx.conf
 fi
 
 # 下载前端配置（如果不存在）
 if [ ! -f "config/config.js" ]; then
     echo "下载 config.js..."
-    curl -fsSL https://raw.githubusercontent.com/your-username/lvjiang-cup/main/deploy/config/config.js -o config/config.js
+    curl -fsSL https://raw.githubusercontent.com/forzenfox/lvjiang-cup/main/deploy/config/config.js -o config/config.js
 fi
 
 # 创建环境变量文件
 if [ ! -f ".env" ]; then
     echo "创建环境变量文件..."
+    
+    # 询问用户是否设置自定义域名
+    echo ""
+    read -p "请输入自定义域名（直接回车跳过）: " CUSTOM_DOMAIN
+    
+    if [ -n "$CUSTOM_DOMAIN" ]; then
+        CORS_ORIGIN="https://$CUSTOM_DOMAIN"
+        echo "已设置 CORS_ORIGIN: $CORS_ORIGIN"
+    else
+        CORS_ORIGIN=""
+        echo "⚠️ 已跳过 CORS_ORIGIN 设置，请后续自行编辑 .env 文件配置"
+    fi
+    
     cat > .env << EOF
-GITHUB_OWNER=your-github-username
+GITHUB_OWNER=forzenfox
 GITHUB_REPO=lvjiang-cup
 TAG=$TAG
 JWT_SECRET=$(openssl rand -base64 32)
 ADMIN_USERNAME=admin
 ADMIN_PASSWORD=change-this-password
-CORS_ORIGIN=https://your-domain.com
 EOF
-    echo "⚠️ 请编辑 .env 文件修改配置"
+    
+    # 只有当用户输入了自定义域名时才写入 CORS_ORIGIN
+    if [ -n "$CORS_ORIGIN" ]; then
+        echo "CORS_ORIGIN=$CORS_ORIGIN" >> .env
+    fi
+    
+    echo ""
+    echo "✅ 环境变量文件创建完成"
+    if [ -z "$CORS_ORIGIN" ]; then
+        echo "⚠️ 请编辑 .env 文件添加 CORS_ORIGIN 配置"
+    fi
     exit 1
 fi
 
