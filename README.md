@@ -21,61 +21,50 @@
 
 ## 技术栈
 
-- **前端框架**：React 18
-- **开发语言**：TypeScript
-- **构建工具**：Vite 6
-- **路由管理**：React Router DOM 7
+### 前端
+- **框架**：React 18
+- **语言**：TypeScript
+- **构建**：Vite 6
+- **路由**：React Router DOM 7
 - **状态管理**：Zustand 5
-- **样式方案**：Tailwind CSS 3
+- **样式**：Tailwind CSS 3
 - **UI 组件**：Radix UI
-- **动画效果**：Framer Motion
-- **图标库**：Lucide React
-- **通知组件**：Sonner
+- **动画**：Framer Motion
+- **图标**：Lucide React
+
+### 后端
+- **框架**：NestJS
+- **数据库**：SQLite
+- **认证**：JWT
+- **容器化**：Docker
 
 ## 项目结构
 
 ```
-src/
-├── components/
-│   ├── features/          # 功能组件
-│   │   ├── HeroSection.tsx
-│   │   ├── TeamSection.tsx
-│   │   ├── ScheduleSection.tsx
-│   │   ├── SwissStage.tsx
-│   │   ├── EliminationStage.tsx
-│   │   ├── BracketMatchCard.tsx
-│   │   └── BracketConnector.tsx
-│   ├── layout/            # 布局组件
-│   │   ├── Layout.tsx
-│   │   ├── AdminLayout.tsx
-│   │   └── ProtectedRoute.tsx
-│   ├── ui/                # UI 基础组件
-│   │   ├── button.tsx
-│   │   ├── card.tsx
-│   │   ├── tabs.tsx
-│   │   └── confirm-dialog.tsx
-│   └── icons/             # 图标组件
-├── pages/
-│   ├── Home.tsx           # 首页
-│   └── admin/
-│       ├── Login.tsx      # 管理员登录
-│       ├── Dashboard.tsx  # 管理仪表盘
-│       ├── Teams.tsx      # 战队管理
-│       ├── Schedule.tsx   # 赛程管理
-│       └── Stream.tsx     # 直播配置
-├── types/
-│   └── index.ts           # TypeScript 类型定义
-├── mock/
-│   ├── data.ts            # 模拟数据
-│   └── service.ts         # 模拟服务
-├── utils/
-│   └── datetime.ts        # 日期时间工具
-├── hooks/
-│   └── useTheme.ts        # 主题 Hook
-├── lib/
-│   └── utils.ts           # 工具函数
-├── App.tsx                # 应用入口
-└── main.tsx               # 主入口
+.
+├── frontend/              # 前端应用
+│   ├── src/
+│   │   ├── components/   # 组件
+│   │   ├── pages/        # 页面
+│   │   ├── types/        # 类型定义
+│   │   └── utils/        # 工具函数
+│   ├── Dockerfile        # 前端 Docker 构建文件
+│   └── package.json
+│
+├── backend/              # 后端应用
+│   ├── src/
+│   │   ├── controllers/  # 控制器
+│   │   ├── services/     # 服务层
+│   │   ├── entities/     # 数据模型
+│   │   └── dto/          # 数据传输对象
+│   ├── Dockerfile        # 后端 Docker 构建文件
+│   └── package.json
+│
+└── deploy/               # 部署配置
+    ├── docker-compose.yml
+    ├── deploy.sh
+    ├── npm/              # Nginx Proxy Manager 配置
+    └── QUICKSTART.md     # 快速部署指南
 ```
 
 ## 快速开始
@@ -84,42 +73,105 @@ src/
 
 - Node.js >= 18
 - npm >= 9
+- Docker >= 20（生产环境）
 
-### 安装依赖
+### 本地开发
+
+#### 1. 克隆项目
 
 ```bash
+git clone https://github.com/forzenfox/lvjiang-cup.git
+cd lvjiang-cup
+```
+
+#### 2. 安装依赖
+
+```bash
+# 安装前端依赖
+cd frontend
+npm install
+
+# 安装后端依赖
+cd ../backend
 npm install
 ```
 
-### 开发模式
+#### 3. 启动开发服务
 
 ```bash
+# 启动后端（端口 3000）
+cd backend
+npm run dev
+
+# 启动前端（端口 5173）
+cd frontend
 npm run dev
 ```
 
-应用将在 http://localhost:5173 启动
+访问 http://localhost:5173 查看应用。
 
-### 构建生产版本
+### 生产环境部署（方案 C）
 
-```bash
-npm run build
+本项目采用 **Nginx Proxy Manager 统一网关** 的容器化部署方案，适用于多应用服务器环境。
+
+#### 部署架构
+
+```
+用户 → Cloudflare → Nginx Proxy Manager (80/443)
+                          │
+                          ├─→ 前端容器 (3000)
+                          └─→ 后端容器 (3000)
 ```
 
-### 代码检查
+#### 快速部署（3 步完成）
+
+**第 1 步：部署 Nginx Proxy Manager**
 
 ```bash
-# ESLint 检查
-npm run lint
+# 创建部署目录
+mkdir -p /opt/nginx-proxy-manager
+cd /opt/nginx-proxy-manager
 
-# TypeScript 类型检查
-npm run check
+# 下载配置
+curl -fsSL https://raw.githubusercontent.com/forzenfox/lvjiang-cup/main/deploy/npm/docker-compose.yml -o docker-compose.yml
+
+# 启动 NPM
+docker-compose up -d
 ```
 
-### 预览生产构建
+**第 2 步：部署驴酱杯应用**
 
 ```bash
-npm run preview
+# 创建部署目录
+mkdir -p /opt/lvjiang-cup/deploy
+cd /opt/lvjiang-cup/deploy
+
+# 下载部署脚本
+curl -fsSL https://raw.githubusercontent.com/forzenfox/lvjiang-cup/main/deploy/deploy.sh -o deploy.sh
+chmod +x deploy.sh
+
+# 运行部署脚本
+./deploy.sh
 ```
+
+**第 3 步：配置 NPM 代理**
+
+1. 访问 `http://服务器 IP:81` 登录 NPM 管理界面
+2. 添加 Proxy Host：
+   - Domain: `cup.example.com`
+   - Forward IP: `127.0.0.1`
+   - Forward Port: `3000`
+3. 配置 SSL 证书（自动申请）
+
+详细部署指南请查看：[deploy/QUICKSTART.md](deploy/QUICKSTART.md)
+
+#### 方案优势
+
+- ✅ **统一网关**：所有应用通过 NPM 统一管理
+- ✅ **自动 SSL**：Let's Encrypt 证书自动申请和续期
+- ✅ **Web 界面**：可视化管理，无需记忆 Nginx 配置
+- ✅ **资源优化**：前端容器使用 http-server（不含 Nginx）
+- ✅ **易于扩展**：添加新应用只需几步点击
 
 ## 核心数据模型
 
@@ -172,6 +224,8 @@ interface Match {
 - 用户名：`admin`
 - 密码：`admin`
 
+**生产环境请务必修改默认密码！**
+
 ## 赛程赛制说明
 
 ### 瑞士轮阶段
@@ -183,23 +237,70 @@ interface Match {
 - 双败淘汰制
 - 包含胜者组、败者组和总决赛
 
+## CI/CD
+
+### GitHub Actions 工作流
+
+#### 1. Docker 镜像构建（`docker-build.yml`）
+
+**触发条件**：
+- Push 到 `main` 分支
+- 创建 `v*` 标签
+- 手动触发
+
+**功能**：
+- 自动构建前后端 Docker 镜像
+- 推送到 GitHub Container Registry (GHCR)
+- 支持多平台构建（amd64/arm64）
+
+**镜像地址**：
+```bash
+ghcr.io/forzenfox/lvjiang-cup/backend:latest
+ghcr.io/forzenfox/lvjiang-cup/frontend:latest
+```
+
+#### 2. 服务器部署（`deploy-server.yml`）
+
+**触发条件**：
+- Push 到 `main` 分支
+- 创建 `v*` 标签
+- 手动触发（可选择环境）
+
+**功能**：
+- 通过 SSH 连接服务器
+- 自动拉取最新镜像并重启服务
+- 健康检查验证
+
+**配置 Secrets**：
+```bash
+DEPLOY_SSH_KEY        # 部署 SSH 私钥
+DEPLOY_USER           # 部署用户
+DEPLOY_SERVER         # 服务器地址
+```
+
+#### 3. Demo 环境部署（`deploy.yml`）
+
+**触发条件**：手动触发
+
+**功能**：部署到 GitHub Pages（仅前端 Demo）
+
 ## 开发指南
 
 ### 添加新页面
 
-1. 在 `src/pages/` 下创建页面组件
+1. 在 `frontend/src/pages/` 下创建页面组件
 2. 在 `App.tsx` 中添加路由配置
 3. 如需权限保护，使用 `ProtectedRoute` 包裹
 
 ### 添加新组件
 
-1. 功能组件放在 `src/components/features/`
-2. UI 组件放在 `src/components/ui/`
+1. 功能组件放在 `frontend/src/components/features/`
+2. UI 组件放在 `frontend/src/components/ui/`
 3. 遵循现有组件的样式和类型规范
 
 ### 状态管理
 
-使用 Zustand 进行全局状态管理，示例：
+使用 Zustand 进行全局状态管理：
 
 ```typescript
 import { create } from 'zustand';
@@ -215,6 +316,66 @@ export const useStore = create<StoreState>((set) => ({
 }));
 ```
 
+### 代码检查
+
+```bash
+# ESLint 检查
+npm run lint
+
+# TypeScript 类型检查
+npm run check
+```
+
+## 常用命令
+
+### 前端
+
+```bash
+cd frontend
+
+# 开发模式
+npm run dev
+
+# 构建生产版本
+npm run build
+
+# 预览生产构建
+npm run preview
+
+# 代码检查
+npm run lint
+npm run check
+```
+
+### 后端
+
+```bash
+cd backend
+
+# 开发模式
+npm run dev
+
+# 构建生产版本
+npm run build
+
+# 启动生产服务
+npm run start:prod
+```
+
+### Docker
+
+```bash
+# 构建镜像
+docker build -t lvjiang-backend ./backend
+docker build -t lvjiang-frontend ./frontend
+
+# 本地测试
+docker-compose -f deploy/docker-compose.yml up -d
+
+# 查看日志
+docker-compose logs -f
+```
+
 ## 许可证
 
 MIT License
@@ -223,6 +384,26 @@ MIT License
 
 欢迎提交 Issue 和 Pull Request 来改进这个项目。
 
+1. Fork 本仓库
+2. 创建特性分支 (`git checkout -b feature/AmazingFeature`)
+3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
+4. 推送到分支 (`git push origin feature/AmazingFeature`)
+5. 开启 Pull Request
+
+## 相关文档
+
+- [快速部署指南](deploy/QUICKSTART.md)
+- [Nginx Proxy Manager 配置](deploy/npm/README.md)
+- [多应用部署方案](deploy/multi-app-deployment.md)
+
+## 联系方式
+
+- 作者：ForzenFox
+- 邮箱：forzenfox@example.com
+- 项目地址：https://github.com/forzenfox/lvjiang-cup
+
 ---
 
-**注意**：当前版本使用模拟数据（mock data）进行开发演示，生产环境需要接入真实后端 API。
+**注意**：
+- 当前版本使用模拟数据（mock data）进行开发演示，生产环境需要接入真实后端 API。
+- 生产环境部署前请仔细阅读 [QUICKSTART.md](deploy/QUICKSTART.md) 并配置好环境变量。

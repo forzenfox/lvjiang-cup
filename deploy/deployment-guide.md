@@ -62,11 +62,86 @@
 3. SSL/TLS 模式选择 **Flexible** 或 **Full**
 4. 开启 **Always Use HTTPS**
 
+### 第1.5步：配置云服务器安全组/防火墙
+
+部署前需要确保云服务器的安全组或防火墙已开放以下端口：
+
+#### HTTP 模式（默认）
+| 端口 | 协议 | 用途 | 访问来源 |
+|------|------|------|----------|
+| 80 | TCP | HTTP 访问（前端服务） | 所有 IP (0.0.0.0/0) |
+
+#### HTTPS 模式（推荐）
+| 端口 | 协议 | 用途 | 访问来源 |
+|------|------|------|----------|
+| 443 | TCP | HTTPS 访问（前端服务） | 所有 IP (0.0.0.0/0) |
+
+**注意**：
+- **HTTP 模式**：只需开放 80 端口，Cloudflare 会自动处理 HTTPS（使用 Flexible SSL 模式）
+- **HTTPS 模式**：只需开放 443 端口，需要配置 SSL 证书（使用 Full (strict) SSL 模式）
+- 后端服务（3000 端口）**不需要**对外开放，前端通过 Docker 内部网络访问
+- 建议关闭 22 端口的公网访问，或使用密钥认证提高安全性
+
+**常见云厂商配置方式**：
+- **阿里云**：安全组规则 → 入方向 → 添加规则
+- **腾讯云**：安全组 → 入站规则 → 添加规则
+- **AWS**：Security Groups → Inbound rules → Edit inbound rules
+- **Azure**：网络安全组 → 入站安全规则
+
+---
+
+## 附录：HTTPS 配置指南（可选）
+
+如果你想关闭 80 端口，只使用 HTTPS (443端口)，请按照以下步骤配置：
+
+### 生成 Cloudflare 源站证书
+
+1. 登录 Cloudflare 控制台 → 选择你的域名
+2. 点击 **SSL/TLS** → **源服务器**
+3. 点击 **创建证书**
+4. 选择 **RSA (2048)**，有效期 15 年
+5. 复制生成的证书内容，保存到服务器的 `/opt/lvjiang-cup/deploy/ssl/cert.pem`
+6. 复制生成的私钥内容，保存到服务器的 `/opt/lvjiang-cup/deploy/ssl/key.pem`
+
+```bash
+# 在服务器上创建 SSL 目录
+mkdir -p /opt/lvjiang-cup/deploy/ssl
+
+# 创建证书文件（将 Cloudflare 提供的证书内容粘贴进去）
+vim /opt/lvjiang-cup/deploy/ssl/cert.pem
+
+# 创建私钥文件（将 Cloudflare 提供的私钥内容粘贴进去）
+vim /opt/lvjiang-cup/deploy/ssl/key.pem
+```
+
+### 修改 Cloudflare SSL/TLS 设置
+
+1. 进入 Cloudflare 控制台 → SSL/TLS → Overview
+2. 将加密模式改为 **"完全 (严格)"** (Full (strict))
+
+### 更新安全组规则
+
+- 关闭 80 端口的入站规则
+- 确保 443 端口已开放
+
+### 重启服务
+
+```bash
+cd /opt/lvjiang-cup/deploy
+docker-compose down
+docker-compose up -d
+```
+
+完成以上步骤后，访问 `https://你的域名` 即可正常使用。
+
 ### 第2步：服务器执行一键部署（首次运行）
 
 ```bash
-# 下载并执行部署脚本
-curl -fsSL https://raw.githubusercontent.com/forzenfox/lvjiang-cup/main/deploy/deploy.sh | bash
+# 下载部署脚本
+curl -fsSL https://raw.githubusercontent.com/forzenfox/lvjiang-cup/main/deploy/deploy.sh -o deploy.sh
+
+# 执行部署脚本
+bash deploy.sh
 ```
 
 脚本会自动：
@@ -94,7 +169,7 @@ CORS_ORIGIN=https://你的域名.com
 
 保存后，**重新运行部署脚本**完成部署：
 ```bash
-curl -fsSL https://raw.githubusercontent.com/forzenfox/lvjiang-cup/main/deploy/deploy.sh | bash
+bash deploy.sh
 ```
 
 ---
@@ -303,15 +378,6 @@ docker-compose up -d
 2. **安全可靠**：Docker 容器隔离，Cloudflare 提供 DDoS 防护
 3. **配置灵活**：配置文件外挂，无需重新构建镜像
 4. **易于维护**：一键部署脚本，自动备份
-
-### 9.2 成本估算
-
-| 项目 | 费用 |
-|------|------|
-| 云服务器（1核1G） | 约 50-80 元/月 |
-| 域名 | 约 30-60 元/年 |
-| Cloudflare | 免费 |
-| **总计** | **约 60-90 元/月** |
 
 ---
 

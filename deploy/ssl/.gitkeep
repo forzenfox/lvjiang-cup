@@ -1,0 +1,12 @@
+# SSL Certificates Directory
+# 
+# 此目录用于存放 Cloudflare 源站证书
+# 
+# 文件说明：
+# - cert.pem: Cloudflare 提供的证书文件
+# - key.pem: Cloudflare 提供的私钥文件
+#
+# 获取方式：
+# 1. 登录 Cloudflare 控制台
+# 2. SSL/TLS → 源服务器 → 创建证书
+# 3. 将证书和私钥内容分别保存到上述文件

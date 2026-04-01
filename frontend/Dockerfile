@@ -11,19 +11,21 @@ RUN npm ci
 COPY . .
 
 # 构建应用
-# 注意：API 地址通过运行时配置，不在构建时指定
 RUN npm run build
 
-# 生产阶段 - 使用 Nginx
-FROM nginx:alpine
+# 生产阶段 - 使用 http-server（轻量级 HTTP 服务器，不含 Nginx）
+FROM node:20-alpine
+
+WORKDIR /app
+
+# 安装 http-server（轻量级，只有几 MB）
+RUN npm install -g http-server
 
 # 复制构建产物
-COPY --from=builder /app/dist /usr/share/nginx/html
+COPY --from=builder /app/dist ./dist
 
-# 注意：
-# 1. nginx.conf 通过 docker-compose 外挂挂载
-# 2. config.js 通过 docker-compose 外挂挂载，支持运行时配置 API 地址
+# 暴露端口
+EXPOSE 3000
 
-EXPOSE 80
-
-CMD ["nginx", "-g", "daemon off;"]
+# 启动静态文件服务
+CMD ["http-server", "dist", "-p", "3000", "-c-1"]

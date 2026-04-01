@@ -1,20 +1,24 @@
 #!/bin/bash
 
-# 驴酱杯一键部署脚本
+# 驴酱杯一键部署脚本（方案 C：Nginx Proxy Manager 统一网关）
 # 使用方法: ./deploy.sh [tag]
 #
-# 注意：此脚本位于 /deploy 目录
+# 注意：
+# - 此脚本位于 /deploy 目录
+# - 需要先部署 Nginx Proxy Manager
+# - 所有容器端口仅内部访问，不映射到主机
 
 set -e
 
 TAG="${1:-latest}"
 PROJECT_DIR="/opt/lvjiang-cup"
 DEPLOY_DIR="$PROJECT_DIR/deploy"
+NPM_DIR="$PROJECT_DIR/npm"
 
 echo "========================================"
-echo "  驴酱杯一键部署"
+echo "  驴酱杯一键部署（方案 C）"
 echo "========================================"
-echo "版本标签: $TAG"
+echo "版本标签：$TAG"
 echo ""
 
 # 检查 Docker
@@ -35,6 +39,22 @@ else
     exit 1
 fi
 
+# 检查 Nginx Proxy Manager 是否已部署
+echo "检查 Nginx Proxy Manager 状态..."
+if ! docker ps | grep -q nginx-proxy-manager; then
+    echo "⚠️  未检测到 Nginx Proxy Manager，请先部署 NPM"
+    echo ""
+    echo "部署 NPM 的步骤："
+    echo "1. 创建部署目录：mkdir -p $NPM_DIR"
+    echo "2. 下载配置：curl -fsSL https://raw.githubusercontent.com/forzenfox/lvjiang-cup/main/deploy/npm/docker-compose.yml -o $NPM_DIR/docker-compose.yml"
+    echo "3. 启动 NPM: cd $NPM_DIR && $COMPOSE_CMD up -d"
+    echo ""
+    echo "然后重新运行此脚本"
+    exit 1
+fi
+echo "✅ Nginx Proxy Manager 运行正常"
+echo ""
+
 # 创建目录
 mkdir -p $DEPLOY_DIR
 cd $DEPLOY_DIR
@@ -43,21 +63,6 @@ cd $DEPLOY_DIR
 if [ ! -f "docker-compose.yml" ]; then
     echo "下载 docker-compose.yml..."
     curl -fsSL https://raw.githubusercontent.com/forzenfox/lvjiang-cup/main/deploy/docker-compose.yml -o docker-compose.yml
-fi
-
-# 创建配置目录
-mkdir -p config
-
-# 下载 nginx 配置（如果不存在）
-if [ ! -f "config/nginx.conf" ]; then
-    echo "下载 nginx.conf..."
-    curl -fsSL https://raw.githubusercontent.com/forzenfox/lvjiang-cup/main/deploy/config/nginx.conf -o config/nginx.conf
-fi
-
-# 下载前端配置（如果不存在）
-if [ ! -f "config/config.js" ]; then
-    echo "下载 config.js..."
-    curl -fsSL https://raw.githubusercontent.com/forzenfox/lvjiang-cup/main/deploy/config/config.js -o config/config.js
 fi
 
 # 创建环境变量文件
@@ -81,7 +86,7 @@ if [ ! -f ".env" ]; then
         echo "已设置 CORS_ORIGIN: $CORS_ORIGIN"
     else
         CORS_ORIGIN=""
-        echo "⚠️ 已跳过 CORS_ORIGIN 设置，请后续自行编辑 .env 文件配置"
+        echo "⚠️  已跳过 CORS_ORIGIN 设置，请后续自行编辑 .env 文件配置"
     fi
     
     cat > .env << EOF
@@ -101,16 +106,22 @@ EOF
     echo ""
     echo "✅ 环境变量文件创建完成"
     if [ -z "$CORS_ORIGIN" ]; then
-        echo "⚠️ 请编辑 .env 文件添加 CORS_ORIGIN 配置"
+        echo "⚠️  请编辑 .env 文件添加 CORS_ORIGIN 配置"
     fi
     echo ""
     echo "请先编辑 .env 文件，然后重新运行此脚本继续部署"
-    echo "编辑命令: vim $DEPLOY_DIR/.env"
+    echo "编辑命令：vim $DEPLOY_DIR/.env"
     exit 0
 fi
 
 # 创建数据目录（在项目根目录）
 mkdir -p $PROJECT_DIR/data $PROJECT_DIR/backup
+
+# 检查 npm-network 网络是否存在
+if ! docker network ls | grep -q npm-network; then
+    echo "创建 Docker 网络 npm-network..."
+    docker network create npm-network
+fi
 
 # 拉取镜像并启动
 echo "拉取镜像..."
@@ -119,19 +130,55 @@ TAG=$TAG $COMPOSE_CMD pull
 echo "启动服务..."
 TAG=$TAG $COMPOSE_CMD up -d
 
+# 等待容器启动
+echo "等待容器启动..."
+sleep 8
+
 # 健康检查
-sleep 5
-if curl -s http://localhost/api/teams > /dev/null; then
-    echo ""
-    echo "✅ 部署成功！"
-    echo "访问地址: https://your-domain.com"
-    echo ""
-    echo "配置文件位置:"
-    echo "  - 环境变量: $DEPLOY_DIR/.env"
-    echo "  - Nginx配置: $DEPLOY_DIR/config/nginx.conf"
-    echo "  - 前端配置: $DEPLOY_DIR/config/config.js"
-    echo "  - 数据目录: $PROJECT_DIR/data"
+echo "进行健康检查..."
+if docker exec lvjiang-backend wget --quiet --tries=1 --spider http://localhost:3000/api/teams; then
+    echo "✅ 后端服务正常"
 else
-    echo "❌ 部署失败，请检查日志: $COMPOSE_CMD logs"
+    echo "❌ 后端服务检查失败"
+    echo "查看日志：$COMPOSE_CMD logs backend"
     exit 1
 fi
+
+if docker exec lvjiang-frontend wget --quiet --tries=1 --spider http://localhost:3000; then
+    echo "✅ 前端服务正常"
+else
+    echo "❌ 前端服务检查失败"
+    echo "查看日志：$COMPOSE_CMD logs frontend"
+    exit 1
+fi
+
+echo ""
+echo "========================================"
+echo "  ✅ 部署成功！"
+echo "========================================"
+echo ""
+echo "📌 下一步操作："
+echo ""
+echo "1. 在 Nginx Proxy Manager 中配置代理主机："
+echo "   - 访问：http://服务器 IP:81"
+echo "   - 添加 Proxy Host:"
+echo "     * Domain: your-domain.com"
+echo "     * Forward IP: 127.0.0.1"
+echo "     * Forward Port: 3000 (前端)"
+echo "   - 配置 SSL 证书（Request a new SSL certificate）"
+echo ""
+echo "2. 添加 API 路由（高级配置）："
+echo "   - Location: /api"
+echo "   - Forward Port: 3000 (后端)"
+echo ""
+echo "配置文件位置:"
+echo "  - 环境变量：$DEPLOY_DIR/.env"
+echo "  - 数据目录：$PROJECT_DIR/data"
+echo "  - 备份目录：$PROJECT_DIR/backup"
+echo ""
+echo "常用命令:"
+echo "  - 查看状态：cd $DEPLOY_DIR && $COMPOSE_CMD ps"
+echo "  - 查看日志：cd $DEPLOY_DIR && $COMPOSE_CMD logs -f"
+echo "  - 重启服务：cd $DEPLOY_DIR && $COMPOSE_CMD restart"
+echo "  - 停止服务：cd $DEPLOY_DIR && $COMPOSE_CMD down"
+echo ""

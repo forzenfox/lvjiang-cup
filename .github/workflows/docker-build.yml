@@ -1,11 +1,16 @@
 name: Build and Push Docker Images
 
 on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
   workflow_dispatch:
     inputs:
       tag:
-        description: '镜像标签 (例如: latest, v1.0.0)'
-        required: true
+        description: '镜像标签 (例如：latest, v1.0.0)'
+        required: false
         default: 'latest'
         type: string
 
@@ -48,22 +53,34 @@ jobs:
             type=raw,value=latest,enable={{is_default_branch}}
 
       # 构建后端镜像
-      - name: Build backend
+      - name: Build backend image
         uses: docker/build-push-action@v5
         with:
           context: ./backend
           push: true
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:${{ inputs.tag }}
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:${{ inputs.tag || 'latest' }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          platforms: linux/amd64,linux/arm64
 
-      # 构建前端镜像
-      # 注意：前端 API 地址通过运行时配置，不在构建时指定
-      - name: Build frontend
+      # 构建前端镜像（使用 http-server，不含 Nginx）
+      # 注意：前端 API 地址通过运行时配置（Nginx Proxy Manager），不在构建时指定
+      - name: Build frontend image
         uses: docker/build-push-action@v5
         with:
           context: ./frontend
           push: true
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:${{ inputs.tag }}
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:${{ inputs.tag || 'latest' }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          platforms: linux/amd64,linux/arm64
+
+      - name: Output image info
+        run: |
+          echo "✅ Docker 镜像构建完成"
+          echo "后端镜像：${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:${{ inputs.tag || 'latest' }}"
+          echo "前端镜像：${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:${{ inputs.tag || 'latest' }}"
+          echo ""
+          echo "📌 部署说明："
+          echo "1. 拉取镜像：docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:${{ inputs.tag || 'latest' }}"
+          echo "2. 部署到服务器：参考 deploy/QUICKSTART.md"
