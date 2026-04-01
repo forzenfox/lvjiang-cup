@@ -64,9 +64,17 @@ fi
 if [ ! -f ".env" ]; then
     echo "创建环境变量文件..."
     
-    # 询问用户是否设置自定义域名
-    echo ""
-    read -p "请输入自定义域名（直接回车跳过）: " CUSTOM_DOMAIN
+    # 检查是否通过管道执行（非交互式）
+    if [ ! -t 0 ]; then
+        # 非交互式模式，使用默认值
+        echo ""
+        echo "检测到非交互式执行，使用默认配置..."
+        CUSTOM_DOMAIN=""
+    else
+        # 交互式模式，询问用户
+        echo ""
+        read -p "请输入自定义域名（直接回车跳过）: " CUSTOM_DOMAIN
+    fi
     
     if [ -n "$CUSTOM_DOMAIN" ]; then
         CORS_ORIGIN="https://$CUSTOM_DOMAIN"
