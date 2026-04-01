@@ -24,7 +24,12 @@ if ! command -v docker &> /dev/null; then
     exit 1
 fi
 
-if ! command -v docker-compose &> /dev/null; then
+# 检查 Docker Compose（支持新版 docker compose 和旧版 docker-compose）
+if docker compose version &> /dev/null; then
+    COMPOSE_CMD="docker compose"
+elif command -v docker-compose &> /dev/null; then
+    COMPOSE_CMD="docker-compose"
+else
     echo "❌ 未检测到 Docker Compose，请先安装 Docker Compose"
     echo "安装指南：https://docs.docker.com/compose/install/"
     exit 1
@@ -90,7 +95,10 @@ EOF
     if [ -z "$CORS_ORIGIN" ]; then
         echo "⚠️ 请编辑 .env 文件添加 CORS_ORIGIN 配置"
     fi
-    exit 1
+    echo ""
+    echo "请先编辑 .env 文件，然后重新运行此脚本继续部署"
+    echo "编辑命令: vim $DEPLOY_DIR/.env"
+    exit 0
 fi
 
 # 创建数据目录（在项目根目录）
@@ -98,10 +106,10 @@ mkdir -p $PROJECT_DIR/data $PROJECT_DIR/backup
 
 # 拉取镜像并启动
 echo "拉取镜像..."
-TAG=$TAG docker-compose pull
+TAG=$TAG $COMPOSE_CMD pull
 
 echo "启动服务..."
-TAG=$TAG docker-compose up -d
+TAG=$TAG $COMPOSE_CMD up -d
 
 # 健康检查
 sleep 5
@@ -116,6 +124,6 @@ if curl -s http://localhost/api/teams > /dev/null; then
     echo "  - 前端配置: $DEPLOY_DIR/config/config.js"
     echo "  - 数据目录: $PROJECT_DIR/data"
 else
-    echo "❌ 部署失败，请检查日志: docker-compose logs"
+    echo "❌ 部署失败，请检查日志: $COMPOSE_CMD logs"
     exit 1
 fi

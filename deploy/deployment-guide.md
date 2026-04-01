@@ -62,7 +62,7 @@
 3. SSL/TLS 模式选择 **Flexible** 或 **Full**
 4. 开启 **Always Use HTTPS**
 
-### 第2步：服务器执行一键部署
+### 第2步：服务器执行一键部署（首次运行）
 
 ```bash
 # 下载并执行部署脚本
@@ -70,12 +70,13 @@ curl -fsSL https://raw.githubusercontent.com/forzenfox/lvjiang-cup/main/deploy/d
 ```
 
 脚本会自动：
-- 安装 Docker 和 Docker Compose
+- 检查 Docker 和 Docker Compose 是否已安装
 - 下载配置文件到 `/opt/lvjiang-cup/deploy/`
-- 创建 `.env` 文件（首次需要手动配置）
-- 拉取镜像并启动服务
+- 创建 `.env` 文件并提示输入自定义域名
 
-### 第3步：配置环境变量
+**注意**：首次运行脚本时，会在创建 `.env` 文件后自动退出，需要继续执行第3步。
+
+### 第3步：配置环境变量并重新部署
 
 ```bash
 cd /opt/lvjiang-cup/deploy
@@ -91,9 +92,9 @@ ADMIN_PASSWORD=管理员密码
 CORS_ORIGIN=https://你的域名.com
 ```
 
-重启服务：
+保存后，**重新运行部署脚本**完成部署：
 ```bash
-docker-compose up -d
+curl -fsSL https://raw.githubusercontent.com/forzenfox/lvjiang-cup/main/deploy/deploy.sh | bash
 ```
 
 ---
@@ -119,19 +120,19 @@ cd /opt/lvjiang-cup/deploy
 
 ```bash
 # 下载 docker-compose.yml
-curl -fsSL https://raw.githubusercontent.com/你的用户名/lvjiang-cup/main/deploy/docker-compose.yml -o docker-compose.yml
+curl -fsSL https://raw.githubusercontent.com/forzenfox/lvjiang-cup/main/deploy/docker-compose.yml -o docker-compose.yml
 
 # 下载环境变量模板
-curl -fsSL https://raw.githubusercontent.com/你的用户名/lvjiang-cup/main/deploy/.env.example -o .env
+curl -fsSL https://raw.githubusercontent.com/forzenfox/lvjiang-cup/main/deploy/.env.example -o .env
 
 # 创建配置目录
 mkdir -p config
 
 # 下载 Nginx 配置
-curl -fsSL https://raw.githubusercontent.com/你的用户名/lvjiang-cup/main/deploy/config/nginx.conf -o config/nginx.conf
+curl -fsSL https://raw.githubusercontent.com/forzenfox/lvjiang-cup/main/deploy/config/nginx.conf -o config/nginx.conf
 
 # 下载前端配置
-curl -fsSL https://raw.githubusercontent.com/你的用户名/lvjiang-cup/main/deploy/config/config.js -o config/config.js
+curl -fsSL https://raw.githubusercontent.com/forzenfox/lvjiang-cup/main/deploy/config/config.js -o config/config.js
 ```
 
 ### 3.4 配置环境变量
