@@ -259,30 +259,34 @@ ghcr.io/forzenfox/lvjiang-cup/backend:latest
 ghcr.io/forzenfox/lvjiang-cup/frontend:latest
 ```
 
-#### 2. 服务器部署（`deploy-server.yml`）
-
-**触发条件**：
-- Push 到 `main` 分支
-- 创建 `v*` 标签
-- 手动触发（可选择环境）
-
-**功能**：
-- 通过 SSH 连接服务器
-- 自动拉取最新镜像并重启服务
-- 健康检查验证
-
-**配置 Secrets**：
-```bash
-DEPLOY_SSH_KEY        # 部署 SSH 私钥
-DEPLOY_USER           # 部署用户
-DEPLOY_SERVER         # 服务器地址
-```
-
-#### 3. Demo 环境部署（`deploy.yml`）
+#### 2. Demo 环境部署（`deploy.yml`）
 
 **触发条件**：手动触发
 
 **功能**：部署到 GitHub Pages（仅前端 Demo）
+
+### 服务器手动更新
+
+本项目提供便捷的更新脚本，无需自动化部署，用户可在服务器上手动操作：
+
+```bash
+# 1. 连接到服务器
+ssh user@your-server
+
+# 2. 切换到部署目录
+cd /opt/lvjiang-cup/deploy
+
+# 3. 更新到最新版本
+./update.sh
+
+# 或更新到指定版本
+./update.sh v1.0.0
+```
+
+**优势**：
+- ✅ 更灵活：可选择更新时间点
+- ✅ 更安全：无需配置 SSH Secrets
+- ✅ 更可控：实时查看更新过程
 
 ## 开发指南
 

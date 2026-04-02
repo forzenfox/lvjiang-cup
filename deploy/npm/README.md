@@ -1,6 +1,6 @@
 # Nginx Proxy Manager 部署指南
 
-## 快速部署（首次部署）
+## 快速部署
 
 ### 第 1 步：部署 Nginx Proxy Manager
 
@@ -21,7 +21,7 @@ docker-compose logs -f
 
 ### 第 2 步：访问管理界面
 
-1. 访问：`http://服务器 IP:81`
+1. 访问：`http://服务器 IP:8181`
 2. 默认登录凭证：
    - 邮箱：`admin@example.com`
    - 密码：`changeme`
@@ -176,7 +176,7 @@ docker-compose ps
 docker-compose logs nginx-proxy-manager
 
 # 检查端口占用
-netstat -tlnp | grep :81
+netstat -tlnp | grep :8181
 ```
 
 ### 问题 2：SSL 证书申请失败
@@ -210,8 +210,8 @@ netstat -tlnp | grep :81
 1. **修改默认密码**：首次登录后立即修改
 2. **限制管理界面访问**：
    ```bash
-   # 使用防火墙限制 81 端口访问
-   ufw allow from 你的 IP to any port 81
+   # 使用防火墙限制 8181 端口访问
+   ufw allow from 你的 IP to any port 8181
    ```
 3. **定期更新**：保持 NPM 镜像为最新版本
 4. **备份数据**：定期备份 `npm-data` 和 `npm-letsencrypt` 目录

@@ -43,7 +43,7 @@ docker-compose logs -f
 ```
 
 **访问管理界面**：
-- 地址：`http://服务器 IP:81`
+- 地址：`http://服务器 IP:8181`
 - 默认账号：`admin@example.com`
 - 默认密码：`changeme`
 - **首次登录会要求修改密码**
@@ -92,7 +92,7 @@ CORS_ORIGIN=https://你的域名.com  # 你的域名
 
 #### 3.1 登录 NPM 管理界面
 
-访问：`http://服务器 IP:81`
+访问：`http://服务器 IP:8181`
 
 #### 3.2 添加代理主机
 
@@ -146,13 +146,6 @@ cd /opt/lvjiang-cup/deploy
 docker-compose ps
 ```
 
-**预期输出**：
-```
-NAME                STATUS         PORTS
-lvjiang-backend     Up (healthy)   3000/tcp
-lvjiang-frontend    Up (healthy)   3000/tcp
-```
-
 ### 测试访问
 
 ```bash
@@ -161,49 +154,25 @@ curl -I https://cup.example.com
 
 # 测试后端 API（通过 NPM）
 curl -I https://cup.example.com/api/teams
-
-# 测试健康检查
-curl -I https://cup.example.com/health
-```
-
-### 查看日志
-
-```bash
-# 查看所有服务日志
-docker-compose logs -f
-
-# 查看后端日志
-docker-compose logs -f backend
-
-# 查看前端日志
-docker-compose logs -f frontend
-```
-
----
-
-## 📁 目录结构
-
-```
-/opt/
-├── nginx-proxy-manager/     # NPM 部署目录
-│   ├── docker-compose.yml
-│   ├── npm-data/           # NPM 数据
-│   └── npm-letsencrypt/    # SSL 证书
-│
-└── lvjiang-cup/            # 驴酱杯部署目录
-    ├── deploy/             # 部署配置
-    │   ├── docker-compose.yml
-    │   ├── .env
-    │   └── deploy.sh
-    ├── data/               # SQLite 数据库
-    └── backup/             # 备份文件
 ```
 
 ---
 
 ## 🔧 常用命令
 
-### 驴酱杯应用管理
+### 部署脚本
+
+```bash
+cd /opt/lvjiang-cup/deploy
+
+# 首次部署
+./deploy.sh
+
+# 更新到最新版本
+./update.sh
+```
+
+### Docker Compose 命令
 
 ```bash
 cd /opt/lvjiang-cup/deploy
@@ -220,30 +189,7 @@ docker-compose restart
 # 停止服务
 docker-compose down
 
-# 更新到最新版本
-docker-compose pull
-docker-compose up -d
-
-# 进入容器
-docker exec -it lvjiang-backend sh
-```
-
-### NPM 管理
-
-```bash
-cd /opt/nginx-proxy-manager
-
-# 查看状态
-docker-compose ps
-
-# 查看日志
-docker-compose logs -f
-
-# 重启 NPM
-docker-compose restart
-
-# 更新 NPM
-docker-compose pull
+# 启动服务
 docker-compose up -d
 ```
 
@@ -260,8 +206,8 @@ docker-compose up -d
 ### 2. 限制管理界面访问
 
 ```bash
-# 使用防火墙限制 81 端口访问
-sudo ufw allow from 你的 IP to any port 81
+# 使用防火墙限制 8181 端口访问
+sudo ufw allow from 你的 IP to any port 8181
 sudo ufw reload
 ```
 
@@ -273,7 +219,7 @@ sudo ufw reload
 - 22（SSH，建议限制 IP 访问）
 
 **关闭端口**：
-- 81（NPM 管理界面，仅限内网访问）
+- 8181（NPM 管理界面，仅限内网访问）
 - 3000（应用端口，不对外开放）
 
 ---
@@ -316,7 +262,7 @@ docker-compose logs backend
 docker-compose logs frontend
 
 # 检查端口占用
-netstat -tlnp | grep 3000
+netstat -tlnp | grep :3000
 ```
 
 ### 问题 2：NPM 无法访问
