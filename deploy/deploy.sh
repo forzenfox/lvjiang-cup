@@ -144,7 +144,7 @@ else
     exit 1
 fi
 
-if docker exec lvjiang-frontend wget --quiet --tries=1 --spider http://localhost:3000; then
+if docker exec lvjiang-frontend wget --quiet --tries=1 --spider http://localhost:3001; then
     echo "✅ 前端服务正常"
 else
     echo "❌ 前端服务检查失败"
@@ -160,11 +160,11 @@ echo ""
 echo "📌 下一步操作："
 echo ""
 echo "1. 在 Nginx Proxy Manager 中配置代理主机："
-echo "   - 访问：http://服务器 IP:81"
+echo "   - 访问：http://服务器 IP:8181"
 echo "   - 添加 Proxy Host:"
 echo "     * Domain: your-domain.com"
 echo "     * Forward IP: 127.0.0.1"
-echo "     * Forward Port: 3000 (前端)"
+echo "     * Forward Port: 3001 (前端)"
 echo "   - 配置 SSL 证书（Request a new SSL certificate）"
 echo ""
 echo "2. 添加 API 路由（高级配置）："

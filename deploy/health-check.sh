@@ -58,7 +58,7 @@ else
     echo "❌ 后端 API：无法访问"
 fi
 
-if docker exec lvjiang-frontend wget --quiet --tries=1 --spider http://localhost:3000; then
+if docker exec lvjiang-frontend wget --quiet --tries=1 --spider http://localhost:3001; then
     echo "✅ 前端服务：正常"
 else
     echo "❌ 前端服务：无法访问"

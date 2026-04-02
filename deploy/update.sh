@@ -68,7 +68,7 @@ else
 fi
 
 # 检查前端
-if docker exec lvjiang-frontend wget --quiet --tries=1 --spider http://localhost:3000; then
+if docker exec lvjiang-frontend wget --quiet --tries=1 --spider http://localhost:3001; then
     echo "✅ 前端服务正常"
 else
     echo "❌ 前端服务检查失败"

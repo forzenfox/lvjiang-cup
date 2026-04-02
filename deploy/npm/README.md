@@ -95,18 +95,18 @@ networks:
 
 | 应用 | 域名 | 前端端口 | 后端端口 |
 |------|------|---------|---------|
-| 驴酱杯 | cup.example.com | 3001 | 3002 |
-| 博客 | blog.example.com | 3003 | - |
-| API 服务 | api.example.com | - | 3004 |
+| 驴酱杯 | cup.example.com | 3001 | 3000 |
+| 博客 | blog.example.com | 3002 | - |
+| API 服务 | api.example.com | - | 3003 |
 
 ### NPM 配置
 
 在 NPM 管理界面添加 3 个代理主机：
 
 1. **cup.example.com** → `127.0.0.1:3001`
-   - 高级配置：`/api` → `127.0.0.1:3002`
-2. **blog.example.com** → `127.0.0.1:3003`
-3. **api.example.com** → `127.0.0.1:3004`
+   - 高级配置：`/api` → `127.0.0.1:3000`
+2. **blog.example.com** → `127.0.0.1:3002`
+3. **api.example.com** → `127.0.0.1:3003`
 
 ---
 

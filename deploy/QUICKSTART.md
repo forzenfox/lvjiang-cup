@@ -103,7 +103,7 @@ CORS_ORIGIN=https://你的域名.com  # 你的域名
    Domain Names: cup.example.com
    Scheme: http
    Forward IP / Hostname: 127.0.0.1
-   Forward Port: 3000
+   Forward Port: 3001
    Cache Assets: ✓ 勾选
    Block Common Exploits: ✓ 勾选
    ```
@@ -312,17 +312,18 @@ netstat -tlnp | grep :81
 
 | 应用 | 域名 | 端口 |
 |------|------|------|
-| 驴酱杯 | cup.example.com | 3000 |
-| 博客 | blog.example.com | 3001 |
-| API 服务 | api.example.com | 3002 |
+| 驴酱杯 | cup.example.com | 3001（前端）/3000（后端） |
+| 博客 | blog.example.com | 3002 |
+| API 服务 | api.example.com | 3003 |
 
 ### NPM 配置
 
 在 NPM 管理界面添加 3 个代理主机：
 
-1. **cup.example.com** → `127.0.0.1:3000`
-2. **blog.example.com** → `127.0.0.1:3001`
-3. **api.example.com** → `127.0.0.1:3002`
+1. **cup.example.com** → `127.0.0.1:3001`（前端）
+   - 高级配置：`/api` → `127.0.0.1:3000`（后端）
+2. **blog.example.com** → `127.0.0.1:3002`
+3. **api.example.com** → `127.0.0.1:3003`
 
 所有应用共享同一个 NPM 网关，统一管理 SSL 证书。
 
