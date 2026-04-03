@@ -20,9 +20,8 @@ FROM node:20-alpine AS production
 
 WORKDIR /app
 
-# 只安装 http-server（全局安装会产生额外层，改为本地安装）
-COPY --from=builder /app/node_modules/http-server /app/node_modules/http-server
-COPY --from=builder /app/node_modules/.bin /app/node_modules/.bin
+# 安装 http-server（使用 npm 安装，会自动处理依赖）
+RUN npm install -g http-server
 
 # 复制构建产物
 COPY --from=builder /app/dist ./dist
@@ -38,4 +37,4 @@ USER nodejs
 EXPOSE 3001
 
 # 启动静态文件服务
-CMD ["node", "node_modules/http-server/bin/http-server", "dist", "-p", "3001", "-c-1"]
+CMD ["http-server", "dist", "-p", "3001", "-c-1"]
