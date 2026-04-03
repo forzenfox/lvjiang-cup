@@ -17,7 +17,7 @@
 ```
 用户 → Cloudflare → Nginx Proxy Manager (80/443)
                           │
-                          ├─→ 驴酱杯前端容器 (3000)
+                          ├─→ 驴酱杯前端容器 (3001)
                           └─→ 驴酱杯后端容器 (3000)
 ```
 
@@ -370,14 +370,18 @@ netstat -tlnp | grep :81
 
 ### NPM 配置
 
-在 NPM 管理界面添加 3 个代理主机：
+在 NPM 管理界面添加 3 个代理主机（使用容器名称而非 127.0.0.1）：
 
-1. **cup.example.com** → `127.0.0.1:3001`（前端）
-   - 高级配置：`/api` → `127.0.0.1:3000`（后端）
-2. **blog.example.com** → `127.0.0.1:3002`
-3. **api.example.com** → `127.0.0.1:3003`
+1. **cup.example.com** → `lvjiang-frontend:3001`（前端）
+   - 高级配置：`/api` → `lvjiang-backend:3000`（后端）
+2. **blog.example.com** → `blog-container:3002`
+3. **api.example.com** → `api-container:3003`
+
+> **注意**：使用容器名称（如 `lvjiang-frontend`）而不是 `127.0.0.1`，因为服务运行在 Docker 网络中，容器名称作为主机名可以正确解析。
 
 所有应用共享同一个 NPM 网关，统一管理 SSL 证书。
+
+> **注意**：使用容器名称（如 `lvjiang-frontend`）而不是 `127.0.0.1`，因为服务运行在 Docker 网络中，NPM 需要通过容器名称进行服务发现。
 
 ---
 

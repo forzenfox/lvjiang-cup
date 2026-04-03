@@ -33,8 +33,8 @@ RUN addgroup -g 1001 -S nodejs && \
 
 USER nodejs
 
-# 暴露端口
-EXPOSE 3001
+# 暴露端口（通过环境变量 PORT 配置，默认 3001）
+EXPOSE ${PORT:-3001}
 
 # 启动静态文件服务（绑定到 0.0.0.0 允许容器外部访问）
-CMD ["http-server", "dist", "-p", "3001", "-a", "0.0.0.0", "-c-1"]
+CMD ["sh", "-c", "http-server dist -p ${PORT:-3001} -a 0.0.0.0 -c-1"]
