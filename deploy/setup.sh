@@ -143,6 +143,9 @@ fi
 # 创建数据目录
 mkdir -p $PROJECT_DIR/data $PROJECT_DIR/backup
 
+# 设置数据目录权限（与Dockerfile中的nodejs用户匹配）
+chown -R 1001:1001 $PROJECT_DIR/data $PROJECT_DIR/backup
+
 # 拉取镜像并启动
 echo "拉取镜像..."
 TAG=$TAG $COMPOSE_CMD pull
