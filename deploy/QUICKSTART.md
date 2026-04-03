@@ -150,11 +150,13 @@ CORS_ORIGIN=https://你的域名.com  # 你的域名
    ```
    Domain Names: cup.example.com
    Scheme: http
-   Forward IP / Hostname: 127.0.0.1
+   Forward IP / Hostname: lvjiang-frontend
    Forward Port: 3001
    Cache Assets: ✓ 勾选
    Block Common Exploits: ✓ 勾选
    ```
+   
+   > **注意**：使用 `lvjiang-frontend`（容器名称）而不是 `127.0.0.1`，因为服务运行在 Docker 网络中
 
 3. 点击 **Save**
 
@@ -178,9 +180,11 @@ CORS_ORIGIN=https://你的域名.com  # 你的域名
    ```
    Location: /api
    Scheme: http
-   Forward IP / Hostname: 127.0.0.1
+   Forward IP / Hostname: lvjiang-backend
    Forward Port: 3000
    ```
+   
+   > **注意**：使用 `lvjiang-backend`（容器名称）而不是 `127.0.0.1`，因为服务运行在 Docker 网络中
 3. 点击 **Save**
 
 ---
