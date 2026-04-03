@@ -35,11 +35,13 @@ docker-compose logs -f
 2. 填写配置：
    - **Domain Names**: `cup.example.com`
    - **Scheme**: `http`
-   - **Forward IP / Hostname**: `127.0.0.1`
+   - **Forward IP / Hostname**: `lvjiang-frontend`
    - **Forward Port**: `3001`
    - **Cache Assets**: ✓ 勾选
    - **Block Common Exploits**: ✓ 勾选
 3. 点击 **Save**
+
+> **注意**：使用容器名称 `lvjiang-frontend` 而不是 `127.0.0.1`，因为服务运行在 Docker 网络中
 
 #### 3.2 配置 SSL 证书
 
@@ -59,10 +61,12 @@ docker-compose logs -f
    ```
    Location: /api
    Scheme: http
-   Forward IP / Hostname: 127.0.0.1
-   Forward Port: 3002
+   Forward IP / Hostname: lvjiang-backend
+   Forward Port: 3000
    ```
-3. 点击 **Save**
+3. 点击 **Save"
+
+> **注意**：使用容器名称 `lvjiang-backend` 而不是 `127.0.0.1`，因为服务运行在 Docker 网络中
 
 ---
 
@@ -110,10 +114,12 @@ chmod +x init-network.sh
 
 在 NPM 管理界面添加 3 个代理主机：
 
-1. **cup.example.com** → `127.0.0.1:3001`
-   - 高级配置：`/api` → `127.0.0.1:3000`
-2. **blog.example.com** → `127.0.0.1:3002`
-3. **api.example.com** → `127.0.0.1:3003`
+1. **cup.example.com** → `lvjiang-frontend:3001`
+   - 高级配置：`/api` → `lvjiang-backend:3000`
+2. **blog.example.com** → `blog-container:3002`
+3. **api.example.com** → `api-container:3003`
+
+> **注意**：使用容器名称（如 `lvjiang-frontend`）而不是 `127.0.0.1`，因为服务运行在 Docker 网络中，NPM 需要通过容器名称进行服务发现
 
 ---
 

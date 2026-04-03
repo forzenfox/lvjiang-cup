@@ -10,7 +10,7 @@ version: '3.8'
 #
 # 注意：
 # - 此方案使用 Nginx Proxy Manager 作为统一网关
-# - 前端容器使用 http-server（不含 Nginx）
+# - 前端容器使用 static-web-server（高性能 Rust 静态服务器）
 # - 所有容器端口仅内部访问，不映射到主机
 # - 需要先部署 Nginx Proxy Manager
 
@@ -45,7 +45,7 @@ services:
       start_period: 40s
     pull_policy: always
 
-  # 前端服务（http-server，不含 Nginx）
+  # 前端服务（static-web-server - 高性能 Rust 静态文件服务器）
   frontend:
     image: ghcr.io/${GITHUB_OWNER:-forzenfox}/${GITHUB_REPO:-lvjiang-cup}/frontend:${TAG:-latest}
     container_name: lvjiang-frontend

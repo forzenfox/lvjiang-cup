@@ -208,7 +208,7 @@ chmod +x deploy.sh
 - ✅ **统一网关**：所有应用通过 NPM 统一管理
 - ✅ **自动 SSL**：Let's Encrypt 证书自动申请和续期
 - ✅ **Web 界面**：可视化管理，无需记忆 Nginx 配置
-- ✅ **资源优化**：前端容器使用 http-server（不含 Nginx）
+- ✅ **资源优化**：前端容器使用 static-web-server（高性能 Rust 静态服务器，4MB 体积）
 - ✅ **易于扩展**：添加新应用只需几步点击
 
 ## 核心数据模型
