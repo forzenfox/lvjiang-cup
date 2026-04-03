@@ -23,7 +23,55 @@
 
 ---
 
-## 🚀 快速部署（3 步完成）
+## 🚀 快速部署（1 步完成）
+
+### 使用统一部署脚本（推荐）
+
+```bash
+# 1. 创建部署目录
+mkdir -p /opt/lvjiang-cup/deploy
+cd /opt/lvjiang-cup/deploy
+
+# 2. 下载统一部署脚本
+curl -fsSL https://raw.githubusercontent.com/forzenfox/lvjiang-cup/main/deploy/setup.sh -o setup.sh
+chmod +x setup.sh
+
+# 3. 运行部署脚本（自动完成网络初始化、NPM 部署和应用部署）
+./setup.sh
+
+# 或指定版本标签
+./setup.sh v1.0.0
+```
+
+**功能说明**：
+- ✅ 自动初始化 Docker 网络 `npm-network`
+- ✅ 自动部署 Nginx Proxy Manager
+- ✅ 自动部署驴酱杯应用
+- ✅ 自动进行健康检查验证
+- ✅ 提供详细的部署结果和后续操作指南
+
+---
+
+## 📋 传统部署步骤（4 步完成）
+
+### 第 0 步：初始化网络（首次部署）
+
+```bash
+# 1. 创建部署目录
+mkdir -p /opt/lvjiang-cup/deploy
+cd /opt/lvjiang-cup/deploy
+
+# 2. 下载网络初始化脚本
+curl -fsSL https://raw.githubusercontent.com/forzenfox/lvjiang-cup/main/deploy/init-network.sh -o init-network.sh
+chmod +x init-network.sh
+
+# 3. 运行网络初始化
+./init-network.sh
+```
+
+**注意**：此网络供 Nginx Proxy Manager 和驴酱杯应用共享使用
+
+---
 
 ### 第 1 步：部署 Nginx Proxy Manager
 

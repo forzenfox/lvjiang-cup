@@ -17,7 +17,7 @@ version: '3.8'
 services:
   # 后端服务
   backend:
-    image: ghcr.io/${GITHUB_OWNER:-your-username}/${GITHUB_REPO:-lvjiang-cup}/backend:${TAG:-latest}
+    image: ghcr.io/${GITHUB_OWNER:-forzenfox}/${GITHUB_REPO:-lvjiang-cup}/backend:${TAG:-latest}
     container_name: lvjiang-backend
     restart: unless-stopped
     expose:
@@ -47,7 +47,7 @@ services:
 
   # 前端服务（http-server，不含 Nginx）
   frontend:
-    image: ghcr.io/${GITHUB_OWNER:-your-username}/${GITHUB_REPO:-lvjiang-cup}/frontend:${TAG:-latest}
+    image: ghcr.io/${GITHUB_OWNER:-forzenfox}/${GITHUB_REPO:-lvjiang-cup}/frontend:${TAG:-latest}
     container_name: lvjiang-frontend
     restart: unless-stopped
     expose:

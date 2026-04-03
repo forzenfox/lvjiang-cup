@@ -42,3 +42,4 @@ services:
 networks:
   npm-network:
     driver: bridge
+    external: true  # 使用外部网络，需要手动创建
