@@ -119,7 +119,7 @@ npm run dev
 ```
 用户 → Cloudflare → Nginx Proxy Manager (80/443)
                           │
-                          ├─→ 前端容器 (3000)
+                          ├─→ 前端容器 (3001)
                           └─→ 后端容器 (3000)
 ```
 
@@ -156,12 +156,15 @@ chmod +x deploy.sh
 
 **第 3 步：配置 NPM 代理**
 
-1. 访问 `http://服务器 IP:81` 登录 NPM 管理界面
+1. 访问 `http://服务器 IP:8181` 登录 NPM 管理界面
 2. 添加 Proxy Host：
    - Domain: `cup.example.com`
    - Forward IP: `127.0.0.1`
-   - Forward Port: `3000`
+   - Forward Port: `3001`（前端）
 3. 配置 SSL 证书（自动申请）
+4. 添加 API 路由（高级配置）：
+   - Location: `/api`
+   - Forward Port: `3000`（后端）
 
 详细部署指南请查看：[deploy/QUICKSTART.md](deploy/QUICKSTART.md)
 
