@@ -40,8 +40,8 @@ jobs:
           context: ./frontend
           push: true
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:${{ inputs.tag || 'latest' }}
-          cache-from: type:gha
-          cache-to: type:gha,mode=max
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
           platforms: linux/amd64,linux/arm64
 
       - name: Output frontend image info
