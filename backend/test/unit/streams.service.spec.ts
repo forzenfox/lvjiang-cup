@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { StreamsService } from './streams.service';
-import { DatabaseService } from '../../database/database.service';
-import { CacheService } from '../../cache/cache.service';
+import { StreamsService } from '../../src/modules/streams/streams.service';
+import { DatabaseService } from '../../src/database/database.service';
+import { CacheService } from '../../src/cache/cache.service';
 import { NotFoundException } from '@nestjs/common';
 
 describe('StreamsService', () => {

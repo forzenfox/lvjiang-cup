@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { AdvancementService } from './advancement.service';
-import { DatabaseService } from '../../database/database.service';
-import { CacheService } from '../../cache/cache.service';
+import { AdvancementService } from '../../src/modules/advancement/advancement.service';
+import { DatabaseService } from '../../src/database/database.service';
+import { CacheService } from '../../src/cache/cache.service';
 
 describe('AdvancementService', () => {
   let service: AdvancementService;

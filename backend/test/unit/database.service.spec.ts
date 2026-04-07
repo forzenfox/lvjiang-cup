@@ -40,7 +40,7 @@ jest.mock('sqlite3', () => {
   };
 });
 
-import { DatabaseService } from './database.service';
+import { DatabaseService } from '../../src/database/database.service';
 
 describe('DatabaseService', () => {
   let service: DatabaseService;

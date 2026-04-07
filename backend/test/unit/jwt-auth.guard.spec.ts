@@ -1,4 +1,4 @@
-import { JwtAuthGuard } from './jwt-auth.guard';
+import { JwtAuthGuard } from '../../src/modules/auth/guards/jwt-auth.guard';
 import { UnauthorizedException } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 

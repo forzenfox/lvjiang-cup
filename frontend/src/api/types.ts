@@ -98,12 +98,25 @@ export interface Player {
   teamId: string;
 }
 
-// 发送到API的队员类型(不包含teamId)
+// 发送到 API 的队员类型 (不包含 teamId)
 export interface CreatePlayerRequest {
   id: string;
   name: string;
   avatar?: string;
   position: 'top' | 'jungle' | 'mid' | 'bot' | 'support';
+}
+
+// 更新队员请求类型
+export interface UpdateMemberRequest {
+  nickname?: string;
+  avatarUrl?: string;
+  position?: 'TOP' | 'JUNGLE' | 'MID' | 'ADC' | 'SUPPORT';
+  bio?: string;
+  gameId?: string;
+  championPool?: string[];
+  rating?: number;
+  isCaptain?: boolean;
+  liveUrl?: string;
 }
 
 /**
@@ -120,12 +133,28 @@ export interface Team {
 }
 
 // 后端期望的创建战队请求格式
+// 发送到 API 的队员类型 (用于 members 数组)
+export interface CreateMemberRequest {
+  id: string;
+  nickname: string;
+  avatarUrl?: string;
+  position: 'TOP' | 'JUNGLE' | 'MID' | 'ADC' | 'SUPPORT';
+  gameId?: string;
+  bio?: string;
+  championPool?: string[];
+  rating?: number;
+  isCaptain?: boolean;
+  liveUrl?: string;
+  sortOrder?: number;
+}
+
 export interface CreateTeamRequest {
   id: string;
   name: string;
   logo?: string;
   description?: string;
   players?: CreatePlayerRequest[];
+  members?: CreateMemberRequest[];
 }
 
 export interface UpdateTeamRequest extends Partial<CreateTeamRequest> {

@@ -7,25 +7,16 @@ import {
   UploadedFile,
   BadRequestException,
   Logger,
-  Param,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiConsumes } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { UploadService, UploadResult } from './upload.service';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { IsString, IsIn } from 'class-validator';
 import { diskStorage } from 'multer';
 import * as path from 'path';
 import * as fs from 'fs';
-import { v4 as uuidv4 } from 'uuid';
-import { Request } from 'express';
-import { Multer } from 'multer';
-
-class UploadDto {
-  @IsString()
-  @IsIn(['avatar', 'logo'])
-  type: 'avatar' | 'logo';
-}
+import { UploadService, UploadResult } from './upload.service';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { uploadConfig } from '../../config/upload.config';
+import { getUploadDir } from '../../common/utils/path.util';
 
 @ApiTags('文件上传')
 @Controller()
@@ -34,118 +25,75 @@ export class UploadController {
 
   constructor(private readonly uploadService: UploadService) {}
 
-  // 配置 multer 存储
-  private getStorage(type: string) {
-    return diskStorage({
-      destination: (req, file, cb) => {
-        const uploadType = req.body.type || type;
-        let dest: string;
-        
-        if (uploadType === 'logo') {
-          const teamId = req.params.teamId || req.body.id;
-          dest = path.join(process.cwd(), 'uploads', 'teams', teamId || '');
-        } else {
-          const memberId = req.params.memberId || req.body.id;
-          dest = path.join(process.cwd(), 'uploads', 'members', memberId || '');
-        }
-
-        // 确保目录存在
-        if (!fs.existsSync(dest)) {
-          fs.mkdirSync(dest, { recursive: true });
-        }
-        
-        cb(null, dest);
-      },
-      filename: (req, file, cb) => {
-        const uploadType = req.body.type || type;
-        let filename: string;
-        
-        if (uploadType === 'logo') {
-          filename = 'logo.png';
-        } else {
-          filename = 'avatar.png';
-        }
-        
-        cb(null, filename);
-      },
-    });
-  }
-
   @Post('admin/upload/image')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: '上传图片（需认证）' })
   @ApiConsumes('multipart/form-data')
-  @UseInterceptors(FileInterceptor('file', {
-    storage: diskStorage({
-      destination: (req, file, cb) => {
-        const type = req.body.type;
-        const id = req.body.id;
-        
-        let dest: string;
-        if (type === 'logo') {
-          dest = path.join(process.cwd(), 'uploads', 'teams', id || '');
-        } else {
-          dest = path.join(process.cwd(), 'uploads', 'members', id || '');
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: diskStorage({
+        destination: (req, file, cb) => {
+          const type = req.body.type;
+          const id = req.body.id;
+
+          if (!type || !['avatar', 'logo'].includes(type)) {
+            return cb(new BadRequestException('Invalid type'), false);
+          }
+
+          if (!id) {
+            return cb(new BadRequestException('id is required'), false);
+          }
+
+          const dest = getUploadDir(
+            type === 'logo' ? uploadConfig.teamLogoDir : uploadConfig.memberAvatarDir,
+            id
+          );
+
+          if (!fs.existsSync(dest)) {
+            fs.mkdirSync(dest, { recursive: true });
+          }
+
+          cb(null, dest);
+        },
+        filename: (req, file, cb) => {
+          const type = req.body.type;
+          const filename = type === 'logo' ? uploadConfig.logoFileName : uploadConfig.avatarFileName;
+          cb(null, filename);
+        },
+      }),
+      fileFilter: (req, file, cb) => {
+        if (!uploadConfig.allowedMimeTypes.includes(file.mimetype)) {
+          return cb(new BadRequestException('仅支持 JPG/PNG/GIF/WebP 格式图片'), false);
         }
-        
-        if (!fs.existsSync(dest)) {
-          fs.mkdirSync(dest, { recursive: true });
-        }
-        
-        cb(null, dest);
+        cb(null, true);
       },
-      filename: (req, file, cb) => {
-        const type = req.body.type;
-        let filename: string;
-        
-        if (type === 'logo') {
-          filename = 'logo.png';
-        } else {
-          filename = 'avatar.png';
-        }
-        
-        cb(null, filename);
+      limits: {
+        fileSize: uploadConfig.maxFileSize,
       },
     }),
-    fileFilter: (req, file, cb) => {
-      if (!file.mimetype.match(/^image\/(png|jpeg|jpg|gif|webp)$/)) {
-        return cb(new BadRequestException('Only image files are allowed'), false);
-      }
-      cb(null, true);
-    },
-    limits: {
-      fileSize: 5 * 1024 * 1024, // 5MB
-    },
-  }))
+  )
   async uploadImage(
     @UploadedFile() file: any,
     @Body('type') type: string,
     @Body('id') id: string,
   ): Promise<UploadResult> {
     if (!file) {
-      throw new BadRequestException('File is required');
+      throw new BadRequestException('请选择要上传的文件');
     }
 
     if (!type || !['avatar', 'logo'].includes(type)) {
-      throw new BadRequestException('Invalid type. Must be "avatar" or "logo"');
+      throw new BadRequestException('上传类型错误，必须是 "avatar" 或 "logo"');
     }
 
     if (!id) {
-      throw new BadRequestException('id is required');
+      throw new BadRequestException('缺少关联 ID');
     }
 
     this.logger.log(`File uploaded: ${file.originalname}, type: ${type}, id: ${id}`);
 
-    if (type === 'logo') {
-      return {
-        url: `/uploads/teams/${id}/logo.png`,
-        thumbnailUrl: `/uploads/teams/${id}/logo_thumbnail.png`,
-      };
-    } else {
-      return {
-        url: `/uploads/members/${id}/avatar.png`,
-      };
-    }
+    // 调用 Service 处理上传（支持缩略图等高级功能）
+    const fileBuffer = await fs.promises.readFile(file.path);
+    return this.uploadService.uploadImage(type as 'avatar' | 'logo', id, fileBuffer);
   }
 }

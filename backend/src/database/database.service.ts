@@ -327,7 +327,9 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
             this.logger.log(`Migrated: Added ${check.column} to ${migration.table}`);
           } catch (err) {
             if (!err.message?.includes('duplicate column name')) {
-              this.logger.warn(`Migration failed for ${migration.table}.${check.column}: ${err.message}`);
+              this.logger.warn(
+                `Migration failed for ${migration.table}.${check.column}: ${err.message}`,
+              );
             }
           }
         }
@@ -391,10 +393,19 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
         const trimmed = def.trim();
         const spaceIndex = trimmed.indexOf(' ');
         const parenIndex = trimmed.indexOf('(');
-        const name = trimmed.substring(0, spaceIndex > 0 ? spaceIndex : parenIndex > 0 ? parenIndex : trimmed.length);
+        const name = trimmed.substring(
+          0,
+          spaceIndex > 0 ? spaceIndex : parenIndex > 0 ? parenIndex : trimmed.length,
+        );
         return name.trim();
       })
-      .filter((name) => name && !name.startsWith('FOREIGN') && !name.startsWith('PRIMARY') && !name.startsWith('CHECK'));
+      .filter(
+        (name) =>
+          name &&
+          !name.startsWith('FOREIGN') &&
+          !name.startsWith('PRIMARY') &&
+          !name.startsWith('CHECK'),
+      );
   }
 
   private async initDefaultData() {

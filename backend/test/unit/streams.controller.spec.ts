@@ -1,8 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { StreamsController } from './streams.controller';
-import { StreamsService, StreamInfo } from './streams.service';
-import { Stream } from './entities/stream.entity';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { StreamsController } from '../../src/modules/streams/streams.controller';
+import { StreamsService, StreamInfo } from '../../src/modules/streams/streams.service';
+import { Stream } from '../../src/modules/streams/entities/stream.entity';
+import { JwtAuthGuard } from '../../src/modules/auth/guards/jwt-auth.guard';
 import { NotFoundException, BadRequestException } from '@nestjs/common';
 
 describe('StreamsController', () => {
@@ -229,6 +229,145 @@ describe('StreamsController', () => {
     });
   });
 
+  describe('GET /streams/active - 获取当前活跃直播', () => {
+    it('应该返回当前活跃直播', async () => {
+      // Arrange
+      const activeStream: Stream = {
+        id: '1',
+        title: 'Active Stream',
+        url: 'http://example.com/active',
+        isLive: true,
+        createdAt: '2024-01-01T00:00:00Z',
+        updatedAt: '2024-01-01T00:00:00Z',
+      };
+      mockStreamsService.findActive.mockResolvedValue(activeStream);
+
+      // Act
+      const result = await controller.findActive();
+
+      // Assert
+      expect(result).toEqual(activeStream);
+      expect(mockStreamsService.findActive).toHaveBeenCalled();
+    });
+
+    it('应该在没有活跃直播时返回null或默认值', async () => {
+      // Arrange
+      mockStreamsService.findActive.mockResolvedValue(null);
+
+      // Act
+      const result = await controller.findActive();
+
+      // Assert
+      expect(result).toBeNull();
+    });
+  });
+
+  describe('GET /streams/:id - 获取指定直播', () => {
+    it('应该返回指定ID的直播', async () => {
+      // Arrange
+      const stream: Stream = {
+        id: '1',
+        title: 'Test Stream',
+        url: 'http://example.com',
+        isLive: true,
+        createdAt: '2024-01-01T00:00:00Z',
+        updatedAt: '2024-01-01T00:00:00Z',
+      };
+      mockStreamsService.findById.mockResolvedValue(stream);
+
+      // Act
+      const result = await controller.findById('1');
+
+      // Assert
+      expect(result).toEqual(stream);
+      expect(mockStreamsService.findById).toHaveBeenCalledWith('1');
+    });
+  });
+
+  describe('GET /streams - 获取所有直播列表', () => {
+    it('应该返回所有直播列表', async () => {
+      // Arrange
+      const streams: Stream[] = [
+        {
+          id: '1',
+          title: 'Stream 1',
+          url: 'http://example.com/1',
+          isLive: true,
+          createdAt: '2024-01-01T00:00:00Z',
+          updatedAt: '2024-01-01T00:00:00Z',
+        },
+        {
+          id: '2',
+          title: 'Stream 2',
+          url: 'http://example.com/2',
+          isLive: false,
+          createdAt: '2024-01-01T00:00:00Z',
+          updatedAt: '2024-01-01T00:00:00Z',
+        },
+      ];
+      mockStreamsService.findAll.mockResolvedValue(streams);
+
+      // Act
+      const result = await controller.findAll();
+
+      // Assert
+      expect(result).toEqual(streams);
+      expect(mockStreamsService.findAll).toHaveBeenCalled();
+    });
+
+    it('应该返回空数组当没有直播', async () => {
+      // Arrange
+      mockStreamsService.findAll.mockResolvedValue([]);
+
+      // Act
+      const result = await controller.findAll();
+
+      // Assert
+      expect(result).toEqual([]);
+    });
+  });
+
+  describe('POST /streams - 创建直播 (需认证)', () => {
+    it('应该创建直播并返回创建的直播', async () => {
+      // Arrange
+      const createStreamDto = {
+        title: 'New Stream',
+        url: 'http://example.com/new',
+        isLive: true,
+      };
+      const createdStream: Stream = {
+        id: '3',
+        title: 'New Stream',
+        url: 'http://example.com/new',
+        isLive: true,
+        createdAt: '2024-01-01T00:00:00Z',
+        updatedAt: '2024-01-01T00:00:00Z',
+      };
+      mockStreamsService.create.mockResolvedValue(createdStream);
+
+      // Act
+      const result = await controller.create(createStreamDto);
+
+      // Assert
+      expect(result).toEqual(createdStream);
+      expect(mockStreamsService.create).toHaveBeenCalledWith(createStreamDto);
+    });
+  });
+
+  describe('DELETE /streams/:id - 删除直播 (需认证)', () => {
+    it('应该删除直播并返回undefined', async () => {
+      // Arrange
+      mockStreamsService.remove.mockResolvedValue(undefined);
+
+      // Act
+      const result = await controller.remove('1');
+
+      // Assert
+      expect(result).toBeUndefined();
+      expect(mockStreamsService.remove).toHaveBeenCalledWith('1');
+    });
+  });
+
   describe('错误处理测试', () => {
     it('应该在直播不存在时抛出NotFoundException', async () => {
       // Arrange
@@ -262,6 +401,23 @@ describe('StreamsController', () => {
 
       // Act & Assert
       await expect(controller.findAll()).rejects.toThrow('Internal server error');
+    });
+
+    it('应该在获取活跃直播时服务错误抛出异常', async () => {
+      // Arrange
+      mockStreamsService.findActive.mockRejectedValue(new Error('Service error'));
+
+      // Act & Assert
+      await expect(controller.findActive()).rejects.toThrow('Service error');
+    });
+
+    it('应该在创建直播时服务错误抛出异常', async () => {
+      // Arrange
+      const createStreamDto = { title: 'Test', url: 'http://example.com', isLive: true };
+      mockStreamsService.create.mockRejectedValue(new Error('Creation failed'));
+
+      // Act & Assert
+      await expect(controller.create(createStreamDto)).rejects.toThrow('Creation failed');
     });
   });
 });

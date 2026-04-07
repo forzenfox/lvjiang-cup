@@ -5,6 +5,8 @@
   "entryFile": "main",
   "compilerOptions": {
     "deleteOutDir": true,
-    "webpack": false
-  }
+    "webpack": false,
+    "tsConfig": "tsconfig.dev.json"
+  },
+  "exclude": ["test", "**/*.spec.ts"]
 }

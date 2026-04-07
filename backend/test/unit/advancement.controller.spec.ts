@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { AdvancementController } from './advancement.controller';
-import { AdvancementService, Advancement } from './advancement.service';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { AdvancementController } from '../../src/modules/advancement/advancement.controller';
+import { AdvancementService, Advancement } from '../../src/modules/advancement/advancement.service';
+import { JwtAuthGuard } from '../../src/modules/auth/guards/jwt-auth.guard';
 import { NotFoundException, BadRequestException } from '@nestjs/common';
 
 describe('AdvancementController', () => {

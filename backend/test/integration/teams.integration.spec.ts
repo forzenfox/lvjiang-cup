@@ -367,7 +367,9 @@ describe('Teams Integration Tests', () => {
         name: 'Test Team',
         logo: 'logo.png',
         description: 'Test description',
-        members: [{ id: 'p1', nickname: 'OldName', position: 'TOP' as const, avatarUrl: 'old.png' }],
+        members: [
+          { id: 'p1', nickname: 'OldName', position: 'TOP' as const, avatarUrl: 'old.png' },
+        ],
       };
 
       const created = await service.create(createDto);
@@ -376,7 +378,9 @@ describe('Teams Integration Tests', () => {
       mockCacheService.del.mockReturnValue(undefined);
 
       const updated = await service.update(created.id, {
-        members: [{ id: 'p1', nickname: 'NewName', position: 'JUNGLE' as const, avatarUrl: 'new.png' }],
+        members: [
+          { id: 'p1', nickname: 'NewName', position: 'JUNGLE' as const, avatarUrl: 'new.png' },
+        ],
       });
 
       expect(updated.members).toHaveLength(1);
@@ -405,7 +409,9 @@ describe('Teams Integration Tests', () => {
 
       await databaseService.run('DELETE FROM teams WHERE id = ?', ['team-1']);
 
-      members = await databaseService.all('SELECT * FROM team_members WHERE team_id = ?', ['team-1']);
+      members = await databaseService.all('SELECT * FROM team_members WHERE team_id = ?', [
+        'team-1',
+      ]);
       expect(members).toHaveLength(0);
     });
 
@@ -571,12 +577,16 @@ describe('Teams Integration Tests', () => {
         members: [{ id: 'p1', nickname: 'Player1', position: 'TOP' as const }],
       });
 
-      let members = await databaseService.all('SELECT * FROM team_members WHERE team_id = ?', [team.id]);
+      let members = await databaseService.all('SELECT * FROM team_members WHERE team_id = ?', [
+        team.id,
+      ]);
       expect(members).toHaveLength(1);
 
       await service.remove(team.id);
 
-      members = await databaseService.all('SELECT * FROM team_members WHERE team_id = ?', [team.id]);
+      members = await databaseService.all('SELECT * FROM team_members WHERE team_id = ?', [
+        team.id,
+      ]);
       expect(members).toHaveLength(0);
     });
   });
@@ -615,12 +625,16 @@ describe('Teams Integration Tests', () => {
         ],
       });
 
-      let members = await databaseService.all('SELECT * FROM team_members WHERE team_id = ?', [team.id]);
+      let members = await databaseService.all('SELECT * FROM team_members WHERE team_id = ?', [
+        team.id,
+      ]);
       expect(members).toHaveLength(2);
 
       await service.remove(team.id);
 
-      members = await databaseService.all('SELECT * FROM team_members WHERE team_id = ?', [team.id]);
+      members = await databaseService.all('SELECT * FROM team_members WHERE team_id = ?', [
+        team.id,
+      ]);
       expect(members).toHaveLength(0);
     });
   });

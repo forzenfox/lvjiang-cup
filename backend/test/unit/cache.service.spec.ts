@@ -20,7 +20,7 @@ jest.mock('node-cache', () => {
   }));
 });
 
-import { CacheService } from './cache.service';
+import { CacheService } from '../../src/cache/cache.service';
 
 describe('CacheService', () => {
   let service: CacheService;

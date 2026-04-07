@@ -92,10 +92,43 @@ export async function remove(id: string): Promise<void> {
   }
 }
 
+/**
+ * 上传战队图标
+ * @param teamId 战队 ID
+ * @param file 文件对象
+ * @returns 上传结果 { url, thumbnailUrl }
+ */
+export async function uploadTeamLogo(
+  teamId: string,
+  file: File
+): Promise<{ url: string; thumbnailUrl?: string }> {
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('type', 'logo');
+  formData.append('id', teamId);
+
+  const response = await apiClient.post<ApiResponse<{ url: string; thumbnailUrl?: string }>>(
+    '/admin/upload/image',
+    formData,
+    {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    }
+  );
+
+  if (!response.data.success || !response.data.data) {
+    throw new Error(response.data.message || '上传失败');
+  }
+
+  return response.data.data;
+}
+
 export default {
   getAll,
   getById,
   create,
   update,
   remove,
+  uploadTeamLogo,
 };

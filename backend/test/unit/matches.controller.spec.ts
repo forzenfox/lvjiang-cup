@@ -1,8 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { MatchesController } from './matches.controller';
-import { MatchesService, Match } from './matches.service';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { UpdateMatchDto, MatchStatus } from './dto/update-match.dto';
+import { MatchesController } from '../../src/modules/matches/matches.controller';
+import { MatchesService, Match } from '../../src/modules/matches/matches.service';
+import { JwtAuthGuard } from '../../src/modules/auth/guards/jwt-auth.guard';
+import { UpdateMatchDto, MatchStatus } from '../../src/modules/matches/dto/update-match.dto';
 import { NotFoundException, BadRequestException } from '@nestjs/common';
 
 describe('MatchesController', () => {

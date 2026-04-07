@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, Logger, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { DatabaseService } from '../../database/database.service';
 import { CacheService } from '../../cache/cache.service';
 import { CreateTeamDto } from './dto/create-team.dto';
@@ -102,9 +102,10 @@ export class TeamsService {
       throw new NotFoundException(`Team with id ${id} not found`);
     }
 
-    const members = await this.databaseService.all<any>('SELECT * FROM team_members WHERE team_id = ?', [
-      id,
-    ]);
+    const members = await this.databaseService.all<any>(
+      'SELECT * FROM team_members WHERE team_id = ?',
+      [id],
+    );
 
     const result: Team = {
       id: team.id,
@@ -150,27 +151,28 @@ export class TeamsService {
       ],
     );
 
-    if (createTeamDto.members && createTeamDto.members.length > 0) {
-      for (const member of createTeamDto.members) {
-        await this.databaseService.run(
-          `INSERT INTO team_members (id, user_id, nickname, avatar_url, position, team_id, game_id, bio, champion_pool, rating, is_captain, live_url, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-          [
-            member.id,
-            member.userId || null,
-            member.nickname,
-            member.avatarUrl || null,
-            member.position,
-            createTeamDto.id,
-            member.gameId || null,
-            member.bio || null,
-            member.championPool ? JSON.stringify(member.championPool) : null,
-            member.rating || 60,
-            member.isCaptain ? 1 : 0,
-            member.liveUrl || null,
-            member.sortOrder || null,
-          ],
-        );
-      }
+    // 自动创建 5 个默认队员（上单、打野、中单、ADC、辅助）
+    const defaultPositions = [
+      { pos: 'TOP', name: '上单' },
+      { pos: 'JUNGLE', name: '打野' },
+      { pos: 'MID', name: '中单' },
+      { pos: 'ADC', name: 'ADC' },
+      { pos: 'SUPPORT', name: '辅助' },
+    ];
+
+    for (let i = 0; i < defaultPositions.length; i++) {
+      const { pos, name } = defaultPositions[i];
+      await this.databaseService.run(
+        `INSERT INTO team_members (id, nickname, position, team_id, rating, is_captain, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`,
+        [
+          `${createTeamDto.id}_${pos}`,  // 使用 teamId_position 作为队员ID，便于识别
+          name,                          // 默认昵称：上单/打野/中单/ADC/辅助
+          pos,                           // 位置：TOP/JUNGLE/MID/ADC/SUPPORT
+          createTeamDto.id,              // 战队ID
+          60,                            // 默认评分
+          i === 0 ? 1 : 0,               // 第一个位置（上单）设为队长
+        ],
+      );
     }
 
     this.logger.log(`Team created: ${createTeamDto.id}`);
@@ -293,10 +295,9 @@ export class TeamsService {
    * 获取单个队员
    */
   async findMemberById(id: string): Promise<TeamMember> {
-    const member = await this.databaseService.get<any>(
-      'SELECT * FROM team_members WHERE id = ?',
-      [id],
-    );
+    const member = await this.databaseService.get<any>('SELECT * FROM team_members WHERE id = ?', [
+      id,
+    ]);
 
     if (!member) {
       throw new NotFoundException(`Member with id ${id} not found`);
@@ -354,7 +355,10 @@ export class TeamsService {
    * 更新队员
    */
   async updateMember(id: string, updateMemberDto: UpdateMemberDto): Promise<TeamMember> {
-    const existing = await this.databaseService.get<any>('SELECT * FROM team_members WHERE id = ?', [id]);
+    const existing = await this.databaseService.get<any>(
+      'SELECT * FROM team_members WHERE id = ?',
+      [id],
+    );
     if (!existing) {
       throw new NotFoundException(`Member with id ${id} not found`);
     }
@@ -437,7 +441,10 @@ export class TeamsService {
    * 删除队员
    */
   async removeMember(id: string): Promise<void> {
-    const existing = await this.databaseService.get<any>('SELECT * FROM team_members WHERE id = ?', [id]);
+    const existing = await this.databaseService.get<any>(
+      'SELECT * FROM team_members WHERE id = ?',
+      [id],
+    );
     if (!existing) {
       throw new NotFoundException(`Member with id ${id} not found`);
     }

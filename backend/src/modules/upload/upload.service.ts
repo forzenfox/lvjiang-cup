@@ -1,6 +1,13 @@
 import { Injectable, BadRequestException, Logger } from '@nestjs/common';
 import * as fs from 'fs';
 import * as path from 'path';
+import { uploadConfig } from '../../config/upload.config';
+import {
+  getUploadDir,
+  getTeamLogoUrl,
+  getTeamLogoThumbnailUrl,
+  getMemberAvatarUrl,
+} from '../../common/utils/path.util';
 
 export interface UploadResult {
   url: string;
@@ -10,7 +17,6 @@ export interface UploadResult {
 @Injectable()
 export class UploadService {
   private readonly logger = new Logger(UploadService.name);
-  private readonly UPLOAD_DIR = path.join(process.cwd(), 'uploads');
 
   /**
    * 上传战队图标
@@ -19,22 +25,22 @@ export class UploadService {
    * @param thumbnail 缩略图 buffer (128x128)
    */
   async uploadTeamLogo(teamId: string, file: Buffer, thumbnail?: Buffer): Promise<UploadResult> {
-    const teamDir = path.join(this.UPLOAD_DIR, 'teams', teamId);
+    const teamDir = getUploadDir(uploadConfig.teamLogoDir, teamId);
     await this.ensureDir(teamDir);
 
     // 保存原始 logo
-    const logoPath = path.join(teamDir, 'logo.png');
+    const logoPath = path.join(teamDir, uploadConfig.logoFileName);
     await fs.promises.writeFile(logoPath, file);
 
     // 保存缩略图
     let thumbnailUrl: string | undefined;
     if (thumbnail) {
-      const thumbnailPath = path.join(teamDir, 'logo_thumbnail.png');
+      const thumbnailPath = path.join(teamDir, uploadConfig.thumbnailFileName);
       await fs.promises.writeFile(thumbnailPath, thumbnail);
-      thumbnailUrl = `/uploads/teams/${teamId}/logo_thumbnail.png`;
+      thumbnailUrl = getTeamLogoThumbnailUrl(teamId);
     }
 
-    const url = `/uploads/teams/${teamId}/logo.png`;
+    const url = getTeamLogoUrl(teamId);
 
     this.logger.log(`Team logo uploaded: ${teamId}`);
 
@@ -47,14 +53,14 @@ export class UploadService {
    * @param file 文件 buffer
    */
   async uploadMemberAvatar(memberId: string, file: Buffer): Promise<UploadResult> {
-    const memberDir = path.join(this.UPLOAD_DIR, 'members', memberId);
+    const memberDir = getUploadDir(uploadConfig.memberAvatarDir, memberId);
     await this.ensureDir(memberDir);
 
     // 保存头像
-    const avatarPath = path.join(memberDir, 'avatar.png');
+    const avatarPath = path.join(memberDir, uploadConfig.avatarFileName);
     await fs.promises.writeFile(avatarPath, file);
 
-    const url = `/uploads/members/${memberId}/avatar.png`;
+    const url = getMemberAvatarUrl(memberId);
 
     this.logger.log(`Member avatar uploaded: ${memberId}`);
 

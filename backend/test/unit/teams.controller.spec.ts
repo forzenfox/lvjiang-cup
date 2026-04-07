@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { TeamsController } from './teams.controller';
-import { TeamsService, Team } from './teams.service';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { TeamsController } from '../../src/modules/teams/teams.controller';
+import { TeamsService, Team } from '../../src/modules/teams/teams.service';
+import { JwtAuthGuard } from '../../src/modules/auth/guards/jwt-auth.guard';
 import { NotFoundException, BadRequestException } from '@nestjs/common';
 
 describe('TeamsController', () => {
@@ -14,6 +14,10 @@ describe('TeamsController', () => {
     create: jest.fn(),
     update: jest.fn(),
     remove: jest.fn(),
+    findMembersByTeamId: jest.fn(),
+    createMember: jest.fn(),
+    updateMember: jest.fn(),
+    removeMember: jest.fn(),
   };
 
   // 模拟认证守卫
@@ -240,6 +244,98 @@ describe('TeamsController', () => {
     });
   });
 
+  describe('GET /teams/:id/members - 获取战队队员列表', () => {
+    it('应该返回战队队员列表', async () => {
+      // Arrange
+      const mockMembers = [
+        { id: 'member1', nickname: 'Player 1', position: 'TOP', teamId: 'team1' },
+        { id: 'member2', nickname: 'Player 2', position: 'JUNGLE', teamId: 'team1' },
+      ];
+      mockTeamsService.findMembersByTeamId.mockResolvedValue(mockMembers);
+
+      // Act
+      const result = await controller.findMembers('team1');
+
+      // Assert
+      expect(result).toEqual(mockMembers);
+      expect(mockTeamsService.findMembersByTeamId).toHaveBeenCalledWith('team1');
+    });
+
+    it('应该返回空数组当战队没有队员', async () => {
+      // Arrange
+      mockTeamsService.findMembersByTeamId.mockResolvedValue([]);
+
+      // Act
+      const result = await controller.findMembers('team1');
+
+      // Assert
+      expect(result).toEqual([]);
+    });
+  });
+
+  describe('POST /teams/:id/members - 添加队员 (需认证)', () => {
+    it('应该添加队员并返回创建的队员', async () => {
+      // Arrange
+      const createMemberDto = {
+        id: 'new-member',
+        nickname: 'New Player',
+        position: 'MID' as const,
+      };
+      const createdMember = {
+        id: 'new-member',
+        nickname: 'New Player',
+        position: 'MID',
+        teamId: 'team1',
+      };
+      mockTeamsService.createMember.mockResolvedValue(createdMember);
+
+      // Act
+      const result = await controller.createMember('team1', createMemberDto);
+
+      // Assert
+      expect(result).toEqual(createdMember);
+      expect(mockTeamsService.createMember).toHaveBeenCalledWith('team1', createMemberDto);
+    });
+  });
+
+  describe('PUT /admin/members/:id - 更新队员 (需认证)', () => {
+    it('应该更新队员并返回更新后的队员', async () => {
+      // Arrange
+      const updateMemberDto = {
+        nickname: 'Updated Player',
+        position: 'ADC' as const,
+      };
+      const updatedMember = {
+        id: 'member1',
+        nickname: 'Updated Player',
+        position: 'ADC',
+        teamId: 'team1',
+      };
+      mockTeamsService.updateMember.mockResolvedValue(updatedMember);
+
+      // Act
+      const result = await controller.updateMember('member1', updateMemberDto);
+
+      // Assert
+      expect(result).toEqual(updatedMember);
+      expect(mockTeamsService.updateMember).toHaveBeenCalledWith('member1', updateMemberDto);
+    });
+  });
+
+  describe('DELETE /admin/members/:id - 删除队员 (需认证)', () => {
+    it('应该删除队员并返回成功消息', async () => {
+      // Arrange
+      mockTeamsService.removeMember.mockResolvedValue(undefined);
+
+      // Act
+      const result = await controller.removeMember('member1');
+
+      // Assert
+      expect(result).toEqual({ message: 'Member deleted successfully' });
+      expect(mockTeamsService.removeMember).toHaveBeenCalledWith('member1');
+    });
+  });
+
   describe('响应格式验证', () => {
     it('应该返回正确的分页响应格式', async () => {
       // Arrange
@@ -292,6 +388,19 @@ describe('TeamsController', () => {
       expect(result).toHaveProperty('message');
       expect(typeof result.message).toBe('string');
       expect(result.message).toBe('Team deleted successfully');
+    });
+
+    it('应该返回正确的队员删除响应格式', async () => {
+      // Arrange
+      mockTeamsService.removeMember.mockResolvedValue(undefined);
+
+      // Act
+      const result = await controller.removeMember('member1');
+
+      // Assert
+      expect(result).toHaveProperty('message');
+      expect(typeof result.message).toBe('string');
+      expect(result.message).toBe('Member deleted successfully');
     });
   });
 });
