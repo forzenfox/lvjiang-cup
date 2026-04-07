@@ -1,16 +1,20 @@
 /**
- * 前端运行时配置文件（本地开发环境）
+ * 前端运行时配置文件（生产环境）
  *
- * 此文件用于本地开发调试，配置为直接访问本地后端服务
+ * 此文件用于 Docker 生产环境部署
+ * 构建时直接打包到 dist 目录
  *
- * 部署说明：
- * - 生产环境请通过 volume 挂载覆盖此文件
- * - 参考 deploy/config.js 作为生产环境配置模板
+ * 使用方法：
+ * 1. 根据实际情况修改 API_BASE_URL
+ * 2. 重新构建前端镜像
+ * 3. 部署新镜像
  */
 
 window.APP_CONFIG = {
-  // API 基础地址（本地开发使用 localhost）
-  API_BASE_URL: 'http://localhost:3000/api',
+  // API 基础地址
+  // - 使用 Nginx Proxy Manager 代理时，使用相对路径：'/api'
+  // - 分离部署（前后端不同域名）时，使用完整地址：'https://api.your-domain.com/api'
+  API_BASE_URL: '/api',
 
   // 应用名称
   APP_NAME: '驴酱杯赛事',
@@ -19,4 +23,4 @@ window.APP_CONFIG = {
   VERSION: '1.0.0',
 };
 
-console.log('[Config] 本地开发配置已加载:', window.APP_CONFIG);
+console.log('[Config] 生产环境配置已加载:', window.APP_CONFIG);
