@@ -91,6 +91,14 @@ if [ ! -f "docker-compose.yml" ]; then
     curl -fsSL https://raw.githubusercontent.com/forzenfox/lvjiang-cup/main/deploy/docker-compose.yml -o docker-compose.yml
 fi
 
+# 下载前端运行时配置文件（如果不存在）
+if [ ! -f "config.js" ]; then
+    echo "下载前端配置文件..."
+    curl -fsSL https://raw.githubusercontent.com/forzenfox/lvjiang-cup/main/deploy/config.js -o config.js
+    echo "${GREEN}✅ 前端配置文件下载完成${NC}"
+    echo "${YELLOW}💡 提示：如需修改 API 地址，请编辑 $DEPLOY_DIR/config.js${NC}"
+fi
+
 # 创建环境变量文件
 if [ ! -f ".env" ]; then
     echo "${YELLOW}创建环境变量文件...${NC}"
@@ -206,6 +214,7 @@ echo "   - 添加 API 路由：/api → lvjiang-backend:3000 (后端)"
 echo ""
 echo "📁 配置文件位置:"
 echo "  - 环境变量：$DEPLOY_DIR/.env"
+echo "  - 前端配置：$DEPLOY_DIR/config.js"
 echo "  - 数据目录：$PROJECT_DIR/data"
 echo "  - 备份目录：$PROJECT_DIR/backup"
 echo "  - NPM 配置：$NPM_DIR/docker-compose.yml"

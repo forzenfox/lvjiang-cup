@@ -138,25 +138,28 @@ else
 fi
 echo ""
 
-# 步骤 5：清理环境变量文件
-echo "${YELLOW}📝 步骤 5：处理环境变量文件${NC}"
-if [ -f "$DEPLOY_DIR/.env" ]; then
-    echo "发现 .env 文件：$DEPLOY_DIR/.env"
+# 步骤 5：清理配置文件（.env 和 config.js）
+echo "${YELLOW}📝 步骤 5：处理配置文件${NC}"
+if [ -f "$DEPLOY_DIR/.env" ] || [ -f "$DEPLOY_DIR/config.js" ]; then
+    echo "发现配置文件："
+    [ -f "$DEPLOY_DIR/.env" ] && echo "  - $DEPLOY_DIR/.env"
+    [ -f "$DEPLOY_DIR/config.js" ] && echo "  - $DEPLOY_DIR/config.js"
     echo ""
-    
+
     if [ "$CLEAN_ALL" = true ]; then
-        read -p "是否删除 .env 文件？(y/N): " delete_env
-        if [ "$delete_env" == "y" ] || [ "$delete_env" == "Y" ]; then
-            rm "$DEPLOY_DIR/.env"
-            echo "${GREEN}✅ .env 文件已删除${NC}"
+        read -p "是否删除配置文件？(y/N): " delete_config
+        if [ "$delete_config" == "y" ] || [ "$delete_config" == "Y" ]; then
+            [ -f "$DEPLOY_DIR/.env" ] && rm "$DEPLOY_DIR/.env" && echo "✅ .env 文件已删除"
+            [ -f "$DEPLOY_DIR/config.js" ] && rm "$DEPLOY_DIR/config.js" && echo "✅ config.js 文件已删除"
+            echo "${GREEN}✅ 配置文件已删除${NC}"
         else
-            echo "${YELLOW}⚠️  保留 .env 文件${NC}"
+            echo "${YELLOW}⚠️  保留配置文件${NC}"
         fi
     else
-        echo "${YELLOW}⚠️  保留 .env 文件，下次部署将使用现有配置${NC}"
+        echo "${YELLOW}⚠️  保留配置文件，下次部署将使用现有配置${NC}"
     fi
 else
-    echo "${GREEN}✅ .env 文件不存在，跳过${NC}"
+    echo "${GREEN}✅ 配置文件不存在，跳过${NC}"
 fi
 echo ""
 
@@ -239,7 +242,7 @@ else
     echo "  - NPM 容器和配置"
     echo "  - Docker 网络 npm-network"
     echo "  - 数据目录（$PROJECT_DIR/data, $PROJECT_DIR/backup）"
-    echo "  - 环境变量文件（$DEPLOY_DIR/.env）"
+    echo "  - 配置文件（$DEPLOY_DIR/.env, $DEPLOY_DIR/config.js）"
 fi
 echo ""
 echo "📌 下一步操作："
