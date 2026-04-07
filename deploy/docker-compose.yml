@@ -14,6 +14,14 @@ version: '3.8'
 # - 所有容器端口仅内部访问，不映射到主机
 # - 需要先部署 Nginx Proxy Manager
 # - 前端配置通过 volume 挂载，修改 config.js 后重启容器即可生效
+# - 日志配置：使用 json-file 驱动，单文件最大 100MB，最多保留 3 个文件
+
+# 全局日志配置（所有服务共享）
+x-logging: &default-logging
+  driver: "json-file"
+  options:
+    max-size: "100m"
+    max-file: "3"
 
 services:
   # 后端服务
@@ -38,6 +46,7 @@ services:
       - ../backup:/app/backup
     networks:
       - npm-network
+    logging: *default-logging
     healthcheck:
       test: ["CMD-SHELL", "wget -q -T 2 -O /dev/null http://127.0.0.1:3000/api/teams || exit 1"]
       interval: 30s
@@ -57,12 +66,13 @@ services:
       - PORT=3001
     volumes:
       # 挂载运行时配置文件，覆盖容器内默认配置
-      # 修改此文件后执行: docker-compose restart frontend
-      - ./config.js:/app/public/config.js:ro
+      # 修改此文件后执行：docker-compose restart frontend
+      - ./config.js:/app/dist/config.js:ro
     networks:
       - npm-network
     depends_on:
       - backend
+    logging: *default-logging
     healthcheck:
       test: ["CMD-SHELL", "wget -q -T 2 -O /dev/null http://127.0.0.1:3001/ || exit 1"]
       interval: 30s

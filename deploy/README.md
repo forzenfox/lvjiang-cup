@@ -43,7 +43,8 @@
 | `update.sh` | 更新脚本 | 拉取新镜像并重启服务 |
 | `config.js` | 前端运行时配置 | 通过 volume 挂载，可热更新 |
 | `.env` | 环境变量 | 后端服务配置 |
-| `docker-compose.yml` | Docker Compose 配置 | 服务编排 |
+| `docker-compose.yml` | Docker Compose 配置 | 服务编排（含日志轮转配置） |
+| `health-check.sh` | 健康检查脚本 | 检查服务状态和日志大小 |
 
 ---
 
@@ -241,6 +242,38 @@ docker-compose logs -f
 # 查看特定服务日志
 docker-compose logs -f backend
 docker-compose logs -f frontend
+
+# 查看最近 100 行
+docker-compose logs --tail=100 backend
+
+# 查看特定时间范围的日志
+docker-compose logs --since="2026-04-07T10:00:00" --until="2026-04-07T12:00:00" backend
+```
+
+### 日志管理
+
+**日志配置**：
+- 使用 Docker json-file 日志驱动
+- 单文件最大：100MB
+- 最多保留：3 个文件（总计 300MB）
+- 自动轮转：超出大小自动滚动
+
+**查看日志文件大小**：
+```bash
+# 运行健康检查脚本查看日志大小
+./health-check.sh
+
+# 或手动查看
+du -sh /var/lib/docker/containers/*/*-json.log | sort -rh | head -3
+```
+
+**清理日志**：
+```bash
+# 清空特定容器日志
+truncate -s 0 /var/lib/docker/containers/$(docker inspect -f '{{.Id}}' lvjiang-backend)/*-json.log
+
+# 或使用 docker-compose
+docker-compose down -v  # 会删除日志卷（谨慎使用）
 ```
 
 ### 重启服务
@@ -396,6 +429,30 @@ netstat -tlnp | grep :443
    docker-compose restart frontend
    ```
 
+### 问题 6：日志文件过大
+
+1. 检查日志大小：
+   ```bash
+   ./health-check.sh
+   ```
+
+2. 临时清理日志：
+   ```bash
+   # 清空所有容器日志
+   for log in $(find /var/lib/docker/containers -name "*-json.log"); do
+     truncate -s 0 $log
+   done
+   ```
+
+3. 调整日志配置（修改 docker-compose.yml）：
+   ```yaml
+   x-logging: &default-logging
+     driver: "json-file"
+     options:
+       max-size: "50m"  # 减小单文件大小
+       max-file: "5"    # 增加文件数量
+   ```
+
 ---
 
 ## 安全建议
@@ -427,6 +484,37 @@ sudo ufw reload
 
 ---
 
-**文档版本**: v1.0  
+## 日志策略
+
+### 日志输出
+
+**后端**：
+- 使用 NestJS Logger 输出到 stdout/stderr
+- 包含启动日志、错误日志、警告日志
+- 生产环境已移除 console.log，统一使用 Logger
+
+**前端**：
+- 生产构建自动移除 console.log/debug 语句
+- 保留 console.error/warn 用于错误排查
+- 浏览器控制台日志不影响 Pod 日志
+
+### 日志持久化
+
+- 日志存储在 Docker 日志目录：`/var/lib/docker/containers/*/*-json.log`
+- 自动轮转，防止磁盘耗尽
+- 容器重启不会丢失日志（除非删除容器）
+
+### 日志收集建议
+
+如需更强大的日志管理，可集成：
+- **轻量级**：使用 `docker logs` 命令 + 日志轮转
+- **中级**：使用 Fluentd/Fluent Bit 收集到 ELK/Loki
+- **企业级**：使用 Prometheus + Grafana Loki + Tempo 全链路追踪
+
+---
+
+**文档版本**: v1.1  
 **更新日期**: 2026-04-07  
-**适用场景**: 生产环境部署（方案 C）
+**适用场景**: 生产环境部署（方案 C）  
+**更新日志**:
+- v1.1: 添加日志轮转配置和日志管理文档

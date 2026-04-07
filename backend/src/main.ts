@@ -133,8 +133,8 @@ async function bootstrap() {
 
   const port = parseInt(process.env.PORT!, 10);
   await app.listen(port, '0.0.0.0');
-  console.log(`Application is running on: http://0.0.0.0:${port}/api`);
-  console.log(`Swagger docs: http://0.0.0.0:${port}/api/docs`);
+  logger.log(`应用启动于 http://0.0.0.0:${port}/api`);
+  logger.log(`Swagger 文档地址：http://0.0.0.0:${port}/api/docs`);
 }
 
 bootstrap();
