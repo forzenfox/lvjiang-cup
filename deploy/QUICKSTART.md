@@ -52,143 +52,6 @@ chmod +x setup.sh
 
 ---
 
-## 📋 传统部署步骤（4 步完成）
-
-### 第 0 步：初始化网络（首次部署）
-
-```bash
-# 1. 创建部署目录
-mkdir -p /opt/lvjiang-cup/deploy
-cd /opt/lvjiang-cup/deploy
-
-# 2. 下载网络初始化脚本
-curl -fsSL https://raw.githubusercontent.com/forzenfox/lvjiang-cup/main/deploy/init-network.sh -o init-network.sh
-chmod +x init-network.sh
-
-# 3. 运行网络初始化
-./init-network.sh
-```
-
-**注意**：此网络供 Nginx Proxy Manager 和驴酱杯应用共享使用
-
----
-
-### 第 1 步：部署 Nginx Proxy Manager
-
-```bash
-# 1. 创建部署目录
-mkdir -p /opt/nginx-proxy-manager
-cd /opt/nginx-proxy-manager
-
-# 2. 下载配置文件
-curl -fsSL https://raw.githubusercontent.com/forzenfox/lvjiang-cup/main/deploy/npm/docker-compose.yml -o docker-compose.yml
-
-# 3. 启动 NPM
-docker-compose up -d
-
-# 4. 查看日志（可选）
-docker-compose logs -f
-```
-
-**访问管理界面**：
-- 地址：`http://服务器 IP:8181`
-- 默认账号：`admin@example.com`
-- 默认密码：`changeme`
-- **首次登录会要求修改密码**
-
----
-
-### 第 2 步：部署驴酱杯应用
-
-```bash
-# 1. 创建部署目录
-mkdir -p /opt/lvjiang-cup/deploy
-cd /opt/lvjiang-cup/deploy
-
-# 2. 下载部署文件
-curl -fsSL https://raw.githubusercontent.com/forzenfox/lvjiang-cup/main/deploy/docker-compose.yml -o docker-compose.yml
-curl -fsSL https://raw.githubusercontent.com/forzenfox/lvjiang-cup/main/deploy/.env.example -o .env.example
-curl -fsSL https://raw.githubusercontent.com/forzenfox/lvjiang-cup/main/deploy/deploy.sh -o deploy.sh
-
-# 3. 赋予执行权限
-chmod +x deploy.sh
-
-# 4. 运行部署脚本
-./deploy.sh
-```
-
-**配置环境变量**：
-```bash
-# 编辑 .env 文件
-vim .env
-
-# 必须修改以下配置：
-GITHUB_OWNER=forzenfox          # GitHub 用户名
-JWT_SECRET=随机字符串            # openssl rand -base64 32
-ADMIN_PASSWORD=强密码            # 管理员密码
-CORS_ORIGIN=https://你的域名.com  # 你的域名
-```
-
-**重新运行部署脚本**：
-```bash
-./deploy.sh
-```
-
----
-
-### 第 3 步：配置 NPM 代理
-
-#### 3.1 登录 NPM 管理界面
-
-访问：`http://服务器 IP:8181`
-
-#### 3.2 添加代理主机
-
-1. 点击 **Hosts** → **Add Proxy Host**
-
-2. 填写配置：
-   ```
-   Domain Names: cup.example.com
-   Scheme: http
-   Forward IP / Hostname: lvjiang-frontend
-   Forward Port: 3001
-   Cache Assets: ✓ 勾选
-   Block Common Exploits: ✓ 勾选
-   ```
-   
-   > **注意**：使用 `lvjiang-frontend`（容器名称）而不是 `127.0.0.1`，因为服务运行在 Docker 网络中
-
-3. 点击 **Save**
-
-#### 3.3 配置 SSL 证书
-
-1. 点击刚创建的代理主机，选择 **Edit**
-2. 切换到 **SSL** 标签页
-3. 配置：
-   ```
-   SSL Certificate: Request a new SSL certificate
-   Force SSL: ✓ 勾选
-   HTTP/2 Support: ✓ 勾选
-   I agree to the Terms of Service: ✓ 勾选
-   ```
-4. 点击 **Save**
-
-#### 3.4 添加 API 路由（高级配置）
-
-1. 切换到 **Advanced** 标签页
-2. 添加自定义位置：
-   ```
-   Location: /api
-   Scheme: http
-   Forward IP / Hostname: lvjiang-backend
-   Forward Port: 3000
-   ```
-   
-   > **注意**：使用 `lvjiang-backend`（容器名称）而不是 `127.0.0.1`，因为服务运行在 Docker 网络中
-3. 点击 **Save**
-
----
-
 ## ✅ 验证部署
 
 ### 检查容器状态
@@ -212,18 +75,6 @@ curl -I https://cup.example.com/api/teams
 
 ## 🔧 常用命令
 
-### 部署脚本
-
-```bash
-cd /opt/lvjiang-cup/deploy
-
-# 首次部署
-./deploy.sh
-
-# 更新到最新版本
-./update.sh
-```
-
 ### Docker Compose 命令
 
 ```bash
@@ -242,6 +93,30 @@ docker-compose restart
 docker-compose down
 
 # 启动服务
+docker-compose up -d
+```
+
+### 清理和重新部署
+
+```bash
+# 清理部署（保留 NPM 和数据）
+./cleanup.sh
+
+# 重新部署
+./setup.sh
+```
+
+### 更新应用
+
+```bash
+# 方法 1：使用更新脚本（推荐，自动健康检查）
+./update.sh
+
+# 或指定版本
+./update.sh v1.0.0
+
+# 方法 2：手动更新
+docker-compose pull
 docker-compose up -d
 ```
 
@@ -358,39 +233,13 @@ netstat -tlnp | grep :81
 
 ---
 
-## 📊 多应用管理示例
-
-假设服务器上有 3 个应用：
-
-| 应用 | 域名 | 端口 |
-|------|------|------|
-| 驴酱杯 | cup.example.com | 3001（前端）/3000（后端） |
-| 博客 | blog.example.com | 3002 |
-| API 服务 | api.example.com | 3003 |
-
-### NPM 配置
-
-在 NPM 管理界面添加 3 个代理主机（使用容器名称而非 127.0.0.1）：
-
-1. **cup.example.com** → `lvjiang-frontend:3001`（前端）
-   - 高级配置：`/api` → `lvjiang-backend:3000`（后端）
-2. **blog.example.com** → `blog-container:3002`
-3. **api.example.com** → `api-container:3003`
-
-> **注意**：使用容器名称（如 `lvjiang-frontend`）而不是 `127.0.0.1`，因为服务运行在 Docker 网络中，容器名称作为主机名可以正确解析。
-
-所有应用共享同一个 NPM 网关，统一管理 SSL 证书。
-
-> **注意**：使用容器名称（如 `lvjiang-frontend`）而不是 `127.0.0.1`，因为服务运行在 Docker 网络中，NPM 需要通过容器名称进行服务发现。
-
----
-
 ## 📝 下一步
 
 1. **配置域名**：将域名 DNS 解析到服务器 IP
-2. **测试功能**：访问网站测试各项功能
-3. **配置备份**：设置自动备份数据库
-4. **监控告警**：配置服务监控和告警
+2. **配置 NPM 代理**：登录 NPM 管理界面配置域名和 SSL 证书
+3. **测试功能**：访问网站测试各项功能
+4. **配置备份**：设置自动备份数据库
+5. **监控告警**：配置服务监控和告警
 
 ---
 

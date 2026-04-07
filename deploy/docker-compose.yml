@@ -13,6 +13,7 @@ version: '3.8'
 # - 前端容器使用 static-web-server（高性能 Rust 静态服务器）
 # - 所有容器端口仅内部访问，不映射到主机
 # - 需要先部署 Nginx Proxy Manager
+# - 前端配置通过 volume 挂载，修改 config.js 后重启容器即可生效
 
 services:
   # 后端服务
@@ -54,6 +55,10 @@ services:
       - "3001"
     environment:
       - PORT=3001
+    volumes:
+      # 挂载运行时配置文件，覆盖容器内默认配置
+      # 修改此文件后执行: docker-compose restart frontend
+      - ./config.js:/app/public/config.js:ro
     networks:
       - npm-network
     depends_on:
