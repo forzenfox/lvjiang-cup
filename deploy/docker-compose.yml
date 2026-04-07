@@ -64,6 +64,9 @@ services:
       - "3001"
     environment:
       - PORT=3001
+    volumes:
+      # 挂载前端运行时配置文件
+      - ./config.js:/app/dist/config.js:ro
     networks:
       - npm-network
     depends_on:
