@@ -33,7 +33,10 @@ const ensureAllPositions = (players: Player[] = [], teamId: string): Player[] =>
   const result: Player[] = [];
 
   LOL_POSITIONS.forEach((position, index) => {
-    const existingPlayer = existingPlayers.find(p => p.position === position);
+    // 后端返回的 position 可能是大写（TOP），需要转换为小写比较
+    const existingPlayer = existingPlayers.find(
+      p => p.position.toLowerCase() === position.toLowerCase()
+    );
     if (existingPlayer) {
       result.push(existingPlayer);
     } else {
@@ -161,13 +164,22 @@ const AdminTeams: React.FC = () => {
     }
   };
 
-  const handleEdit = (team: Team) => {
-    // 确保编辑时包含所有5个位置
-    const teamWithAllPositions = {
-      ...team,
-      players: ensureAllPositions(team.players, team.id),
-    };
-    setEditingTeam(teamWithAllPositions);
+  const handleEdit = async (team: Team) => {
+    setLoading(true);
+    try {
+      // 从后端获取最新的战队数据，确保获取真实的队员 ID
+      const freshTeam = await teamService.getById(team.id);
+      const teamWithAllPositions = {
+        ...freshTeam,
+        players: ensureAllPositions(freshTeam.players, freshTeam.id),
+      };
+      setEditingTeam(teamWithAllPositions);
+    } catch (error) {
+      console.error('Failed to load team:', error);
+      toast.error('加载战队信息失败');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSave = async () => {
@@ -290,6 +302,25 @@ const AdminTeams: React.FC = () => {
 
   // 打开队员内联编辑
   const handleEditMember = (player: ExtendedPlayer, index: number) => {
+    const playerData = {
+      nickname: player.name || '',
+      gameId: player.gameId || '',
+      position: player.position.toUpperCase() as MemberFormData['position'],
+      avatarUrl: player.avatar || '',
+      bio: player.description || '',
+      championPool: player.championPool || [],
+      rating: player.rating ?? 60,
+      isCaptain: player.isCaptain ?? false,
+      liveUrl: player.liveUrl || '',
+    };
+    
+    console.log('handleEditMember called:', {
+      player,
+      playerData,
+      index,
+      editingTeamId: editingTeam?.id,
+    });
+    
     // 检查战队是否已保存（是否有真实 ID）
     const isExistingTeam = teams.find(t => t.id === editingTeam?.id);
     if (!isExistingTeam) {
@@ -299,17 +330,7 @@ const AdminTeams: React.FC = () => {
 
     setExpandedPlayerIndex(index);
     setEditingPlayerIndex(index);
-    setEditingPlayerData({
-      nickname: player.name,
-      gameId: player.gameId || '',
-      position: player.position.toUpperCase() as MemberFormData['position'],
-      avatarUrl: player.avatar || '',
-      bio: player.description || '',
-      championPool: player.championPool || [],
-      rating: player.rating || 60,
-      isCaptain: player.isCaptain || false,
-      liveUrl: player.liveUrl || '',
-    });
+    setEditingPlayerData(playerData);
   };
 
   // 取消队员编辑

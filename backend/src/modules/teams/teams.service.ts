@@ -160,19 +160,26 @@ export class TeamsService {
       { pos: 'SUPPORT', name: '辅助' },
     ];
 
+    this.logger.log(`Creating 5 default members for team ${createTeamDto.id}`);
+
     for (let i = 0; i < defaultPositions.length; i++) {
       const { pos, name } = defaultPositions[i];
+      const memberId = `${createTeamDto.id}_${pos}`;
+      this.logger.log(`Creating member ${memberId} with nickname ${name}`);
+
       await this.databaseService.run(
         `INSERT INTO team_members (id, nickname, position, team_id, rating, is_captain, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`,
         [
-          `${createTeamDto.id}_${pos}`,  // 使用 teamId_position 作为队员ID，便于识别
-          name,                          // 默认昵称：上单/打野/中单/ADC/辅助
-          pos,                           // 位置：TOP/JUNGLE/MID/ADC/SUPPORT
-          createTeamDto.id,              // 战队ID
-          60,                            // 默认评分
-          i === 0 ? 1 : 0,               // 第一个位置（上单）设为队长
+          memberId, // 使用 teamId_position 作为队员 ID，便于识别
+          name, // 默认昵称：上单/打野/中单/ADC/辅助
+          pos, // 位置：TOP/JUNGLE/MID/ADC/SUPPORT
+          createTeamDto.id, // 战队 ID
+          60, // 默认评分
+          i === 0 ? 1 : 0, // 第一个位置（上单）设为队长
         ],
       );
+
+      this.logger.log(`Member ${memberId} created successfully`);
     }
 
     this.logger.log(`Team created: ${createTeamDto.id}`);
