@@ -144,6 +144,9 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
         id TEXT PRIMARY KEY,
         name TEXT NOT NULL,
         logo TEXT,
+        logo_url TEXT,
+        logo_thumbnail_url TEXT,
+        battle_cry TEXT,
         description TEXT,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -151,16 +154,24 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     `,
     );
 
-    // players 表
+    // team_members 表 (原 players 表)
     await run(
       this.db,
       `
-      CREATE TABLE IF NOT EXISTS players (
+      CREATE TABLE IF NOT EXISTS team_members (
         id TEXT PRIMARY KEY,
-        name TEXT NOT NULL,
-        avatar TEXT,
-        position TEXT CHECK(position IN ('top', 'jungle', 'mid', 'bot', 'support')),
+        user_id INTEGER,
+        nickname TEXT NOT NULL,
+        avatar_url TEXT,
+        position TEXT CHECK(position IN ('TOP', 'JUNGLE', 'MID', 'ADC', 'SUPPORT')),
         team_id TEXT NOT NULL,
+        game_id TEXT,
+        bio TEXT,
+        champion_pool TEXT,
+        rating INTEGER DEFAULT 60,
+        is_captain INTEGER DEFAULT 0,
+        live_url TEXT,
+        sort_order INTEGER,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (team_id) REFERENCES teams(id) ON DELETE CASCADE
@@ -226,10 +237,164 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     `,
     );
 
+    // 执行增量迁移
+    await this.migrateTables();
+
     // 初始化 stream_info 和 advancement 的默认数据
     await this.initDefaultData();
 
     this.logger.log('Database tables initialized');
+  }
+
+  private async migrateTables() {
+    const migrations: { table: string; checks: { column: string; sql: string }[] }[] = [
+      {
+        table: 'teams',
+        checks: [
+          {
+            column: 'logo_url',
+            sql: 'ALTER TABLE teams ADD COLUMN logo_url TEXT',
+          },
+          {
+            column: 'logo_thumbnail_url',
+            sql: 'ALTER TABLE teams ADD COLUMN logo_thumbnail_url TEXT',
+          },
+          {
+            column: 'battle_cry',
+            sql: 'ALTER TABLE teams ADD COLUMN battle_cry TEXT',
+          },
+        ],
+      },
+      {
+        table: 'players',
+        checks: [
+          {
+            column: 'user_id',
+            sql: 'ALTER TABLE players ADD COLUMN user_id INTEGER',
+          },
+          {
+            column: 'nickname',
+            sql: 'ALTER TABLE players ADD COLUMN nickname TEXT',
+          },
+          {
+            column: 'avatar_url',
+            sql: 'ALTER TABLE players ADD COLUMN avatar_url TEXT',
+          },
+          {
+            column: 'game_id',
+            sql: 'ALTER TABLE players ADD COLUMN game_id TEXT',
+          },
+          {
+            column: 'bio',
+            sql: 'ALTER TABLE players ADD COLUMN bio TEXT',
+          },
+          {
+            column: 'champion_pool',
+            sql: 'ALTER TABLE players ADD COLUMN champion_pool TEXT',
+          },
+          {
+            column: 'rating',
+            sql: 'ALTER TABLE players ADD COLUMN rating INTEGER DEFAULT 60',
+          },
+          {
+            column: 'is_captain',
+            sql: 'ALTER TABLE players ADD COLUMN is_captain INTEGER DEFAULT 0',
+          },
+          {
+            column: 'live_url',
+            sql: 'ALTER TABLE players ADD COLUMN live_url TEXT',
+          },
+          {
+            column: 'sort_order',
+            sql: 'ALTER TABLE players ADD COLUMN sort_order INTEGER',
+          },
+        ],
+      },
+    ];
+
+    for (const migration of migrations) {
+      const tableExists = await this.tableExists(migration.table);
+      if (!tableExists) {
+        continue;
+      }
+
+      const existingColumns = await this.getTableColumns(migration.table);
+
+      for (const check of migration.checks) {
+        if (!existingColumns.includes(check.column)) {
+          try {
+            await run(this.db, check.sql);
+            this.logger.log(`Migrated: Added ${check.column} to ${migration.table}`);
+          } catch (err) {
+            if (!err.message?.includes('duplicate column name')) {
+              this.logger.warn(`Migration failed for ${migration.table}.${check.column}: ${err.message}`);
+            }
+          }
+        }
+      }
+    }
+
+    const playersExists = await this.tableExists('players');
+    const teamMembersExists = await this.tableExists('team_members');
+
+    if (playersExists && !teamMembersExists) {
+      try {
+        await run(this.db, 'ALTER TABLE players RENAME TO team_members');
+        this.logger.log('Migrated: Renamed players to team_members');
+
+        if (await this.columnExists('team_members', 'name')) {
+          await run(this.db, 'ALTER TABLE team_members RENAME COLUMN name TO nickname');
+          this.logger.log('Migrated: Renamed name to nickname in team_members');
+        }
+        if (await this.columnExists('team_members', 'avatar')) {
+          await run(this.db, 'ALTER TABLE team_members RENAME COLUMN avatar TO avatar_url');
+          this.logger.log('Migrated: Renamed avatar to avatar_url in team_members');
+        }
+      } catch (err) {
+        this.logger.warn(`Migration failed for players rename: ${err.message}`);
+      }
+    }
+
+    this.logger.log('Migration completed');
+  }
+
+  private async tableExists(tableName: string): Promise<boolean> {
+    const result = await get<{ count: number }>(
+      this.db,
+      "SELECT COUNT(*) as count FROM sqlite_master WHERE type='table' AND name = ?",
+      [tableName],
+    );
+    return result && result.count > 0;
+  }
+
+  private async columnExists(tableName: string, columnName: string): Promise<boolean> {
+    const columns = await this.getTableColumns(tableName);
+    return columns.includes(columnName);
+  }
+
+  private async getTableColumns(tableName: string): Promise<string[]> {
+    const result = await get<{ sql: string }>(
+      this.db,
+      "SELECT sql FROM sqlite_master WHERE type='table' AND name = ?",
+      [tableName],
+    );
+    if (!result || !result.sql) {
+      return [];
+    }
+    const match = result.sql.match(/\(([^)]+)\)/);
+    if (!match) {
+      return [];
+    }
+    const columnDefs = match[1].split(',');
+    return columnDefs
+      .map((def) => {
+        const trimmed = def.trim();
+        const spaceIndex = trimmed.indexOf(' ');
+        const parenIndex = trimmed.indexOf('(');
+        const name = trimmed.substring(0, spaceIndex > 0 ? spaceIndex : parenIndex > 0 ? parenIndex : trimmed.length);
+        return name.trim();
+      })
+      .filter((name) => name && !name.startsWith('FOREIGN') && !name.startsWith('PRIMARY') && !name.startsWith('CHECK'));
   }
 
   private async initDefaultData() {
@@ -254,7 +419,7 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
 
   // 清空所有数据
   async clearAllData() {
-    await run(this.db, 'DELETE FROM players');
+    await run(this.db, 'DELETE FROM team_members');
     await run(this.db, 'DELETE FROM teams');
     await run(this.db, 'DELETE FROM matches');
     await run(

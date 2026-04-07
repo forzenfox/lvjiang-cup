@@ -8,6 +8,7 @@ import { StreamsModule } from './modules/streams/streams.module';
 import { AdvancementModule } from './modules/advancement/advancement.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { AdminModule } from './modules/admin/admin.module';
+import { UploadModule } from './modules/upload/upload.module';
 import appConfig from './config/app.config';
 
 @Module({
@@ -26,6 +27,7 @@ import appConfig from './config/app.config';
     AdvancementModule,
     AuthModule,
     AdminModule,
+    UploadModule,
   ],
 })
 export class AppModule {}

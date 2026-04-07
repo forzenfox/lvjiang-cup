@@ -1,23 +1,36 @@
-import { Injectable, NotFoundException, Logger } from '@nestjs/common';
+import { Injectable, NotFoundException, Logger, BadRequestException } from '@nestjs/common';
 import { DatabaseService } from '../../database/database.service';
 import { CacheService } from '../../cache/cache.service';
 import { CreateTeamDto } from './dto/create-team.dto';
 import { UpdateTeamDto } from './dto/update-team.dto';
+import { CreateMemberDto } from './dto/create-member.dto';
+import { UpdateMemberDto } from './dto/update-member.dto';
 
-export interface Player {
+export interface TeamMember {
   id: string;
-  name: string;
-  avatar?: string;
-  position: 'top' | 'jungle' | 'mid' | 'bot' | 'support';
+  userId?: number;
+  nickname: string;
+  avatarUrl?: string;
+  position: 'TOP' | 'JUNGLE' | 'MID' | 'ADC' | 'SUPPORT';
   teamId: string;
+  gameId?: string;
+  bio?: string;
+  championPool?: string[];
+  rating?: number;
+  isCaptain?: boolean;
+  liveUrl?: string;
+  sortOrder?: number;
 }
 
 export interface Team {
   id: string;
   name: string;
   logo?: string;
+  logoUrl?: string;
+  logoThumbnailUrl?: string;
+  battleCry?: string;
   description?: string;
-  players: Player[];
+  members: TeamMember[];
 }
 
 @Injectable()
@@ -32,38 +45,44 @@ export class TeamsService {
   ) {}
 
   async findAll(): Promise<Team[]> {
-    // 尝试从缓存获取
     const cached = this.cacheService.get<Team[]>(this.CACHE_KEY_ALL);
     if (cached) {
       return cached;
     }
 
-    // 获取所有战队
     const teams = await this.databaseService.all<any>(
       'SELECT * FROM teams ORDER BY created_at DESC',
     );
 
-    // 获取所有队员
-    const players = await this.databaseService.all<any>('SELECT * FROM players');
+    const members = await this.databaseService.all<any>('SELECT * FROM team_members');
 
-    // 组装数据
     const result: Team[] = teams.map((team) => ({
       id: team.id,
       name: team.name,
       logo: team.logo,
+      logoUrl: team.logo_url,
+      logoThumbnailUrl: team.logo_thumbnail_url,
+      battleCry: team.battle_cry,
       description: team.description,
-      players: players
-        .filter((p) => p.team_id === team.id)
-        .map((p) => ({
-          id: p.id,
-          name: p.name,
-          avatar: p.avatar,
-          position: p.position,
-          teamId: p.team_id,
+      members: members
+        .filter((m) => m.team_id === team.id)
+        .map((m) => ({
+          id: m.id,
+          userId: m.user_id,
+          nickname: m.nickname,
+          avatarUrl: m.avatar_url,
+          position: m.position,
+          teamId: m.team_id,
+          gameId: m.game_id,
+          bio: m.bio,
+          championPool: m.champion_pool ? JSON.parse(m.champion_pool) : [],
+          rating: m.rating,
+          isCaptain: Boolean(m.is_captain),
+          liveUrl: m.live_url,
+          sortOrder: m.sort_order,
         })),
     }));
 
-    // 写入缓存
     this.cacheService.set(this.CACHE_KEY_ALL, result);
 
     return result;
@@ -72,21 +91,18 @@ export class TeamsService {
   async findOne(id: string): Promise<Team> {
     const cacheKey = `${this.CACHE_KEY_PREFIX}${id}`;
 
-    // 尝试从缓存获取
     const cached = this.cacheService.get<Team>(cacheKey);
     if (cached) {
       return cached;
     }
 
-    // 获取战队
     const team = await this.databaseService.get<any>('SELECT * FROM teams WHERE id = ?', [id]);
 
     if (!team) {
       throw new NotFoundException(`Team with id ${id} not found`);
     }
 
-    // 获取队员
-    const players = await this.databaseService.all<any>('SELECT * FROM players WHERE team_id = ?', [
+    const members = await this.databaseService.all<any>('SELECT * FROM team_members WHERE team_id = ?', [
       id,
     ]);
 
@@ -94,60 +110,82 @@ export class TeamsService {
       id: team.id,
       name: team.name,
       logo: team.logo,
+      logoUrl: team.logo_url,
+      logoThumbnailUrl: team.logo_thumbnail_url,
+      battleCry: team.battle_cry,
       description: team.description,
-      players: players.map((p) => ({
-        id: p.id,
-        name: p.name,
-        avatar: p.avatar,
-        position: p.position,
-        teamId: p.team_id,
+      members: members.map((m) => ({
+        id: m.id,
+        userId: m.user_id,
+        nickname: m.nickname,
+        avatarUrl: m.avatar_url,
+        position: m.position,
+        teamId: m.team_id,
+        gameId: m.game_id,
+        bio: m.bio,
+        championPool: m.champion_pool ? JSON.parse(m.champion_pool) : [],
+        rating: m.rating,
+        isCaptain: Boolean(m.is_captain),
+        liveUrl: m.live_url,
+        sortOrder: m.sort_order,
       })),
     };
 
-    // 写入缓存
     this.cacheService.set(cacheKey, result);
 
     return result;
   }
 
   async create(createTeamDto: CreateTeamDto): Promise<Team> {
-    // 插入战队
     await this.databaseService.run(
-      `INSERT INTO teams (id, name, logo, description) VALUES (?, ?, ?, ?)`,
+      `INSERT INTO teams (id, name, logo, logo_url, logo_thumbnail_url, battle_cry, description) VALUES (?, ?, ?, ?, ?, ?, ?)`,
       [
         createTeamDto.id,
         createTeamDto.name,
         createTeamDto.logo || null,
+        createTeamDto.logoUrl || null,
+        createTeamDto.logoThumbnailUrl || null,
+        createTeamDto.battleCry || null,
         createTeamDto.description || null,
       ],
     );
 
-    // 插入队员
-    if (createTeamDto.players && createTeamDto.players.length > 0) {
-      for (const player of createTeamDto.players) {
+    if (createTeamDto.members && createTeamDto.members.length > 0) {
+      for (const member of createTeamDto.members) {
         await this.databaseService.run(
-          `INSERT INTO players (id, name, avatar, position, team_id) VALUES (?, ?, ?, ?, ?)`,
-          [player.id, player.name, player.avatar || null, player.position, createTeamDto.id],
+          `INSERT INTO team_members (id, user_id, nickname, avatar_url, position, team_id, game_id, bio, champion_pool, rating, is_captain, live_url, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          [
+            member.id,
+            member.userId || null,
+            member.nickname,
+            member.avatarUrl || null,
+            member.position,
+            createTeamDto.id,
+            member.gameId || null,
+            member.bio || null,
+            member.championPool ? JSON.stringify(member.championPool) : null,
+            member.rating || 60,
+            member.isCaptain ? 1 : 0,
+            member.liveUrl || null,
+            member.sortOrder || null,
+          ],
         );
       }
     }
 
     this.logger.log(`Team created: ${createTeamDto.id}`);
 
-    // 清除缓存
     this.cacheService.del(this.CACHE_KEY_ALL);
 
     return this.findOne(createTeamDto.id);
   }
 
   async update(id: string, updateTeamDto: UpdateTeamDto): Promise<Team> {
-    // 检查战队是否存在
     const existing = await this.databaseService.get<any>('SELECT id FROM teams WHERE id = ?', [id]);
     if (!existing) {
       throw new NotFoundException(`Team with id ${id} not found`);
     }
 
-    // 更新战队信息
     const updates: string[] = [];
     const values: any[] = [];
 
@@ -158,6 +196,18 @@ export class TeamsService {
     if (updateTeamDto.logo !== undefined) {
       updates.push('logo = ?');
       values.push(updateTeamDto.logo);
+    }
+    if (updateTeamDto.logoUrl !== undefined) {
+      updates.push('logo_url = ?');
+      values.push(updateTeamDto.logoUrl);
+    }
+    if (updateTeamDto.logoThumbnailUrl !== undefined) {
+      updates.push('logo_thumbnail_url = ?');
+      values.push(updateTeamDto.logoThumbnailUrl);
+    }
+    if (updateTeamDto.battleCry !== undefined) {
+      updates.push('battle_cry = ?');
+      values.push(updateTeamDto.battleCry);
     }
     if (updateTeamDto.description !== undefined) {
       updates.push('description = ?');
@@ -171,22 +221,27 @@ export class TeamsService {
       await this.databaseService.run(`UPDATE teams SET ${updates.join(', ')} WHERE id = ?`, values);
     }
 
-    // 更新队员（如果提供了队员列表）
-    if (updateTeamDto.players !== undefined) {
-      // 删除现有队员
-      await this.databaseService.run('DELETE FROM players WHERE team_id = ?', [id]);
+    if (updateTeamDto.members !== undefined) {
+      await this.databaseService.run('DELETE FROM team_members WHERE team_id = ?', [id]);
 
-      // 插入新队员
-      if (updateTeamDto.players.length > 0) {
-        for (const player of updateTeamDto.players) {
+      if (updateTeamDto.members.length > 0) {
+        for (const member of updateTeamDto.members) {
           await this.databaseService.run(
-            `INSERT INTO players (id, name, avatar, position, team_id) VALUES (?, ?, ?, ?, ?)`,
+            `INSERT INTO team_members (id, user_id, nickname, avatar_url, position, team_id, game_id, bio, champion_pool, rating, is_captain, live_url, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
-              player.id || `${id}_${player.position}`,
-              player.name,
-              player.avatar || null,
-              player.position,
+              member.id || `${id}_${member.position}`,
+              member.userId || null,
+              member.nickname,
+              member.avatarUrl || null,
+              member.position,
               id,
+              member.gameId || null,
+              member.bio || null,
+              member.championPool ? JSON.stringify(member.championPool) : null,
+              member.rating || 60,
+              member.isCaptain ? 1 : 0,
+              member.liveUrl || null,
+              member.sortOrder || null,
             ],
           );
         }
@@ -195,7 +250,6 @@ export class TeamsService {
 
     this.logger.log(`Team updated: ${id}`);
 
-    // 清除缓存
     this.cacheService.del(this.CACHE_KEY_ALL);
     this.cacheService.del(`${this.CACHE_KEY_PREFIX}${id}`);
 
@@ -203,19 +257,256 @@ export class TeamsService {
   }
 
   async remove(id: string): Promise<void> {
-    // 检查战队是否存在
     const existing = await this.databaseService.get<any>('SELECT id FROM teams WHERE id = ?', [id]);
     if (!existing) {
       throw new NotFoundException(`Team with id ${id} not found`);
     }
 
-    // 删除战队（级联删除队员）
     await this.databaseService.run('DELETE FROM teams WHERE id = ?', [id]);
 
     this.logger.log(`Team deleted: ${id}`);
 
-    // 清除缓存
     this.cacheService.del(this.CACHE_KEY_ALL);
     this.cacheService.del(`${this.CACHE_KEY_PREFIX}${id}`);
+  }
+
+  // ==================== 队员管理方法 ====================
+
+  /**
+   * 获取某战队所有队员
+   */
+  async findMembersByTeamId(teamId: string): Promise<TeamMember[]> {
+    const team = await this.databaseService.get<any>('SELECT id FROM teams WHERE id = ?', [teamId]);
+    if (!team) {
+      throw new NotFoundException(`Team with id ${teamId} not found`);
+    }
+
+    const members = await this.databaseService.all<any>(
+      'SELECT * FROM team_members WHERE team_id = ? ORDER BY sort_order ASC, created_at ASC',
+      [teamId],
+    );
+
+    return members.map((m) => this.mapToTeamMember(m));
+  }
+
+  /**
+   * 获取单个队员
+   */
+  async findMemberById(id: string): Promise<TeamMember> {
+    const member = await this.databaseService.get<any>(
+      'SELECT * FROM team_members WHERE id = ?',
+      [id],
+    );
+
+    if (!member) {
+      throw new NotFoundException(`Member with id ${id} not found`);
+    }
+
+    return this.mapToTeamMember(member);
+  }
+
+  /**
+   * 创建队员
+   */
+  async createMember(teamId: string, createMemberDto: CreateMemberDto): Promise<TeamMember> {
+    const team = await this.databaseService.get<any>('SELECT id FROM teams WHERE id = ?', [teamId]);
+    if (!team) {
+      throw new NotFoundException(`Team with id ${teamId} not found`);
+    }
+
+    // 如果设置为队长，先移除该战队其他队长的队长身份
+    if (createMemberDto.isCaptain) {
+      await this.databaseService.run(
+        'UPDATE team_members SET is_captain = 0 WHERE team_id = ? AND is_captain = 1',
+        [teamId],
+      );
+    }
+
+    await this.databaseService.run(
+      `INSERT INTO team_members (id, user_id, nickname, avatar_url, position, team_id, game_id, bio, champion_pool, rating, is_captain, live_url, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        createMemberDto.id,
+        createMemberDto.userId || null,
+        createMemberDto.nickname,
+        createMemberDto.avatarUrl || null,
+        createMemberDto.position,
+        teamId,
+        createMemberDto.gameId || null,
+        createMemberDto.bio || null,
+        createMemberDto.championPool ? JSON.stringify(createMemberDto.championPool) : null,
+        createMemberDto.rating || 60,
+        createMemberDto.isCaptain ? 1 : 0,
+        createMemberDto.liveUrl || null,
+        createMemberDto.sortOrder || null,
+      ],
+    );
+
+    this.logger.log(`Member created: ${createMemberDto.id} for team ${teamId}`);
+
+    // 清除战队缓存
+    this.cacheService.del(this.CACHE_KEY_ALL);
+    this.cacheService.del(`${this.CACHE_KEY_PREFIX}${teamId}`);
+
+    return this.findMemberById(createMemberDto.id);
+  }
+
+  /**
+   * 更新队员
+   */
+  async updateMember(id: string, updateMemberDto: UpdateMemberDto): Promise<TeamMember> {
+    const existing = await this.databaseService.get<any>('SELECT * FROM team_members WHERE id = ?', [id]);
+    if (!existing) {
+      throw new NotFoundException(`Member with id ${id} not found`);
+    }
+
+    // 如果设置为队长，先移除该战队其他队长的队长身份
+    if (updateMemberDto.isCaptain) {
+      await this.databaseService.run(
+        'UPDATE team_members SET is_captain = 0 WHERE team_id = ? AND is_captain = 1',
+        [existing.team_id],
+      );
+    }
+
+    const updates: string[] = [];
+    const values: any[] = [];
+
+    if (updateMemberDto.userId !== undefined) {
+      updates.push('user_id = ?');
+      values.push(updateMemberDto.userId);
+    }
+    if (updateMemberDto.nickname !== undefined) {
+      updates.push('nickname = ?');
+      values.push(updateMemberDto.nickname);
+    }
+    if (updateMemberDto.avatarUrl !== undefined) {
+      updates.push('avatar_url = ?');
+      values.push(updateMemberDto.avatarUrl);
+    }
+    if (updateMemberDto.position !== undefined) {
+      updates.push('position = ?');
+      values.push(updateMemberDto.position);
+    }
+    if (updateMemberDto.gameId !== undefined) {
+      updates.push('game_id = ?');
+      values.push(updateMemberDto.gameId);
+    }
+    if (updateMemberDto.bio !== undefined) {
+      updates.push('bio = ?');
+      values.push(updateMemberDto.bio);
+    }
+    if (updateMemberDto.championPool !== undefined) {
+      updates.push('champion_pool = ?');
+      values.push(JSON.stringify(updateMemberDto.championPool));
+    }
+    if (updateMemberDto.rating !== undefined) {
+      updates.push('rating = ?');
+      values.push(updateMemberDto.rating);
+    }
+    if (updateMemberDto.isCaptain !== undefined) {
+      updates.push('is_captain = ?');
+      values.push(updateMemberDto.isCaptain ? 1 : 0);
+    }
+    if (updateMemberDto.liveUrl !== undefined) {
+      updates.push('live_url = ?');
+      values.push(updateMemberDto.liveUrl);
+    }
+    if (updateMemberDto.sortOrder !== undefined) {
+      updates.push('sort_order = ?');
+      values.push(updateMemberDto.sortOrder);
+    }
+
+    if (updates.length > 0) {
+      updates.push('updated_at = CURRENT_TIMESTAMP');
+      values.push(id);
+      await this.databaseService.run(
+        `UPDATE team_members SET ${updates.join(', ')} WHERE id = ?`,
+        values,
+      );
+    }
+
+    this.logger.log(`Member updated: ${id}`);
+
+    // 清除缓存
+    this.cacheService.del(this.CACHE_KEY_ALL);
+    this.cacheService.del(`${this.CACHE_KEY_PREFIX}${existing.team_id}`);
+
+    return this.findMemberById(id);
+  }
+
+  /**
+   * 删除队员
+   */
+  async removeMember(id: string): Promise<void> {
+    const existing = await this.databaseService.get<any>('SELECT * FROM team_members WHERE id = ?', [id]);
+    if (!existing) {
+      throw new NotFoundException(`Member with id ${id} not found`);
+    }
+
+    await this.databaseService.run('DELETE FROM team_members WHERE id = ?', [id]);
+
+    this.logger.log(`Member deleted: ${id}`);
+
+    // 清除缓存
+    this.cacheService.del(this.CACHE_KEY_ALL);
+    this.cacheService.del(`${this.CACHE_KEY_PREFIX}${existing.team_id}`);
+  }
+
+  /**
+   * 设置队长（保证同一战队只有一个队长）
+   */
+  async updateCaptain(teamId: string, memberId: string): Promise<TeamMember> {
+    const team = await this.databaseService.get<any>('SELECT id FROM teams WHERE id = ?', [teamId]);
+    if (!team) {
+      throw new NotFoundException(`Team with id ${teamId} not found`);
+    }
+
+    const member = await this.databaseService.get<any>(
+      'SELECT * FROM team_members WHERE id = ? AND team_id = ?',
+      [memberId, teamId],
+    );
+    if (!member) {
+      throw new NotFoundException(`Member with id ${memberId} not found in team ${teamId}`);
+    }
+
+    // 先移除该战队所有队长的队长身份
+    await this.databaseService.run(
+      'UPDATE team_members SET is_captain = 0, updated_at = CURRENT_TIMESTAMP WHERE team_id = ?',
+      [teamId],
+    );
+
+    // 设置新队长
+    await this.databaseService.run(
+      'UPDATE team_members SET is_captain = 1, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+      [memberId],
+    );
+
+    this.logger.log(`Captain updated: ${memberId} for team ${teamId}`);
+
+    // 清除缓存
+    this.cacheService.del(this.CACHE_KEY_ALL);
+    this.cacheService.del(`${this.CACHE_KEY_PREFIX}${teamId}`);
+
+    return this.findMemberById(memberId);
+  }
+
+  /**
+   * 将数据库记录映射为 TeamMember 对象
+   */
+  private mapToTeamMember(m: any): TeamMember {
+    return {
+      id: m.id,
+      userId: m.user_id,
+      nickname: m.nickname,
+      avatarUrl: m.avatar_url,
+      position: m.position,
+      teamId: m.team_id,
+      gameId: m.game_id,
+      bio: m.bio,
+      championPool: m.champion_pool ? JSON.parse(m.champion_pool) : [],
+      rating: m.rating,
+      isCaptain: Boolean(m.is_captain),
+      liveUrl: m.live_url,
+      sortOrder: m.sort_order,
+    };
   }
 }

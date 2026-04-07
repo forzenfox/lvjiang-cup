@@ -1,13 +1,7 @@
-import { IsString, IsOptional, IsArray, ValidateNested, IsNumber, IsBoolean } from 'class-validator';
-import { Type } from 'class-transformer';
+import { IsString, IsOptional, IsNumber, IsBoolean, IsArray } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
-class UpdateMemberDto {
-  @ApiPropertyOptional({ description: '成员ID' })
-  @IsString()
-  @IsOptional()
-  id?: string;
-
+export class UpdateMemberDto {
   @ApiPropertyOptional({ description: '用户ID' })
   @IsNumber()
   @IsOptional()
@@ -62,43 +56,4 @@ class UpdateMemberDto {
   @IsNumber()
   @IsOptional()
   sortOrder?: number;
-}
-
-export class UpdateTeamDto {
-  @ApiPropertyOptional({ description: '战队名称' })
-  @IsString()
-  @IsOptional()
-  name?: string;
-
-  @ApiPropertyOptional({ description: '战队Logo URL' })
-  @IsString()
-  @IsOptional()
-  logo?: string;
-
-  @ApiPropertyOptional({ description: '战队Logo URL (新)' })
-  @IsString()
-  @IsOptional()
-  logoUrl?: string;
-
-  @ApiPropertyOptional({ description: '战队Logo缩略图URL' })
-  @IsString()
-  @IsOptional()
-  logoThumbnailUrl?: string;
-
-  @ApiPropertyOptional({ description: '战队口号' })
-  @IsString()
-  @IsOptional()
-  battleCry?: string;
-
-  @ApiPropertyOptional({ description: '战队描述' })
-  @IsString()
-  @IsOptional()
-  description?: string;
-
-  @ApiPropertyOptional({ description: '成员列表', type: [UpdateMemberDto] })
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => UpdateMemberDto)
-  @IsOptional()
-  members?: UpdateMemberDto[];
 }

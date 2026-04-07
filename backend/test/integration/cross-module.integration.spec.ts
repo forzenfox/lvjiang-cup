@@ -423,7 +423,7 @@ describe('Cross-Module Integration Tests', () => {
           name: `Team ${i}`,
           logo: `logo${i}.png`,
           description: `Description ${i}`,
-          players: [{ id: `p${i}`, name: `Player${i}`, position: 'top' as const }],
+          players: [{ id: `p${i}`, nickname: `Player${i}`, position: 'TOP' as const }],
         });
         teams.push(team);
       }
@@ -630,7 +630,7 @@ describe('Cross-Module Integration Tests', () => {
         name: 'Consistent Team',
         logo: 'logo.png',
         description: 'Test',
-        players: [{ id: 'p1', name: 'Player1', position: 'top' as const }],
+        players: [{ id: 'p1', nickname: 'Player1', position: 'TOP' as const }],
       });
 
       // 2. 创建比赛
@@ -702,9 +702,9 @@ describe('Cross-Module Integration Tests', () => {
           name: `Team ${i}`,
           logo: `logo${i}.png`,
           description: `Team ${i} description`,
-          players: [
-            { id: `p${i}-1`, name: `Player${i}-1`, position: 'top' as const },
-            { id: `p${i}-2`, name: `Player${i}-2`, position: 'jungle' as const },
+          members: [
+            { id: `p${i}-1`, nickname: `Player${i}-1`, position: 'TOP' as const },
+            { id: `p${i}-2`, nickname: `Player${i}-2`, position: 'JUNGLE' as const },
           ],
         });
         teams.push(team);
@@ -1062,10 +1062,10 @@ describe('Cross-Module Integration Tests', () => {
         name: 'Performance Team',
         logo: 'logo.png',
         description: 'Test',
-        players: Array.from({ length: 5 }, (_, i) => ({
+        members: Array.from({ length: 5 }, (_, i) => ({
           id: `p${i}`,
-          name: `Player${i}`,
-          position: ['top', 'jungle', 'mid', 'bot', 'support'][i] as any,
+          nickname: `Player${i}`,
+          position: ['TOP', 'JUNGLE', 'MID', 'ADC', 'SUPPORT'][i] as any,
         })),
       });
 

@@ -49,8 +49,8 @@ describe('TeamsController', () => {
     it('应该返回分页战队列表', async () => {
       // Arrange
       const mockTeams: Team[] = [
-        { id: 'team1', name: 'Team 1', players: [] },
-        { id: 'team2', name: 'Team 2', players: [] },
+        { id: 'team1', name: 'Team 1', members: [] },
+        { id: 'team2', name: 'Team 2', members: [] },
       ];
       mockTeamsService.findAll.mockResolvedValue(mockTeams);
 
@@ -69,7 +69,7 @@ describe('TeamsController', () => {
 
     it('应该使用默认分页值', async () => {
       // Arrange
-      const mockTeams: Team[] = [{ id: '1', name: 'Team1', players: [] }];
+      const mockTeams: Team[] = [{ id: '1', name: 'Team1', members: [] }];
       mockTeamsService.findAll.mockResolvedValue(mockTeams);
 
       // Act
@@ -84,7 +84,7 @@ describe('TeamsController', () => {
   describe('GET /teams/:id - 返回单个战队', () => {
     it('应该返回指定ID的战队', async () => {
       // Arrange
-      const team: Team = { id: 'team1', name: 'Team 1', players: [] };
+      const team: Team = { id: 'team1', name: 'Team 1', members: [] };
       mockTeamsService.findOne.mockResolvedValue(team);
 
       // Act
@@ -104,14 +104,14 @@ describe('TeamsController', () => {
         name: 'New Team',
         logo: 'logo.png',
         description: 'A new team',
-        players: [{ id: 'p1', name: 'Player 1', position: 'top' as const }],
+        members: [{ id: 'p1', nickname: 'Player 1', position: 'TOP' as const }],
       };
       const createdTeam: Team = {
         id: 'new-team',
         name: 'New Team',
         logo: 'logo.png',
         description: 'A new team',
-        players: [{ id: 'p1', name: 'Player 1', position: 'top', teamId: 'new-team' }],
+        members: [{ id: 'p1', nickname: 'Player 1', position: 'TOP', teamId: 'new-team' }],
       };
       mockTeamsService.create.mockResolvedValue(createdTeam);
 
@@ -135,7 +135,7 @@ describe('TeamsController', () => {
         id: 'team1',
         name: 'Updated Team',
         logo: 'new-logo.png',
-        players: [],
+        members: [],
       };
       mockTeamsService.update.mockResolvedValue(updatedTeam);
 
@@ -243,7 +243,7 @@ describe('TeamsController', () => {
   describe('响应格式验证', () => {
     it('应该返回正确的分页响应格式', async () => {
       // Arrange
-      const mockTeams: Team[] = [{ id: '1', name: 'Team1', players: [] }];
+      const mockTeams: Team[] = [{ id: '1', name: 'Team1', members: [] }];
       mockTeamsService.findAll.mockResolvedValue(mockTeams);
 
       // Act
@@ -267,7 +267,7 @@ describe('TeamsController', () => {
         name: 'Team 1',
         logo: 'logo.png',
         description: 'Description',
-        players: [{ id: 'p1', name: 'Player 1', position: 'top', teamId: 'team1' }],
+        members: [{ id: 'p1', nickname: 'Player 1', position: 'TOP', teamId: 'team1' }],
       };
       mockTeamsService.findOne.mockResolvedValue(team);
 
@@ -277,8 +277,8 @@ describe('TeamsController', () => {
       // Assert
       expect(result).toHaveProperty('id');
       expect(result).toHaveProperty('name');
-      expect(result).toHaveProperty('players');
-      expect(Array.isArray(result.players)).toBe(true);
+      expect(result).toHaveProperty('members');
+      expect(Array.isArray(result.members)).toBe(true);
     });
 
     it('应该返回正确的删除响应格式', async () => {
