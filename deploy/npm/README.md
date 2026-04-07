@@ -37,11 +37,13 @@ docker-compose logs -f
    - **Scheme**: `http`
    - **Forward IP / Hostname**: `lvjiang-frontend`
    - **Forward Port**: `3001`
-   - **Cache Assets**: ✓ 勾选
+   - **Cache Assets**: ✓ 勾选（注意：config.js 文件不应缓存）
    - **Block Common Exploits**: ✓ 勾选
 3. 点击 **Save**
 
-> **注意**：使用容器名称 `lvjiang-frontend` 而不是 `127.0.0.1`，因为服务运行在 Docker 网络中
+> **注意**：
+> - 使用容器名称 `lvjiang-frontend` 而不是 `127.0.0.1`，因为服务运行在 Docker 网络中
+> - 对于 `config.js` 配置文件，建议不要缓存，可以通过 NPM 的 Custom Location 配置实现
 
 #### 3.2 配置 SSL 证书
 
@@ -64,9 +66,26 @@ docker-compose logs -f
    Forward IP / Hostname: lvjiang-backend
    Forward Port: 3000
    ```
-3. 点击 **Save"
+3. 点击 **Save**
 
 > **注意**：使用容器名称 `lvjiang-backend` 而不是 `127.0.0.1`，因为服务运行在 Docker 网络中
+
+#### 3.4 配置 config.js 不缓存（重要）
+
+为防止 `config.js` 配置文件被缓存，建议添加自定义位置规则：
+
+1. 切换到 **Advanced** 标签页
+2. 添加自定义位置：
+   ```
+   Location: /config.js
+   Scheme: http
+   Forward IP / Hostname: lvjiang-frontend
+   Forward Port: 3001
+   Cache Assets: ✗ 不勾选
+   ```
+3. 点击 **Save**
+
+> **说明**：这样可以确保用户始终获取最新的配置文件，而不会被 NPM 或浏览器缓存
 
 ---
 
@@ -231,6 +250,8 @@ netstat -tlnp | grep :8181
 
 ---
 
-**文档版本**: v1.0  
-**更新日期**: 2026-04-01  
-**适用场景**: 多应用服务器环境
+**文档版本**: v1.1  
+**更新日期**: 2026-04-07  
+**适用场景**: 多应用服务器环境  
+**更新日志**:
+- v1.1: 添加 config.js 配置文件缓存配置说明

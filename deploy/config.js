@@ -5,9 +5,9 @@
  * 通过 volume 挂载到前端容器中，覆盖默认的本地开发配置
  *
  * 使用方法：
- * 1. 复制此文件到部署目录：cp config.js /opt/lvjiang-cup/config/config.js
+ * 1. 复制此文件到部署目录：cp config.js /opt/lvjiang-cup/deploy/config.js
  * 2. 根据实际情况修改 API_BASE_URL
- * 3. docker-compose.yml 中已配置 volume 挂载
+ * 3. docker-compose.yml 中已配置 volume 挂载（挂载到 /app/dist/config.js）
  * 4. 修改后执行 docker-compose restart frontend 生效
  */
 

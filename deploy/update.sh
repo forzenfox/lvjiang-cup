@@ -58,8 +58,8 @@ sleep 8
 echo ""
 echo "✅ 进行健康检查..."
 
-# 检查后端
-if docker exec lvjiang-backend wget --quiet --tries=1 --spider http://localhost:3000/api/teams; then
+# 检查后端 API - 使用容器内部检查
+if docker exec lvjiang-backend sh -c "wget -q -T 2 -O /dev/null http://127.0.0.1:3000/api/teams"; then
     echo "✅ 后端服务正常"
 else
     echo "❌ 后端服务检查失败"
@@ -67,8 +67,8 @@ else
     exit 1
 fi
 
-# 检查前端
-if docker exec lvjiang-frontend wget --quiet --tries=1 --spider http://localhost:3001; then
+# 检查前端服务 - 使用容器内部检查
+if docker exec lvjiang-frontend sh -c "wget -q -T 2 -O /dev/null http://127.0.0.1:3001/"; then
     echo "✅ 前端服务正常"
 else
     echo "❌ 前端服务检查失败"

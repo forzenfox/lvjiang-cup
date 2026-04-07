@@ -155,9 +155,11 @@ docker-compose up -d
    - **Scheme**: `http`
    - **Forward IP / Hostname**: `lvjiang-frontend`
    - **Forward Port**: `3001`
-   - **Cache Assets**: ✓ 勾选
+   - **Cache Assets**: ✓ 勾选（注意：config.js 文件不应缓存）
    - **Block Common Exploits**: ✓ 勾选
 3. 点击 **Save**
+
+> **注意**：对于 `config.js` 配置文件，建议在 **Advanced** 标签页中添加自定义位置规则，设置为不缓存（详见 [Nginx Proxy Manager 配置](deploy/npm/README.md)）
 
 #### 2. 配置 SSL 证书
 
@@ -421,7 +423,7 @@ netstat -tlnp | grep :443
 
 2. 检查容器内配置是否挂载：
    ```bash
-   docker exec lvjiang-frontend cat /app/public/config.js
+   docker exec lvjiang-frontend cat /app/dist/config.js
    ```
 
 3. 重启前端容器：
@@ -513,8 +515,9 @@ sudo ufw reload
 
 ---
 
-**文档版本**: v1.1  
+**文档版本**: v1.2  
 **更新日期**: 2026-04-07  
 **适用场景**: 生产环境部署（方案 C）  
 **更新日志**:
+- v1.2: 修复前端配置文件挂载路径说明（从 `/app/public/config.js` 改为 `/app/dist/config.js`）
 - v1.1: 添加日志轮转配置和日志管理文档
