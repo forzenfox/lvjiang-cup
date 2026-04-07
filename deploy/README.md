@@ -56,7 +56,7 @@
 mkdir -p /opt/lvjiang-cup/deploy
 cd /opt/lvjiang-cup/deploy
 
-# 2. 下载所有脚本
+# 2. 下载所有脚本（如文件已存在会被覆盖更新）
 ## 主部署脚本
 curl -fsSL https://raw.githubusercontent.com/forzenfox/lvjiang-cup/main/deploy/setup.sh -o setup.sh
 
@@ -74,6 +74,11 @@ curl -fsSL https://raw.githubusercontent.com/forzenfox/lvjiang-cup/main/deploy/h
 
 ## 添加执行权限
 chmod +x *.sh
+
+> **注意**：`curl -o` 会覆盖已存在的文件。如需保留旧版本，请先备份：
+> ```bash
+> cp setup.sh setup.sh.backup.$(date +%Y%m%d)
+> ```
 
 # 3. 运行部署脚本
 ./setup.sh
