@@ -14,7 +14,7 @@ window.APP_CONFIG = {
   // API 基础地址
   // - 使用 Nginx Proxy Manager 代理时，使用相对路径：'/api'
   // - 分离部署（前后端不同域名）时，使用完整地址：'https://api.your-domain.com/api'
-  API_BASE_URL: '/api',
+  API_BASE_URL: 'https://lvjiangcup.forzenfox.com/api',
 
   // 应用名称
   APP_NAME: '驴酱杯赛事',
