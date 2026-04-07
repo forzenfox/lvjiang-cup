@@ -52,13 +52,15 @@ fi
 echo ""
 echo "🔍 检查服务连通性..."
 
-if docker exec lvjiang-backend wget --quiet --tries=1 --spider http://localhost:3000/api/teams; then
+# 检查后端 API - 使用容器内部检查
+if docker exec lvjiang-backend sh -c "wget -q -T 2 -O /dev/null http://127.0.0.1:3000/api/teams"; then
     echo "✅ 后端 API：正常"
 else
     echo "❌ 后端 API：无法访问"
 fi
 
-if docker exec lvjiang-frontend wget --quiet --tries=1 --spider http://localhost:3001; then
+# 检查前端服务 - 使用容器内部检查
+if docker exec lvjiang-frontend sh -c "wget -q -T 2 -O /dev/null http://127.0.0.1:3001/"; then
     echo "✅ 前端服务：正常"
 else
     echo "❌ 前端服务：无法访问"
@@ -73,7 +75,7 @@ echo "磁盘使用率：$DISK_USAGE"
 # 检查内存使用
 echo ""
 echo "🔍 检查内存使用..."
-docker stats --no-stream --format "table {{.Container}}\t{{.MemUsage}}" | grep lvjiang
+docker stats --no-stream --format "table {{.Container}}\t{{.MemUsage}}" | grep lvjiang || echo "无法获取内存使用信息"
 
 # 检查日志大小
 echo ""
@@ -82,6 +84,8 @@ LOG_SIZE=$(du -sh /var/lib/docker/containers/*/*-json.log 2>/dev/null | sort -rh
 if [ -n "$LOG_SIZE" ]; then
     echo "最大的日志文件:"
     echo "$LOG_SIZE"
+else
+    echo "暂无日志文件信息"
 fi
 
 echo ""
