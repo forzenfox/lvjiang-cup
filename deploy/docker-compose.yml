@@ -67,7 +67,7 @@ services:
     volumes:
       # 挂载运行时配置文件，覆盖容器内默认配置
       # 修改此文件后执行：docker-compose restart frontend
-      - ./config.js:/app/dist/config.js:ro
+      - ./config.js:/app/dist/config.js
     networks:
       - npm-network
     depends_on:
