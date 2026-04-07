@@ -1,4 +1,4 @@
-name: Build and Push Docker Images
+name: Build Backend Docker Image
 
 on:
   workflow_dispatch:
@@ -46,7 +46,7 @@ jobs:
 
       - name: Output backend image info
         run: |
-          echo "✅ 后端镜像(AMD64)构建完成"
+          echo "✅ 后端镜像 (AMD64) 构建完成"
           echo "后端镜像：${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:${{ inputs.tag || 'latest' }}-amd64"
 
   build-backend-arm64:
@@ -81,7 +81,7 @@ jobs:
 
       - name: Output backend image info
         run: |
-          echo "✅ 后端镜像(ARM64)构建完成"
+          echo "✅ 后端镜像 (ARM64) 构建完成"
           echo "后端镜像：${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:${{ inputs.tag || 'latest' }}-arm64"
 
   merge-backend-manifest:
@@ -112,53 +112,17 @@ jobs:
           echo "✅ 后端多架构镜像合并完成"
           echo "最终镜像：${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:${TAG}"
 
-  build-frontend:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Login to GHCR
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build and push frontend image
-        uses: docker/build-push-action@v5
-        with:
-          context: ./frontend
-          push: true
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:${{ inputs.tag || 'latest' }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          platforms: linux/amd64,linux/arm64
-
-      - name: Output frontend image info
-        run: |
-          echo "✅ 前端镜像构建完成"
-          echo "前端镜像：${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:${{ inputs.tag || 'latest' }}"
-
   summary:
     runs-on: ubuntu-latest
-    needs: [merge-backend-manifest, build-frontend]
+    needs: [merge-backend-manifest]
     steps:
       - name: Output deployment info
         run: |
-          echo "✅ 所有 Docker 镜像构建完成"
+          echo "✅ 后端 Docker 镜像构建完成"
           echo ""
-          echo "📦 镜像列表："
+          echo "📦 镜像信息："
           echo "- 后端：${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:${{ inputs.tag || 'latest' }}"
-          echo "- 前端：${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:${{ inputs.tag || 'latest' }}"
           echo ""
           echo "📌 部署说明："
           echo "1. 拉取镜像：docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:${{ inputs.tag || 'latest' }}"
-          echo "2. 部署到服务器：参考 deploy/QUICKSTART.md"
+          echo "2. 部署到服务器：参考 deploy/README.md"
