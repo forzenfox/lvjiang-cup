@@ -228,7 +228,7 @@ test.describe('【第三阶段-2】首页战队功能测试', () => {
 
     // 验证队员位置标识
     const positionLabels = await firstCard.locator('[data-testid="position-label"]').all();
-    const expectedPositions = ['top', 'jungle', 'mid', 'bot', 'support'];
+    const expectedPositions = ['TOP', 'JUNGLE', 'MID', 'ADC', 'SUPPORT'];
 
     for (let i = 0; i < positionLabels.length && i < 5; i++) {
       const text = await positionLabels[i].textContent();

@@ -2,51 +2,55 @@ import React, { useEffect, useState } from 'react';
 import AdminLayout from '../../components/layout/AdminLayout';
 import { teamService } from '@/services/teamService';
 import * as membersApi from '@/api/members';
-import type { Team, Player } from '@/types';
-import type { CreateTeamRequest, UpdateTeamRequest, CreatePlayerRequest } from '@/api/types';
+import type { Team, Player, CreateTeamRequest, UpdateTeamRequest } from '@/api/types';
 import { Button } from '../../components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
-import { Plus, Trash2, Edit2, Save, X, RefreshCw, Users, Upload as UploadIcon } from 'lucide-react';
+import { Card } from '../../components/ui/card';
+import { Plus, Trash2, Edit2, Save, RefreshCw, Users, Upload as UploadIcon, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { getPositionLabel } from '@/utils/position';
-import type { MemberFormData } from '@/components/admin/MemberForm';
+import { PositionType } from '@/types/position';
+import HeroSelector from '@/components/team/HeroSelector';
+
+interface MemberFormData {
+  avatarUrl?: string;
+  nickname: string;
+  gameId: string;
+  position: PositionType;
+  bio?: string;
+  championPool: string[];
+  rating: number;
+  isCaptain: boolean;
+  liveUrl?: string;
+}
 
 // LOL固定位置
-const LOL_POSITIONS = ['top', 'jungle', 'mid', 'bot', 'support'];
-
-// 创建默认队员列表
-const createDefaultPlayers = (teamId: string): Player[] => {
-  return LOL_POSITIONS.map((position, index) => ({
-    id: `p-${teamId}-${index}`,
-    name: '',
-    position,
-    avatar: '',
-    description: '',
-    teamId,
-  }));
-};
+const LOL_POSITIONS: PositionType[] = ['TOP', 'JUNGLE', 'MID', 'ADC', 'SUPPORT'];
 
 // 确保队员列表包含所有位置
-const ensureAllPositions = (players: Player[] = [], teamId: string): Player[] => {
+const ensureAllPositions = (players: any[] = [], teamId: string): any[] => {
   const existingPlayers = [...players];
-  const result: Player[] = [];
+  const result: any[] = [];
 
   LOL_POSITIONS.forEach((position, index) => {
-    // 后端返回的 position 可能是大写（TOP），需要转换为小写比较
     const existingPlayer = existingPlayers.find(
-      p => p.position.toLowerCase() === position.toLowerCase()
+      p => p.position === position
     );
     if (existingPlayer) {
       result.push(existingPlayer);
     } else {
       result.push({
         id: `p-${teamId}-${index}-${Date.now()}`,
-        name: '',
+        nickname: '',
         position,
-        avatar: '',
-        description: '',
+        avatarUrl: '',
         teamId,
+        gameId: '',
+        bio: '',
+        championPool: [],
+        rating: 60,
+        isCaptain: false,
+        liveUrl: '',
       });
     }
   });
@@ -55,7 +59,7 @@ const ensureAllPositions = (players: Player[] = [], teamId: string): Player[] =>
 };
 
 // 将前端 Team 转换为 API CreateTeamRequest
-const toCreateTeamRequest = (team: Team): CreateTeamRequest => ({
+const _toCreateTeamRequest = (team: Team): CreateTeamRequest => ({
   id: team.id,
   name: team.name,
   logo: team.logo,
@@ -69,75 +73,36 @@ const toUpdateTeamRequest = (team: Team): UpdateTeamRequest => ({
   name: team.name,
   logo: team.logo,
   description: team.description,
-  // 注意：后端 DTO 使用 members 数组，字段名为 nickname/avatarUrl/position(大写)
   members:
-    team.players?.map(p => {
-      const positionMap: Record<string, 'TOP' | 'JUNGLE' | 'MID' | 'ADC' | 'SUPPORT'> = {
-        'top': 'TOP',
-        'jungle': 'JUNGLE',
-        'mid': 'MID',
-        'bot': 'ADC',
-        'support': 'SUPPORT',
-      };
-      return {
-        id: p.id,
-        nickname: p.name || '',
-        avatarUrl: p.avatar || '',
-        position: positionMap[p.position] || 'TOP',
-      };
-    }) || [],
+    team.players?.map(p => ({
+      id: p.id,
+      nickname: p.nickname || '',
+      avatarUrl: p.avatarUrl || '',
+      position: p.position as PositionType,
+    })) || [],
 });
-
-// 将 API Team 转换为前端 Team
-interface ApiTeam {
-  id: string;
-  name: string;
-  logo?: string;
-  description?: string;
-  // 后端返回的是 members 数组，字段名为 nickname/avatarUrl
-  members?: Array<{
-    id: string;
-    nickname: string;
-    position: string;
-    avatarUrl?: string;
-  }>;
-}
-
-const toFrontendTeam = (apiTeam: ApiTeam): Team => ({
-  id: apiTeam.id,
-  name: apiTeam.name,
-  logo: apiTeam.logo || '',
-  description: apiTeam.description || '',
-  // 将后端的 members 转换为前端的 players，字段名映射
-  players: ensureAllPositions(
-    (apiTeam.members || []).map(m => ({
-      id: m.id,
-      name: m.nickname,
-      position: m.position.toLowerCase(),
-      avatar: m.avatarUrl || '',
-      description: '',
-      teamId: apiTeam.id,
-    })),
-    apiTeam.id
-  ),
-});
-
-// 扩展 Player 类型以包含额外字段
-interface ExtendedPlayer extends Player {
-  rating?: number;
-  bio?: string;
-  championPool?: string[];
-  liveUrl?: string;
-  isCaptain?: boolean;
-  gameId?: string;
-}
 
 const AdminTeams: React.FC = () => {
   const [teams, setTeams] = useState<Team[]>([]);
-  const [editingTeam, setEditingTeam] = useState<Team | null>(null);
   const [loading, setLoading] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [teamToDelete, setTeamToDelete] = useState<string | null>(null);
+  const [hasLoaded, setHasLoaded] = useState(false);
+
+  // ==================== 垂直列表展开方案：新增状态 ====================
+  // 展开的战队ID（同时只能展开一个）
+  const [expandedTeamId, setExpandedTeamId] = useState<string | null>(null);
+  
+  // 正在编辑的战队ID
+  const [editingTeamId, setEditingTeamId] = useState<string | null>(null);
+  
+  // 战队编辑表单数据
+  const [editingTeamData, setEditingTeamData] = useState<{
+    name: string;
+    logo: string;
+    description: string;
+  } | null>(null);
+  // ==================== 垂直列表展开方案：新增状态结束 ====================
 
   // 队员卡片折叠状态
   const [expandedPlayerIndex, setExpandedPlayerIndex] = useState<number | null>(null);
@@ -146,16 +111,38 @@ const AdminTeams: React.FC = () => {
   const [editingPlayerIndex, setEditingPlayerIndex] = useState<number | null>(null);
   const [editingPlayerData, setEditingPlayerData] = useState<MemberFormData | null>(null);
 
+  // 英雄选择器状态
+  const [isHeroSelectorOpen, setIsHeroSelectorOpen] = useState(false);
+
   useEffect(() => {
-    loadTeams();
-  }, []);
+    if (!hasLoaded) {
+      loadTeams();
+      setHasLoaded(true);
+    }
+  }, [hasLoaded]);
 
   const loadTeams = async () => {
     setLoading(true);
     try {
       const response = await teamService.getAll(1, 100);
-      const frontendTeams = response.data.map(toFrontendTeam);
-      setTeams(frontendTeams);
+      const backendTeams = response.data.map((team: Team) => ({
+        ...team,
+        players: ensureAllPositions(
+          (team.members || []).map(m => ({
+            ...m,
+            nickname: m.nickname || '',
+            avatarUrl: m.avatarUrl || '',
+            bio: m.bio || '',
+            gameId: m.gameId || '',
+            championPool: m.championPool || [],
+            rating: m.rating ?? 60,
+            isCaptain: m.isCaptain ?? false,
+            liveUrl: m.liveUrl || '',
+          })),
+          team.id
+        ),
+      }));
+      setTeams(backendTeams);
     } catch (error) {
       console.error('Failed to load teams:', error);
       toast.error('加载战队列表失败');
@@ -164,50 +151,85 @@ const AdminTeams: React.FC = () => {
     }
   };
 
-  const handleEdit = async (team: Team) => {
-    setLoading(true);
-    try {
-      // 从后端获取最新的战队数据，确保获取真实的队员 ID
-      const freshTeam = await teamService.getById(team.id);
-      const teamWithAllPositions = {
-        ...freshTeam,
-        players: ensureAllPositions(freshTeam.players, freshTeam.id),
-      };
-      setEditingTeam(teamWithAllPositions);
-    } catch (error) {
-      console.error('Failed to load team:', error);
-      toast.error('加载战队信息失败');
-    } finally {
-      setLoading(false);
+  // ==================== 垂直列表展开方案：新增函数 ====================
+  // 展开/收起战队详情
+  const handleToggleExpand = (teamId: string) => {
+    // 如果正在编辑战队，不允许切换展开
+    if (editingTeamId && editingTeamId !== teamId) {
+      toast.error('请先保存或取消当前编辑');
+      return;
+    }
+    
+    setExpandedTeamId(expandedTeamId === teamId ? null : teamId);
+    
+    // 收起时清空队员编辑状态
+    if (expandedTeamId === teamId) {
+      setExpandedPlayerIndex(null);
+      setEditingPlayerIndex(null);
+      setEditingPlayerData(null);
     }
   };
 
-  const handleSave = async () => {
-    if (!editingTeam) return;
+  // 开始编辑战队
+  const handleStartEditTeam = (team: Team) => {
+    setEditingTeamId(team.id);
+    setEditingTeamData({
+      name: team.name,
+      logo: team.logo,
+      description: team.description,
+    });
+  };
+
+  // 取消编辑战队
+  const handleCancelEditTeam = () => {
+    setEditingTeamId(null);
+    setEditingTeamData(null);
+  };
+
+  // 保存战队编辑
+  const handleSaveTeamEdit = async (teamId: string) => {
+    if (!editingTeamData) return;
 
     // 验证战队名称
-    if (!editingTeam.name.trim()) {
+    if (!editingTeamData.name.trim()) {
       toast.error('战队名称不能为空');
       return;
     }
 
     setLoading(true);
     try {
-      const isExisting = teams.find(t => t.id === editingTeam.id);
+      const team = teams.find(t => t.id === teamId);
+      if (!team) return;
 
-      if (isExisting) {
-        // 更新现有战队
-        const updateData = toUpdateTeamRequest(editingTeam);
-        await teamService.update(updateData);
-        toast.success('战队信息已更新');
-      } else {
-        // 创建新战队
-        const createData = toCreateTeamRequest(editingTeam);
+      // 判断是否是新创建的战队
+      const isNewTeam = teamId === 'new-team';
+
+      if (isNewTeam) {
+        // 创建新战队 - 不传递ID，由后端生成UUID
+        const createData: CreateTeamRequest = {
+          name: editingTeamData.name,
+          logo: editingTeamData.logo,
+          description: editingTeamData.description,
+        };
         await teamService.create(createData);
         toast.success('战队创建成功');
+      } else {
+        // 更新现有战队
+        const updateData = toUpdateTeamRequest({
+          ...team,
+          name: editingTeamData.name,
+          logo: editingTeamData.logo,
+          description: editingTeamData.description,
+        });
+        await teamService.update(updateData);
+        toast.success('战队信息已更新');
       }
 
-      setEditingTeam(null);
+      // 退出编辑模式
+      setEditingTeamId(null);
+      setEditingTeamData(null);
+
+      // 刷新列表
       await loadTeams();
     } catch (error) {
       console.error('Failed to save team:', error);
@@ -216,6 +238,7 @@ const AdminTeams: React.FC = () => {
       setLoading(false);
     }
   };
+  // ==================== 垂直列表展开方案：新增函数结束 ====================
 
   const handleDeleteClick = (id: string) => {
     setTeamToDelete(id);
@@ -241,93 +264,78 @@ const AdminTeams: React.FC = () => {
   };
 
   const handleCreateNew = () => {
-    const newTeamId = `team-${Date.now()}`;
-    setEditingTeam({
-      id: newTeamId,
+    // 使用特殊前缀标记新战队
+    const newTeam: Team = {
+      id: 'new-team',
       name: '',
       logo: '',
       description: '',
-      players: createDefaultPlayers(newTeamId),
+      players: [],
+    };
+
+    // 添加到列表开头并展开
+    setTeams([newTeam, ...teams]);
+    setExpandedTeamId('new-team');
+    setEditingTeamId('new-team');
+    setEditingTeamData({
+      name: '',
+      logo: '',
+      description: '',
     });
   };
 
-  // 判断是否为新建战队
-  const isNewTeam = !teams.find(t => t.id === editingTeam?.id);
+  // 提取直播间房间号
+  const extractRoomNumber = (url: string): string => {
+    const defaultPrefix = 'https://www.douyu.com/';
+    if (!url) return defaultPrefix;
+    // 如果已经是完整URL，直接返回
+    if (url.startsWith('http://') || url.startsWith('https://')) return url;
+    // 如果是纯数字，添加前缀
+    if (/^\d+$/.test(url)) return defaultPrefix + url;
+    // 其他情况返回原值
+    return url;
+  };
 
-  // 处理队标上传点击
-  const handleLogoUploadClick = () => {
-    if (!editingTeam) return;
-
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'image/png,image/jpeg,image/jpg';
-    input.onchange = async (e) => {
-      const file = (e.target as HTMLInputElement).files?.[0];
-      if (!file) return;
-
-      // 客户端校验
-      if (file.size > 2 * 1024 * 1024) {
-        toast.error('图片大小不能超过 2MB');
-        return;
-      }
-      if (!['image/png', 'image/jpeg', 'image/jpg'].includes(file.type)) {
-        toast.error('仅支持 JPG/PNG 格式图片');
-        return;
-      }
-
-      // 已有战队 ID（已保存到服务器）→ 调用上传 API
-      if (!isNewTeam && editingTeam) {
-        try {
-          setLoading(true);
-          const result = await teamsApi.uploadTeamLogo(editingTeam.id, file);
-          setEditingTeam({ ...editingTeam, logo: result.url });
-          toast.success('图标上传成功');
-        } catch (error) {
-          toast.error('上传失败，请重试');
-        } finally {
-          setLoading(false);
-        }
-      } else {
-        // 新建战队（还未保存到服务器）→ 使用 Base64 预览
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          const url = event.target?.result as string;
-          setEditingTeam({ ...editingTeam, logo: url });
-        };
-        reader.readAsDataURL(file);
-      }
-    };
-    input.click();
+  // 格式化直播间URL为完整地址
+  const formatLiveUrl = (input: string): string => {
+    const defaultPrefix = 'https://www.douyu.com/';
+    if (!input || !input.trim()) return '';
+    const trimmed = input.trim();
+    // 如果只是默认前缀，没有房间号，返回空
+    if (trimmed === defaultPrefix || trimmed === defaultPrefix.slice(0, -1)) {
+      return '';
+    }
+    // 如果已经是完整URL，直接返回
+    if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+      return trimmed;
+    }
+    // 添加默认前缀
+    return `${defaultPrefix}${trimmed}`;
   };
 
   // 打开队员内联编辑
-  const handleEditMember = (player: ExtendedPlayer, index: number) => {
-    const playerData = {
-      nickname: player.name || '',
+  const handleEditMember = (player: Player, index: number, teamId: string) => {
+    const playerData: MemberFormData = {
+      nickname: player.nickname || '',
       gameId: player.gameId || '',
-      position: player.position.toUpperCase() as MemberFormData['position'],
-      avatarUrl: player.avatar || '',
-      bio: player.description || '',
+      position: player.position as PositionType,
+      avatarUrl: player.avatarUrl || '',
+      bio: player.bio || '',
       championPool: player.championPool || [],
       rating: player.rating ?? 60,
       isCaptain: player.isCaptain ?? false,
       liveUrl: player.liveUrl || '',
     };
-    
-    console.log('handleEditMember called:', {
-      player,
-      playerData,
-      index,
-      editingTeamId: editingTeam?.id,
-    });
-    
-    // 检查战队是否已保存（是否有真实 ID）
-    const isExistingTeam = teams.find(t => t.id === editingTeam?.id);
-    if (!isExistingTeam) {
+
+    // 检查战队是否已保存（是否是未保存的新战队）
+    const isNewTeam = teamId === 'new-team';
+    if (isNewTeam) {
       toast.error('请先保存战队基本信息，然后再编辑队员信息');
       return;
     }
 
+    // 设置当前编辑的战队ID
+    setEditingTeamId(teamId);
     setExpandedPlayerIndex(index);
     setEditingPlayerIndex(index);
     setEditingPlayerData(playerData);
@@ -341,7 +349,7 @@ const AdminTeams: React.FC = () => {
 
   // 保存队员编辑
   const handleSaveMember = async () => {
-    if (!editingTeam || editingPlayerIndex === null || !editingPlayerData) return;
+    if (!editingTeamId || editingPlayerIndex === null || !editingPlayerData) return;
 
     // 评分校验
     const rating = editingPlayerData.rating;
@@ -350,10 +358,15 @@ const AdminTeams: React.FC = () => {
       return;
     }
 
-    const player = editingTeam.players[editingPlayerIndex];
-    const newPlayers = [...editingTeam.players];
+    const team = teams.find(t => t.id === editingTeamId);
+    if (!team) return;
+
+    const player = team.players[editingPlayerIndex];
+    const newPlayers = [...team.players];
 
     // 准备更新到后端的数据（使用后端期望的字段名）
+    // 确保直播间URL是完整格式
+    const finalLiveUrl = formatLiveUrl(editingPlayerData.liveUrl);
     const updateData = {
       nickname: editingPlayerData.nickname,
       avatarUrl: editingPlayerData.avatarUrl || '',
@@ -363,36 +376,34 @@ const AdminTeams: React.FC = () => {
       championPool: editingPlayerData.championPool,
       rating: editingPlayerData.rating,
       isCaptain: editingPlayerData.isCaptain,
-      liveUrl: editingPlayerData.liveUrl,
+      liveUrl: finalLiveUrl,
     };
 
     try {
       // 调用后端 API 更新队员信息
       await membersApi.updateMember(player.id, updateData);
 
-      // 更新本地状态（转换为前端格式）
-      const positionMap: Record<MemberFormData['position'], string> = {
-        'TOP': 'top',
-        'JUNGLE': 'jungle',
-        'MID': 'mid',
-        'ADC': 'bot',
-        'SUPPORT': 'support',
-      };
-
-      newPlayers[editingPlayerIndex] = {
+      // 更新本地状态
+      const updatedPlayer: Player = {
         ...newPlayers[editingPlayerIndex],
-        name: editingPlayerData.nickname,
-        avatar: editingPlayerData.avatarUrl || '',
-        position: positionMap[editingPlayerData.position],
-        description: editingPlayerData.bio || '',
+        nickname: editingPlayerData.nickname,
+        avatarUrl: editingPlayerData.avatarUrl || '',
+        position: editingPlayerData.position,
+        bio: editingPlayerData.bio || '',
         gameId: editingPlayerData.gameId,
         rating: editingPlayerData.rating,
         isCaptain: editingPlayerData.isCaptain,
-        liveUrl: editingPlayerData.liveUrl,
+        liveUrl: finalLiveUrl,
         championPool: editingPlayerData.championPool,
       };
+      newPlayers[editingPlayerIndex] = updatedPlayer;
 
-      setEditingTeam({ ...editingTeam, players: newPlayers });
+      // 更新teams数组
+      const updatedTeams = teams.map(t => 
+        t.id === editingTeamId ? { ...t, players: newPlayers } : t
+      );
+      setTeams(updatedTeams);
+      
       setEditingPlayerIndex(null);
       setEditingPlayerData(null);
       toast.success('队员信息已保存');
@@ -422,355 +433,9 @@ const AdminTeams: React.FC = () => {
         </div>
       </div>
 
+      {/* ==================== 垂直列表展开方案：新的渲染结构 ==================== */}
 
-
-      {editingTeam && (
-        <Card className="mb-8 bg-[#0F172A] border-white/10">
-          <CardHeader className="flex flex-row items-center justify-between border-b border-white/10">
-            <CardTitle className="text-white">
-              {teams.find(t => t.id === editingTeam.id) ? '编辑战队' : '新建战队'}
-            </CardTitle>
-            <Button variant="ghost" size="icon" onClick={() => setEditingTeam(null)}>
-              <X className="w-4 h-4 text-gray-400" />
-            </Button>
-          </CardHeader>
-          <CardContent className="space-y-4 p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-[#94A3B8] mb-2">
-                  战队名称 <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={editingTeam.name}
-                  onChange={e => setEditingTeam({ ...editingTeam, name: e.target.value })}
-                  placeholder="请输入战队名称"
-                  className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-[#475569] focus:outline-none focus:border-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-[#94A3B8] mb-2">
-                  队标
-                </label>
-                <div className="flex items-start gap-3">
-                  {/* 上传预览区域 - 80x80 方形区域 */}
-                  <div
-                    className="relative flex-shrink-0 w-20 h-20 border-2 border-dashed border-white/20 rounded-lg
-                               flex items-center justify-center cursor-pointer
-                               hover:border-blue-500 hover:bg-blue-500/10 transition-all group"
-                    onClick={handleLogoUploadClick}
-                  >
-                    {editingTeam.logo ? (
-                      <>
-                        <img
-                          src={editingTeam.logo}
-                          alt="队标预览"
-                          className="w-full h-full object-contain rounded"
-                        />
-                        {/* 悬停时显示覆盖层 */}
-                        <div className="absolute inset-0 bg-black/60 rounded-lg opacity-0 group-hover:opacity-100
-                                        flex items-center justify-center transition-opacity">
-                          <UploadIcon className="w-6 h-6 text-white" />
-                        </div>
-                      </>
-                    ) : (
-                      <div className="flex flex-col items-center text-gray-500">
-                        <UploadIcon className="w-6 h-6 mb-1" />
-                        <span className="text-xs">上传</span>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* URL 输入框 */}
-                  <div className="flex-1">
-                    <input
-                      type="text"
-                      value={editingTeam.logo}
-                      onChange={e => setEditingTeam({ ...editingTeam, logo: e.target.value })}
-                      placeholder="或输入图标 URL"
-                      className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white
-                                 placeholder-[#475569] focus:outline-none focus:border-blue-500 mb-1.5"
-                    />
-                    <p className="text-xs text-gray-500">支持 JPG/PNG 格式，不超过 2MB</p>
-                  </div>
-                </div>
-              </div>
-              <div className="col-span-2">
-                <label className="block text-sm font-medium text-[#94A3B8] mb-2">
-                  参赛宣言
-                </label>
-                <div className="relative">
-                  <textarea
-                    value={editingTeam.description}
-                    onChange={e => setEditingTeam({ ...editingTeam, description: e.target.value })}
-                    placeholder="请输入参赛宣言"
-                    rows={3}
-                    maxLength={100}
-                    className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-[#475569] focus:outline-none focus:border-blue-500 resize-none"
-                  />
-                  <span className="absolute bottom-2 right-2 text-xs text-[#64748B]">
-                    {editingTeam.description.length}/100
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex justify-end gap-2 mt-6">
-              <Button variant="ghost" onClick={() => setEditingTeam(null)} disabled={loading}>
-                取消
-              </Button>
-              <Button
-                onClick={handleSave}
-                disabled={loading}
-                className="bg-gradient-to-r from-yellow-400 to-yellow-600 text-black border-yellow-300 hover:shadow-[0_0_15px_rgba(250,204,21,0.5)]"
-              >
-                <Save className="w-4 h-4 mr-2" />
-                {loading ? '保存中...' : '保存战队'}
-              </Button>
-            </div>
-
-            {!isNewTeam && (
-              <div className="mt-6">
-                <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                  <Users className="w-5 h-5" />
-                  队员列表
-                </h3>
-                <div className="space-y-2">
-                  {editingTeam.players.map((player, idx) => {
-                    const isExpanded = expandedPlayerIndex === idx;
-                    const isEditing = editingPlayerIndex === idx;
-                    return (
-                      <div
-                        key={player.id}
-                        className={`bg-white/5 rounded-lg border transition-all duration-300 cursor-pointer ${
-                          isExpanded || isEditing ? 'border-blue-500/50' : 'border-white/10 hover:border-white/30'
-                        }`}
-                      >
-                        <div
-                          className="flex items-center justify-between p-3"
-                          onClick={() => !isEditing && setExpandedPlayerIndex(isExpanded ? null : idx)}
-                        >
-                          <div className="flex items-center gap-3">
-                            <span className="px-2 py-0.5 bg-blue-600/30 text-blue-400 text-xs rounded font-medium min-w-[60px] text-center">
-                              {getPositionLabel(player.position)}
-                            </span>
-                            {player.avatar ? (
-                              <img
-                                src={player.avatar}
-                                alt={player.name}
-                                className="w-8 h-8 rounded object-cover"
-                                onError={(e) => {
-                                  (e.target as HTMLImageElement).src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><rect width="32" height="32" fill="%23333"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%23666" font-size="12">?</text></svg>';
-                                }}
-                                onClick={(e) => e.stopPropagation()}
-                              />
-                            ) : (
-                              <div className="w-8 h-8 rounded bg-gray-700 flex items-center justify-center text-gray-500 text-xs">
-                                ?
-                              </div>
-                            )}
-                            <div className="flex flex-col">
-                              <span className="text-white text-sm">
-                                {player.name || '未填写'}
-                              </span>
-                              <span className="text-gray-500 text-xs">
-                                {player.description || '暂无简介'}
-                              </span>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            {!isEditing && (
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleEditMember(player as ExtendedPlayer, idx);
-                                }}
-                                className="h-8 w-8 hover:bg-white/10"
-                              >
-                                <Edit2 className="w-4 h-4 text-blue-400" />
-                              </Button>
-                            )}
-                            <div className={`transition-transform duration-300 ${isExpanded || isEditing ? 'rotate-180' : ''}`}>
-                              <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                              </svg>
-                            </div>
-                          </div>
-                        </div>
-                        {(isExpanded || isEditing) && (
-                          <div className="px-3 pb-3 border-t border-white/10 pt-3">
-                            {isEditing && editingPlayerData ? (
-                              <div className="space-y-3">
-                                <div className="grid grid-cols-2 gap-3">
-                                  <div>
-                                    <label className="block text-xs text-gray-400 mb-1">昵称</label>
-                                    <input
-                                      type="text"
-                                      value={editingPlayerData.nickname}
-                                      onChange={(e) => setEditingPlayerData({ ...editingPlayerData, nickname: e.target.value })}
-                                      className="w-full px-2 py-1.5 bg-white/5 border border-white/10 rounded text-white text-sm focus:outline-none focus:border-blue-500"
-                                      placeholder="请输入昵称"
-                                    />
-                                  </div>
-                                  <div>
-                                    <label className="block text-xs text-gray-400 mb-1">位置</label>
-                                    <select
-                                      value={editingPlayerData.position}
-                                      onChange={(e) => setEditingPlayerData({ ...editingPlayerData, position: e.target.value as MemberFormData['position'] })}
-                                      className="w-full px-2 py-1.5 bg-white/5 border border-white/10 rounded text-white text-sm focus:outline-none focus:border-blue-500"
-                                    >
-                                      <option value="TOP">上单</option>
-                                      <option value="JUNGLE">打野</option>
-                                      <option value="MID">中单</option>
-                                      <option value="ADC">ADC</option>
-                                      <option value="SUPPORT">辅助</option>
-                                    </select>
-                                  </div>
-                                </div>
-                                <div>
-                                  <label className="block text-xs text-gray-400 mb-1">头像URL</label>
-                                  <input
-                                    type="text"
-                                    value={editingPlayerData.avatarUrl}
-                                    onChange={(e) => setEditingPlayerData({ ...editingPlayerData, avatarUrl: e.target.value })}
-                                    className="w-full px-2 py-1.5 bg-white/5 border border-white/10 rounded text-white text-sm focus:outline-none focus:border-blue-500"
-                                    placeholder="https://example.com/avatar.png"
-                                  />
-                                </div>
-                                <div className="grid grid-cols-3 gap-3">
-                                  <div>
-                                    <label className="block text-xs text-gray-400 mb-1">游戏ID</label>
-                                    <input
-                                      type="text"
-                                      value={editingPlayerData.gameId}
-                                      onChange={(e) => setEditingPlayerData({ ...editingPlayerData, gameId: e.target.value })}
-                                      className="w-full px-2 py-1.5 bg-white/5 border border-white/10 rounded text-white text-sm focus:outline-none focus:border-blue-500"
-                                      placeholder="请输入游戏ID"
-                                    />
-                                  </div>
-                                  <div>
-                                    <label className="block text-xs text-gray-400 mb-1">评分 (0-100)</label>
-                                    <input
-                                      type="number"
-                                      min={0}
-                                      max={100}
-                                      value={editingPlayerData.rating}
-                                      onChange={(e) => {
-                                        const value = e.target.value === '' ? '' : Number(e.target.value);
-                                        if (value === '' || (Number.isInteger(value) && value >= 0 && value <= 100)) {
-                                          setEditingPlayerData({ ...editingPlayerData, rating: value === '' ? 0 : value });
-                                        }
-                                      }}
-                                      onBlur={(e) => {
-                                        const value = Number(e.target.value);
-                                        if (!Number.isInteger(value) || value < 0 || value > 100) {
-                                          toast.error('评分必须是0-100之间的整数');
-                                        }
-                                      }}
-                                      className="w-full px-2 py-1.5 bg-white/5 border border-white/10 rounded text-white text-sm focus:outline-none focus:border-blue-500"
-                                    />
-                                  </div>
-                                  <div className="flex items-center pt-5">
-                                    <label className="flex items-center gap-2 text-sm text-gray-300 cursor-pointer">
-                                      <input
-                                        type="checkbox"
-                                        checked={editingPlayerData.isCaptain}
-                                        onChange={(e) => setEditingPlayerData({ ...editingPlayerData, isCaptain: e.target.checked })}
-                                        className="w-4 h-4 rounded border-gray-600 bg-white/5 text-blue-500 focus:ring-blue-500"
-                                      />
-                                      队长
-                                    </label>
-                                  </div>
-                                </div>
-                                <div>
-                                  <label className="block text-xs text-gray-400 mb-1">直播间链接</label>
-                                  <input
-                                    type="text"
-                                    value={editingPlayerData.liveUrl}
-                                    onChange={(e) => setEditingPlayerData({ ...editingPlayerData, liveUrl: e.target.value })}
-                                    onFocus={(e) => {
-                                      if (!e.target.value) {
-                                        setEditingPlayerData({ ...editingPlayerData, liveUrl: 'https://www.douyu.com/' });
-                                      }
-                                    }}
-                                    className="w-full px-2 py-1.5 bg-white/5 border border-white/10 rounded text-white text-sm focus:outline-none focus:border-blue-500"
-                                    placeholder="https://www.douyu.com/..."
-                                  />
-                                </div>
-                                <div>
-                                  <label className="block text-xs text-gray-400 mb-1">个人简介</label>
-                                  <textarea
-                                    value={editingPlayerData.bio}
-                                    onChange={(e) => setEditingPlayerData({ ...editingPlayerData, bio: e.target.value })}
-                                    className="w-full px-2 py-1.5 bg-white/5 border border-white/10 rounded text-white text-sm focus:outline-none focus:border-blue-500 resize-none"
-                                    rows={2}
-                                    placeholder="请输入个人简介"
-                                  />
-                                </div>
-                                <div className="flex justify-end gap-2 pt-2">
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={handleCancelEditMember}
-                                    className="text-gray-400 hover:text-white"
-                                  >
-                                    取消
-                                  </Button>
-                                  <Button
-                                    size="sm"
-                                    onClick={handleSaveMember}
-                                    disabled={loading}
-                                    className="bg-blue-600 hover:bg-blue-700 text-white"
-                                  >
-                                    保存
-                                  </Button>
-                                </div>
-                              </div>
-                            ) : (
-                              <div className="space-y-3">
-                                <div className="grid grid-cols-2 gap-3 text-sm">
-                                  <div>
-                                    <span className="text-gray-500">位置：</span>
-                                    <span className="text-white">{getPositionLabel(player.position)}</span>
-                                  </div>
-                                  <div>
-                                    <span className="text-gray-500">游戏ID：</span>
-                                    <span className="text-white">{(player as ExtendedPlayer).gameId || '未设置'}</span>
-                                  </div>
-                                  <div>
-                                    <span className="text-gray-500">评分：</span>
-                                    <span className="text-white">{(player as ExtendedPlayer).rating || '未设置'}</span>
-                                  </div>
-                                  <div>
-                                    <span className="text-gray-500">队长：</span>
-                                    <span className="text-white">{(player as ExtendedPlayer).isCaptain ? '是' : '否'}</span>
-                                  </div>
-                                  <div className="col-span-2">
-                                    <span className="text-gray-500">简介：</span>
-                                    <span className="text-white">{player.description || '暂无'}</span>
-                                  </div>
-                                  <div className="col-span-2">
-                                    <span className="text-gray-500">直播间：</span>
-                                    <span className="text-white">{(player as ExtendedPlayer).liveUrl || '暂无'}</span>
-                                  </div>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
-
-      {loading && teams.length === 0 ? (
+      {loading ? (
         <div className="flex items-center justify-center h-64 text-gray-500">
           <RefreshCw className="w-8 h-8 animate-spin mr-2" />
           加载中...
@@ -782,93 +447,565 @@ const AdminTeams: React.FC = () => {
           <p className="text-sm mt-2">点击"添加战队"按钮创建第一个战队</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {teams.map(team => (
-            <Card
-              key={team.id}
-              data-testid="admin-team-card"
-              className="bg-[#0F172A] border-white/10 hover:border-yellow-500/50 transition-all duration-300"
-            >
-              <CardHeader className="flex flex-row items-center justify-between pb-2 border-b border-white/10">
-                <div className="flex items-center space-x-3">
-                  {team.logo ? (
-                    <img
-                      data-testid="team-logo"
-                      src={team.logo}
-                      alt={team.name}
-                      className="w-10 h-10 rounded object-contain bg-black/20"
-                      onError={e => {
-                        (e.target as HTMLImageElement).src =
-                          'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40"><rect width="40" height="40" fill="%23333"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%23666" font-size="14">?</text></svg>';
-                      }}
-                    />
-                  ) : (
-                    <div
-                      data-testid="team-logo-placeholder"
-                      className="w-10 h-10 rounded bg-white/5 flex items-center justify-center text-gray-500"
-                    >
-                      <Users className="w-5 h-5" />
-                    </div>
-                  )}
-                  <CardTitle data-testid="team-name" className="text-white text-lg">
-                    {team.name}
-                  </CardTitle>
-                </div>
-                <div className="flex space-x-1">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleEdit(team)}
-                    disabled={loading}
-                    aria-label="编辑"
-                  >
-                    <Edit2 className="w-4 h-4 text-blue-400" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleDeleteClick(team.id)}
-                    disabled={loading}
-                    aria-label="删除"
-                  >
-                    <Trash2 className="w-4 h-4 text-red-400" />
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent className="pt-4">
-                <p className="text-sm text-[#94A3B8] mb-4 italic">
-                  {team.description ? `"${team.description}"` : '暂无参赛宣言'}
-                </p>
-                <div className="flex items-center justify-between text-sm mb-4">
-                  <span className="text-[#64748B]">
-                    {team.players.filter(p => p.name).length} / {LOL_POSITIONS.length} 名队员
-                  </span>
-                  <span className="text-[#475569] text-xs">ID: {team.id.slice(0, 8)}...</span>
-                </div>
-                {/* 显示队员列表预览 */}
-                <div className="mt-3 pt-3 border-t border-white/5">
-                  <div className="flex flex-wrap gap-1">
-                    {team.players
-                      .filter(p => p.name)
-                      .slice(0, 5)
-                      .map((player, idx) => (
-                        <span
-                          key={idx}
-                          className="px-2 py-0.5 bg-white/5 text-[#94A3B8] text-xs rounded"
-                        >
-                          {getPositionLabel(player.position)}: {player.name}
-                        </span>
-                      ))}
-                    {team.players.filter(p => p.name).length > 5 && (
-                      <span className="px-2 py-0.5 text-[#64748B] text-xs">
-                        +{team.players.filter(p => p.name).length - 5}
-                      </span>
+        <div className="space-y-4">
+          {teams.map(team => {
+            const isExpanded = expandedTeamId === team.id;
+            const isEditing = editingTeamId === team.id;
+
+            return (
+              <Card
+                key={team.id}
+                data-testid={`team-item-${team.id}`}
+                className="bg-[#0F172A] border-white/10 overflow-hidden"
+              >
+                {/* 战队头部（可点击展开） */}
+                <div
+                  data-testid={`team-header-${team.id}`}
+                  className="flex items-center justify-between p-4 cursor-pointer hover:bg-white/5 transition-colors"
+                  onClick={() => handleToggleExpand(team.id)}
+                >
+                  <div className="flex items-center space-x-4">
+                    {team.logo ? (
+                      <img
+                        src={team.logo}
+                        alt={team.name}
+                        className="w-12 h-12 rounded object-contain bg-black/20"
+                        onError={e => {
+                          (e.target as HTMLImageElement).src =
+                            'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48"><rect width="48" height="48" fill="%23333"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%23666" font-size="16">?</text></svg>';
+                        }}
+                      />
+                    ) : (
+                      <div className="w-12 h-12 rounded bg-white/5 flex items-center justify-center text-gray-500">
+                        <Users className="w-6 h-6" />
+                      </div>
                     )}
+                    <div>
+                      <h3 className="text-white text-lg font-semibold">{team.name || '未命名战队'}</h3>
+                      <p className="text-[#64748B] text-sm">
+                        {team.players.filter(p => p.nickname).length} / {LOL_POSITIONS.length} 名队员
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    {!isEditing && (
+                      <>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleStartEditTeam(team);
+                          }}
+                          disabled={loading || editingTeamId !== null}
+                          aria-label="编辑"
+                        >
+                          <Edit2 className="w-4 h-4 text-blue-400" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteClick(team.id);
+                          }}
+                          disabled={loading}
+                          aria-label="删除"
+                        >
+                          <Trash2 className="w-4 h-4 text-red-400" />
+                        </Button>
+                      </>
+                    )}
+                    <div className={`transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}>
+                      <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </div>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-          ))}
+
+                {/* 展开区域 */}
+                {isExpanded && (
+                  <div
+                    data-testid={`team-detail-${team.id}`}
+                    className="border-t border-white/10"
+                  >
+                    {/* 编辑模式 */}
+                    {isEditing && editingTeamData ? (
+                      <div className="p-4 space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-sm font-medium text-[#94A3B8] mb-2">
+                              战队名称 <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              data-testid="team-name-input"
+                              type="text"
+                              value={editingTeamData.name}
+                              onChange={e => setEditingTeamData({ ...editingTeamData, name: e.target.value })}
+                              placeholder="请输入战队名称"
+                              className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-[#475569] focus:outline-none focus:border-blue-500"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-[#94A3B8] mb-2">
+                              队标
+                            </label>
+                            <div className="flex items-start gap-3">
+                              <div
+                                className="relative flex-shrink-0 w-20 h-20 border-2 border-dashed border-white/20 rounded-lg
+                                           flex items-center justify-center cursor-pointer
+                                           hover:border-blue-500 hover:bg-blue-500/10 transition-all group"
+                                onClick={() => {
+                                  const input = document.createElement('input');
+                                  input.type = 'file';
+                                  input.accept = 'image/png,image/jpeg,image/jpg';
+                                  input.onchange = async (e) => {
+                                    const file = (e.target as HTMLInputElement).files?.[0];
+                                    if (!file) return;
+                                    if (file.size > 2 * 1024 * 1024) {
+                                      toast.error('图片大小不能超过 2MB');
+                                      return;
+                                    }
+                                    if (!['image/png', 'image/jpeg', 'image/jpg'].includes(file.type)) {
+                                      toast.error('仅支持 JPG/PNG 格式图片');
+                                      return;
+                                    }
+                                    try {
+                                      const formData = new FormData();
+                                      formData.append('file', file);
+                                      const response = await fetch('/api/upload/image', {
+                                        method: 'POST',
+                                        body: formData,
+                                      });
+                                      if (!response.ok) throw new Error('上传失败');
+                                      const data = await response.json();
+                                      setEditingTeamData({ ...editingTeamData, logo: data.url });
+                                      toast.success('队标上传成功');
+                                    } catch (_error) {
+                                      toast.error('上传失败，请重试');
+                                    }
+                                  };
+                                  input.click();
+                                }}
+                              >
+                                {editingTeamData.logo ? (
+                                  <>
+                                    <img
+                                      src={editingTeamData.logo}
+                                      alt="队标预览"
+                                      className="w-full h-full object-contain rounded"
+                                    />
+                                    <div className="absolute inset-0 bg-black/60 rounded-lg opacity-0 group-hover:opacity-100
+                                                    flex items-center justify-center transition-opacity">
+                                      <UploadIcon className="w-6 h-6 text-white" />
+                                    </div>
+                                  </>
+                                ) : (
+                                  <div className="flex flex-col items-center text-gray-500">
+                                    <UploadIcon className="w-6 h-6 mb-1" />
+                                    <span className="text-xs">上传</span>
+                                  </div>
+                                )}
+                              </div>
+                              <div className="flex-1">
+                                <input
+                                  type="text"
+                                  value={editingTeamData.logo}
+                                  onChange={e => setEditingTeamData({ ...editingTeamData, logo: e.target.value })}
+                                  placeholder="或输入图标 URL"
+                                  className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white
+                                             placeholder-[#475569] focus:outline-none focus:border-blue-500 mb-1.5"
+                                />
+                                <p className="text-xs text-gray-500">支持 JPG/PNG 格式，不超过 2MB</p>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="col-span-2">
+                            <label className="block text-sm font-medium text-[#94A3B8] mb-2">
+                              参赛宣言
+                            </label>
+                            <div className="relative">
+                              <textarea
+                                value={editingTeamData.description}
+                                onChange={e => setEditingTeamData({ ...editingTeamData, description: e.target.value })}
+                                placeholder="请输入参赛宣言"
+                                rows={3}
+                                maxLength={100}
+                                className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-[#475569] focus:outline-none focus:border-blue-500 resize-none"
+                              />
+                              <span className="absolute bottom-2 right-2 text-xs text-[#64748B]">
+                                {editingTeamData.description.length}/100
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            data-testid="cancel-edit-team-btn"
+                            variant="ghost"
+                            onClick={handleCancelEditTeam}
+                            disabled={loading}
+                          >
+                            取消
+                          </Button>
+                          <Button
+                            data-testid="save-team-btn"
+                            onClick={() => handleSaveTeamEdit(team.id)}
+                            disabled={loading}
+                            className="bg-gradient-to-r from-yellow-400 to-yellow-600 text-black border-yellow-300 hover:shadow-[0_0_15px_rgba(250,204,21,0.5)]"
+                          >
+                            <Save className="w-4 h-4 mr-2" />
+                            {loading ? '保存中...' : '保存'}
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      /* 查看模式 */
+                      <div className="p-4 space-y-4">
+                        {/* 战队信息展示 */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-xs text-[#64748B] mb-1">战队名称</label>
+                            <p className="text-white">{team.name || '未命名'}</p>
+                          </div>
+                          <div>
+                            <label className="block text-xs text-[#64748B] mb-1">队标</label>
+                            {team.logo ? (
+                              <img src={team.logo} alt="队标" className="w-16 h-16 rounded object-contain bg-black/20" />
+                            ) : (
+                              <span className="text-gray-500">未上传</span>
+                            )}
+                          </div>
+                          <div className="col-span-2">
+                            <label className="block text-xs text-[#64748B] mb-1">参赛宣言</label>
+                            <p className="text-white">{team.battleCry || '暂无参赛宣言'}</p>
+                          </div>
+                        </div>
+
+                        {/* 队员列表 */}
+                        <div className="mt-4">
+                          <h4 className="text-white font-medium mb-3 flex items-center gap-2">
+                            <Users className="w-4 h-4" />
+                            队员列表
+                          </h4>
+                          <div className="space-y-2">
+                            {team.players.map((player, idx) => {
+                              const isPlayerExpanded = expandedPlayerIndex === idx;
+                              const isPlayerEditing = editingPlayerIndex === idx && editingTeamId === team.id;
+
+                              return (
+                                <div
+                                  key={player.id}
+                                  className={`bg-white/5 rounded-lg border transition-all duration-300 ${
+                                    isPlayerExpanded || isPlayerEditing ? 'border-blue-500/50' : 'border-white/10'
+                                  }`}
+                                >
+                                  <div
+                                    className="flex items-center justify-between p-3 cursor-pointer"
+                                    onClick={() => {
+                                      if (!isPlayerEditing) {
+                                        setExpandedPlayerIndex(isPlayerExpanded ? null : idx);
+                                      }
+                                    }}
+                                  >
+                                    <div className="flex items-center gap-3">
+                                      <span className="px-2 py-0.5 bg-blue-600/30 text-blue-400 text-xs rounded font-medium min-w-[60px] text-center">
+                                        {getPositionLabel(player.position)}
+                                      </span>
+                                      {player.avatarUrl ? (
+                                        <img
+                                          src={player.avatarUrl}
+                                          alt={player.nickname}
+                                          className="w-8 h-8 rounded object-cover"
+                                        />
+                                      ) : (
+                                        <div className="w-8 h-8 rounded bg-gray-700 flex items-center justify-center text-gray-500 text-xs">
+                                          ?
+                                        </div>
+                                      )}
+                                      <div className="flex flex-col">
+                                        <span className="text-white text-sm">
+                                          {player.nickname || '未填写'}
+                                        </span>
+                                      </div>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                      {!isPlayerEditing && (
+                                        <Button
+                                          variant="ghost"
+                                          size="icon"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleEditMember(player, idx, team.id);
+                                          }}
+                                          className="h-8 w-8 hover:bg-white/10"
+                                        >
+                                          <Edit2 className="w-4 h-4 text-blue-400" />
+                                        </Button>
+                                      )}
+                                      <div className={`transition-transform duration-300 ${isPlayerExpanded || isPlayerEditing ? 'rotate-180' : ''}`}>
+                                        <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                        </svg>
+                                      </div>
+                                    </div>
+                                  </div>
+                                  {(isPlayerExpanded || isPlayerEditing) && (
+                                    <div className="px-3 pb-3 border-t border-white/10 pt-3">
+                                      {isPlayerEditing ? (
+                                        <div className="space-y-3">
+                                          {/* 第1行：基础信息 - 昵称 + 游戏ID */}
+                                          <div className="grid grid-cols-2 gap-3">
+                                            <div>
+                                              <label className="block text-xs text-gray-400 mb-1">昵称 <span className="text-red-500">*</span></label>
+                                              <input
+                                                data-testid="player-nickname-input"
+                                                type="text"
+                                                value={editingPlayerData.nickname}
+                                                onChange={(e) => setEditingPlayerData({ ...editingPlayerData, nickname: e.target.value })}
+                                                className="w-full px-2 py-1.5 bg-white/5 border border-white/10 rounded text-white text-sm focus:outline-none focus:border-blue-500"
+                                                placeholder="请输入昵称"
+                                              />
+                                            </div>
+                                            <div>
+                                              <label className="block text-xs text-gray-400 mb-1">游戏ID</label>
+                                              <input
+                                                type="text"
+                                                value={editingPlayerData.gameId}
+                                                onChange={(e) => setEditingPlayerData({ ...editingPlayerData, gameId: e.target.value })}
+                                                className="w-full px-2 py-1.5 bg-white/5 border border-white/10 rounded text-white text-sm focus:outline-none focus:border-blue-500"
+                                                placeholder="请输入游戏ID"
+                                              />
+                                            </div>
+                                          </div>
+
+                                          {/* 第2行：游戏属性 - 位置 + 评分 + 队长 */}
+                                          <div className="grid grid-cols-3 gap-3">
+                                            <div>
+                                              <label className="block text-xs text-gray-400 mb-1">位置</label>
+                                              <select
+                                                value={editingPlayerData.position}
+                                                onChange={(e) => setEditingPlayerData({ ...editingPlayerData, position: e.target.value as PositionType })}
+                                                className="w-full px-2 py-1.5 bg-white/5 border border-white/10 rounded text-white text-sm focus:outline-none focus:border-blue-500"
+                                              >
+                                                <option value="TOP">上单</option>
+                                                <option value="JUNGLE">打野</option>
+                                                <option value="MID">中单</option>
+                                                <option value="ADC">ADC</option>
+                                                <option value="SUPPORT">辅助</option>
+                                              </select>
+                                            </div>
+                                            <div>
+                                              <label className="block text-xs text-gray-400 mb-1">评分 (0-100)</label>
+                                              <input
+                                                type="number"
+                                                min={0}
+                                                max={100}
+                                                value={editingPlayerData.rating}
+                                                onChange={(e) => {
+                                                  const value = e.target.value === '' ? '' : Number(e.target.value);
+                                                  if (value === '' || (Number.isInteger(value) && value >= 0 && value <= 100)) {
+                                                    setEditingPlayerData({ ...editingPlayerData, rating: value as number });
+                                                  }
+                                                }}
+                                                className="w-full px-2 py-1.5 bg-white/5 border border-white/10 rounded text-white text-sm focus:outline-none focus:border-blue-500"
+                                              />
+                                            </div>
+                                            <div className="flex items-end">
+                                              <label className="flex items-center gap-2 px-2 py-1.5 cursor-pointer">
+                                                <input
+                                                  type="checkbox"
+                                                  checked={editingPlayerData.isCaptain}
+                                                  onChange={(e) => setEditingPlayerData({ ...editingPlayerData, isCaptain: e.target.checked })}
+                                                  className="w-4 h-4 rounded border-white/20 bg-white/5 text-blue-500 focus:ring-blue-500"
+                                                />
+                                                <span className="text-sm text-gray-300">设为队长</span>
+                                              </label>
+                                            </div>
+                                          </div>
+
+                                          {/* 第3行：常用英雄 */}
+                                          <div className="relative">
+                                            <label className="block text-xs text-gray-400 mb-1">常用英雄</label>
+                                            <div className="flex flex-wrap items-center gap-2 min-h-[32px] p-1.5 bg-white/5 border border-white/10 rounded">
+                                              {editingPlayerData.championPool?.map((champion, championIdx) => (
+                                                <span
+                                                  key={champion}
+                                                  className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-500/20 text-blue-400 text-xs rounded"
+                                                >
+                                                  {champion}
+                                                  <button
+                                                    onClick={() => {
+                                                      const newChampionPool = editingPlayerData.championPool.filter((_, i) => i !== championIdx);
+                                                      setEditingPlayerData({ ...editingPlayerData, championPool: newChampionPool });
+                                                    }}
+                                                    className="hover:text-blue-300"
+                                                  >
+                                                    <X className="w-3 h-3" />
+                                                  </button>
+                                                </span>
+                                              ))}
+                                              {(editingPlayerData.championPool?.length || 0) < 5 && (
+                                                <button
+                                                  onClick={() => setIsHeroSelectorOpen(true)}
+                                                  className="inline-flex items-center gap-1 px-2 py-0.5 text-xs text-gray-400 hover:text-white border border-dashed border-white/20 rounded hover:border-white/40 transition-colors"
+                                                >
+                                                  <Plus className="w-3 h-3" />
+                                                  添加
+                                                </button>
+                                              )}
+                                            </div>
+                                            {/* 英雄选择器下拉框 */}
+                                            <HeroSelector
+                                              visible={isHeroSelectorOpen}
+                                              onClose={() => setIsHeroSelectorOpen(false)}
+                                              selectedHeroes={editingPlayerData.championPool || []}
+                                              onConfirm={(heroes) => {
+                                                setEditingPlayerData({ ...editingPlayerData, championPool: heroes });
+                                              }}
+                                              maxSelect={5}
+                                            />
+                                          </div>
+
+                                          {/* 第4行：头像 + 直播间 */}
+                                          <div className="grid grid-cols-2 gap-3">
+                                            <div>
+                                              <label className="block text-xs text-gray-400 mb-1">头像URL</label>
+                                              <input
+                                                type="text"
+                                                value={editingPlayerData.avatarUrl}
+                                                onChange={(e) => setEditingPlayerData({ ...editingPlayerData, avatarUrl: e.target.value })}
+                                                className="w-full px-2 py-1.5 bg-white/5 border border-white/10 rounded text-white text-sm focus:outline-none focus:border-blue-500"
+                                                placeholder="https://example.com/avatar.png"
+                                              />
+                                            </div>
+                                            <div>
+                                              <label className="block text-xs text-gray-400 mb-1">直播间</label>
+                                              <input
+                                                type="text"
+                                                value={editingPlayerData.liveUrl}
+                                                onChange={(e) => setEditingPlayerData({ ...editingPlayerData, liveUrl: e.target.value })}
+                                                onFocus={(e) => {
+                                                  // 只有当输入框为空时，才动态填入默认前缀
+                                                  const defaultUrl = 'https://www.douyu.com/';
+                                                  if (!e.target.value || e.target.value.trim() === '') {
+                                                    e.target.value = defaultUrl;
+                                                    setEditingPlayerData({ ...editingPlayerData, liveUrl: defaultUrl });
+                                                    // 将光标移动到最后
+                                                    setTimeout(() => {
+                                                      e.target.setSelectionRange(e.target.value.length, e.target.value.length);
+                                                    }, 0);
+                                                  }
+                                                }}
+                                                className="w-full px-2 py-1.5 bg-white/5 border border-white/10 rounded text-white text-sm focus:outline-none focus:border-blue-500"
+                                                placeholder="请输入直播间链接"
+                                              />
+                                            </div>
+                                          </div>
+
+                                          {/* 第5行：简介 */}
+                                          <div>
+                                            <label className="block text-xs text-gray-400 mb-1">简介</label>
+                                            <textarea
+                                              value={editingPlayerData.bio}
+                                              onChange={(e) => setEditingPlayerData({ ...editingPlayerData, bio: e.target.value })}
+                                              className="w-full px-2 py-1.5 bg-white/5 border border-white/10 rounded text-white text-sm focus:outline-none focus:border-blue-500 resize-none"
+                                              rows={2}
+                                              placeholder="请输入简介"
+                                            />
+                                          </div>
+
+                                          {/* 操作按钮 */}
+                                          <div className="flex justify-end gap-2 pt-2">
+                                            <Button
+                                              variant="ghost"
+                                              size="sm"
+                                              onClick={handleCancelEditMember}
+                                            >
+                                              取消
+                                            </Button>
+                                            <Button
+                                              data-testid="save-player-btn"
+                                              size="sm"
+                                              onClick={handleSaveMember}
+                                              className="bg-gradient-to-r from-blue-500 to-blue-600 text-white"
+                                            >
+                                              <Save className="w-4 h-4 mr-1" />
+                                              保存
+                                            </Button>
+                                          </div>
+
+                                        </div>
+                                      ) : (
+                                        <div className="space-y-2 text-sm">
+                                          <div>
+                                            <span className="text-gray-500">昵称:</span>
+                                            <span className="text-white ml-2">{player.nickname || '未填写'}</span>
+                                          </div>
+
+                                          <div className="grid grid-cols-2 gap-3">
+                                            <div>
+                                              <span className="text-gray-500">游戏ID:</span>
+                                              <span className="text-white ml-2">{player.gameId || '未填写'}</span>
+                                            </div>
+                                            <div>
+                                              <span className="text-gray-500">评分:</span>
+                                              <span className="text-white ml-2">{player.rating ?? 60}</span>
+                                            </div>
+                                          </div>
+
+                                          <div>
+                                            <span className="text-gray-500">简介:</span>
+                                            <span className="text-white ml-2">{player.bio || '暂无简介'}</span>
+                                          </div>
+
+                                          {player.championPool && player.championPool.length > 0 && (
+                                            <div className="flex items-center gap-2">
+                                              <span className="text-gray-500">常用英雄:</span>
+                                              <div className="flex flex-wrap gap-1">
+                                                {player.championPool.map((champion) => (
+                                                  <span
+                                                    key={champion}
+                                                    className="px-2 py-0.5 bg-blue-500/10 text-blue-400 text-xs rounded"
+                                                  >
+                                                    {champion}
+                                                  </span>
+                                                ))}
+                                              </div>
+                                            </div>
+                                          )}
+
+                                          {player.liveUrl && (
+                                            <div>
+                                              <span className="text-gray-500">直播间:</span>
+                                              <a href={player.liveUrl} target="_blank" rel="noopener noreferrer" className="text-blue-400 ml-2 hover:underline">
+                                                {player.liveUrl}
+                                              </a>
+                                            </div>
+                                          )}
+
+                                          {player.isCaptain && (
+                                            <div className="inline-flex items-center px-2 py-0.5 bg-yellow-500/20 text-yellow-400 text-xs rounded">
+                                              队长
+                                            </div>
+                                          )}
+                                        </div>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </Card>
+            );
+          })}
         </div>
       )}
 

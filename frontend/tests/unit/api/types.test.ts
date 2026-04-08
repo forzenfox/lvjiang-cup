@@ -75,11 +75,11 @@ describe('API Types Compliance', () => {
 
   describe('Player Interface', () => {
     it('should have correct position enum values', () => {
-      const validPositions: Player['position'][] = ['top', 'jungle', 'mid', 'bot', 'support'];
+      const validPositions: Player['position'][] = ['TOP', 'JUNGLE', 'MID', 'ADC', 'SUPPORT'];
       validPositions.forEach(position => {
         const player: Player = {
           id: 'player-1',
-          name: 'Player 1',
+          nickname: 'Player 1',
           position,
           teamId: 'team-1',
         };

@@ -76,7 +76,7 @@ describe('Cross-Module Integration Tests', () => {
         id TEXT PRIMARY KEY,
         name TEXT NOT NULL,
         avatar TEXT,
-        position TEXT CHECK(position IN ('top', 'jungle', 'mid', 'bot', 'support')),
+        position TEXT CHECK(position IN ('TOP', 'JUNGLE', 'MID', 'ADC', 'SUPPORT')),
         team_id TEXT NOT NULL,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,

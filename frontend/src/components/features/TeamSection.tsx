@@ -1,41 +1,34 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { User, Users, Loader2, AlertCircle } from 'lucide-react';
 import { teamService } from '../../services';
-import type { Team as ApiTeam } from '../../api/types';
+import type { Team as ApiTeam, Player } from '../../api/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui/card';
 import { Button } from '../ui/button';
 import { TopIcon, JungleIcon, MidIcon, AdcIcon, SupportIcon } from '../icons/PositionIcons';
 import { getPositionLabel } from '../../utils/position';
+import { PositionType } from '../../types/position';
+import { PlayerDetailModal } from '../team/PlayerDetailModal';
 
-// 本地 Player 类型（兼容现有UI）
-interface Player {
-  id: string;
-  name: string;
-  avatar: string;
-  position: string;
-  description: string;
-}
-
-// 本地 Team 类型（兼容现有UI）
+// 本地 Team 类型（与后端数据模型一致）
 interface Team {
   id: string;
   name: string;
   logo: string;
+  battleCry: string;
   players: Player[];
-  description: string;
 }
 
-const PositionIcon: React.FC<{ position: string }> = ({ position }) => {
-  switch (position.toLowerCase()) {
-    case 'top':
+const PositionIcon: React.FC<{ position: PositionType }> = ({ position }) => {
+  switch (position) {
+    case 'TOP':
       return <TopIcon className="w-4 h-4" />;
-    case 'jungle':
+    case 'JUNGLE':
       return <JungleIcon className="w-4 h-4" />;
-    case 'mid':
+    case 'MID':
       return <MidIcon className="w-4 h-4" />;
-    case 'bot':
+    case 'ADC':
       return <AdcIcon className="w-4 h-4" />;
-    case 'support':
+    case 'SUPPORT':
       return <SupportIcon className="w-4 h-4" />;
     default:
       return <User className="w-4 h-4 text-gray-400" />;
@@ -112,38 +105,59 @@ const TeamSection: React.FC<TeamSectionProps> = ({ refreshInterval = 30000 }) =>
   const [teams, setTeams] = useState<Team[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+
+  const handlePlayerClick = (player: Player) => {
+    setSelectedPlayer(player);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedPlayer(null);
+  };
 
   // 将 API Team 转换为本地 Team 格式
   const convertApiTeamToLocal = (apiTeam: ApiTeam): Team => {
-    // 如果 API 返回了 players 数据，使用真实数据；否则生成模拟数据
+    // 使用 members 字段（后端返回）
+    const members = apiTeam.members || [];
+
+    // 如果 API 返回了队员数据，使用真实数据；否则生成模拟数据
     let players: Player[];
-    if (apiTeam.players && apiTeam.players.length > 0) {
-      players = apiTeam.players.map(apiPlayer => ({
+    if (members.length > 0) {
+      players = members.map(apiPlayer => ({
         id: apiPlayer.id,
-        name: apiPlayer.name,
-        avatar:
-          apiPlayer.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${apiPlayer.id}`,
+        nickname: apiPlayer.nickname,
+        avatarUrl: apiPlayer.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${apiPlayer.id}`,
         position: apiPlayer.position,
-        description: '',
+        teamId: apiTeam.id,
+        gameId: apiPlayer.gameId,
+        bio: apiPlayer.bio,
+        championPool: apiPlayer.championPool,
+        rating: apiPlayer.rating,
+        isCaptain: apiPlayer.isCaptain,
+        liveUrl: apiPlayer.liveUrl,
+        sortOrder: apiPlayer.sortOrder,
       }));
     } else {
-      // 生成模拟队员数据（当 API 没有返回 players 数据时）
-      const positions = ['top', 'jungle', 'mid', 'bot', 'support'];
+      // 生成模拟队员数据（当 API 没有返回队员数据时）
+      const positions: PositionType[] = ['TOP', 'JUNGLE', 'MID', 'ADC', 'SUPPORT'];
       players = positions.map((position, index) => ({
         id: `${apiTeam.id}-player-${index}`,
-        name: '待补充',
-        avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${apiTeam.id}-${index}`,
+        nickname: '待补充',
+        avatarUrl: `https://api.dicebear.com/7.x/avataaars/svg?seed=${apiTeam.id}-${index}`,
         position,
-        description: `${position}选手`,
+        teamId: apiTeam.id,
       }));
     }
 
     return {
       id: apiTeam.id,
       name: apiTeam.name,
-      logo: apiTeam.logo || `https://api.dicebear.com/7.x/identicon/svg?seed=${apiTeam.id}`,
+      logo: apiTeam.logo || apiTeam.logoUrl || `https://api.dicebear.com/7.x/identicon/svg?seed=${apiTeam.id}`,
       players,
-      description: apiTeam.description || '暂无描述',
+      battleCry: apiTeam.battleCry || '暂无参赛宣言',
     };
   };
 
@@ -245,17 +259,22 @@ const TeamSection: React.FC<TeamSectionProps> = ({ refreshInterval = 30000 }) =>
                   >
                     {team.name}
                   </CardTitle>
-                  <CardDescription className="text-center" data-testid="team-description">
-                    {team.description}
+                  <CardDescription className="text-center" data-testid="team-battle-cry">
+                    {team.battleCry}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
                     {team.players.map((player) => (
-                      <div key={player.id} className="flex items-center justify-between p-2 rounded bg-gray-200/90 hover:bg-gray-100/95 transition-colors shadow-sm">
+                      <div
+                        key={player.id}
+                        className="flex items-center justify-between p-2 rounded bg-gray-200/90 hover:bg-gray-100/95 transition-colors shadow-sm cursor-pointer"
+                        onClick={() => handlePlayerClick(player)}
+                        data-testid="player-row"
+                      >
                         <div className="flex items-center space-x-3">
-                          <img src={player.avatar} alt={player.name} className="w-8 h-8 rounded-full bg-gray-300 object-cover ring-2 ring-white/50" />
-                          <span className="text-sm font-semibold text-gray-700">{player.name}</span>
+                          <img src={player.avatarUrl} alt={player.nickname} className="w-8 h-8 rounded-full bg-gray-300 object-cover ring-2 ring-white/50" />
+                          <span className="text-sm font-semibold text-gray-700">{player.nickname}</span>
                         </div>
                         <div
                           className="flex items-center"
@@ -279,6 +298,15 @@ const TeamSection: React.FC<TeamSectionProps> = ({ refreshInterval = 30000 }) =>
             <Loader2 className="w-4 h-4 animate-spin" />
             <span className="text-sm">更新中...</span>
           </div>
+        )}
+
+        {/* 队员详情弹框 */}
+        {selectedPlayer && (
+          <PlayerDetailModal
+            player={selectedPlayer}
+            isOpen={isModalOpen}
+            onClose={handleCloseModal}
+          />
         )}
       </div>
     </section>

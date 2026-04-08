@@ -69,9 +69,10 @@ class CreateMemberDto {
 }
 
 export class CreateTeamDto {
-  @ApiProperty({ description: '战队ID' })
+  @ApiPropertyOptional({ description: '战队ID (可选，不传则由后端生成UUID)' })
   @IsString()
-  id: string;
+  @IsOptional()
+  id?: string;
 
   @ApiProperty({ description: '战队名称' })
   @IsString()

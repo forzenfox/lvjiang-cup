@@ -5,6 +5,7 @@ import { CreateTeamDto } from './dto/create-team.dto';
 import { UpdateTeamDto } from './dto/update-team.dto';
 import { CreateMemberDto } from './dto/create-member.dto';
 import { UpdateMemberDto } from './dto/update-member.dto';
+import { v4 as uuidv4 } from 'uuid';
 
 export interface TeamMember {
   id: string;
@@ -138,10 +139,13 @@ export class TeamsService {
   }
 
   async create(createTeamDto: CreateTeamDto): Promise<Team> {
+    // 如果前端未提供ID，则后端生成UUID
+    const teamId = createTeamDto.id || uuidv4();
+
     await this.databaseService.run(
       `INSERT INTO teams (id, name, logo, logo_url, logo_thumbnail_url, battle_cry, description) VALUES (?, ?, ?, ?, ?, ?, ?)`,
       [
-        createTeamDto.id,
+        teamId,
         createTeamDto.name,
         createTeamDto.logo || null,
         createTeamDto.logoUrl || null,
@@ -160,20 +164,20 @@ export class TeamsService {
       { pos: 'SUPPORT', name: '辅助' },
     ];
 
-    this.logger.log(`Creating 5 default members for team ${createTeamDto.id}`);
+    this.logger.log(`Creating 5 default members for team ${teamId}`);
 
     for (let i = 0; i < defaultPositions.length; i++) {
       const { pos, name } = defaultPositions[i];
-      const memberId = `${createTeamDto.id}_${pos}`;
+      const memberId = uuidv4(); // 队员ID也使用UUID
       this.logger.log(`Creating member ${memberId} with nickname ${name}`);
 
       await this.databaseService.run(
         `INSERT INTO team_members (id, nickname, position, team_id, rating, is_captain, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`,
         [
-          memberId, // 使用 teamId_position 作为队员 ID，便于识别
+          memberId, // 使用UUID作为队员ID
           name, // 默认昵称：上单/打野/中单/ADC/辅助
           pos, // 位置：TOP/JUNGLE/MID/ADC/SUPPORT
-          createTeamDto.id, // 战队 ID
+          teamId, // 战队 ID
           60, // 默认评分
           i === 0 ? 1 : 0, // 第一个位置（上单）设为队长
         ],
@@ -182,11 +186,11 @@ export class TeamsService {
       this.logger.log(`Member ${memberId} created successfully`);
     }
 
-    this.logger.log(`Team created: ${createTeamDto.id}`);
+    this.logger.log(`Team created: ${teamId}`);
 
     this.cacheService.del(this.CACHE_KEY_ALL);
 
-    return this.findOne(createTeamDto.id);
+    return this.findOne(teamId);
   }
 
   async update(id: string, updateTeamDto: UpdateTeamDto): Promise<Team> {
@@ -322,6 +326,9 @@ export class TeamsService {
       throw new NotFoundException(`Team with id ${teamId} not found`);
     }
 
+    // 如果前端未提供ID，则后端生成UUID
+    const memberId = createMemberDto.id || uuidv4();
+
     // 如果设置为队长，先移除该战队其他队长的队长身份
     if (createMemberDto.isCaptain) {
       await this.databaseService.run(
@@ -333,7 +340,7 @@ export class TeamsService {
     await this.databaseService.run(
       `INSERT INTO team_members (id, user_id, nickname, avatar_url, position, team_id, game_id, bio, champion_pool, rating, is_captain, live_url, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
-        createMemberDto.id,
+        memberId,
         createMemberDto.userId || null,
         createMemberDto.nickname,
         createMemberDto.avatarUrl || null,
@@ -349,13 +356,13 @@ export class TeamsService {
       ],
     );
 
-    this.logger.log(`Member created: ${createMemberDto.id} for team ${teamId}`);
+    this.logger.log(`Member created: ${memberId} for team ${teamId}`);
 
     // 清除战队缓存
     this.cacheService.del(this.CACHE_KEY_ALL);
     this.cacheService.del(`${this.CACHE_KEY_PREFIX}${teamId}`);
 
-    return this.findMemberById(createMemberDto.id);
+    return this.findMemberById(memberId);
   }
 
   /**

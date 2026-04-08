@@ -1,10 +1,17 @@
+import { PositionType } from './position';
+
 export interface Player {
   id: string;
-  name: string;
-  avatar: string;
-  position: string;
-  description: string;
+  nickname?: string;
+  avatarUrl?: string;
+  position: PositionType;
+  bio?: string;
   teamId?: string;
+  gameId?: string;
+  championPool?: string[];
+  rating?: number;
+  isCaptain?: boolean;
+  liveUrl?: string;
 }
 
 export interface Team {

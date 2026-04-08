@@ -336,6 +336,69 @@ describe('TeamsController', () => {
     });
   });
 
+  describe('UUID 重构 - 后端生成ID', () => {
+    it('should create team without providing ID and return UUID', async () => {
+      // Arrange - 不传递 ID
+      const createTeamDto = {
+        name: 'New Team',
+        logo: 'logo.png',
+        description: 'A new team',
+        // 注意：没有 id 字段
+      };
+      
+      const createdTeam: Team = {
+        id: '550e8400-e29b-41d4-a716-446655440000', // UUID v4 格式
+        name: 'New Team',
+        logo: 'logo.png',
+        description: 'A new team',
+        members: [],
+      };
+      mockTeamsService.create.mockResolvedValue(createdTeam);
+
+      // Act
+      const result = await controller.create(createTeamDto as any);
+
+      // Assert
+      expect(result).toEqual(createdTeam);
+      expect(result.id).toBeDefined();
+      expect(result.id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i);
+      expect(mockTeamsService.create).toHaveBeenCalledWith(createTeamDto);
+    });
+
+    it('should create member without providing ID and return UUID', async () => {
+      // Arrange
+      const createMemberDto = {
+        nickname: 'New Player',
+        position: 'MID' as const,
+        // 注意：没有 id 字段
+      };
+      const createdMember = {
+        id: '550e8400-e29b-41d4-a716-446655440001', // UUID v4 格式
+        nickname: 'New Player',
+        position: 'MID',
+        teamId: 'team1',
+      };
+      mockTeamsService.createMember.mockResolvedValue(createdMember);
+
+      // Act
+      const result = await controller.createMember('team1', createMemberDto as any);
+
+      // Assert
+      expect(result).toEqual(createdMember);
+      expect(result.id).toBeDefined();
+      expect(result.id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i);
+    });
+
+    it('should reject invalid UUID format in update request', async () => {
+      // Arrange
+      mockTeamsService.update.mockRejectedValue(new NotFoundException('Team not found'));
+
+      // Act & Assert
+      await expect(controller.update('invalid-uuid', { name: 'Test' }))
+        .rejects.toThrow(NotFoundException);
+    });
+  });
+
   describe('响应格式验证', () => {
     it('应该返回正确的分页响应格式', async () => {
       // Arrange

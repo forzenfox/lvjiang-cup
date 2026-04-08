@@ -94,13 +94,13 @@ const AdminSchedule: React.FC = () => {
       const frontendTeams = teamsResult.data.map(t => ({
         id: t.id,
         name: t.name,
-        logo: t.logo || '',
-        description: t.description || '',
-        players: (t.players || []).map((player, index: number) => ({
+        logo: t.logo || t.logoUrl || '',
+        description: t.battleCry || '',
+        players: (t.members || []).map((player, index: number) => ({
           id: player.id || `p-${t.id}-${index}`,
-          name: player.name,
-          position: player.position || ['top', 'jungle', 'mid', 'bot', 'support'][index] || 'sub',
-          avatar: player.avatar || '',
+          name: player.nickname,
+          position: player.position || ['TOP', 'JUNGLE', 'MID', 'ADC', 'SUPPORT'][index] || 'SUB',
+          avatar: player.avatarUrl || '',
           description: '',
           teamId: t.id,
         })),

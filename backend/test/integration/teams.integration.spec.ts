@@ -119,20 +119,23 @@ describe('Teams Integration Tests', () => {
       expect(found.name).toBe(createDto.name);
     });
 
-    it('should create a team with members', async () => {
+    it('should create a team with auto-generated UUID and default members', async () => {
       const createDto = {
-        id: 'team-1',
         name: 'Test Team',
         logo: 'logo.png',
         description: 'Test description',
-        members: [
-          { id: 'p1', nickname: 'Player1', position: 'TOP' as const },
-          { id: 'p2', nickname: 'Player2', position: 'JUNGLE' as const },
-        ],
+        // 不传递 id，由后端生成 UUID
       };
 
       const created = await service.create(createDto);
-      expect(created.members).toHaveLength(2);
+
+      // 验证 UUID 格式
+      expect(created.id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i);
+      expect(created.name).toBe('Test Team');
+      // 验证自动创建了 5 个默认队员
+      expect(created.members).toHaveLength(5);
+      // 验证队员 ID 也是 UUID
+      expect(created.members[0].id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i);
     });
 
     it('should update a team', async () => {
@@ -159,18 +162,25 @@ describe('Teams Integration Tests', () => {
 
     it('should delete a team and its members', async () => {
       const createDto = {
-        id: 'team-1',
         name: 'Test Team',
         logo: 'logo.png',
         description: 'Test description',
-        members: [{ id: 'p1', nickname: 'Player1', position: 'TOP' as const }],
       };
 
       const created = await service.create(createDto);
-      await service.remove(created.id);
+      const teamId = created.id;
+
+      // 验证创建了 5 个默认队员
+      expect(created.members).toHaveLength(5);
+
+      await service.remove(teamId);
 
       mockCacheService.get.mockReturnValue(undefined);
-      await expect(service.findOne(created.id)).rejects.toThrow(NotFoundException);
+      await expect(service.findOne(teamId)).rejects.toThrow(NotFoundException);
+
+      // 验证队员也被级联删除
+      const members = await databaseService.all('SELECT * FROM team_members WHERE team_id = ?', [teamId]);
+      expect(members).toHaveLength(0);
     });
   });
 
@@ -234,19 +244,15 @@ describe('Teams Integration Tests', () => {
   describe('Data Consistency', () => {
     it('should maintain data consistency after multiple operations', async () => {
       const team1 = await service.create({
-        id: 'team-1',
         name: 'Team 1',
         logo: 'logo1.png',
         description: 'Description 1',
-        members: [],
       });
 
       const team2 = await service.create({
-        id: 'team-2',
         name: 'Team 2',
         logo: 'logo2.png',
         description: 'Description 2',
-        members: [],
       });
 
       mockCacheService.get.mockReturnValue(undefined);
@@ -271,58 +277,59 @@ describe('Teams Integration Tests', () => {
 
     it('should handle member updates correctly', async () => {
       const createDto = {
-        id: 'team-1',
         name: 'Test Team',
         logo: 'logo.png',
         description: 'Test description',
-        members: [
-          { id: 'p1', nickname: 'Player1', position: 'TOP' as const },
-          { id: 'p2', nickname: 'Player2', position: 'JUNGLE' as const },
-        ],
       };
 
       const created = await service.create(createDto);
+      // 验证自动创建了 5 个默认队员
+      expect(created.members).toHaveLength(5);
 
       mockCacheService.get.mockReturnValue(undefined);
       mockCacheService.del.mockReturnValue(undefined);
 
+      // 更新前两个队员，添加一个新队员
       const updateDto = {
         members: [
-          { id: 'p1', nickname: 'UpdatedPlayer1', position: 'TOP' as const },
-          { id: 'p3', nickname: 'Player3', position: 'MID' as const },
+          { id: created.members[0].id, nickname: 'UpdatedPlayer1', position: 'TOP' as const },
+          { id: created.members[1].id, nickname: 'Player2', position: 'JUNGLE' as const },
+          { nickname: 'Player3', position: 'MID' as const },
         ],
       };
 
       const updated = await service.update(created.id, updateDto);
-      expect(updated.members).toHaveLength(2);
+      // update 方法会完全替换队员列表，所以应该有 3 个队员
+      expect(updated.members).toHaveLength(3);
       expect(updated.members[0].nickname).toBe('UpdatedPlayer1');
-      expect(updated.members[1].nickname).toBe('Player3');
+      expect(updated.members[1].nickname).toBe('Player2');
+      expect(updated.members[2].nickname).toBe('Player3');
     });
   });
 
   describe('队员管理集成', () => {
-    it('should add members to existing team', async () => {
+    it('should update members of existing team', async () => {
       const createDto = {
-        id: 'team-1',
         name: 'Test Team',
         logo: 'logo.png',
         description: 'Test description',
-        members: [],
       };
 
       const created = await service.create(createDto);
-      expect(created.members).toHaveLength(0);
+      // 验证自动创建了 5 个默认队员
+      expect(created.members).toHaveLength(5);
 
       mockCacheService.get.mockReturnValue(undefined);
       mockCacheService.del.mockReturnValue(undefined);
 
+      // 更新所有队员信息
       const updated = await service.update(created.id, {
         members: [
-          { id: 'p1', nickname: 'Player1', position: 'TOP' as const },
-          { id: 'p2', nickname: 'Player2', position: 'JUNGLE' as const },
-          { id: 'p3', nickname: 'Player3', position: 'MID' as const },
-          { id: 'p4', nickname: 'Player4', position: 'ADC' as const },
-          { id: 'p5', nickname: 'Player5', position: 'SUPPORT' as const },
+          { nickname: 'Player1', position: 'TOP' as const },
+          { nickname: 'Player2', position: 'JUNGLE' as const },
+          { nickname: 'Player3', position: 'MID' as const },
+          { nickname: 'Player4', position: 'ADC' as const },
+          { nickname: 'Player5', position: 'SUPPORT' as const },
         ],
       });
 
@@ -336,20 +343,16 @@ describe('Teams Integration Tests', () => {
       ]);
     });
 
-    it('should remove all members from team', async () => {
+    it('should remove all members from team via update', async () => {
       const createDto = {
-        id: 'team-1',
         name: 'Test Team',
         logo: 'logo.png',
         description: 'Test description',
-        members: [
-          { id: 'p1', nickname: 'Player1', position: 'TOP' as const },
-          { id: 'p2', nickname: 'Player2', position: 'JUNGLE' as const },
-        ],
       };
 
       const created = await service.create(createDto);
-      expect(created.members).toHaveLength(2);
+      // 验证自动创建了 5 个默认队员
+      expect(created.members).toHaveLength(5);
 
       mockCacheService.get.mockReturnValue(undefined);
       mockCacheService.del.mockReturnValue(undefined);
@@ -363,23 +366,21 @@ describe('Teams Integration Tests', () => {
 
     it('should update member information correctly', async () => {
       const createDto = {
-        id: 'team-1',
         name: 'Test Team',
         logo: 'logo.png',
         description: 'Test description',
-        members: [
-          { id: 'p1', nickname: 'OldName', position: 'TOP' as const, avatarUrl: 'old.png' },
-        ],
       };
 
       const created = await service.create(createDto);
+      // 获取第一个队员的ID
+      const firstMemberId = created.members[0].id;
 
       mockCacheService.get.mockReturnValue(undefined);
       mockCacheService.del.mockReturnValue(undefined);
 
       const updated = await service.update(created.id, {
         members: [
-          { id: 'p1', nickname: 'NewName', position: 'JUNGLE' as const, avatarUrl: 'new.png' },
+          { id: firstMemberId, nickname: 'NewName', position: 'JUNGLE' as const, avatarUrl: 'new.png' },
         ],
       });
 
@@ -393,76 +394,82 @@ describe('Teams Integration Tests', () => {
   describe('数据库事务测试', () => {
     it('should rollback team creation if member insertion fails', async () => {
       const createDto = {
-        id: 'team-1',
         name: 'Test Team',
         logo: 'logo.png',
         description: 'Test description',
-        members: [{ id: 'p1', nickname: 'Player1', position: 'TOP' as const }],
       };
 
-      await service.create(createDto);
+      const created = await service.create(createDto);
+      const teamId = created.id;
 
+      // 验证自动创建了 5 个默认队员
       let members = await databaseService.all('SELECT * FROM team_members WHERE team_id = ?', [
-        'team-1',
+        teamId,
       ]);
-      expect(members).toHaveLength(1);
+      expect(members).toHaveLength(5);
 
-      await databaseService.run('DELETE FROM teams WHERE id = ?', ['team-1']);
+      await databaseService.run('DELETE FROM teams WHERE id = ?', [teamId]);
 
       members = await databaseService.all('SELECT * FROM team_members WHERE team_id = ?', [
-        'team-1',
+        teamId,
       ]);
       expect(members).toHaveLength(0);
     });
 
     it('should maintain atomicity for batch member operations', async () => {
       const createDto = {
-        id: 'team-1',
         name: 'Test Team',
         logo: 'logo.png',
         description: 'Test description',
-        members: Array.from({ length: 10 }, (_, i) => ({
-          id: `p${i}`,
-          nickname: `Player${i}`,
-          position: ['TOP', 'JUNGLE', 'MID', 'ADC', 'SUPPORT'][i % 5] as any,
-        })),
+        // 不传递 members，由后端自动创建 5 个默认队员
       };
 
       const created = await service.create(createDto);
-      expect(created.members).toHaveLength(10);
+      // 验证自动创建了 5 个默认队员
+      expect(created.members).toHaveLength(5);
 
       const dbMembers = await databaseService.all('SELECT * FROM team_members WHERE team_id = ?', [
-        'team-1',
+        created.id,
       ]);
-      expect(dbMembers).toHaveLength(10);
+      expect(dbMembers).toHaveLength(5);
     });
   });
 
   describe('错误回滚测试', () => {
     it('should handle duplicate team id gracefully', async () => {
-      const createDto = {
-        id: 'team-1',
-        name: 'Test Team',
+      // 使用相同的自定义 ID 创建两个战队应该失败
+      const createDto1 = {
+        id: 'custom-team-id',
+        name: 'Test Team 1',
         logo: 'logo.png',
         description: 'Test description',
-        members: [],
+      };
+      const createDto2 = {
+        id: 'custom-team-id',
+        name: 'Test Team 2',
+        logo: 'logo.png',
+        description: 'Test description',
       };
 
-      await service.create(createDto);
-
-      await expect(service.create(createDto)).rejects.toThrow();
+      await service.create(createDto1);
+      await expect(service.create(createDto2)).rejects.toThrow();
     });
 
-    it('should handle invalid member position', async () => {
-      const createDto = {
-        id: 'team-1',
+    it('should handle invalid member position when adding member manually', async () => {
+      // 先创建战队
+      const team = await service.create({
         name: 'Test Team',
         logo: 'logo.png',
         description: 'Test description',
-        members: [{ id: 'p1', nickname: 'Player1', position: '无效位置' as any }],
-      };
+      });
 
-      await expect(service.create(createDto)).rejects.toThrow();
+      // 手动添加队员时使用无效位置应该失败
+      await expect(
+        service.createMember(team.id, {
+          nickname: 'Player1',
+          position: '无效位置' as any,
+        })
+      ).rejects.toThrow();
     });
 
     it('should handle update of non-existent team', async () => {
@@ -525,19 +532,15 @@ describe('Teams Integration Tests', () => {
   describe('数据完整性验证', () => {
     it('should enforce team name uniqueness at application level', async () => {
       await service.create({
-        id: 'team-1',
         name: 'Unique Team Name',
         logo: 'logo1.png',
         description: 'Description 1',
-        members: [],
       });
 
       await service.create({
-        id: 'team-2',
         name: 'Unique Team Name',
         logo: 'logo2.png',
         description: 'Description 2',
-        members: [],
       });
 
       mockCacheService.get.mockReturnValue(undefined);
@@ -545,42 +548,42 @@ describe('Teams Integration Tests', () => {
       expect(allTeams).toHaveLength(2);
     });
 
-    it('should validate required fields', async () => {
-      const team = await service.create({
-        id: 'team-1',
-        name: '',
-        logo: 'logo.png',
-        description: 'Description',
-        members: [],
-      });
-      expect(team.name).toBe('');
-
+    it('should validate UUID generation for empty or missing id', async () => {
+      // 测试空字符串 ID 会生成 UUID
       const teamWithEmptyId = await service.create({
         id: '',
-        name: 'Test Team',
+        name: 'Test Team With Empty Id',
         logo: 'logo.png',
         description: 'Description',
-        members: [],
       });
-      expect(teamWithEmptyId.id).toBe('');
-      expect(teamWithEmptyId.name).toBe('Test Team');
+      // 空字符串 ID 会触发 UUID 生成
+      expect(teamWithEmptyId.id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i);
+      expect(teamWithEmptyId.name).toBe('Test Team With Empty Id');
 
-      await service.remove('');
+      // 测试不传 ID 也会生成 UUID
+      const teamWithoutId = await service.create({
+        name: 'Test Team Without Id',
+        logo: 'logo.png',
+        description: 'Description',
+      });
+      expect(teamWithoutId.id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i);
+
+      await service.remove(teamWithEmptyId.id);
+      await service.remove(teamWithoutId.id);
     });
 
     it('should maintain referential integrity with members', async () => {
       const team = await service.create({
-        id: 'team-1',
         name: 'Test Team',
         logo: 'logo.png',
         description: 'Description',
-        members: [{ id: 'p1', nickname: 'Player1', position: 'TOP' as const }],
       });
 
       let members = await databaseService.all('SELECT * FROM team_members WHERE team_id = ?', [
         team.id,
       ]);
-      expect(members).toHaveLength(1);
+      // 验证自动创建了 5 个默认队员
+      expect(members).toHaveLength(5);
 
       await service.remove(team.id);
 
@@ -593,42 +596,43 @@ describe('Teams Integration Tests', () => {
 
   describe('外键约束测试', () => {
     it('should handle member insertion for existing team', async () => {
-      await service.create({
-        id: 'team-1',
+      const team = await service.create({
         name: 'Test Team',
         logo: 'logo.png',
         description: 'Description',
-        members: [],
       });
 
+      // 验证自动创建了 5 个默认队员
+      const defaultMembers = await databaseService.all('SELECT * FROM team_members WHERE team_id = ?', [
+        team.id,
+      ]);
+      expect(defaultMembers).toHaveLength(5);
+
+      // 手动添加一个新队员
       const result = await databaseService.run(
         'INSERT INTO team_members (id, nickname, position, team_id) VALUES (?, ?, ?, ?)',
-        ['p1', 'Player1', 'TOP', 'team-1'],
+        ['custom-member-id', 'Player1', 'TOP', team.id],
       );
       expect(result.changes).toBe(1);
 
       const members = await databaseService.all('SELECT * FROM team_members WHERE team_id = ?', [
-        'team-1',
+        team.id,
       ]);
-      expect(members).toHaveLength(1);
+      expect(members).toHaveLength(6);
     });
 
     it('should handle team deletion with existing members', async () => {
       const team = await service.create({
-        id: 'team-1',
         name: 'Test Team',
         logo: 'logo.png',
         description: 'Description',
-        members: [
-          { id: 'p1', nickname: 'Player1', position: 'TOP' as const },
-          { id: 'p2', nickname: 'Player2', position: 'JUNGLE' as const },
-        ],
       });
 
       let members = await databaseService.all('SELECT * FROM team_members WHERE team_id = ?', [
         team.id,
       ]);
-      expect(members).toHaveLength(2);
+      // 验证自动创建了 5 个默认队员
+      expect(members).toHaveLength(5);
 
       await service.remove(team.id);
 
@@ -642,17 +646,12 @@ describe('Teams Integration Tests', () => {
   describe('级联删除测试', () => {
     it('should cascade delete all related members when team is deleted', async () => {
       const team = await service.create({
-        id: 'team-1',
         name: 'Test Team',
         logo: 'logo.png',
         description: 'Description',
-        members: Array.from({ length: 5 }, (_, i) => ({
-          id: `p${i}`,
-          nickname: `Player${i}`,
-          position: ['TOP', 'JUNGLE', 'MID', 'ADC', 'SUPPORT'][i] as any,
-        })),
       });
 
+      // 验证自动创建了 5 个默认队员
       expect(team.members).toHaveLength(5);
 
       let allMembers = await databaseService.all('SELECT * FROM team_members');
@@ -666,19 +665,15 @@ describe('Teams Integration Tests', () => {
 
     it('should handle multiple teams with members deletion', async () => {
       const team1 = await service.create({
-        id: 'team-1',
         name: 'Team 1',
         logo: 'logo1.png',
         description: 'Description 1',
-        members: [{ id: 't1p1', nickname: 'T1Player1', position: 'TOP' as const }],
       });
 
       const team2 = await service.create({
-        id: 'team-2',
         name: 'Team 2',
         logo: 'logo2.png',
         description: 'Description 2',
-        members: [{ id: 't2p1', nickname: 'T2Player1', position: 'JUNGLE' as const }],
       });
 
       let team1Members = await databaseService.all('SELECT * FROM team_members WHERE team_id = ?', [
@@ -687,15 +682,16 @@ describe('Teams Integration Tests', () => {
       let team2Members = await databaseService.all('SELECT * FROM team_members WHERE team_id = ?', [
         team2.id,
       ]);
-      expect(team1Members).toHaveLength(1);
-      expect(team2Members).toHaveLength(1);
+      // 每个战队自动创建 5 个默认队员
+      expect(team1Members).toHaveLength(5);
+      expect(team2Members).toHaveLength(5);
 
       await service.remove(team1.id);
 
       team2Members = await databaseService.all('SELECT * FROM team_members WHERE team_id = ?', [
         team2.id,
       ]);
-      expect(team2Members).toHaveLength(1);
+      expect(team2Members).toHaveLength(5);
 
       team1Members = await databaseService.all('SELECT * FROM team_members WHERE team_id = ?', [
         team1.id,
@@ -709,15 +705,9 @@ describe('Teams Integration Tests', () => {
       const batchSize = 50;
       for (let i = 0; i < batchSize; i++) {
         await service.create({
-          id: `team-${i}`,
           name: `Team ${i}`,
           logo: `logo${i}.png`,
           description: `Description ${i}`,
-          members: Array.from({ length: 5 }, (_, j) => ({
-            id: `team-${i}-p${j}`,
-            nickname: `Player${j}`,
-            position: ['TOP', 'JUNGLE', 'MID', 'ADC', 'SUPPORT'][j] as any,
-          })),
         });
       }
 
@@ -730,17 +720,11 @@ describe('Teams Integration Tests', () => {
       expect(endTime - startTime).toBeLessThan(1000);
     });
 
-    it('should efficiently query single team with many members', async () => {
+    it('should efficiently query single team with default members', async () => {
       const team = await service.create({
-        id: 'team-1',
-        name: 'Large Team',
+        name: 'Test Team',
         logo: 'logo.png',
         description: 'Description',
-        members: Array.from({ length: 20 }, (_, i) => ({
-          id: `p${i}`,
-          nickname: `Player${i}`,
-          position: ['TOP', 'JUNGLE', 'MID', 'ADC', 'SUPPORT'][i % 5] as any,
-        })),
       });
 
       mockCacheService.get.mockReturnValue(undefined);
@@ -748,24 +732,23 @@ describe('Teams Integration Tests', () => {
       const found = await service.findOne(team.id);
       const endTime = Date.now();
 
-      expect(found.members).toHaveLength(20);
+      // 验证自动创建了 5 个默认队员
+      expect(found.members).toHaveLength(5);
       expect(endTime - startTime).toBeLessThan(100);
     });
 
     it('should use cache for repeated queries', async () => {
-      await service.create({
-        id: 'team-1',
+      const team = await service.create({
         name: 'Test Team',
         logo: 'logo.png',
         description: 'Description',
-        members: [],
       });
 
       mockCacheService.get.mockReturnValue(undefined);
-      await service.findOne('team-1');
+      await service.findOne(team.id);
 
       mockCacheService.get.mockReturnValue({
-        id: 'team-1',
+        id: team.id,
         name: 'Test Team',
         logo: 'logo.png',
         description: 'Description',

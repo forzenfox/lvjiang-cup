@@ -2,9 +2,10 @@ import { IsString, IsOptional, IsNumber, IsBoolean, IsArray } from 'class-valida
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateMemberDto {
-  @ApiProperty({ description: '成员ID' })
+  @ApiPropertyOptional({ description: '成员ID (可选，不传则由后端生成UUID)' })
   @IsString()
-  id: string;
+  @IsOptional()
+  id?: string;
 
   @ApiPropertyOptional({ description: '用户ID' })
   @IsNumber()

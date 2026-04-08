@@ -1,6 +1,7 @@
 /**
  * API 类型定义
  */
+import { PositionType } from '../types/position';
 
 /**
  * 通用响应类型
@@ -92,25 +93,33 @@ export interface UserInfo {
 // 从API响应接收的队员类型(包含teamId)
 export interface Player {
   id: string;
-  name: string;
-  avatar?: string;
-  position: 'top' | 'jungle' | 'mid' | 'bot' | 'support';
+  userId?: string | null;
+  nickname: string;
+  avatarUrl?: string;
+  position: PositionType;
   teamId: string;
+  gameId?: string;
+  bio?: string;
+  championPool?: string[];
+  rating?: number;
+  isCaptain?: boolean;
+  liveUrl?: string;
+  sortOrder?: number | null;
 }
 
 // 发送到 API 的队员类型 (不包含 teamId)
 export interface CreatePlayerRequest {
   id: string;
-  name: string;
-  avatar?: string;
-  position: 'top' | 'jungle' | 'mid' | 'bot' | 'support';
+  nickname: string;
+  avatarUrl?: string;
+  position: PositionType;
 }
 
 // 更新队员请求类型
 export interface UpdateMemberRequest {
   nickname?: string;
   avatarUrl?: string;
-  position?: 'TOP' | 'JUNGLE' | 'MID' | 'ADC' | 'SUPPORT';
+  position?: PositionType;
   bio?: string;
   gameId?: string;
   championPool?: string[];
@@ -126,7 +135,11 @@ export interface Team {
   id: string;
   name: string;
   logo?: string;
+  logoUrl?: string;
+  logoThumbnailUrl?: string;
+  battleCry?: string;
   description?: string;
+  members?: Player[];
   players?: Player[];
   createdAt?: string;
   updatedAt?: string;
@@ -138,7 +151,7 @@ export interface CreateMemberRequest {
   id: string;
   nickname: string;
   avatarUrl?: string;
-  position: 'TOP' | 'JUNGLE' | 'MID' | 'ADC' | 'SUPPORT';
+  position: PositionType;
   gameId?: string;
   bio?: string;
   championPool?: string[];
@@ -149,7 +162,7 @@ export interface CreateMemberRequest {
 }
 
 export interface CreateTeamRequest {
-  id: string;
+  id?: string;  // 改为可选，不传则由后端生成UUID
   name: string;
   logo?: string;
   description?: string;

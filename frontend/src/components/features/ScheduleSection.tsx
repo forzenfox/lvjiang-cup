@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import SwissStage from './SwissStage';
 import EliminationStage from './EliminationStage';
 import { useAdvancementStore } from '@/store/advancementStore';
+import { PositionType } from '@/types/position';
 
 // 本地 Match 类型（兼容现有UI组件）
 type MatchStatus = 'upcoming' | 'ongoing' | 'finished';
@@ -18,7 +19,7 @@ interface Player {
   id: string;
   name: string;
   avatar: string;
-  position: string;
+  position: PositionType;
   description: string;
 }
 
@@ -79,7 +80,7 @@ const convertApiMatchToLocal = (apiMatch: ApiMatch, teams: Team[]): Match => {
 
 // 将 API Team 转换为本地 Team 格式
 const convertApiTeamToLocal = (apiTeam: ApiTeam): Team => {
-  const positions = ['top', 'jungle', 'mid', 'bot', 'support'];
+  const positions: PositionType[] = ['TOP', 'JUNGLE', 'MID', 'ADC', 'SUPPORT'];
   const players: Player[] = positions.map((position, index) => ({
     id: `${apiTeam.id}-player-${index}`,
     name: `${apiTeam.name} - ${position}`,
@@ -91,9 +92,9 @@ const convertApiTeamToLocal = (apiTeam: ApiTeam): Team => {
   return {
     id: apiTeam.id,
     name: apiTeam.name,
-    logo: apiTeam.logo || `https://api.dicebear.com/7.x/identicon/svg?seed=${apiTeam.id}`,
+    logo: apiTeam.logo || apiTeam.logoUrl || `https://api.dicebear.com/7.x/identicon/svg?seed=${apiTeam.id}`,
     players,
-    description: apiTeam.description || '暂无描述',
+    description: apiTeam.battleCry || '暂无参赛宣言',
   };
 };
 
