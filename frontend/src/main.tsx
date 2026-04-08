@@ -15,7 +15,7 @@ createRoot(rootElement).render(
     <ErrorBoundary>
       <App />
       <Toaster
-        position="top-right"
+        position="top-center"
         richColors
         closeButton
         duration={4000}

@@ -8,7 +8,7 @@ const mockTeam: Team = {
   name: '测试队伍',
   logo: '/test-logo.png',
   players: [],
-  description: '测试描述',
+  battleCry: '测试描述',
 };
 
 describe('SwissTeamLogo', () => {

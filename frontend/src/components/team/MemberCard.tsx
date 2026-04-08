@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { getChampionIconUrl } from '../../utils/championUtils';
+import type { PlayerLevel } from '../../api/types';
 
 interface MemberCardProps {
   member: TeamMember;
@@ -16,7 +17,17 @@ export interface TeamMember {
   rating?: number;
   isCaptain?: boolean;
   liveUrl?: string;
+  level?: PlayerLevel;
 }
+
+// 等级颜色配置
+const LEVEL_COLORS: Record<PlayerLevel, string> = {
+  S: 'bg-amber-500/20 text-amber-400 border-amber-500/30',
+  A: 'bg-purple-500/20 text-purple-400 border-purple-500/30',
+  B: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
+  C: 'bg-green-500/20 text-green-400 border-green-500/30',
+  D: 'bg-gray-500/20 text-gray-400 border-gray-500/30',
+};
 
 const POSITION_CONFIG = {
   TOP: { label: '上单', icon: '/assets/positions/top.png' },
@@ -158,6 +169,11 @@ const MemberCard: React.FC<MemberCardProps> = ({ member }) => {
             <h4 className="text-base font-semibold text-slate-100 truncate">
               {member.nickname}
             </h4>
+            {member.level && (
+              <span className={`px-1.5 py-0.5 text-[10px] font-bold rounded border ${LEVEL_COLORS[member.level]}`}>
+                {member.level}
+              </span>
+            )}
             {member.isCaptain && (
               <svg
                 className="w-4 h-4 text-amber-500 flex-shrink-0"

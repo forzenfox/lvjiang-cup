@@ -97,11 +97,6 @@ export class UpdateTeamDto {
   @IsOptional()
   battleCry?: string;
 
-  @ApiPropertyOptional({ description: '战队描述' })
-  @IsString()
-  @IsOptional()
-  description?: string;
-
   @ApiPropertyOptional({ description: '成员列表', type: [UpdateMemberDto] })
   @IsArray()
   @ValidateNested({ each: true })

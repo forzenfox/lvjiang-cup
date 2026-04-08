@@ -5,7 +5,7 @@ export const initialTeams: Team[] = [
     id: 'team1',
     name: '驴酱',
     logo: 'https://picsum.photos/seed/donkey/200/200',
-    description: '驴酱战队',
+    battleCry: '驴酱战队',
     players: [
       {
         id: 'p1',
@@ -53,7 +53,7 @@ export const initialTeams: Team[] = [
     id: 'team2',
     name: 'IC',
     logo: 'https://picsum.photos/seed/icstar/200/200',
-    description: 'IC战队',
+    battleCry: 'IC战队',
     players: [
       {
         id: 'p6',
@@ -101,7 +101,7 @@ export const initialTeams: Team[] = [
     id: 'team3',
     name: 'PLG',
     logo: 'https://picsum.photos/seed/plgwater/200/200',
-    description: 'PLG战队',
+    battleCry: 'PLG战队',
     players: [
       {
         id: 'p11',
@@ -149,7 +149,7 @@ export const initialTeams: Team[] = [
     id: 'team4',
     name: '小熊',
     logo: 'https://picsum.photos/seed/xiaoxiong/200/200',
-    description: '小熊战队',
+    battleCry: '小熊战队',
     players: [
       {
         id: 'p16',
@@ -197,7 +197,7 @@ export const initialTeams: Team[] = [
     id: 'team5',
     name: '搓搓鸟',
     logo: 'https://picsum.photos/seed/cuocuoniao/200/200',
-    description: '搓搓鸟战队',
+    battleCry: '搓搓鸟战队',
     players: [
       {
         id: 'p21',
@@ -245,7 +245,7 @@ export const initialTeams: Team[] = [
     id: 'team6',
     name: '100J',
     logo: 'https://picsum.photos/seed/100j/200/200',
-    description: '100J战队',
+    battleCry: '100J战队',
     players: [
       {
         id: 'p26',
@@ -293,7 +293,7 @@ export const initialTeams: Team[] = [
     id: 'team7',
     name: '69',
     logo: 'https://picsum.photos/seed/69team/200/200',
-    description: '69战队',
+    battleCry: '69战队',
     players: [
       {
         id: 'p31',
@@ -341,7 +341,7 @@ export const initialTeams: Team[] = [
     id: 'team8',
     name: '雨酱',
     logo: 'https://picsum.photos/seed/yujiang/200/200',
-    description: '雨酱战队',
+    battleCry: '雨酱战队',
     players: [
       {
         id: 'p36',

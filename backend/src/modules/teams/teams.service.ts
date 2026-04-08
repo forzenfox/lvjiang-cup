@@ -30,7 +30,6 @@ export interface Team {
   logoUrl?: string;
   logoThumbnailUrl?: string;
   battleCry?: string;
-  description?: string;
   members: TeamMember[];
 }
 
@@ -64,7 +63,6 @@ export class TeamsService {
       logoUrl: team.logo_url,
       logoThumbnailUrl: team.logo_thumbnail_url,
       battleCry: team.battle_cry,
-      description: team.description,
       members: members
         .filter((m) => m.team_id === team.id)
         .map((m) => ({
@@ -115,7 +113,6 @@ export class TeamsService {
       logoUrl: team.logo_url,
       logoThumbnailUrl: team.logo_thumbnail_url,
       battleCry: team.battle_cry,
-      description: team.description,
       members: members.map((m) => ({
         id: m.id,
         userId: m.user_id,
@@ -143,7 +140,7 @@ export class TeamsService {
     const teamId = createTeamDto.id || uuidv4();
 
     await this.databaseService.run(
-      `INSERT INTO teams (id, name, logo, logo_url, logo_thumbnail_url, battle_cry, description) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO teams (id, name, logo, logo_url, logo_thumbnail_url, battle_cry) VALUES (?, ?, ?, ?, ?, ?)`,
       [
         teamId,
         createTeamDto.name,
@@ -151,7 +148,6 @@ export class TeamsService {
         createTeamDto.logoUrl || null,
         createTeamDto.logoThumbnailUrl || null,
         createTeamDto.battleCry || null,
-        createTeamDto.description || null,
       ],
     );
 
@@ -221,10 +217,6 @@ export class TeamsService {
     if (updateTeamDto.battleCry !== undefined) {
       updates.push('battle_cry = ?');
       values.push(updateTeamDto.battleCry);
-    }
-    if (updateTeamDto.description !== undefined) {
-      updates.push('description = ?');
-      values.push(updateTeamDto.description);
     }
 
     if (updates.length > 0) {

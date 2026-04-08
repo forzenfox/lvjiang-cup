@@ -13,7 +13,7 @@ const mockPlayer: Player = {
   gameId: 'Yasuo123',
   bio: '十年磨剑，只为一剑。',
   championPool: ['疾风剑豪·亚索', '刀锋舞者·艾瑞莉娅', '封魔剑魂·永恩'],
-  rating: 4.8,
+  rating: 96, // 96分对应4.8星 (96/100*5=4.8)
   isCaptain: true,
   liveUrl: 'https://twitch.tv/yasuo',
 };
@@ -126,13 +126,32 @@ describe('PlayerDetailModal 组件', () => {
 
     it('应该显示评分数值', () => {
       render(<PlayerDetailModal player={mockPlayer} isOpen={true} onClose={vi.fn()} />);
-      expect(screen.getByText('4.8')).toBeInTheDocument();
+      expect(screen.getByText('96.0')).toBeInTheDocument();
     });
 
     it('应该显示星级评分', () => {
       render(<PlayerDetailModal player={mockPlayer} isOpen={true} onClose={vi.fn()} />);
       const stars = screen.getAllByTestId('rating-star');
       expect(stars.length).toBe(5);
+    });
+
+    it('应该正确将100分制转换为5星制', () => {
+      // 60分应该显示3颗星 (60/100*5=3)
+      const player60 = { ...mockPlayer, rating: 60 };
+      render(<PlayerDetailModal player={player60} isOpen={true} onClose={vi.fn()} />);
+      expect(screen.getByText('60.0')).toBeInTheDocument();
+    });
+
+    it('0分应该显示0星', () => {
+      const player0 = { ...mockPlayer, rating: 0 };
+      render(<PlayerDetailModal player={player0} isOpen={true} onClose={vi.fn()} />);
+      expect(screen.getByText('0.0')).toBeInTheDocument();
+    });
+
+    it('100分应该显示5星', () => {
+      const player100 = { ...mockPlayer, rating: 100 };
+      render(<PlayerDetailModal player={player100} isOpen={true} onClose={vi.fn()} />);
+      expect(screen.getByText('100.0')).toBeInTheDocument();
     });
 
     it('当 rating 为 undefined 时不应该显示评分区域', () => {

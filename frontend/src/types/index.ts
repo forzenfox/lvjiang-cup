@@ -1,5 +1,8 @@
 import { PositionType } from './position';
 
+// 队员实力等级
+export type PlayerLevel = 'S' | 'A' | 'B' | 'C' | 'D';
+
 export interface Player {
   id: string;
   nickname?: string;
@@ -12,6 +15,7 @@ export interface Player {
   rating?: number;
   isCaptain?: boolean;
   liveUrl?: string;
+  level?: PlayerLevel;
 }
 
 export interface Team {
@@ -19,7 +23,7 @@ export interface Team {
   name: string;
   logo: string;
   players: Player[];
-  description: string;
+  battleCry: string;
 }
 
 export type MatchStatus = 'upcoming' | 'ongoing' | 'finished';

@@ -107,7 +107,7 @@ describe('Teams Integration Tests', () => {
         id: 'team-1',
         name: 'Test Team',
         logo: 'logo.png',
-        description: 'Test description',
+        battleCry: 'Test description',
         members: [],
       };
 
@@ -123,19 +123,23 @@ describe('Teams Integration Tests', () => {
       const createDto = {
         name: 'Test Team',
         logo: 'logo.png',
-        description: 'Test description',
+        battleCry: 'Test description',
         // 不传递 id，由后端生成 UUID
       };
 
       const created = await service.create(createDto);
 
       // 验证 UUID 格式
-      expect(created.id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i);
+      expect(created.id).toMatch(
+        /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
+      );
       expect(created.name).toBe('Test Team');
       // 验证自动创建了 5 个默认队员
       expect(created.members).toHaveLength(5);
       // 验证队员 ID 也是 UUID
-      expect(created.members[0].id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i);
+      expect(created.members[0].id).toMatch(
+        /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
+      );
     });
 
     it('should update a team', async () => {
@@ -143,7 +147,7 @@ describe('Teams Integration Tests', () => {
         id: 'team-1',
         name: 'Original Name',
         logo: 'logo.png',
-        description: 'Original description',
+        battleCry: 'Original description',
         members: [],
       };
 
@@ -151,20 +155,20 @@ describe('Teams Integration Tests', () => {
 
       const updateDto = {
         name: 'Updated Name',
-        description: 'Updated description',
+        battleCry: 'Updated description',
       };
 
       mockCacheService.get.mockReturnValue(undefined);
       const updated = await service.update(created.id, updateDto);
       expect(updated.name).toBe('Updated Name');
-      expect(updated.description).toBe('Updated description');
+      expect(updated.battleCry).toBe('Updated description');
     });
 
     it('should delete a team and its members', async () => {
       const createDto = {
         name: 'Test Team',
         logo: 'logo.png',
-        description: 'Test description',
+        battleCry: 'Test description',
       };
 
       const created = await service.create(createDto);
@@ -179,7 +183,9 @@ describe('Teams Integration Tests', () => {
       await expect(service.findOne(teamId)).rejects.toThrow(NotFoundException);
 
       // 验证队员也被级联删除
-      const members = await databaseService.all('SELECT * FROM team_members WHERE team_id = ?', [teamId]);
+      const members = await databaseService.all('SELECT * FROM team_members WHERE team_id = ?', [
+        teamId,
+      ]);
       expect(members).toHaveLength(0);
     });
   });
@@ -190,7 +196,7 @@ describe('Teams Integration Tests', () => {
         id: 'team-1',
         name: 'Test Team',
         logo: 'logo.png',
-        description: 'Test description',
+        battleCry: 'Test description',
         members: [],
       };
 
@@ -212,7 +218,7 @@ describe('Teams Integration Tests', () => {
         id: 'team-1',
         name: 'Team 1',
         logo: 'logo.png',
-        description: 'Description 1',
+        battleCry: 'Description 1',
         members: [],
       };
 
@@ -225,7 +231,7 @@ describe('Teams Integration Tests', () => {
         id: 'team-1',
         name: 'Original Name',
         logo: 'logo.png',
-        description: 'Original description',
+        battleCry: 'Original description',
         members: [],
       };
 
@@ -246,13 +252,13 @@ describe('Teams Integration Tests', () => {
       const team1 = await service.create({
         name: 'Team 1',
         logo: 'logo1.png',
-        description: 'Description 1',
+        battleCry: 'Description 1',
       });
 
       const team2 = await service.create({
         name: 'Team 2',
         logo: 'logo2.png',
-        description: 'Description 2',
+        battleCry: 'Description 2',
       });
 
       mockCacheService.get.mockReturnValue(undefined);
@@ -279,7 +285,7 @@ describe('Teams Integration Tests', () => {
       const createDto = {
         name: 'Test Team',
         logo: 'logo.png',
-        description: 'Test description',
+        battleCry: 'Test description',
       };
 
       const created = await service.create(createDto);
@@ -312,7 +318,7 @@ describe('Teams Integration Tests', () => {
       const createDto = {
         name: 'Test Team',
         logo: 'logo.png',
-        description: 'Test description',
+        battleCry: 'Test description',
       };
 
       const created = await service.create(createDto);
@@ -347,7 +353,7 @@ describe('Teams Integration Tests', () => {
       const createDto = {
         name: 'Test Team',
         logo: 'logo.png',
-        description: 'Test description',
+        battleCry: 'Test description',
       };
 
       const created = await service.create(createDto);
@@ -368,7 +374,7 @@ describe('Teams Integration Tests', () => {
       const createDto = {
         name: 'Test Team',
         logo: 'logo.png',
-        description: 'Test description',
+        battleCry: 'Test description',
       };
 
       const created = await service.create(createDto);
@@ -380,7 +386,12 @@ describe('Teams Integration Tests', () => {
 
       const updated = await service.update(created.id, {
         members: [
-          { id: firstMemberId, nickname: 'NewName', position: 'JUNGLE' as const, avatarUrl: 'new.png' },
+          {
+            id: firstMemberId,
+            nickname: 'NewName',
+            position: 'JUNGLE' as const,
+            avatarUrl: 'new.png',
+          },
         ],
       });
 
@@ -396,7 +407,7 @@ describe('Teams Integration Tests', () => {
       const createDto = {
         name: 'Test Team',
         logo: 'logo.png',
-        description: 'Test description',
+        battleCry: 'Test description',
       };
 
       const created = await service.create(createDto);
@@ -410,9 +421,7 @@ describe('Teams Integration Tests', () => {
 
       await databaseService.run('DELETE FROM teams WHERE id = ?', [teamId]);
 
-      members = await databaseService.all('SELECT * FROM team_members WHERE team_id = ?', [
-        teamId,
-      ]);
+      members = await databaseService.all('SELECT * FROM team_members WHERE team_id = ?', [teamId]);
       expect(members).toHaveLength(0);
     });
 
@@ -420,7 +429,7 @@ describe('Teams Integration Tests', () => {
       const createDto = {
         name: 'Test Team',
         logo: 'logo.png',
-        description: 'Test description',
+        battleCry: 'Test description',
         // 不传递 members，由后端自动创建 5 个默认队员
       };
 
@@ -442,13 +451,13 @@ describe('Teams Integration Tests', () => {
         id: 'custom-team-id',
         name: 'Test Team 1',
         logo: 'logo.png',
-        description: 'Test description',
+        battleCry: 'Test description',
       };
       const createDto2 = {
         id: 'custom-team-id',
         name: 'Test Team 2',
         logo: 'logo.png',
-        description: 'Test description',
+        battleCry: 'Test description',
       };
 
       await service.create(createDto1);
@@ -460,7 +469,7 @@ describe('Teams Integration Tests', () => {
       const team = await service.create({
         name: 'Test Team',
         logo: 'logo.png',
-        description: 'Test description',
+        battleCry: 'Test description',
       });
 
       // 手动添加队员时使用无效位置应该失败
@@ -468,7 +477,7 @@ describe('Teams Integration Tests', () => {
         service.createMember(team.id, {
           nickname: 'Player1',
           position: '无效位置' as any,
-        })
+        }),
       ).rejects.toThrow();
     });
 
@@ -492,7 +501,7 @@ describe('Teams Integration Tests', () => {
           id: `team-${i}`,
           name: `Team ${i}`,
           logo: `logo${i}.png`,
-          description: `Description ${i}`,
+          battleCry: `Description ${i}`,
           members: [],
         }),
       );
@@ -510,7 +519,7 @@ describe('Teams Integration Tests', () => {
         id: 'team-1',
         name: 'Original Name',
         logo: 'logo.png',
-        description: 'Original description',
+        battleCry: 'Original battleCry',
         members: [],
       });
 
@@ -534,13 +543,13 @@ describe('Teams Integration Tests', () => {
       await service.create({
         name: 'Unique Team Name',
         logo: 'logo1.png',
-        description: 'Description 1',
+        battleCry: 'Description 1',
       });
 
       await service.create({
         name: 'Unique Team Name',
         logo: 'logo2.png',
-        description: 'Description 2',
+        battleCry: 'Description 2',
       });
 
       mockCacheService.get.mockReturnValue(undefined);
@@ -554,19 +563,23 @@ describe('Teams Integration Tests', () => {
         id: '',
         name: 'Test Team With Empty Id',
         logo: 'logo.png',
-        description: 'Description',
+        battleCry: 'Description',
       });
       // 空字符串 ID 会触发 UUID 生成
-      expect(teamWithEmptyId.id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i);
+      expect(teamWithEmptyId.id).toMatch(
+        /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
+      );
       expect(teamWithEmptyId.name).toBe('Test Team With Empty Id');
 
       // 测试不传 ID 也会生成 UUID
       const teamWithoutId = await service.create({
         name: 'Test Team Without Id',
         logo: 'logo.png',
-        description: 'Description',
+        battleCry: 'Description',
       });
-      expect(teamWithoutId.id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i);
+      expect(teamWithoutId.id).toMatch(
+        /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
+      );
 
       await service.remove(teamWithEmptyId.id);
       await service.remove(teamWithoutId.id);
@@ -576,7 +589,7 @@ describe('Teams Integration Tests', () => {
       const team = await service.create({
         name: 'Test Team',
         logo: 'logo.png',
-        description: 'Description',
+        battleCry: 'Description',
       });
 
       let members = await databaseService.all('SELECT * FROM team_members WHERE team_id = ?', [
@@ -599,13 +612,14 @@ describe('Teams Integration Tests', () => {
       const team = await service.create({
         name: 'Test Team',
         logo: 'logo.png',
-        description: 'Description',
+        battleCry: 'Description',
       });
 
       // 验证自动创建了 5 个默认队员
-      const defaultMembers = await databaseService.all('SELECT * FROM team_members WHERE team_id = ?', [
-        team.id,
-      ]);
+      const defaultMembers = await databaseService.all(
+        'SELECT * FROM team_members WHERE team_id = ?',
+        [team.id],
+      );
       expect(defaultMembers).toHaveLength(5);
 
       // 手动添加一个新队员
@@ -625,7 +639,7 @@ describe('Teams Integration Tests', () => {
       const team = await service.create({
         name: 'Test Team',
         logo: 'logo.png',
-        description: 'Description',
+        battleCry: 'Description',
       });
 
       let members = await databaseService.all('SELECT * FROM team_members WHERE team_id = ?', [
@@ -648,7 +662,7 @@ describe('Teams Integration Tests', () => {
       const team = await service.create({
         name: 'Test Team',
         logo: 'logo.png',
-        description: 'Description',
+        battleCry: 'Description',
       });
 
       // 验证自动创建了 5 个默认队员
@@ -667,13 +681,13 @@ describe('Teams Integration Tests', () => {
       const team1 = await service.create({
         name: 'Team 1',
         logo: 'logo1.png',
-        description: 'Description 1',
+        battleCry: 'Description 1',
       });
 
       const team2 = await service.create({
         name: 'Team 2',
         logo: 'logo2.png',
-        description: 'Description 2',
+        battleCry: 'Description 2',
       });
 
       let team1Members = await databaseService.all('SELECT * FROM team_members WHERE team_id = ?', [
@@ -707,7 +721,7 @@ describe('Teams Integration Tests', () => {
         await service.create({
           name: `Team ${i}`,
           logo: `logo${i}.png`,
-          description: `Description ${i}`,
+          battleCry: `Description ${i}`,
         });
       }
 
@@ -724,7 +738,7 @@ describe('Teams Integration Tests', () => {
       const team = await service.create({
         name: 'Test Team',
         logo: 'logo.png',
-        description: 'Description',
+        battleCry: 'Description',
       });
 
       mockCacheService.get.mockReturnValue(undefined);
@@ -741,7 +755,7 @@ describe('Teams Integration Tests', () => {
       const team = await service.create({
         name: 'Test Team',
         logo: 'logo.png',
-        description: 'Description',
+        battleCry: 'Description',
       });
 
       mockCacheService.get.mockReturnValue(undefined);
@@ -751,7 +765,7 @@ describe('Teams Integration Tests', () => {
         id: team.id,
         name: 'Test Team',
         logo: 'logo.png',
-        description: 'Description',
+        battleCry: 'Description',
         members: [],
       });
 

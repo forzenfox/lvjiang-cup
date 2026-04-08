@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import AdminLayout from '../../components/layout/AdminLayout';
 import { teamService } from '@/services/teamService';
 import * as membersApi from '@/api/members';
-import type { Team, Player, CreateTeamRequest, UpdateTeamRequest } from '@/api/types';
+import { uploadTeamLogo } from '@/api/teams';
+import type { Team, Player, CreateTeamRequest, UpdateTeamRequest, PlayerLevel } from '@/api/types';
 import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
 import { Plus, Trash2, Edit2, Save, RefreshCw, Users, Upload as UploadIcon, X } from 'lucide-react';
@@ -22,6 +23,7 @@ interface MemberFormData {
   rating: number;
   isCaptain: boolean;
   liveUrl?: string;
+  level?: PlayerLevel;
 }
 
 // LOL固定位置
@@ -51,6 +53,7 @@ const ensureAllPositions = (players: any[] = [], teamId: string): any[] => {
         rating: 60,
         isCaptain: false,
         liveUrl: '',
+        level: undefined,
       });
     }
   });
@@ -63,7 +66,7 @@ const _toCreateTeamRequest = (team: Team): CreateTeamRequest => ({
   id: team.id,
   name: team.name,
   logo: team.logo,
-  description: team.description,
+  battleCry: team.battleCry,
   // 不再发送 members 数组，后端会自动创建 5 个默认队员
 });
 
@@ -72,7 +75,7 @@ const toUpdateTeamRequest = (team: Team): UpdateTeamRequest => ({
   id: team.id,
   name: team.name,
   logo: team.logo,
-  description: team.description,
+  battleCry: team.battleCry,
   members:
     team.players?.map(p => ({
       id: p.id,
@@ -100,7 +103,7 @@ const AdminTeams: React.FC = () => {
   const [editingTeamData, setEditingTeamData] = useState<{
     name: string;
     logo: string;
-    description: string;
+    battleCry: string;
   } | null>(null);
   // ==================== 垂直列表展开方案：新增状态结束 ====================
 
@@ -138,6 +141,7 @@ const AdminTeams: React.FC = () => {
             rating: m.rating ?? 60,
             isCaptain: m.isCaptain ?? false,
             liveUrl: m.liveUrl || '',
+            level: m.level,
           })),
           team.id
         ),
@@ -176,7 +180,7 @@ const AdminTeams: React.FC = () => {
     setEditingTeamData({
       name: team.name,
       logo: team.logo,
-      description: team.description,
+      battleCry: team.battleCry,
     });
   };
 
@@ -209,7 +213,7 @@ const AdminTeams: React.FC = () => {
         const createData: CreateTeamRequest = {
           name: editingTeamData.name,
           logo: editingTeamData.logo,
-          description: editingTeamData.description,
+          battleCry: editingTeamData.battleCry,
         };
         await teamService.create(createData);
         toast.success('战队创建成功');
@@ -219,7 +223,7 @@ const AdminTeams: React.FC = () => {
           ...team,
           name: editingTeamData.name,
           logo: editingTeamData.logo,
-          description: editingTeamData.description,
+          battleCry: editingTeamData.battleCry,
         });
         await teamService.update(updateData);
         toast.success('战队信息已更新');
@@ -269,7 +273,7 @@ const AdminTeams: React.FC = () => {
       id: 'new-team',
       name: '',
       logo: '',
-      description: '',
+      battleCry: '',
       players: [],
     };
 
@@ -280,7 +284,7 @@ const AdminTeams: React.FC = () => {
     setEditingTeamData({
       name: '',
       logo: '',
-      description: '',
+      battleCry: '',
     });
   };
 
@@ -325,6 +329,7 @@ const AdminTeams: React.FC = () => {
       rating: player.rating ?? 60,
       isCaptain: player.isCaptain ?? false,
       liveUrl: player.liveUrl || '',
+      level: player.level,
     };
 
     // 检查战队是否已保存（是否是未保存的新战队）
@@ -377,6 +382,7 @@ const AdminTeams: React.FC = () => {
       rating: editingPlayerData.rating,
       isCaptain: editingPlayerData.isCaptain,
       liveUrl: finalLiveUrl,
+      level: editingPlayerData.level,
     };
 
     try {
@@ -395,6 +401,7 @@ const AdminTeams: React.FC = () => {
         isCaptain: editingPlayerData.isCaptain,
         liveUrl: finalLiveUrl,
         championPool: editingPlayerData.championPool,
+        level: editingPlayerData.level,
       };
       newPlayers[editingPlayerIndex] = updatedPlayer;
 
@@ -572,15 +579,8 @@ const AdminTeams: React.FC = () => {
                                       return;
                                     }
                                     try {
-                                      const formData = new FormData();
-                                      formData.append('file', file);
-                                      const response = await fetch('/api/upload/image', {
-                                        method: 'POST',
-                                        body: formData,
-                                      });
-                                      if (!response.ok) throw new Error('上传失败');
-                                      const data = await response.json();
-                                      setEditingTeamData({ ...editingTeamData, logo: data.url });
+                                      const result = await uploadTeamLogo(editingTeamData.id || 'new', file);
+                                      setEditingTeamData({ ...editingTeamData, logo: result.url });
                                       toast.success('队标上传成功');
                                     } catch (_error) {
                                       toast.error('上传失败，请重试');
@@ -627,15 +627,15 @@ const AdminTeams: React.FC = () => {
                             </label>
                             <div className="relative">
                               <textarea
-                                value={editingTeamData.description}
-                                onChange={e => setEditingTeamData({ ...editingTeamData, description: e.target.value })}
+                                value={editingTeamData.battleCry}
+                                onChange={e => setEditingTeamData({ ...editingTeamData, battleCry: e.target.value })}
                                 placeholder="请输入参赛宣言"
                                 rows={3}
                                 maxLength={100}
                                 className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-[#475569] focus:outline-none focus:border-blue-500 resize-none"
                               />
                               <span className="absolute bottom-2 right-2 text-xs text-[#64748B]">
-                                {editingTeamData.description.length}/100
+                                {editingTeamData.battleCry.length}/100
                               </span>
                             </div>
                           </div>
@@ -725,9 +725,16 @@ const AdminTeams: React.FC = () => {
                                         </div>
                                       )}
                                       <div className="flex flex-col">
-                                        <span className="text-white text-sm">
-                                          {player.nickname || '未填写'}
-                                        </span>
+                                        <div className="flex items-center gap-1.5">
+                                          <span className="text-white text-sm">
+                                            {player.nickname || '未填写'}
+                                          </span>
+                                          {player.isCaptain && (
+                                            <span className="px-1.5 py-0.5 text-[10px] font-medium rounded bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                                              队长
+                                            </span>
+                                          )}
+                                        </div>
                                       </div>
                                     </div>
                                     <div className="flex items-center gap-2">
@@ -811,6 +818,21 @@ const AdminTeams: React.FC = () => {
                                                 }}
                                                 className="w-full px-2 py-1.5 bg-white/5 border border-white/10 rounded text-white text-sm focus:outline-none focus:border-blue-500"
                                               />
+                                            </div>
+                                            <div>
+                                              <label className="block text-xs text-gray-400 mb-1">实力等级</label>
+                                              <select
+                                                value={editingPlayerData.level || ''}
+                                                onChange={(e) => setEditingPlayerData({ ...editingPlayerData, level: e.target.value as PlayerLevel || undefined })}
+                                                className="w-full px-2 py-1.5 bg-white/5 border border-white/10 rounded text-white text-sm focus:outline-none focus:border-blue-500"
+                                              >
+                                                <option value="">未设置</option>
+                                                <option value="S">S</option>
+                                                <option value="A">A</option>
+                                                <option value="B">B</option>
+                                                <option value="C">C</option>
+                                                <option value="D">D</option>
+                                              </select>
                                             </div>
                                             <div className="flex items-end">
                                               <label className="flex items-center gap-2 px-2 py-1.5 cursor-pointer">
@@ -944,7 +966,7 @@ const AdminTeams: React.FC = () => {
                                             <span className="text-white ml-2">{player.nickname || '未填写'}</span>
                                           </div>
 
-                                          <div className="grid grid-cols-2 gap-3">
+                                          <div className="grid grid-cols-3 gap-3">
                                             <div>
                                               <span className="text-gray-500">游戏ID:</span>
                                               <span className="text-white ml-2">{player.gameId || '未填写'}</span>
@@ -952,6 +974,22 @@ const AdminTeams: React.FC = () => {
                                             <div>
                                               <span className="text-gray-500">评分:</span>
                                               <span className="text-white ml-2">{player.rating ?? 60}</span>
+                                            </div>
+                                            <div>
+                                              <span className="text-gray-500">实力等级:</span>
+                                              {player.level ? (
+                                                <span className={`ml-2 px-1.5 py-0.5 text-xs font-bold rounded border ${
+                                                  player.level === 'S' ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' :
+                                                  player.level === 'A' ? 'bg-purple-500/20 text-purple-400 border-purple-500/30' :
+                                                  player.level === 'B' ? 'bg-blue-500/20 text-blue-400 border-blue-500/30' :
+                                                  player.level === 'C' ? 'bg-green-500/20 text-green-400 border-green-500/30' :
+                                                  'bg-gray-500/20 text-gray-400 border-gray-500/30'
+                                                }`}>
+                                                  {player.level}
+                                                </span>
+                                              ) : (
+                                                <span className="text-white ml-2">未设置</span>
+                                              )}
                                             </div>
                                           </div>
 

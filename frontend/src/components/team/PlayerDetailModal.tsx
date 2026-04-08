@@ -258,11 +258,33 @@ export const PlayerDetailModal: React.FC<PlayerDetailModalProps> = ({
               <div className="flex items-center justify-between">
                 <h4 className="text-sm font-medium text-slate-300">评分</h4>
                 <div className="flex items-center gap-2">
-                  <StarRating rating={player.rating} />
+                  <StarRating rating={(player.rating / 100) * 5} />
                   <span className="text-sm text-amber-500 font-medium">
                     {player.rating.toFixed(1)}
                   </span>
                 </div>
+              </div>
+            </div>
+          )}
+
+          {player.level && (
+            <div
+              className="rounded-xl p-4 mb-4 border border-white/10"
+              style={{
+                background: 'rgba(255, 255, 255, 0.03)',
+              }}
+            >
+              <div className="flex items-center justify-between">
+                <h4 className="text-sm font-medium text-slate-300">实力等级</h4>
+                <span className={`px-3 py-1 text-sm font-bold rounded border ${
+                  player.level === 'S' ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' :
+                  player.level === 'A' ? 'bg-purple-500/20 text-purple-400 border-purple-500/30' :
+                  player.level === 'B' ? 'bg-blue-500/20 text-blue-400 border-blue-500/30' :
+                  player.level === 'C' ? 'bg-green-500/20 text-green-400 border-green-500/30' :
+                  'bg-gray-500/20 text-gray-400 border-gray-500/30'
+                }`}>
+                  {player.level}
+                </span>
               </div>
             </div>
           )}

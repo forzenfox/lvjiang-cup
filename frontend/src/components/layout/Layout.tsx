@@ -39,7 +39,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               赛程
             </button>
             <Link
-              to="/admin"
+              to="/admin/login"
               className="text-xs md:text-sm font-medium text-gray-300 hover:text-secondary transition-colors"
             >
               管理

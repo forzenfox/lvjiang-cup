@@ -107,14 +107,14 @@ describe('TeamsController', () => {
         id: 'new-team',
         name: 'New Team',
         logo: 'logo.png',
-        description: 'A new team',
+        battleCry: 'A new team',
         members: [{ id: 'p1', nickname: 'Player 1', position: 'TOP' as const }],
       };
       const createdTeam: Team = {
         id: 'new-team',
         name: 'New Team',
         logo: 'logo.png',
-        description: 'A new team',
+        battleCry: 'A new team',
         members: [{ id: 'p1', nickname: 'Player 1', position: 'TOP', teamId: 'new-team' }],
       };
       mockTeamsService.create.mockResolvedValue(createdTeam);
@@ -342,7 +342,7 @@ describe('TeamsController', () => {
       const createTeamDto = {
         name: 'New Team',
         logo: 'logo.png',
-        description: 'A new team',
+        battleCry: 'A new team',
         // 注意：没有 id 字段
       };
       
@@ -350,7 +350,7 @@ describe('TeamsController', () => {
         id: '550e8400-e29b-41d4-a716-446655440000', // UUID v4 格式
         name: 'New Team',
         logo: 'logo.png',
-        description: 'A new team',
+        battleCry: 'A new team',
         members: [],
       };
       mockTeamsService.create.mockResolvedValue(createdTeam);
@@ -425,7 +425,7 @@ describe('TeamsController', () => {
         id: 'team1',
         name: 'Team 1',
         logo: 'logo.png',
-        description: 'Description',
+        battleCry: 'Description',
         members: [{ id: 'p1', nickname: 'Player 1', position: 'TOP', teamId: 'team1' }],
       };
       mockTeamsService.findOne.mockResolvedValue(team);

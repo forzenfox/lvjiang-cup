@@ -99,8 +99,8 @@ export class TeamsPage {
     if (team.logo) {
       await this.teamLogoInput.fill(team.logo);
     }
-    if (team.description) {
-      await this.teamDescriptionInput.fill(team.description);
+    if (team.battleCry) {
+      await this.teamDescriptionInput.fill(team.battleCry);
     }
   }
 

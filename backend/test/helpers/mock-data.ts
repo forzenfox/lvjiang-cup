@@ -3,19 +3,19 @@ export const mockTeams = [
     id: '1',
     name: 'Team Alpha',
     logo: 'alpha.png',
-    description: 'Champion team',
+    battleCry: 'Champion team',
   },
   {
     id: '2',
     name: 'Team Beta',
     logo: 'beta.png',
-    description: 'Runner-up team',
+    battleCry: 'Runner-up team',
   },
   {
     id: '3',
     name: 'Team Gamma',
     logo: 'gamma.png',
-    description: 'Third place team',
+    battleCry: 'Third place team',
   },
 ];
 
@@ -61,7 +61,7 @@ export const mockMatches = [
     scoreB: 1,
     winnerId: '1',
     stage: 'swiss',
-    round: '第一�?,
+    round: '第一轮',
     status: 'finished',
     startTime: new Date().toISOString(),
     swissRecord: '0-0',
@@ -75,7 +75,7 @@ export const mockMatches = [
     scoreB: 2,
     winnerId: '1',
     stage: 'swiss',
-    round: '第二�?,
+    round: '第二轮',
     status: 'finished',
     startTime: new Date().toISOString(),
     swissRecord: '1-0',
@@ -84,7 +84,7 @@ export const mockMatches = [
 ];
 
 export const mockStreamInfo = {
-  title: '驴酱�?LOL 娱乐赛事',
+  title: '驴酱直播 LOL 娱乐赛事',
   url: 'https://www.douyu.com/12345',
   isLive: true,
 };
@@ -102,7 +102,7 @@ export function createMockTeam(overrides?: Partial<any>) {
     id: `team-${Date.now()}`,
     name: 'Test Team',
     logo: 'test.png',
-    description: 'Test description',
+    battleCry: 'Test description',
     ...overrides,
   };
 }
@@ -126,7 +126,7 @@ export function createMockMatch(overrides?: Partial<any>) {
     scoreB: 0,
     winnerId: null,
     stage: 'swiss',
-    round: '第一�?,
+    round: '第一轮',
     status: 'upcoming',
     startTime: new Date().toISOString(),
     ...overrides,

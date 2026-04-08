@@ -28,7 +28,7 @@ interface Team {
   name: string;
   logo: string;
   players: Player[];
-  description: string;
+  battleCry: string;
 }
 
 interface Match {
@@ -94,7 +94,7 @@ const convertApiTeamToLocal = (apiTeam: ApiTeam): Team => {
     name: apiTeam.name,
     logo: apiTeam.logo || apiTeam.logoUrl || `https://api.dicebear.com/7.x/identicon/svg?seed=${apiTeam.id}`,
     players,
-    description: apiTeam.battleCry || '暂无参赛宣言',
+    battleCry: apiTeam.battleCry || '暂无参赛宣言',
   };
 };
 

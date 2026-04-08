@@ -5,12 +5,12 @@ import EliminationStage from '@/components/features/EliminationStage';
 import type { Match, Team } from '@/types';
 
 const mockTeams: Team[] = [
-  { id: 'team1', name: '驴酱', logo: '/logo1.png', players: [], description: '测试队伍1' },
-  { id: 'team2', name: '雨酱', logo: '/logo2.png', players: [], description: '测试队伍2' },
-  { id: 'team3', name: 'IC', logo: '/logo3.png', players: [], description: '测试队伍3' },
-  { id: 'team4', name: '小熊', logo: '/logo4.png', players: [], description: '测试队伍4' },
-  { id: 'team5', name: 'PLG', logo: '/logo5.png', players: [], description: '测试队伍5' },
-  { id: 'team6', name: '69', logo: '/logo6.png', players: [], description: '测试队伍6' },
+  { id: 'team1', name: '驴酱', logo: '/logo1.png', players: [], battleCry: '测试队伍1' },
+  { id: 'team2', name: '雨酱', logo: '/logo2.png', players: [], battleCry: '测试队伍2' },
+  { id: 'team3', name: 'IC', logo: '/logo3.png', players: [], battleCry: '测试队伍3' },
+  { id: 'team4', name: '小熊', logo: '/logo4.png', players: [], battleCry: '测试队伍4' },
+  { id: 'team5', name: 'PLG', logo: '/logo5.png', players: [], battleCry: '测试队伍5' },
+  { id: 'team6', name: '69', logo: '/logo6.png', players: [], battleCry: '测试队伍6' },
 ];
 
 const createMockMatch = (

@@ -91,7 +91,7 @@ describe('Simple Integration Tests', () => {
         id: 'team-1',
         name: 'Test Team',
         logo: 'logo.png',
-        description: 'Test description',
+        battleCry: 'Test description',
         players: [],
       };
 
@@ -108,7 +108,7 @@ describe('Simple Integration Tests', () => {
         id: 'team-1',
         name: 'Original Name',
         logo: 'logo.png',
-        description: 'Original description',
+        battleCry: 'Original description',
         players: [],
       };
 
@@ -124,7 +124,7 @@ describe('Simple Integration Tests', () => {
         id: 'team-1',
         name: 'Test Team',
         logo: 'logo.png',
-        description: 'Test description',
+        battleCry: 'Test description',
         players: [],
       };
 
@@ -140,7 +140,7 @@ describe('Simple Integration Tests', () => {
         id: 'team-1',
         name: 'Team 1',
         logo: 'logo1.png',
-        description: 'Description 1',
+        battleCry: 'Description 1',
         players: [],
       });
 
@@ -148,7 +148,7 @@ describe('Simple Integration Tests', () => {
         id: 'team-2',
         name: 'Team 2',
         logo: 'logo2.png',
-        description: 'Description 2',
+        battleCry: 'Description 2',
         players: [],
       });
 

@@ -98,11 +98,6 @@ export class CreateTeamDto {
   @IsOptional()
   battleCry?: string;
 
-  @ApiPropertyOptional({ description: '战队描述' })
-  @IsString()
-  @IsOptional()
-  description?: string;
-
   @ApiPropertyOptional({ description: '成员列表', type: [CreateMemberDto] })
   @IsArray()
   @ValidateNested({ each: true })

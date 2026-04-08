@@ -158,7 +158,7 @@ describe('Cross-Module Integration Tests', () => {
         id: 'team-1',
         name: 'Team Alpha',
         logo: 'alpha.png',
-        description: 'First team',
+        battleCry: 'First team',
         players: [],
       });
 
@@ -166,7 +166,7 @@ describe('Cross-Module Integration Tests', () => {
         id: 'team-2',
         name: 'Team Beta',
         logo: 'beta.png',
-        description: 'Second team',
+        battleCry: 'Second team',
         players: [],
       });
 
@@ -194,7 +194,7 @@ describe('Cross-Module Integration Tests', () => {
         id: 'team-1',
         name: 'Team Alpha',
         logo: 'alpha.png',
-        description: 'First team',
+        battleCry: 'First team',
         players: [],
       });
 
@@ -202,7 +202,7 @@ describe('Cross-Module Integration Tests', () => {
         id: 'team-2',
         name: 'Team Beta',
         logo: 'beta.png',
-        description: 'Second team',
+        battleCry: 'Second team',
         players: [],
       });
 
@@ -234,7 +234,7 @@ describe('Cross-Module Integration Tests', () => {
         id: 'team-1',
         name: 'Team Alpha',
         logo: 'alpha.png',
-        description: 'First team',
+        battleCry: 'First team',
         players: [],
       });
 
@@ -242,7 +242,7 @@ describe('Cross-Module Integration Tests', () => {
         id: 'team-2',
         name: 'Team Beta',
         logo: 'beta.png',
-        description: 'Second team',
+        battleCry: 'Second team',
         players: [],
       });
 
@@ -270,7 +270,7 @@ describe('Cross-Module Integration Tests', () => {
           id: `team-${i}`,
           name: `Team ${i}`,
           logo: `logo${i}.png`,
-          description: `Description ${i}`,
+          battleCry: `Description ${i}`,
           players: [],
         });
         teams.push(team);
@@ -324,7 +324,7 @@ describe('Cross-Module Integration Tests', () => {
         id: 'team-1',
         name: 'Team Alpha',
         logo: 'alpha.png',
-        description: 'First team',
+        battleCry: 'First team',
         players: [],
       });
 
@@ -365,7 +365,7 @@ describe('Cross-Module Integration Tests', () => {
           id: `team-${i}`,
           name: `Team ${i}`,
           logo: `logo${i}.png`,
-          description: `Description ${i}`,
+          battleCry: `Description ${i}`,
           players: [],
         });
         teams.push(team);
@@ -422,7 +422,7 @@ describe('Cross-Module Integration Tests', () => {
           id: `team-${i}`,
           name: `Team ${i}`,
           logo: `logo${i}.png`,
-          description: `Description ${i}`,
+          battleCry: `Description ${i}`,
           players: [{ id: `p${i}`, nickname: `Player${i}`, position: 'TOP' as const }],
         });
         teams.push(team);
@@ -463,7 +463,7 @@ describe('Cross-Module Integration Tests', () => {
           id: `team-${i}`,
           name: `Team ${i}`,
           logo: `logo${i}.png`,
-          description: `Description ${i}`,
+          battleCry: `Description ${i}`,
           players: [],
         });
         teams.push(team);
@@ -505,7 +505,7 @@ describe('Cross-Module Integration Tests', () => {
         id: 'team-1',
         name: 'Champion Team',
         logo: 'champion.png',
-        description: 'The best team',
+        battleCry: 'The best team',
         players: [],
       });
 
@@ -629,7 +629,7 @@ describe('Cross-Module Integration Tests', () => {
         id: 'team-1',
         name: 'Consistent Team',
         logo: 'logo.png',
-        description: 'Test',
+        battleCry: 'Test',
         players: [{ id: 'p1', nickname: 'Player1', position: 'TOP' as const }],
       });
 
@@ -669,7 +669,7 @@ describe('Cross-Module Integration Tests', () => {
         id: 'team-1',
         name: 'Original Name',
         logo: 'logo.png',
-        description: 'Original',
+        battleCry: 'Original',
         players: [],
       });
 
@@ -701,7 +701,7 @@ describe('Cross-Module Integration Tests', () => {
           id: `team-${i}`,
           name: `Team ${i}`,
           logo: `logo${i}.png`,
-          description: `Team ${i} description`,
+          battleCry: `Team ${i} description`,
           members: [
             { id: `p${i}-1`, nickname: `Player${i}-1`, position: 'TOP' as const },
             { id: `p${i}-2`, nickname: `Player${i}-2`, position: 'JUNGLE' as const },
@@ -776,7 +776,7 @@ describe('Cross-Module Integration Tests', () => {
         id: 'team-1',
         name: 'Test Team',
         logo: 'logo.png',
-        description: 'Test',
+        battleCry: 'Test',
         players: [],
       });
 
@@ -809,7 +809,7 @@ describe('Cross-Module Integration Tests', () => {
         id: 'team-1',
         name: 'Valid Team',
         logo: 'logo.png',
-        description: 'Valid',
+        battleCry: 'Valid',
         players: [],
       });
 
@@ -827,7 +827,7 @@ describe('Cross-Module Integration Tests', () => {
         id: 'team-1',
         name: 'Test Team',
         logo: 'logo.png',
-        description: 'Test',
+        battleCry: 'Test',
         players: [],
       });
 
@@ -860,7 +860,7 @@ describe('Cross-Module Integration Tests', () => {
         id: 'team-1',
         name: 'Team 1',
         logo: 'logo1.png',
-        description: 'Team 1',
+        battleCry: 'Team 1',
         players: [],
       });
 
@@ -868,7 +868,7 @@ describe('Cross-Module Integration Tests', () => {
         id: 'team-2',
         name: 'Team 2',
         logo: 'logo2.png',
-        description: 'Team 2',
+        battleCry: 'Team 2',
         players: [],
       });
 
@@ -909,7 +909,7 @@ describe('Cross-Module Integration Tests', () => {
         id: 'team-1',
         name: 'Cache Test Team',
         logo: 'logo.png',
-        description: 'Test',
+        battleCry: 'Test',
         players: [],
       });
 
@@ -957,7 +957,7 @@ describe('Cross-Module Integration Tests', () => {
             id: `concurrent-team-${i}`,
             name: `Team ${i}`,
             logo: `logo${i}.png`,
-            description: `Description ${i}`,
+            battleCry: `Description ${i}`,
             players: [],
           }),
         );
@@ -1006,7 +1006,7 @@ describe('Cross-Module Integration Tests', () => {
           id: `perf-team-${i}`,
           name: `Team ${i}`,
           logo: `logo${i}.png`,
-          description: `Description ${i}`,
+          battleCry: `Description ${i}`,
           players: [],
         });
       }
@@ -1026,7 +1026,7 @@ describe('Cross-Module Integration Tests', () => {
           id: `perf-team-${i}`,
           name: `Team ${i}`,
           logo: `logo${i}.png`,
-          description: `Description ${i}`,
+          battleCry: `Description ${i}`,
           players: [],
         });
       }
@@ -1061,7 +1061,7 @@ describe('Cross-Module Integration Tests', () => {
         id: 'perf-team',
         name: 'Performance Team',
         logo: 'logo.png',
-        description: 'Test',
+        battleCry: 'Test',
         members: Array.from({ length: 5 }, (_, i) => ({
           id: `p${i}`,
           nickname: `Player${i}`,

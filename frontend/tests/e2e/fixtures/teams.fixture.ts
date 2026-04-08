@@ -15,14 +15,14 @@ export interface Player {
 export interface Team {
   name: string;
   logo?: string;
-  description: string;
+  battleCry: string;
   players: Player[];
 }
 
 export const testTeam: Team = {
   name: mockTeams[0].name,
   logo: mockTeams[0].logo,
-  description: mockTeams[0].description,
+  battleCry: mockTeams[0].battleCry,
   players: mockTeams[0].players!.map(p => ({
     name: p.name,
     position: p.position,
@@ -31,7 +31,7 @@ export const testTeam: Team = {
 
 export const shortNameTeam: Team = {
   name: 'A',
-  description: '短名称战队',
+  battleCry: '短名称战队',
   players: [
     { name: '选手1', position: 'TOP' },
     { name: '选手2', position: 'JUNGLE' },
@@ -43,7 +43,7 @@ export const shortNameTeam: Team = {
 
 export const longNameTeam: Team = {
   name: '这是一个非常长的战队名称用于测试边界条件处理',
-  description: '长名称战队测试',
+  battleCry: '长名称战队测试',
   players: [
     { name: '选手1', position: 'TOP' },
     { name: '选手2', position: 'JUNGLE' },
@@ -55,13 +55,13 @@ export const longNameTeam: Team = {
 
 export const editedTeam: Partial<Team> = {
   name: '编辑后的战队名称',
-  description: '这是编辑后的战队描述',
+  battleCry: '这是编辑后的战队描述',
 };
 
 export const testTeamBeta: Team = {
   name: mockTeams[1].name,
   logo: mockTeams[1].logo,
-  description: mockTeams[1].description,
+  battleCry: mockTeams[1].battleCry,
   players: mockTeams[1].players!.map(p => ({
     name: p.name,
     position: p.position,
@@ -73,7 +73,7 @@ export const getTestTeamForMatch = (index: number = 2): Team => {
   return {
     name: team.name,
     logo: team.logo,
-    description: team.description,
+    battleCry: team.battleCry,
     players: team.players!.map(p => ({
       name: p.name,
       position: p.position,

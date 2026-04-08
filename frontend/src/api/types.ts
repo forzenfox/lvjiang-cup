@@ -3,6 +3,9 @@
  */
 import { PositionType } from '../types/position';
 
+// 队员实力等级
+export type PlayerLevel = 'S' | 'A' | 'B' | 'C' | 'D';
+
 /**
  * 通用响应类型
  */
@@ -93,7 +96,6 @@ export interface UserInfo {
 // 从API响应接收的队员类型(包含teamId)
 export interface Player {
   id: string;
-  userId?: string | null;
   nickname: string;
   avatarUrl?: string;
   position: PositionType;
@@ -104,7 +106,7 @@ export interface Player {
   rating?: number;
   isCaptain?: boolean;
   liveUrl?: string;
-  sortOrder?: number | null;
+  level?: PlayerLevel;
 }
 
 // 发送到 API 的队员类型 (不包含 teamId)
@@ -126,6 +128,7 @@ export interface UpdateMemberRequest {
   rating?: number;
   isCaptain?: boolean;
   liveUrl?: string;
+  level?: PlayerLevel;
 }
 
 /**
@@ -138,7 +141,6 @@ export interface Team {
   logoUrl?: string;
   logoThumbnailUrl?: string;
   battleCry?: string;
-  description?: string;
   members?: Player[];
   players?: Player[];
   createdAt?: string;
@@ -158,14 +160,14 @@ export interface CreateMemberRequest {
   rating?: number;
   isCaptain?: boolean;
   liveUrl?: string;
-  sortOrder?: number;
+  level?: PlayerLevel;
 }
 
 export interface CreateTeamRequest {
   id?: string;  // 改为可选，不传则由后端生成UUID
   name: string;
   logo?: string;
-  description?: string;
+  battleCry?: string;
   players?: CreatePlayerRequest[];
   members?: CreateMemberRequest[];
 }

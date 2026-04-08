@@ -4,8 +4,8 @@ import SwissMatchCard from '@/components/features/swiss/SwissMatchCard';
 import type { Match, Team } from '@/types';
 
 const mockTeams: Team[] = [
-  { id: 'team1', name: '驴酱', logo: '/logo1.png', players: [], description: '' },
-  { id: 'team2', name: '雨酱', logo: '/logo2.png', players: [], description: '' },
+  { id: 'team1', name: '驴酱', logo: '/logo1.png', players: [], battleCry: '' },
+  { id: 'team2', name: '雨酱', logo: '/logo2.png', players: [], battleCry: '' },
 ];
 
 const createMockMatch = (overrides: Partial<Match> = {}): Match => ({

@@ -95,7 +95,7 @@ const AdminSchedule: React.FC = () => {
         id: t.id,
         name: t.name,
         logo: t.logo || t.logoUrl || '',
-        description: t.battleCry || '',
+        battleCry: t.battleCry || '',
         players: (t.members || []).map((player, index: number) => ({
           id: player.id || `p-${t.id}-${index}`,
           name: player.nickname,

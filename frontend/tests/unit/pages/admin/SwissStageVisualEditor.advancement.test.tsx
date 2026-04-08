@@ -4,9 +4,9 @@ import SwissStageVisualEditor from '@/pages/admin/SwissStageVisualEditor';
 import type { Team } from '@/types';
 
 const mockTeams: Team[] = [
-  { id: 'team1', name: '驴酱', logo: '/logo1.png', players: [], description: '测试队伍1' },
-  { id: 'team2', name: 'IC', logo: '/logo2.png', players: [], description: '测试队伍2' },
-  { id: 'team3', name: '小熊', logo: '/logo3.png', players: [], description: '测试队伍3' },
+  { id: 'team1', name: '驴酱', logo: '/logo1.png', players: [], battleCry: '测试队伍1' },
+  { id: 'team2', name: 'IC', logo: '/logo2.png', players: [], battleCry: '测试队伍2' },
+  { id: 'team3', name: '小熊', logo: '/logo3.png', players: [], battleCry: '测试队伍3' },
 ];
 
 const mockAdvancement = {
