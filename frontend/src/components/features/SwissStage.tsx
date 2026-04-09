@@ -3,15 +3,26 @@ import { Match, Team } from '@/types';
 import { useAdvancementStore } from '@/store/advancementStore';
 import { SwissMatchCard, SwissStatusBadge, SwissTeamList } from './swiss';
 
+// 10个战绩分组的配置
+const RECORD_GROUPS = [
+  { record: '0-0', label: 'Round 1', isBo1: true },
+  { record: '1-0', label: 'Round 2 High', isBo3: true },
+  { record: '0-1', label: 'Round 2 Low', isBo3: true },
+  { record: '2-0', label: '2-0 Group', isBo3: true, isQualified: true },
+  { record: '1-1', label: 'Round 3 Mid', isBo3: true },
+  { record: '0-2', label: 'Round 3 Low', isBo3: true },
+  { record: '3-0', label: '3-0 Group', isBo3: true, isQualified: true },
+  { record: '2-1', label: 'Round 4 High', isBo3: true, isQualified: true },
+  { record: '1-2', label: 'Last Chance', isBo3: true },
+  { record: '0-3', label: '0-3 Group', isBo3: true, isEliminated: true },
+];
+
 interface SwissStageProps {
   matches: Match[];
   teams: Team[];
   advancement?: {
-    winners2_0: string[];
-    winners2_1: string[];
-    losersBracket: string[];
-    eliminated3rd: string[];
-    eliminated0_3: string[];
+    top8: string[];
+    eliminated: string[];
   };
 }
 
@@ -21,7 +32,8 @@ const RoundColumn: React.FC<{
   matches: Match[];
   teams: Team[];
   className?: string;
-}> = ({ roundName, isBo3, matches, teams, className }) => {
+  record?: string;
+}> = ({ roundName, isBo3, matches, teams, className, record }) => {
   return (
     <div
       className={`flex flex-col gap-3 min-w-[200px] ${className}`}
@@ -41,7 +53,9 @@ const RoundColumn: React.FC<{
       </div>
       <div className="flex flex-col gap-3 min-h-[60px]" data-testid="swiss-match-list">
         {matches.length > 0 ? (
-          matches.map(match => <SwissMatchCard key={match.id} match={match} teams={teams} />)
+          matches.map((match, idx) => (
+            <SwissMatchCard key={match.id} match={match} teams={teams} record={record} index={idx} />
+          ))
         ) : (
           <div
             className="flex items-center justify-center h-20 border border-dashed border-gray-800 rounded bg-gray-900/30 text-xs text-gray-600"
@@ -62,67 +76,107 @@ const SwissStage: React.FC<SwissStageProps> = ({
 }) => {
   // 从 store 获取晋级名单（如果没有传入 props）
   const storeAdvancement = useAdvancementStore(state => state.advancement);
-  const advancement = propAdvancement || storeAdvancement;
+  const advancement = propAdvancement || {
+    top8: storeAdvancement.winners2_0 || [],
+    eliminated: storeAdvancement.eliminated0_3 || [],
+  };
 
-  // Group matches by Record
-  const round1Matches = matches.filter(m => m.swissRecord === '0-0');
-  const round2High = matches.filter(m => m.swissRecord === '1-0');
-  const round2Low = matches.filter(m => m.swissRecord === '0-1');
-  const round3Mid = matches.filter(m => m.swissRecord === '1-1');
-  const round3Low = matches.filter(m => m.swissRecord === '0-2');
-  const round4Last = matches.filter(m => m.swissRecord === '1-2');
+  // 按战绩分组
+  const matchesByRecord = RECORD_GROUPS.reduce(
+    (acc, group) => {
+      acc[group.record] = matches.filter(m => m.swissRecord === group.record);
+      return acc;
+    },
+    {} as Record<string, Match[]>
+  );
 
   return (
     <div className="w-full overflow-x-auto" data-testid="swiss-stage">
-      <div className="flex gap-8 min-w-[1000px] p-4" data-testid="swiss-container">
-        {/* Round 1 (0-0) */}
+      <div className="flex gap-8 min-w-[1400px] p-4" data-testid="swiss-container">
+        {/* 第一轮：0-0 */}
         <div className="flex flex-col gap-4 w-64" data-testid="swiss-round-1">
-          <RoundColumn roundName="Round 1" isBo3={false} matches={round1Matches} teams={teams} />
+          <RoundColumn
+            roundName={RECORD_GROUPS[0].label}
+            isBo3={false}
+            matches={matchesByRecord['0-0']}
+            teams={teams}
+            record="0-0"
+          />
         </div>
 
-        {/* Round 2 (1-0 & 0-1) */}
+        {/* 第二轮：1-0 & 0-1 */}
         <div className="flex flex-col gap-8 w-64 mt-8" data-testid="swiss-round-2">
-          <RoundColumn roundName="Round 2 High" isBo3={true} matches={round2High} teams={teams} />
-          <RoundColumn roundName="Round 2 Low" isBo3={true} matches={round2Low} teams={teams} />
+          <RoundColumn
+            roundName={RECORD_GROUPS[1].label}
+            isBo3={true}
+            matches={matchesByRecord['1-0']}
+            teams={teams}
+            record="1-0"
+          />
+          <RoundColumn
+            roundName={RECORD_GROUPS[2].label}
+            isBo3={true}
+            matches={matchesByRecord['0-1']}
+            teams={teams}
+            record="0-1"
+          />
         </div>
 
-        {/* Round 3 (1-1 & 0-2) + 2-0 Advancement */}
+        {/* 第三轮：2-0, 1-1, 0-2 */}
         <div className="flex flex-col gap-8 w-64" data-testid="swiss-round-3">
-          {/* 2-0 Qualified */}
+          {/* 2-0 晋级 */}
           <div className="flex flex-col gap-2" data-testid="swiss-record-group-2-0">
-            <SwissStatusBadge type="qualified">2-0 晋级 (胜者组)</SwissStatusBadge>
-            <SwissTeamList teams={teams} ids={advancement.winners2_0} />
+            <SwissStatusBadge type="qualified">2-0 TOP 8</SwissStatusBadge>
+            <SwissTeamList teams={teams} ids={advancement.top8.slice(0, 4)} />
           </div>
 
-          <RoundColumn roundName="Round 3 Mid" isBo3={true} matches={round3Mid} teams={teams} />
+          <RoundColumn
+            roundName={RECORD_GROUPS[4].label}
+            isBo3={true}
+            matches={matchesByRecord['1-1']}
+            teams={teams}
+            record="1-1"
+          />
 
           <div className="mt-4">
-            <RoundColumn roundName="Round 3 Low" isBo3={true} matches={round3Low} teams={teams} />
-            <div className="mt-2" data-testid="swiss-record-group-0-3">
-              <SwissStatusBadge type="eliminated">0-3 淘汰</SwissStatusBadge>
-              <SwissTeamList teams={teams} ids={advancement.eliminated0_3} />
-            </div>
+            <RoundColumn
+              roundName={RECORD_GROUPS[5].label}
+              isBo3={true}
+              matches={matchesByRecord['0-2']}
+              teams={teams}
+              record="0-2"
+            />
           </div>
         </div>
 
-        {/* Round 4 (1-2) + Advancement */}
-        <div className="flex flex-col gap-8 w-64 mt-16" data-testid="swiss-round-4">
-          <div className="flex flex-col gap-2" data-testid="swiss-record-group-2-1">
-            <SwissStatusBadge type="qualified">2-1 晋级 (胜者组)</SwissStatusBadge>
-            <SwissTeamList teams={teams} ids={advancement.winners2_1} />
+        {/* 第四轮：3-0, 2-1, 1-2, 0-3 */}
+        <div className="flex flex-col gap-8 w-64" data-testid="swiss-round-4">
+          {/* 3-0 晋级 */}
+          <div className="flex flex-col gap-2" data-testid="swiss-record-group-3-0">
+            <SwissStatusBadge type="qualified">3-0 TOP 8</SwissStatusBadge>
+            <SwissTeamList teams={teams} ids={advancement.top8.slice(4, 6)} />
           </div>
 
-          <RoundColumn roundName="Last Chance" isBo3={true} matches={round4Last} teams={teams} />
+          <RoundColumn
+            roundName={RECORD_GROUPS[7].label}
+            isBo3={true}
+            matches={matchesByRecord['2-1']}
+            teams={teams}
+            record="2-1"
+          />
 
-          <div className="flex flex-col gap-4 mt-4">
-            <div className="flex flex-col gap-2" data-testid="swiss-record-group-losers">
-              <SwissStatusBadge type="danger">晋级败者组</SwissStatusBadge>
-              <SwissTeamList teams={teams} ids={advancement.losersBracket} />
-            </div>
-            <div className="flex flex-col gap-2" data-testid="swiss-record-group-eliminated">
-              <SwissStatusBadge type="eliminated">积分第三淘汰</SwissStatusBadge>
-              <SwissTeamList teams={teams} ids={advancement.eliminated3rd} />
-            </div>
+          <RoundColumn
+            roundName={RECORD_GROUPS[8].label}
+            isBo3={true}
+            matches={matchesByRecord['1-2']}
+            teams={teams}
+            record="1-2"
+          />
+
+          {/* 0-3 淘汰 */}
+          <div className="flex flex-col gap-2 mt-4" data-testid="swiss-record-group-0-3">
+            <SwissStatusBadge type="eliminated">0-3 淘汰</SwissStatusBadge>
+            <SwissTeamList teams={teams} ids={advancement.eliminated} />
           </div>
         </div>
       </div>

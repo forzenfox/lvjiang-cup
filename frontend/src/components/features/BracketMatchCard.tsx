@@ -7,6 +7,7 @@ import { formatDateTime } from '@/utils/datetime';
 interface BracketMatchCardProps {
   match: Match;
   teams: Team[];
+  testId?: string;
 }
 
 const BracketStatusBadge: React.FC<{ status: MatchStatus }> = ({ status }) => {
@@ -27,7 +28,7 @@ const BracketStatusBadge: React.FC<{ status: MatchStatus }> = ({ status }) => {
 };
 
 const BracketMatchCard = React.forwardRef<HTMLDivElement, BracketMatchCardProps>(
-  ({ match, teams }, ref) => {
+  ({ match, teams, testId }, ref) => {
     const teamA = teams.find(t => t.id === match.teamAId);
     const teamB = teams.find(t => t.id === match.teamBId);
     const isGrandFinals = match.eliminationBracket === 'grand_finals';
@@ -37,7 +38,7 @@ const BracketMatchCard = React.forwardRef<HTMLDivElement, BracketMatchCardProps>
     const teamBWon = match.winnerId === match.teamBId;
 
     return (
-      <div className="flex flex-col gap-1 relative group" data-testid="bracket-match">
+      <div className="flex flex-col gap-1 relative group" data-testid={testId || 'bracket-match'}>
         <Card
           ref={ref}
           className={`

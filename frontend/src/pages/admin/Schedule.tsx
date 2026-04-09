@@ -3,13 +3,13 @@ import AdminLayout from '../../components/layout/AdminLayout';
 import { teamService } from '@/services/teamService';
 import { matchService } from '@/services/matchService';
 import { advancementService } from '@/services/advancementService';
-import type { Team, Match, MatchStatus } from '@/types';
+import type { Match, MatchStatus } from '@/types';
 import type { UpdateMatchRequest } from '@/api/types';
 import { Toaster, toast } from 'sonner';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../components/ui/tabs';
 import SwissStageVisualEditor from './SwissStageVisualEditor';
 import EliminationStage from '@/components/features/EliminationStage';
-import { useAdvancementStore } from '@/store/advancementStore';
+import { useAdvancementStore, calculateAdvancement } from '@/store/advancementStore';
 import { RefreshCw, Trophy, Calendar, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
@@ -26,6 +26,8 @@ const toUpdateMatchRequest = (match: Match): UpdateMatchRequest => ({
   winnerId: match.winnerId || undefined,
   status: mapStatusToApi(match.status),
   startTime: match.startTime,
+  swissRound: match.swissRound,
+  boFormat: match.boFormat,
 });
 
 // 将前端状态映射到 API 状态
@@ -65,6 +67,8 @@ const toFrontendMatch = (apiMatch: any): Match => ({
   stage: apiMatch.stage as 'swiss' | 'elimination',
   swissRecord: apiMatch.swissRecord,
   swissDay: apiMatch.swissDay,
+  swissRound: apiMatch.swissRound,
+  boFormat: apiMatch.boFormat,
   eliminationGameNumber: apiMatch.eliminationGameNumber,
   eliminationBracket: apiMatch.eliminationBracket,
 });
@@ -181,11 +185,8 @@ const AdminSchedule: React.FC = () => {
   const handleAdvancementUpdate = async (newAdvancement: typeof advancement) => {
     try {
       await advancementService.update({
-        winners2_0: newAdvancement.winners2_0,
-        winners2_1: newAdvancement.winners2_1,
-        losersBracket: newAdvancement.losersBracket,
-        eliminated3rd: newAdvancement.eliminated3rd,
-        eliminated0_3: newAdvancement.eliminated0_3,
+        top8: newAdvancement.top8,
+        eliminated: newAdvancement.eliminated,
       });
       setAdvancement(newAdvancement, 'admin');
       toast.success('晋级名单已保存');
@@ -193,6 +194,14 @@ const AdminSchedule: React.FC = () => {
       console.error('Failed to save advancement:', error);
       toast.error(error instanceof Error ? error.message : '保存晋级名单失败');
     }
+  };
+
+  // 自动计算晋级名单
+  const handleAutoCalculateAdvancement = async () => {
+    const swissMatches = matches.filter(m => m.stage === 'swiss');
+    const calculated = calculateAdvancement(swissMatches, teams);
+    setAdvancement(calculated, 'admin');
+    toast.success('已根据比赛结果自动计算晋级名单');
   };
 
   // 初始化比赛槽位
@@ -224,7 +233,7 @@ const AdminSchedule: React.FC = () => {
       <ConfirmDialog
         isOpen={showInitConfirm}
         title="初始化比赛槽位"
-        message="确定要初始化比赛槽位吗？这将创建瑞士轮 14 场和淘汰赛 8 场比赛槽位。如果槽位已存在，则不会重复创建。"
+        message="确定要初始化比赛槽位吗？这将创建瑞士轮 32 场和淘汰赛 7 场比赛槽位。如果槽位已存在，则不会重复创建。"
         confirmText="确定初始化"
         cancelText="取消"
         onConfirm={confirmInitSlots}
@@ -305,14 +314,30 @@ const AdminSchedule: React.FC = () => {
                     <p>请先添加战队数据</p>
                   </div>
                 ) : (
-                  <SwissStageVisualEditor
-                    matches={swissMatches}
-                    teams={teams}
-                    advancement={advancement}
-                    onMatchUpdate={handleMatchUpdate}
-                    onMatchCreate={handleMatchCreate}
-                    onAdvancementUpdate={handleAdvancementUpdate}
-                  />
+                  <>
+                    <div className="mb-4 flex justify-between items-center">
+                      <div data-testid="advancement-status" className="text-sm text-gray-400">
+                        晋级状态：前8名晋级淘汰赛 · {advancement.top8.length} 队已晋级 · {advancement.eliminated.length} 队已淘汰
+                      </div>
+                      <Button
+                        data-testid="auto-calculate-advancement-button"
+                        variant="outline"
+                        size="sm"
+                        onClick={handleAutoCalculateAdvancement}
+                        className="border-blue-500 text-blue-400 hover:bg-blue-500/10"
+                      >
+                        自动计算晋级
+                      </Button>
+                    </div>
+                    <SwissStageVisualEditor
+                      matches={swissMatches}
+                      teams={teams}
+                      advancement={advancement}
+                      onMatchUpdate={handleMatchUpdate}
+                      onMatchCreate={handleMatchCreate}
+                      onAdvancementUpdate={handleAdvancementUpdate}
+                    />
+                  </>
                 )}
               </TabsContent>
 

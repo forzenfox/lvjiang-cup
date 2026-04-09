@@ -228,11 +228,8 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
       `
       CREATE TABLE IF NOT EXISTS advancement (
         id INTEGER PRIMARY KEY CHECK(id = 1),
-        winners2_0 TEXT DEFAULT '[]',
-        winners2_1 TEXT DEFAULT '[]',
-        losers_bracket TEXT DEFAULT '[]',
-        eliminated_3rd TEXT DEFAULT '[]',
-        eliminated_0_3 TEXT DEFAULT '[]',
+        top8 TEXT DEFAULT '[]',
+        eliminated TEXT DEFAULT '[]',
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
       )
     `,
@@ -450,7 +447,7 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     );
     await run(
       this.db,
-      `UPDATE advancement SET winners2_0 = '[]', winners2_1 = '[]', losers_bracket = '[]', eliminated_3rd = '[]', eliminated_0_3 = '[]', updated_at = CURRENT_TIMESTAMP WHERE id = 1`,
+      `UPDATE advancement SET top8 = '[]', eliminated = '[]', updated_at = CURRENT_TIMESTAMP WHERE id = 1`,
     );
     this.logger.log('All data cleared');
   }

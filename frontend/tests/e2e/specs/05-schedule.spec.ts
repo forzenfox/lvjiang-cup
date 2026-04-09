@@ -66,9 +66,12 @@ test.describe('【第二阶段-5】瑞士轮赛程管理测试', () => {
     await schedulePage.expectSwissTabVisible();
     await schedulePage.expectEliminationTabVisible();
 
-    // 验证比赛数量信息可见
+    // 验证比赛数量信息可见（32场瑞士轮）
     const matchCountText = await schedulePage.getMatchCountText();
     console.log(`✅ 当前比赛数量: ${matchCountText}`);
+
+    // 验证瑞士轮包含32场比赛
+    expect(matchCountText).toContain('32');
 
     console.log('✅ 瑞士轮赛程管理页面正常加载');
   });
@@ -90,6 +93,9 @@ test.describe('【第二阶段-5】瑞士轮赛程管理测试', () => {
     // 验证比赛数量信息可见
     const matchCountText = await schedulePage.getMatchCountText();
     expect(matchCountText).toContain('瑞士轮');
+
+    // 验证瑞士轮包含32场比赛
+    expect(matchCountText).toContain('32');
 
     console.log('✅ 瑞士轮赛程管理页面正常加载（多战绩分组测试）');
   });
@@ -127,7 +133,7 @@ test.describe('【第二阶段-6】淘汰赛赛程管理测试', () => {
     // 验证页面标题可见
     await expect(schedulePage.pageTitle).toBeVisible();
 
-    // 验证比赛数量信息可见
+    // 验证比赛数量信息可见（7场淘汰赛）
     const matchCountText = await schedulePage.getMatchCountText();
     expect(matchCountText).toContain('淘汰赛');
 
@@ -135,11 +141,11 @@ test.describe('【第二阶段-6】淘汰赛赛程管理测试', () => {
   });
 
   /**
-   * TEST-109-2: 淘汰赛 - 败者组和总决赛
+   * TEST-109-2: 淘汰赛 - 四分之一决赛、半决赛和决赛
    * 优先级：P0
-   * 验证可以添加败者组和总决赛比赛
+   * 验证可以查看淘汰赛各阶段比赛
    */
-  test('TEST-109-2: 淘汰赛 - 败者组和总决赛 @P0', async ({ page }) => {
+  test('TEST-109-2: 淘汰赛 - 四分之一决赛、半决赛和决赛 @P0', async ({ page }) => {
     // 导航到赛程管理
     await dashboardPage.navigateToSchedule();
     await schedulePage.expectPageLoaded();
@@ -152,7 +158,10 @@ test.describe('【第二阶段-6】淘汰赛赛程管理测试', () => {
     const matchCountText = await schedulePage.getMatchCountText();
     console.log(`✅ 当前比赛数量: ${matchCountText}`);
 
-    console.log('✅ 淘汰赛赛程管理页面正常加载（败者组和总决赛测试）');
+    // 验证淘汰赛包含7场比赛
+    expect(matchCountText).toContain('7');
+
+    console.log('✅ 淘汰赛赛程管理页面正常加载（四分之一决赛、半决赛和决赛测试）');
   });
 });
 
@@ -289,6 +298,12 @@ test.describe('【第三阶段-4】赛程前台展示验证', () => {
     // 访问前台验证
     await homePage.goto();
     await homePage.expectPageLoaded();
+
+    // 验证瑞士轮Tab可见
+    await expect(homePage.getByTestId('home-swiss-tab')).toBeVisible();
+
+    // 验证淘汰赛Tab可见
+    await expect(homePage.getByTestId('home-elimination-tab')).toBeVisible();
 
     console.log('✅ 首页可以正常访问');
   });

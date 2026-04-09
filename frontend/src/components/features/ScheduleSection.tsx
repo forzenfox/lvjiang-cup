@@ -74,6 +74,8 @@ const convertApiMatchToLocal = (apiMatch: ApiMatch, teams: Team[]): Match => {
     stage,
     swissRecord: apiMatch.swissRecord,
     swissDay: apiMatch.swissDay,
+    swissRound: apiMatch.swissRound,
+    boFormat: apiMatch.boFormat,
     eliminationGameNumber: apiMatch.eliminationGameNumber,
     eliminationBracket: apiMatch.eliminationBracket,
   };
@@ -173,11 +175,8 @@ const ScheduleSection: React.FC<ScheduleSectionProps> = ({ refreshInterval = 300
         if (advancementData) {
           setAdvancement(
             {
-              winners2_0: advancementData.winners2_0 || [],
-              winners2_1: advancementData.winners2_1 || [],
-              losersBracket: advancementData.losersBracket || [],
-              eliminated3rd: advancementData.eliminated3rd || [],
-              eliminated0_3: advancementData.eliminated0_3 || [],
+              top8: advancementData.top8 || [],
+              eliminated: advancementData.eliminated || [],
             },
             'api'
           );
@@ -257,10 +256,10 @@ const ScheduleSection: React.FC<ScheduleSectionProps> = ({ refreshInterval = 300
             data-testid="schedule-tabs"
           >
             <TabsList className="w-full max-w-md mx-auto mb-8 flex" data-testid="schedule-tab-list">
-              <TabsTrigger value="swiss" className="flex-1" data-testid="swiss-tab">
+              <TabsTrigger value="swiss" className="flex-1" data-testid="home-swiss-tab">
                 瑞士轮
               </TabsTrigger>
-              <TabsTrigger value="elimination" className="flex-1" data-testid="elimination-tab">
+              <TabsTrigger value="elimination" className="flex-1" data-testid="home-elimination-tab">
                 淘汰赛
               </TabsTrigger>
             </TabsList>
@@ -270,6 +269,7 @@ const ScheduleSection: React.FC<ScheduleSectionProps> = ({ refreshInterval = 300
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3 }}
+                data-testid="swiss-stage-display"
               >
                 <SwissStage matches={swissMatches} teams={teams} advancement={advancement} />
               </motion.div>
@@ -280,6 +280,7 @@ const ScheduleSection: React.FC<ScheduleSectionProps> = ({ refreshInterval = 300
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3 }}
+                data-testid="elimination-stage-display"
               >
                 <EliminationStage matches={eliminationMatches} teams={teams} />
               </motion.div>

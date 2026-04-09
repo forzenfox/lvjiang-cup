@@ -1,6 +1,6 @@
 # 开发计划 - 参照LOL S赛修改赛程
 
-> 版本: v2.0
+> 版本: v3.1
 > 更新日期: 2026-04-09
 > 状态: 待审核
 
@@ -37,36 +37,347 @@
 
 ---
 
-## 二、完整修改清单
+## 二、核心决策
 
-### 阶段一：类型定义修改（Types）
+### 2.1 晋级名单管理：改为自动计算
 
-#### 2.1.1 frontend/src/types/index.ts
+**决策：移除手动设置晋级名单功能，改为根据比赛结果自动计算**
+
+**原因**：
+1. 16队4轮赛制的晋级规则明确：
+   - 3-0 战绩：直接晋级
+   - 2-1 战绩：直接晋级
+   - 1-2 战绩：待定（可能淘汰）
+   - 0-3 战绩：直接淘汰
+2. 瑞士轮结束后，可以根据所有比赛的 `swissRecord` 和 `winnerId` 自动计算出 top8 和 eliminated
+3. 手动设置增加了复杂度且容易出错
+
+**实现方式**：
+```typescript
+// 根据比赛结果自动计算晋级名单
+function calculateAdvancement(matches: Match[]): SwissAdvancementResult {
+  const teamRecords = new Map<string, { wins: number; losses: number }>();
+
+  // 遍历所有瑞士轮比赛，统计每支队伍的战绩
+  matches.filter(m => m.stage === 'swiss' && m.status === 'finished').forEach(match => {
+    if (match.winnerId) {
+      // 赢家增加胜场
+      const winnerRecord = teamRecords.get(match.winnerId) || { wins: 0, losses: 0 };
+      winnerRecord.wins++;
+      teamRecords.set(match.winnerId, winnerRecord);
+
+      // 输家增加负场
+      const loserId = match.teamAId === match.winnerId ? match.teamBId : match.teamAId;
+      const loserRecord = teamRecords.get(loserId) || { wins: 0, losses: 0 };
+      loserRecord.losses++;
+      teamRecords.set(loserId, loserRecord);
+    }
+  });
+
+  // 按战绩排序，分出 top8 和 eliminated
+  const sortedTeams = [...teamRecords.entries()]
+    .map(([teamId, record]) => ({ teamId, record: `${record.wins}-${record.losses}` }))
+    .sort((a, b) => {
+      const [aWins, aLosses] = a.record.split('-').map(Number);
+      const [bWins, bLosses] = b.record.split('-').map(Number);
+      // 按胜率排序，相同胜率按胜场排序
+      if (aWins !== bWins) return bWins - aWins;
+      return bLosses - aLosses;
+    });
+
+  return {
+    top8: sortedTeams.slice(0, 8).map(t => t.teamId),
+    eliminated: sortedTeams.slice(8).map(t => t.teamId),
+    rankings: sortedTeams.map((t, index) => ({ ...t, rank: index + 1 })),
+  };
+}
+```
+
+**影响范围**：
+- 移除 `SwissStageVisualEditor.tsx` 中的晋级名单管理面板
+- 移除 `advancementStore.ts` 中的 `moveTeam` 操作
+- 保留 `getAllTeamIds()` 和 `getUnassignedTeams()` 用于数据完整性校验
+- 前台 `SwissStage.tsx` 展示时直接使用计算结果
+
+---
+
+### 2.2 前后端模型统一
+
+**原则：前端模型字段与后端保持一致，避免多余的映射转化**
+
+**当前状态**：
+- 后端 `Advancement` 接口：5分类 `{ winners2_0, winners2_1, losersBracket, eliminated3rd, eliminated0_3 }`
+- 开发计划 v2.0 前端：`top8` 和 `eliminated` 简化结构
+
+**决策：前后端同步修改为简化结构**
+
+| 字段 | 后端当前 | 后端目标 | 前端当前 | 前端目标 |
+|------|---------|---------|---------|---------|
+| 结构 | 5分类 | 2分类 | 5分类 | 2分类 |
+| top8 | - | winners2_0 + winners2_1 | - | top8 |
+| eliminated | eliminated0_3 + eliminated3rd | eliminated | eliminated0_3 + eliminated3rd | eliminated |
+
+**数据库迁移**：
+```sql
+-- 新增字段
+ALTER TABLE advancement ADD COLUMN top8 TEXT DEFAULT '[]';
+ALTER TABLE advancement ADD COLUMN eliminated TEXT DEFAULT '[]';
+
+-- 迁移数据（可选，或清空重新计算）
+-- UPDATE advancement SET
+--   top8 = JSON(winners2_0 || winners2_1),
+--   eliminated = JSON(eliminated0_3 || eliminated3rd);
+```
+
+---
+
+## 三、完整修改清单
+
+### 阶段一：后端类型定义修改（Backend Types）
+
+#### 3.1.1 backend/src/modules/advancement/advancement.service.ts
+
+**修改 `Advancement` 接口**：
+
+```typescript
+// 当前
+export interface Advancement {
+  winners2_0: string[];
+  winners2_1: string[];
+  losersBracket: string[];
+  eliminated3rd: string[];
+  eliminated0_3: string[];
+}
+
+// 修改为
+export interface Advancement {
+  top8: string[];        // 前8名晋级淘汰赛
+  eliminated: string[];  // 被淘汰队伍
+  rankings?: {           // 排名信息
+    teamId: string;
+    record: string;
+    rank: number;
+  }[];
+}
+```
+
+**添加自动计算方法**：
+
+```typescript
+// 根据比赛结果自动计算晋级名单
+async calculateFromMatches(matches: Match[]): Promise<Advancement> {
+  const teamRecords = new Map<string, { wins: number; losses: number }>();
+
+  // 遍历所有瑞士轮比赛，统计每支队伍的战绩
+  matches
+    .filter(m => m.stage === 'swiss' && m.status === 'finished')
+    .forEach(match => {
+      if (match.winnerId) {
+        const winnerRecord = teamRecords.get(match.winnerId) || { wins: 0, losses: 0 };
+        winnerRecord.wins++;
+        teamRecords.set(match.winnerId, winnerRecord);
+
+        const loserId = match.teamAId === match.winnerId ? match.teamBId : match.teamAId;
+        const loserRecord = teamRecords.get(loserId) || { wins: 0, losses: 0 };
+        loserRecord.losses++;
+        teamRecords.set(loserId, loserRecord);
+      }
+    });
+
+  // 按战绩排序
+  const sortedTeams = [...teamRecords.entries()]
+    .map(([teamId, record]) => ({ teamId, record: `${record.wins}-${record.losses}` }))
+    .sort((a, b) => {
+      const [aWins, aLosses] = a.record.split('-').map(Number);
+      const [bWins, bLosses] = b.record.split('-').map(Number);
+      if (aWins !== bWins) return bWins - aWins;
+      return bLosses - aLosses;
+    });
+
+  return {
+    top8: sortedTeams.slice(0, 8).map(t => t.teamId),
+    eliminated: sortedTeams.slice(8).map(t => t.teamId),
+    rankings: sortedTeams.map((t, index) => ({ ...t, rank: index + 1 })),
+  };
+}
+```
+
+---
+
+#### 3.1.2 backend/src/modules/advancement/dto/update-advancement.dto.ts
+
+**修改 DTO**：
+
+```typescript
+// 当前
+export class UpdateAdvancementDto {
+  winners2_0?: string[];
+  winners2_1?: string[];
+  losersBracket?: string[];
+  eliminated3rd?: string[];
+  eliminated0_3?: string[];
+}
+
+// 修改为
+export class UpdateAdvancementDto {
+  @ApiPropertyOptional({ description: '前8名晋级淘汰赛', type: [String] })
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  top8?: string[];
+
+  @ApiPropertyOptional({ description: '被淘汰队伍', type: [String] })
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  eliminated?: string[];
+}
+```
+
+---
+
+#### 3.1.3 backend/src/database/database.service.ts
+
+**修改数据库表结构**：
+
+```typescript
+// 修改 advancement 表创建语句
+await run(
+  this.db,
+  `
+  CREATE TABLE IF NOT EXISTS advancement (
+    id INTEGER PRIMARY KEY CHECK(id = 1),
+    top8 TEXT DEFAULT '[]',
+    eliminated TEXT DEFAULT '[]',
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )
+`,
+);
+
+// 修改迁移逻辑（添加新字段）
+const advancementMigration = {
+  table: 'advancement',
+  checks: [
+    { column: 'top8', sql: 'ALTER TABLE advancement ADD COLUMN top8 TEXT DEFAULT \'[]\'' },
+    { column: 'eliminated', sql: 'ALTER TABLE advancement ADD COLUMN eliminated TEXT DEFAULT \'[]\'' },
+  ],
+};
+
+// 修改初始化默认数据
+await run(
+  this.db,
+  `INSERT OR IGNORE INTO advancement (id, top8, eliminated) VALUES (1, '[]', '[]')`,
+);
+```
+
+---
+
+#### 3.1.4 backend/src/modules/matches/matches.service.ts
+
+**修改 `Match` 接口和 `initSlots`**：
+
+```typescript
+// 修改 Match 接口
+export interface Match {
+  // ... 现有字段 ...
+  boFormat?: 'BO1' | 'BO3' | 'BO5';  // 【新增】
+  swissRound?: number;               // 【新增】
+  eliminationBracket?: 'quarterfinals' | 'semifinals' | 'finals'; // 【修改】
+}
+
+// 修改 initSlots - 16队4轮赛制（32场瑞士轮）
+async initSlots(): Promise<void> {
+  const result = await this.databaseService.get<{ count: number }>(
+    'SELECT COUNT(*) as count FROM matches',
+  );
+
+  if (result.count > 0) {
+    this.logger.log('Match slots already initialized');
+    return;
+  }
+
+  // 瑞士轮槽位（32场）
+  const swissSlots = [
+    // 第一轮：0-0，8场 BO1
+    { id: 'swiss-r1-1', round: 'Round 1', stage: 'swiss', swissRecord: '0-0', swissDay: 1, swissRound: 1, boFormat: 'BO1' },
+    { id: 'swiss-r1-2', round: 'Round 1', stage: 'swiss', swissRecord: '0-0', swissDay: 1, swissRound: 1, boFormat: 'BO1' },
+    { id: 'swiss-r1-3', round: 'Round 1', stage: 'swiss', swissRecord: '0-0', swissDay: 1, swissRound: 1, boFormat: 'BO1' },
+    { id: 'swiss-r1-4', round: 'Round 1', stage: 'swiss', swissRecord: '0-0', swissDay: 1, swissRound: 1, boFormat: 'BO1' },
+    { id: 'swiss-r1-5', round: 'Round 1', stage: 'swiss', swissRecord: '0-0', swissDay: 1, swissRound: 1, boFormat: 'BO1' },
+    { id: 'swiss-r1-6', round: 'Round 1', stage: 'swiss', swissRecord: '0-0', swissDay: 1, swissRound: 1, boFormat: 'BO1' },
+    { id: 'swiss-r1-7', round: 'Round 1', stage: 'swiss', swissRecord: '0-0', swissDay: 1, swissRound: 1, boFormat: 'BO1' },
+    { id: 'swiss-r1-8', round: 'Round 1', stage: 'swiss', swissRecord: '0-0', swissDay: 1, swissRound: 1, boFormat: 'BO1' },
+    // 第二轮：1-0，4场 BO3
+    { id: 'swiss-r2-h1', round: 'Round 2 High', stage: 'swiss', swissRecord: '1-0', swissDay: 2, swissRound: 2, boFormat: 'BO3' },
+    { id: 'swiss-r2-h2', round: 'Round 2 High', stage: 'swiss', swissRecord: '1-0', swissDay: 2, swissRound: 2, boFormat: 'BO3' },
+    { id: 'swiss-r2-h3', round: 'Round 2 High', stage: 'swiss', swissRecord: '1-0', swissDay: 2, swissRound: 2, boFormat: 'BO3' },
+    { id: 'swiss-r2-h4', round: 'Round 2 High', stage: 'swiss', swissRecord: '1-0', swissDay: 2, swissRound: 2, boFormat: 'BO3' },
+    // 第二轮：0-1，4场 BO3
+    { id: 'swiss-r2-l1', round: 'Round 2 Low', stage: 'swiss', swissRecord: '0-1', swissDay: 2, swissRound: 2, boFormat: 'BO3' },
+    { id: 'swiss-r2-l2', round: 'Round 2 Low', stage: 'swiss', swissRecord: '0-1', swissDay: 2, swissRound: 2, boFormat: 'BO3' },
+    { id: 'swiss-r2-l3', round: 'Round 2 Low', stage: 'swiss', swissRecord: '0-1', swissDay: 2, swissRound: 2, boFormat: 'BO3' },
+    { id: 'swiss-r2-l4', round: 'Round 2 Low', stage: 'swiss', swissRecord: '0-1', swissDay: 2, swissRound: 2, boFormat: 'BO3' },
+    // 第三轮：2-0，2场 BO3
+    { id: 'swiss-r3-h1', round: 'Round 3 High', stage: 'swiss', swissRecord: '2-0', swissDay: 3, swissRound: 3, boFormat: 'BO3' },
+    { id: 'swiss-r3-h2', round: 'Round 3 High', stage: 'swiss', swissRecord: '2-0', swissDay: 3, swissRound: 3, boFormat: 'BO3' },
+    // 第三轮：1-1，4场 BO3
+    { id: 'swiss-r3-m1', round: 'Round 3 Mid', stage: 'swiss', swissRecord: '1-1', swissDay: 3, swissRound: 3, boFormat: 'BO3' },
+    { id: 'swiss-r3-m2', round: 'Round 3 Mid', stage: 'swiss', swissRecord: '1-1', swissDay: 3, swissRound: 3, boFormat: 'BO3' },
+    { id: 'swiss-r3-m3', round: 'Round 3 Mid', stage: 'swiss', swissRecord: '1-1', swissDay: 3, swissRound: 3, boFormat: 'BO3' },
+    { id: 'swiss-r3-m4', round: 'Round 3 Mid', stage: 'swiss', swissRecord: '1-1', swissDay: 3, swissRound: 3, boFormat: 'BO3' },
+    // 第三轮：0-2，2场 BO3
+    { id: 'swiss-r3-l1', round: 'Round 3 Low', stage: 'swiss', swissRecord: '0-2', swissDay: 3, swissRound: 3, boFormat: 'BO3' },
+    { id: 'swiss-r3-l2', round: 'Round 3 Low', stage: 'swiss', swissRecord: '0-2', swissDay: 3, swissRound: 3, boFormat: 'BO3' },
+    // 第四轮：3-0，1场 BO3
+    { id: 'swiss-r4-h1', round: 'Round 4 High', stage: 'swiss', swissRecord: '3-0', swissDay: 4, swissRound: 4, boFormat: 'BO3' },
+    // 第四轮：2-1，3场 BO3
+    { id: 'swiss-r4-mh1', round: 'Round 4 Mid-High', stage: 'swiss', swissRecord: '2-1', swissDay: 4, swissRound: 4, boFormat: 'BO3' },
+    { id: 'swiss-r4-mh2', round: 'Round 4 Mid-High', stage: 'swiss', swissRecord: '2-1', swissDay: 4, swissRound: 4, boFormat: 'BO3' },
+    { id: 'swiss-r4-mh3', round: 'Round 4 Mid-High', stage: 'swiss', swissRecord: '2-1', swissDay: 4, swissRound: 4, boFormat: 'BO3' },
+    // 第四轮：1-2，3场 BO3
+    { id: 'swiss-r4-ml1', round: 'Round 4 Mid-Low', stage: 'swiss', swissRecord: '1-2', swissDay: 4, swissRound: 4, boFormat: 'BO3' },
+    { id: 'swiss-r4-ml2', round: 'Round 4 Mid-Low', stage: 'swiss', swissRecord: '1-2', swissDay: 4, swissRound: 4, boFormat: 'BO3' },
+    { id: 'swiss-r4-ml3', round: 'Round 4 Mid-Low', stage: 'swiss', swissRecord: '1-2', swissDay: 4, swissRound: 4, boFormat: 'BO3' },
+    // 第四轮：0-3，1场 BO3
+    { id: 'swiss-r4-l1', round: 'Round 4 Low', stage: 'swiss', swissRecord: '0-3', swissDay: 4, swissRound: 4, boFormat: 'BO3' },
+  ];
+
+  // 淘汰赛槽位（7场）
+  const eliminationSlots = [
+    // 四分之一决赛（4场）
+    { id: 'elim-qf-1', round: '四分之一决赛', stage: 'elimination', eliminationBracket: 'quarterfinals', eliminationGameNumber: 1, boFormat: 'BO5' },
+    { id: 'elim-qf-2', round: '四分之一决赛', stage: 'elimination', eliminationBracket: 'quarterfinals', eliminationGameNumber: 2, boFormat: 'BO5' },
+    { id: 'elim-qf-3', round: '四分之一决赛', stage: 'elimination', eliminationBracket: 'quarterfinals', eliminationGameNumber: 3, boFormat: 'BO5' },
+    { id: 'elim-qf-4', round: '四分之一决赛', stage: 'elimination', eliminationBracket: 'quarterfinals', eliminationGameNumber: 4, boFormat: 'BO5' },
+    // 半决赛（2场）
+    { id: 'elim-sf-1', round: '半决赛', stage: 'elimination', eliminationBracket: 'semifinals', eliminationGameNumber: 5, boFormat: 'BO5' },
+    { id: 'elim-sf-2', round: '半决赛', stage: 'elimination', eliminationBracket: 'semifinals', eliminationGameNumber: 6, boFormat: 'BO5' },
+    // 决赛（1场）
+    { id: 'elim-f-1', round: '决赛', stage: 'elimination', eliminationBracket: 'finals', eliminationGameNumber: 7, boFormat: 'BO5' },
+  ];
+
+  // 插入槽位...
+}
+```
+
+---
+
+### 阶段二：前端类型定义修改（Frontend Types）
+
+#### 3.2.1 frontend/src/types/index.ts
 
 **Match 接口修改**：
 
 ```typescript
 // 当前代码
-export type MatchStage = 'swiss' | 'elimination';
 export type EliminationBracket = 'winners' | 'losers' | 'grand_finals';
 
 export interface Match {
-  id: string;
-  teamAId: string;
-  teamBId: string;
-  teamA?: Team;
-  teamB?: Team;
-  scoreA: number;
-  scoreB: number;
-  winnerId: string | null;
-  round: string;
-  status: MatchStatus;
-  startTime: string;
-  stage: MatchStage;
-  swissRecord?: string; // 如 "0-0", "1-0", "0-1", "1-1", "0-2", "1-2", "2-0", "2-1"
+  // ...
+  swissRecord?: string;
   swissDay?: number;
-  eliminationGameNumber?: number;
   eliminationBracket?: EliminationBracket;
+  eliminationGameNumber?: number;
 }
 
 // 修改为
@@ -85,9 +396,9 @@ export interface Match {
   status: MatchStatus;
   startTime: string;
   stage: MatchStage;
-  swissRecord?: string; // 瑞士轮战绩: "0-0", "1-0", "0-1", "2-0", "1-1", "0-2", "3-0", "2-1", "1-2", "0-3"
-  swissDay?: number;     // 瑞士轮第几天 (1-4)
-  swissRound?: number;   // 瑞士轮第几轮 (1-4)【新增】
+  swissRecord?: string;      // 瑞士轮战绩: "0-0", "1-0", "0-1", "2-0", "1-1", "0-2", "3-0", "2-1", "1-2", "0-3"
+  swissDay?: number;          // 瑞士轮第几天 (1-4)
+  swissRound?: number;        // 瑞士轮第几轮 (1-4)【新增】
   boFormat?: 'BO1' | 'BO3' | 'BO5'; // 赛制格式【新增】
   eliminationGameNumber?: number;
   eliminationBracket?: EliminationBracket;
@@ -106,11 +417,11 @@ export interface SwissAdvancementResult {
   eliminated0_3: string[];
 }
 
-// 修改为
+// 修改为（与后端一致）
 export interface SwissAdvancementResult {
   top8: string[];        // 前8名晋级淘汰赛
   eliminated: string[];  // 被淘汰队伍
-  rankings?: {           // 排名信息【新增】
+  rankings?: {           // 排名信息
     teamId: string;
     record: string;
     rank: number;
@@ -135,9 +446,19 @@ export type AdvancementCategory = 'top8' | 'eliminated';
 
 ---
 
-### 阶段二：瑞士轮配置（Swiss Round Config）
+#### 3.2.2 frontend/src/api/types.ts
 
-#### 2.2.1 frontend/src/pages/admin/swissRoundSlots.ts
+**同步更新 API 类型**：
+
+```typescript
+// 如果有单独的 API 类型定义，也需要同步更新
+```
+
+---
+
+### 阶段三：瑞士轮配置（Swiss Round Config）
+
+#### 3.3.1 frontend/src/pages/admin/swissRoundSlots.ts
 
 **完全重写**：
 
@@ -148,35 +469,18 @@ export interface SwissRoundSlot {
   maxMatches: number;
 }
 
-// 完全重写：16队4轮赛制，10个战绩分组
+// 16队4轮赛制，10个战绩分组
 export const swissRoundSlots: SwissRoundSlot[] = [
-  // ========== 第一轮 ==========
   { swissRecord: '0-0', roundName: 'Round 1', maxMatches: 8 },
-  // 第一轮：16支队伍随机配对，8场BO1
-
-  // ========== 第二轮 ==========
   { swissRecord: '1-0', roundName: 'Round 2 High', maxMatches: 4 },
-  // 第一轮1-0战绩的8支队伍，高组BO3
   { swissRecord: '0-1', roundName: 'Round 2 Low', maxMatches: 4 },
-  // 第一轮0-1战绩的8支队伍，低组BO3
-
-  // ========== 第三轮 ==========
   { swissRecord: '2-0', roundName: 'Round 3 High', maxMatches: 2 },
-  // 第二轮2-0战绩，2场BO3
   { swissRecord: '1-1', roundName: 'Round 3 Mid', maxMatches: 4 },
-  // 第二轮1-1战绩，4场BO3
   { swissRecord: '0-2', roundName: 'Round 3 Low', maxMatches: 2 },
-  // 第二轮0-2战绩，2场BO3
-
-  // ========== 第四轮 ==========
   { swissRecord: '3-0', roundName: 'Round 4 High', maxMatches: 1 },
-  // 3-0战绩，1场BO3
   { swissRecord: '2-1', roundName: 'Round 4 Mid-High', maxMatches: 3 },
-  // 2-1战绩，3场BO3
   { swissRecord: '1-2', roundName: 'Round 4 Mid-Low', maxMatches: 3 },
-  // 1-2战绩，3场BO3
   { swissRecord: '0-3', roundName: 'Round 4 Low', maxMatches: 1 },
-  // 0-3战绩，1场BO3
 ];
 
 export const getRoundFormat = (swissRecord: string): 'BO1' | 'BO3' => {
@@ -187,12 +491,11 @@ export const getSlotByRecord = (swissRecord: string): SwissRoundSlot | undefined
   return swissRoundSlots.find(slot => slot.swissRecord === swissRecord);
 };
 
-// 计算总槽位数：8 + 4 + 4 + 2 + 4 + 2 + 1 + 3 + 3 + 1 = 32
 export const getTotalSlots = (): number => {
   return swissRoundSlots.reduce((sum, slot) => sum + slot.maxMatches, 0);
 };
 
-// 【新增】根据战绩获取轮次
+// 新增辅助函数
 export const getSwissRound = (swissRecord: string): number => {
   const round1Records = ['0-0'];
   const round2Records = ['1-0', '0-1'];
@@ -206,12 +509,10 @@ export const getSwissRound = (swissRecord: string): number => {
   return 0;
 };
 
-// 【新增】判断是否已淘汰
 export const isEliminated = (swissRecord: string): boolean => {
   return swissRecord === '0-3';
 };
 
-// 【新增】判断是否已晋级
 export const isQualified = (swissRecord: string): boolean => {
   return ['3-0', '2-1'].includes(swissRecord);
 };
@@ -219,33 +520,31 @@ export const isQualified = (swissRecord: string): boolean => {
 
 ---
 
-### 阶段三：晋级状态管理（Advancement Store）
+### 阶段四：晋级状态管理（Advancement Store）
 
-#### 2.3.1 frontend/src/store/advancementStore.ts
+#### 3.4.1 frontend/src/store/advancementStore.ts
 
-**完全重构**：
+**简化重构（移除手动编辑功能）**：
 
 ```typescript
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { SwissAdvancementResult, AdvancementCategory } from '@/types';
+import type { SwissAdvancementResult } from '@/types';
 
 interface AdvancementStore {
   advancement: SwissAdvancementResult;
   lastUpdated: string;
-  updatedBy: string;
-  setAdvancement: (data: SwissAdvancementResult, user: string) => void;
-  moveTeam: (teamId: string, from: AdvancementCategory | null, to: AdvancementCategory) => void;
+  setAdvancement: (data: SwissAdvancementResult) => void;
   reset: () => void;
   restoreDefault: () => void;
   getAllTeamIds: () => string[];
-  getUnassignedTeams: (allTeamIds: string[]) => string[];
+  // 注意：移除了 moveTeam 和 getUnassignedTeams，因为不再需要手动管理
 }
 
-// 完全重构：简化为 top8 和 eliminated 两个分类
+// 简化为只读存储
 const defaultAdvancement: SwissAdvancementResult = {
-  top8: [],      // 前8名晋级淘汰赛
-  eliminated: [], // 被淘汰队伍
+  top8: [],
+  eliminated: [],
   rankings: [],
 };
 
@@ -254,33 +553,12 @@ export const useAdvancementStore = create<AdvancementStore>()(
     (set, get) => ({
       advancement: defaultAdvancement,
       lastUpdated: new Date().toISOString(),
-      updatedBy: 'system',
 
-      setAdvancement: (data, user) =>
+      setAdvancement: (data) =>
         set({
           advancement: data,
           lastUpdated: new Date().toISOString(),
-          updatedBy: user,
         }),
-
-      moveTeam: (teamId, from, to) => {
-        const { advancement } = get();
-        const newAdvancement = { ...advancement };
-
-        if (from && newAdvancement[from].includes(teamId)) {
-          newAdvancement[from] = newAdvancement[from].filter(id => id !== teamId);
-        }
-
-        if (!newAdvancement[to].includes(teamId)) {
-          newAdvancement[to] = [...newAdvancement[to], teamId];
-        }
-
-        set({
-          advancement: newAdvancement,
-          lastUpdated: new Date().toISOString(),
-          updatedBy: 'admin',
-        });
-      },
 
       reset: () => {
         const persisted = localStorage.getItem('advancement-storage');
@@ -291,7 +569,6 @@ export const useAdvancementStore = create<AdvancementStore>()(
               set({
                 advancement: data.state.advancement || defaultAdvancement,
                 lastUpdated: data.state.lastUpdated || new Date().toISOString(),
-                updatedBy: data.state.updatedBy || 'system',
               });
             }
           } catch (e) {
@@ -304,18 +581,11 @@ export const useAdvancementStore = create<AdvancementStore>()(
         set({
           advancement: defaultAdvancement,
           lastUpdated: new Date().toISOString(),
-          updatedBy: 'system',
         }),
 
-      // 重构：只从 top8 和 eliminated 获取
       getAllTeamIds: () => {
         const { advancement } = get();
         return [...advancement.top8, ...advancement.eliminated];
-      },
-
-      getUnassignedTeams: (allTeamIds: string[]) => {
-        const assignedIds = get().getAllTeamIds();
-        return allTeamIds.filter(id => !assignedIds.includes(id));
       },
     }),
     {
@@ -323,167 +593,121 @@ export const useAdvancementStore = create<AdvancementStore>()(
       partialize: state => ({
         advancement: state.advancement,
         lastUpdated: state.lastUpdated,
-        updatedBy: state.updatedBy,
       }),
     }
   )
 );
 
-// 完全重构：只有两个分类
-export const categoryConfig: Record<
-  AdvancementCategory,
-  { label: string; color: string; description: string }
-> = {
-  top8: {
-    label: '前8名晋级淘汰赛',
-    color: 'bg-green-500',
-    description: '瑞士轮前8名晋级淘汰赛',
-  },
-  eliminated: {
-    label: '淘汰',
-    color: 'bg-red-500',
-    description: '未进入前8名，被淘汰',
-  },
-};
-
-export const categoryOrder: AdvancementCategory[] = ['top8', 'eliminated'];
+// 移除 categoryConfig 和 categoryOrder，因为不再需要拖拽管理
 ```
 
----
-
-### 阶段四：瑞士轮组件（Swiss Stage Components）
-
-#### 2.4.1 frontend/src/components/features/SwissStage.tsx
-
-**接口修改**：
+**计算晋级名单的工具函数**：
 
 ```typescript
-// 当前 Props
-interface SwissStageProps {
-  matches: Match[];
-  teams: Team[];
-  advancement?: {
-    winners2_0: string[];
-    winners2_1: string[];
-    losersBracket: string[];
-    eliminated3rd: string[];
-    eliminated0_3: string[];
-  };
-}
+// 工具函数：根据比赛结果计算晋级名单
+export function calculateAdvancement(matches: Match[], teams: Team[]): SwissAdvancementResult {
+  const teamRecords = new Map<string, { wins: number; losses: number }>();
 
-// 修改为
-interface SwissStageProps {
-  matches: Match[];
-  teams: Team[];
-  advancement?: {
-    top8: string[];
-    eliminated: string[];
-    rankings?: { teamId: string; record: string; rank: number }[];
+  // 初始化所有队伍的战绩
+  teams.forEach(team => {
+    teamRecords.set(team.id, { wins: 0, losses: 0 });
+  });
+
+  // 遍历所有瑞士轮比赛，统计每支队伍的战绩
+  matches
+    .filter(m => m.stage === 'swiss' && m.status === 'finished' && m.winnerId)
+    .forEach(match => {
+      const winnerRecord = teamRecords.get(match.winnerId!) || { wins: 0, losses: 0 };
+      winnerRecord.wins++;
+      teamRecords.set(match.winnerId!, winnerRecord);
+
+      const loserId = match.teamAId === match.winnerId ? match.teamBId : match.teamAId;
+      const loserRecord = teamRecords.get(loserId) || { wins: 0, losses: 0 };
+      loserRecord.losses++;
+      teamRecords.set(loserId, loserRecord);
+    });
+
+  // 按战绩排序
+  const sortedTeams = [...teamRecords.entries()]
+    .map(([teamId, record]) => ({ teamId, record: `${record.wins}-${record.losses}` }))
+    .sort((a, b) => {
+      const [aWins, aLosses] = a.record.split('-').map(Number);
+      const [bWins, bLosses] = b.record.split('-').map(Number);
+      if (aWins !== bWins) return bWins - aWins;
+      return bLosses - aLosses;
+    });
+
+  return {
+    top8: sortedTeams.slice(0, 8).map(t => t.teamId),
+    eliminated: sortedTeams.slice(8).map(t => t.teamId),
+    rankings: sortedTeams.map((t, index) => ({ ...t, rank: index + 1 })),
   };
 }
 ```
 
-**完全重构组件逻辑**：
+---
+
+### 阶段五：瑞士轮组件（Swiss Stage Components）
+
+#### 3.5.1 frontend/src/components/features/SwissStage.tsx
+
+**修改要点**：
+- Props 中的 `advancement` 类型更新为 `{ top8, eliminated, rankings }`
+- 分组过滤逻辑更新为10个战绩分组
+- 晋�级展示改为2分类
+
+---
+
+#### 3.5.2 frontend/src/pages/admin/SwissStageVisualEditor.tsx
+
+**重要变更：移除晋级名单管理面板**
 
 ```typescript
-// 替换现有的分组过滤逻辑
-const round1Matches = matches.filter(m => m.swissRecord === '0-0');
-const round2High = matches.filter(m => m.swissRecord === '1-0');
-const round2Low = matches.filter(m => m.swissRecord === '0-1');
-const round3High = matches.filter(m => m.swissRecord === '2-0');
-const round3Mid = matches.filter(m => m.swissRecord === '1-1');
-const round3Low = matches.filter(m => m.swissRecord === '0-2');
-const round4High = matches.filter(m => m.swissRecord === '3-0');
-const round4MidHigh = matches.filter(m => m.swissRecord === '2-1');
-const round4MidLow = matches.filter(m => m.swissRecord === '1-2');
-const round4Low = matches.filter(m => m.swissRecord === '0-3');
-```
+// 移除内容：
+// - 拖拽团队移动功能
+// - 晋级分类卡片（top8, eliminated 等）
+// - 保存/重置晋级名单按钮
 
-**UI 结构调整**（10个分组横向排列）：
-
-```typescript
-// 布局结构：
-// Round 1 | Round 2 High | Round 3 High      |
-//         | Round 2 Low  | Round 3 Mid        | Round 4 High  |
-//                      | Round 3 Low   | Round 4 Mid-High  |
-//                                   | Round 4 Mid-Low   |
-//                                                | Round 4 Low  |
-```
-
-**晋�级展示修改**：
-
-```typescript
-// 替换原有的5分类展示为2分类
-<div className="flex flex-col gap-2" data-testid="swiss-record-group-top8">
-  <SwissStatusBadge type="qualified">前8名晋级</SwissStatusBadge>
-  <SwissTeamList teams={teams} ids={advancement.top8} />
-</div>
-
-<div className="flex flex-col gap-2" data-testid="swiss-record-group-eliminated">
-  <SwissStatusBadge type="eliminated">淘汰</SwissStatusBadge>
-  <SwissTeamList teams={teams} ids={advancement.eliminated} />
-</div>
+// 保留内容：
+// - 比赛槽位编辑器（32场比赛）
+// - 比赛编辑对话框
 ```
 
 ---
 
-#### 2.4.2 frontend/src/components/features/swiss/SwissMatchCard.tsx
+### 阶段六：淘汰赛组件（Elimination Components）
 
-**修改内容**：
-- 如果比赛还未开始（`status === 'upcoming'`），显示 `BO1` 或 `BO3` 标识
-- 根据 `boFormat` 字段显示赛制标识（如果存在）
+#### 3.6.1 frontend/src/components/features/eliminationConstants.ts
 
----
-
-### 阶段五：淘汰赛组件（Elimination Components）
-
-#### 2.5.1 frontend/src/components/features/eliminationConstants.ts
-
-**完全重写**：
+**完全重写（8队单败制）**：
 
 ```typescript
-import { Match } from '@/types';
-
-// 画布尺寸（适配8队单败制）
 export const BOARD_WIDTH = 800;
 export const BOARD_HEIGHT = 700;
 
-// 8队单败制：7场比赛位置
 export const ELIMINATION_POSITIONS = {
-  // 四分之一决赛（4场）
   qf1: { x: 20, y: 30 },
   qf2: { x: 20, y: 190 },
   qf3: { x: 20, y: 350 },
   qf4: { x: 20, y: 510 },
-  // 半决赛（2场）
   sf1: { x: 300, y: 110 },
   sf2: { x: 300, y: 430 },
-  // 决赛（1场）
   f: { x: 580, y: 270 },
 };
 
-// 连接线配置
 export const ELIMINATION_CONNECTORS = [
-  // QF1 -> SF1
   { from: 'qf1' as const, to: 'sf1' as const },
-  // QF2 -> SF1
   { from: 'qf2' as const, to: 'sf1' as const },
-  // QF3 -> SF2
   { from: 'qf3' as const, to: 'sf2' as const },
-  // QF4 -> SF2
   { from: 'qf4' as const, to: 'sf2' as const },
-  // SF1 -> F
   { from: 'sf1' as const, to: 'f' as const },
-  // SF2 -> F
   { from: 'sf2' as const, to: 'f' as const },
 ];
 
-// 游戏键类型
 type GameKey = 'qf1' | 'qf2' | 'qf3' | 'qf4' | 'sf1' | 'sf2' | 'f';
 
 export const GAME_KEYS: GameKey[] = ['qf1', 'qf2', 'qf3', 'qf4', 'sf1', 'sf2', 'f'];
 
-// 占位比赛数据生成
 export const createPlaceholderMatch = (gameNum?: number): Match => ({
   id: `placeholder-${gameNum ?? 'na'}`,
   teamAId: '',
@@ -495,24 +719,19 @@ export const createPlaceholderMatch = (gameNum?: number): Match => ({
   status: 'upcoming',
   startTime: '',
   stage: 'elimination',
-  boFormat: 'BO5',  // 所有淘汰赛都是BO5
+  boFormat: 'BO5',
   eliminationGameNumber: gameNum,
   eliminationBracket: gameNum <= 4 ? 'quarterfinals' : gameNum <= 6 ? 'semifinals' : 'finals',
 });
-
-export const getPositionByGameKey = (key: GameKey) => {
-  return ELIMINATION_POSITIONS[key];
-};
 ```
 
 ---
 
-#### 2.5.2 frontend/src/components/features/EliminationStage.tsx
+#### 3.6.2 frontend/src/components/features/EliminationStage.tsx
 
-**完全重构**：
+**完全重构（7场比赛）**：
 
 ```typescript
-// 游戏编号到ID的映射（7场比赛）
 const GAME_NUMBER_TO_ID: Record<number, string> = {
   1: 'elim-qf-1',
   2: 'elim-qf-2',
@@ -523,312 +742,109 @@ const GAME_NUMBER_TO_ID: Record<number, string> = {
   7: 'elim-f-1',
 };
 
-// 阶段名称映射
 const BRACKET_NAMES: Record<string, string> = {
   quarterfinals: '四分之一决赛',
   semifinals: '半决赛',
   finals: '决赛',
 };
-
-// renderMatch 调用更新（7场比赛）
-// 移除 g5-g8 相关的渲染
 ```
-
-**UI 调整**：
-- 移除双败制的 losers bracket 展示
-- 添加 BO5 标识显示
-- 更新连接线样式（从双败的L形改为单败的直线）
-
----
-
-#### 2.5.3 frontend/src/components/features/BracketMatchCard.tsx
-
-**修改内容**：
-- 添加 `boFormat` 字段显示（默认显示 BO5）
-- 简化双败相关的逻辑分支
-
----
-
-#### 2.5.4 frontend/src/components/features/EditableBracketMatchCard.tsx
-
-**修改内容**：
-- 适配新的 `eliminationBracket` 类型
-- 移除双败制相关的编辑逻辑
-
----
-
-#### 2.5.5 frontend/src/components/features/EliminationConnectors.tsx
-
-**完全重构**：
-- 从双败连接器（8个位置，复杂L形连线）改为单败连接器（7个位置，简单直线连线）
-
----
-
-### 阶段六：管理后台组件（Admin Components）
-
-#### 2.6.1 frontend/src/pages/admin/SwissStageVisualEditor.tsx
-
-**Props 接口修改**：
-
-```typescript
-// 当前
-interface SwissStageVisualEditorProps {
-  // ...
-  advancement: {
-    winners2_0: string[];
-    winners2_1: string[];
-    losersBracket: string[];
-    eliminated3rd: string[];
-    eliminated0_3: string[];
-  };
-  onAdvancementUpdate: (advancement: {
-    winners2_0: string[];
-    winners2_1: string[];
-    losersBracket: string[];
-    eliminated3rd: string[];
-    eliminated0_3: string[];
-  }) => void;
-}
-
-// 修改为
-interface SwissStageVisualEditorProps {
-  // ...
-  advancement: {
-    top8: string[];
-    eliminated: string[];
-  };
-  onAdvancementUpdate: (advancement: {
-    top8: string[];
-    eliminated: string[];
-  }) => void;
-}
-```
-
-**布局调整**（10个分组）：
-- 当前6个分组扩展为10个分组
-- 需要更大的横向滚动区域
-- 建议最小宽度从 1400px 增加到 1800px
-
-**晋级名单管理面板**：
-- 从5个分类卡片简化为2个分类卡片
-- 调整拖拽逻辑
 
 ---
 
 ### 阶段七：Mock数据（Mock Data）
 
-#### 2.7.1 frontend/src/mock/data.ts
+#### 3.7.1 frontend/src/mock/data.ts
 
-**完全重写 swissMatches**（32场比赛）：
-
-```typescript
-// 第一轮：8场 BO1
-const round1Matches: Match[] = [
-  { id: 'swiss-r1-1', teamAId: 'team1', teamBId: 'team16', /* ... */ swissRecord: '0-0', boFormat: 'BO1' },
-  { id: 'swiss-r1-2', teamAId: 'team2', teamBId: 'team15', /* ... */ swissRecord: '0-0', boFormat: 'BO1' },
-  // ... 共8场
-];
-
-// 第二轮：8场 BO3
-const round2Matches: Match[] = [
-  // 1-0 组：4场
-  { id: 'swiss-r2-h1', /* ... */ swissRecord: '1-0', boFormat: 'BO3' },
-  // 0-1 组：4场
-  { id: 'swiss-r2-l1', /* ... */ swissRecord: '0-1', boFormat: 'BO3' },
-];
-
-// 第三轮：8场 BO3
-const round3Matches: Match[] = [
-  // 2-0 组：2场
-  { id: 'swiss-r3-h1', /* ... */ swissRecord: '2-0', boFormat: 'BO3' },
-  // 1-1 组：4场
-  { id: 'swiss-r3-m1', /* ... */ swissRecord: '1-1', boFormat: 'BO3' },
-  // 0-2 组：2场
-  { id: 'swiss-r3-l1', /* ... */ swissRecord: '0-2', boFormat: 'BO3' },
-];
-
-// 第四轮：8场 BO3
-const round4Matches: Match[] = [
-  // 3-0 组：1场
-  { id: 'swiss-r4-h1', /* ... */ swissRecord: '3-0', boFormat: 'BO3' },
-  // 2-1 组：3场
-  { id: 'swiss-r4-mh1', /* ... */ swissRecord: '2-1', boFormat: 'BO3' },
-  // 1-2 组：3场
-  { id: 'swiss-r4-ml1', /* ... */ swissRecord: '1-2', boFormat: 'BO3' },
-  // 0-3 组：1场
-  { id: 'swiss-r4-l1', /* ... */ swissRecord: '0-3', boFormat: 'BO3' },
-];
-
-export const swissMatches: Match[] = [
-  ...round1Matches,
-  ...round2Matches,
-  ...round3Matches,
-  ...round4Matches,
-];
-```
-
-**完全重写 eliminationMatches**（7场比赛）：
-
-```typescript
-// 四分之一决赛：4场 BO5
-const quarterFinals: Match[] = [
-  { id: 'elim-qf-1', teamAId: 'teamA', teamBId: 'teamB', /* ... */ eliminationBracket: 'quarterfinals', boFormat: 'BO5' },
-  // ... 共4场
-];
-
-// 半决赛：2场 BO5
-const semiFinals: Match[] = [
-  { id: 'elim-sf-1', /* ... */ eliminationBracket: 'semifinals', boFormat: 'BO5' },
-  // ... 共2场
-];
-
-// 决赛：1场 BO5
-const finals: Match[] = [
-  { id: 'elim-f-1', /* ... */ eliminationBracket: 'finals', boFormat: 'BO5' },
-];
-
-export const eliminationMatches: Match[] = [
-  ...quarterFinals,
-  ...semiFinals,
-  ...finals,
-];
-```
-
-**新增8支战队**：
-
-```typescript
-// 在现有8支战队基础上新增8支
-export const newTeams: Team[] = [
-  {
-    id: 'team9',
-    name: '新战队A',
-    logo: 'https://picsum.photos/seed/team9/200/200',
-    battleCry: '战队口号',
-    players: [/* 5个队员 */],
-  },
-  // ... 共8支
-];
-
-export const initialTeams: Team[] = [...existing8Teams, ...newTeams];
-```
-
-**更新 swissAdvancement**：
-
-```typescript
-export const swissAdvancement = {
-  top8: ['team1', 'team2', 'team3', 'team4', 'team5', 'team6', 'team7', 'team8'],
-  eliminated: ['team9', 'team10', 'team11', 'team12', 'team13', 'team14', 'team15', 'team16'],
-  rankings: [],
-};
-```
+**完全重写**（参考前述开发计划 v2.0）
 
 ---
 
 ### 阶段八：其他文件修改
 
-#### 2.8.1 frontend/src/pages/admin/Schedule.tsx
+#### 3.8.1 frontend/src/pages/admin/Schedule.tsx
 
 **修改内容**：
 - 更新 `handleAdvancementUpdate` 适配新的 `top8/eliminated` 结构
-- 更新初始化提示文案："瑞士轮32场 + 淘汰赛7场"
+- 添加自动计算晋级的触发逻辑（在所有瑞士轮比赛结束后）
+- 更新初始化提示文案
 
-#### 2.8.2 frontend/src/pages/admin/Teams.tsx
+#### 3.8.2 frontend/src/pages/admin/Teams.tsx
 
 **新增内容**：
 - 添加16支战队数量限制验证
-- 添加超出限制时的友好提示
-
-```typescript
-const MAX_TEAMS = 16;
-
-const handleAddTeam = async (team: Omit<Team, 'id'>) => {
-  const currentTeams = getTeams();
-  if (currentTeams.length >= MAX_TEAMS) {
-    toast.error(`战队数量已达上限（${MAX_TEAMS}支）`);
-    return;
-  }
-  // ... 添加逻辑
-};
-```
-
-#### 2.8.3 frontend/src/components/features/TeamSection.tsx
-
-**修改内容**：
-- 验证并确保只显示16支战队
-- 响应式布局适配16队网格
 
 ---
 
-## 三、开发优先级
+## 四、开发优先级
 
-### 第一阶段：类型和配置（Day 1）
-1. [ ] 更新 `types/index.ts` - Match, SwissAdvancementResult, AdvancementCategory
-2. [ ] 重写 `swissRoundSlots.ts` - 10个战绩分组配置
-3. [ ] 重写 `advancementStore.ts` - 简化为2分类
+### 第一阶段：后端修改（Day 1）
+1. [ ] 修改 `advancement.service.ts` - 接口和计算逻辑
+2. [ ] 修改 `update-advancement.dto.ts` - DTO
+3. [ ] 修改 `database.service.ts` - 数据库结构
+4. [ ] 修改 `matches.service.ts` - Match 接口和 initSlots
 
-### 第二阶段：瑞士轮组件（Day 2-3）
-4. [ ] 重写 `SwissStage.tsx` - 10分组布局
-5. [ ] 修改 `SwissStageVisualEditor.tsx` - 适配新配置
-6. [ ] 修改瑞士轮相关子组件
+### 第二阶段：前端类型和配置（Day 1-2）
+5. [ ] 更新 `types/index.ts` - Match, SwissAdvancementResult
+6. [ ] 更新 API 类型定义
+7. [ ] 重写 `swissRoundSlots.ts` - 10个战绩分组
 
-### 第三阶段：淘汰赛组件（Day 3-4）
-7. [ ] 重写 `eliminationConstants.ts` - 7位置单败制
-8. [ ] 重写 `EliminationConnectors.tsx` - 单败连线
-9. [ ] 重写 `EliminationStage.tsx` - 8队单败展示
-10. [ ] 修改 `BracketMatchCard.tsx` - BO5标识
+### 第三阶段：前端组件（Day 2-4）
+8. [ ] 简化 `advancementStore.ts` - 移除手动编辑
+9. [ ] 重写 `SwissStage.tsx` - 10分组布局
+10. [ ] 修改 `SwissStageVisualEditor.tsx` - 移除晋级管理面板
+11. [ ] 重写 `eliminationConstants.ts` - 7位置单败制
+12. [ ] 重写 `EliminationConnectors.tsx` - 单败连线
+13. [ ] 重写 `EliminationStage.tsx` - 8队单败展示
 
-### 第四阶段：数据（Day 4-5）
-11. [ ] 创建16支战队 Mock 数据
-12. [ ] 创建32场瑞士轮 Mock 数据
-13. [ ] 创建7场淘汰赛 Mock 数据
-
-### 第五阶段：集成和测试（Day 5-6）
-14. [ ] 更新 `Schedule.tsx`
-15. [ ] 添加16队限制验证
-16. [ ] 集成测试
-17. [ ] 响应式测试
+### 第四阶段：数据和集成（Day 4-5）
+14. [ ] 重写 `mock/data.ts` - 16队数据
+15. [ ] 更新 `Schedule.tsx`
+16. [ ] 添加16队限制验证
+17. [ ] 集成测试
 
 ---
 
-## 四、文件修改清单汇总
+## 五、文件修改清单汇总
+
+### 后端文件（P0）
 
 | 序号 | 文件路径 | 修改类型 | 优先级 |
 |------|---------|---------|--------|
-| 1 | `types/index.ts` | 接口修改 | P0 |
-| 2 | `pages/admin/swissRoundSlots.ts` | 完全重写 | P0 |
-| 3 | `store/advancementStore.ts` | 完全重构 | P0 |
-| 4 | `components/features/SwissStage.tsx` | 完全重构 | P0 |
-| 5 | `components/features/eliminationConstants.ts` | 完全重写 | P0 |
-| 6 | `components/features/EliminationStage.tsx` | 完全重构 | P0 |
-| 7 | `components/features/EliminationConnectors.tsx` | 完全重写 | P0 |
-| 8 | `components/features/BracketMatchCard.tsx` | 部分修改 | P1 |
-| 9 | `components/features/EditableBracketMatchCard.tsx` | 部分修改 | P1 |
-| 10 | `pages/admin/SwissStageVisualEditor.tsx` | 部分修改 | P0 |
-| 11 | `mock/data.ts` | 完全重写 | P0 |
-| 12 | `pages/admin/Schedule.tsx` | 部分修改 | P1 |
-| 13 | `pages/admin/Teams.tsx` | 新增验证 | P1 |
-| 14 | `components/features/TeamSection.tsx` | 部分修改 | P2 |
+| 1 | `modules/advancement/advancement.service.ts` | 接口修改 + 新增计算逻辑 | P0 |
+| 2 | `modules/advancement/dto/update-advancement.dto.ts` | DTO修改 | P0 |
+| 3 | `database/database.service.ts` | 数据库结构修改 | P0 |
+| 4 | `modules/matches/matches.service.ts` | Match接口 + initSlots | P0 |
 
----
+### 前端文件（P0/P1）
 
-## 五、注意事项
-
-1. **数据迁移**：现有8队数据需要迁移到16队，建议提供数据迁移脚本或引导用户重新初始化
-2. **localStorage 清理**：晋级状态存储结构变更，需要清理旧数据
-3. **响应式布局**：10个瑞士轮分组 + 7个淘汰赛位置需要更大的横向滚动区域
-4. **BO赛制标识**：确保所有比赛卡片正确显示BO1/BO3/BO5标识
-5. **测试覆盖**：重点测试新的赛制逻辑和各种边界情况
+| 序号 | 文件路径 | 修改类型 | 优先级 |
+|------|---------|---------|--------|
+| 5 | `types/index.ts` | 接口修改 | P0 |
+| 6 | `api/types.ts` | API类型同步 | P1 |
+| 7 | `pages/admin/swissRoundSlots.ts` | 完全重写 | P0 |
+| 8 | `store/advancementStore.ts` | 简化重构 | P0 |
+| 9 | `components/features/SwissStage.tsx` | 完全重构 | P0 |
+| 10 | `pages/admin/SwissStageVisualEditor.tsx` | 部分修改（移除晋级管理） | P0 |
+| 11 | `components/features/eliminationConstants.ts` | 完全重写 | P0 |
+| 12 | `components/features/EliminationStage.tsx` | 完全重构 | P0 |
+| 13 | `components/features/EliminationConnectors.tsx` | 完全重写 | P0 |
+| 14 | `mock/data.ts` | 完全重写 | P0 |
+| 15 | `pages/admin/Schedule.tsx` | 部分修改 | P1 |
+| 16 | `pages/admin/Teams.tsx` | 新增验证 | P1 |
 
 ---
 
 ## 六、验收标准
 
+### 晋级逻辑验收（新增）
+- [ ] 瑞士轮比赛结束后可自动计算 top8 和 eliminated
+- [ ] 无需手动设置晋级名单
+- [ ] 晋级结果可根据比赛结果实时更新
+
 ### 瑞士轮验收
 - [ ] 正确显示10个战绩分组
 - [ ] 第一轮显示BO1标识
 - [ ] 其他轮次显示BO3标识
-- [ ] 晋级名单管理只有top8和eliminated两个分类
-- [ ] 可以拖拽调整晋级状态
 - [ ] 16支战队完整展示
 
 ### 淘汰赛验收
@@ -841,12 +857,340 @@ const handleAddTeam = async (team: Omit<Team, 'id'>) => {
 - [ ] 战队管理限制为最多16支
 - [ ] 瑞士轮编辑器支持32场比赛配置
 - [ ] 淘汰赛编辑器支持7场比赛配置
-- [ ] 数据管理功能正常（加载Mock/清空数据）
+- [ ] 数据管理功能正常
 
 ### 性能验收
 - [ ] 页面加载时间 < 2秒
 - [ ] 赛程区域渲染流畅
-- [ ] 横向滚动无明显延迟
+
+---
+
+## 七、E2E测试设计（为后续E2E编写做准备）
+
+### 7.1 关键设计原则
+
+根据TDD工作流，E2E测试需要：
+1. **测试数据属性（Data Attributes）**：所有交互元素必须添加 `data-testid`
+2. **语义化选择器**：使用 `data-testid` 而不是 CSS 类名或 XPath
+3. **Page Object模式**：每个页面有独立的 Page Object 类
+4. **测试隔离**：每个测试独立设置数据，不依赖其他测试
+
+### 7.2 需要添加的 Data Test ID
+
+#### 赛程管理页面 (`/admin/schedule`)
+
+| 元素 | data-testid | 说明 |
+|------|-------------|------|
+| 瑞士轮Tab | `swiss-tab` | 已存在 |
+| 淘汰赛Tab | `elimination-tab` | 已存在 |
+| 瑞士轮阶段编辑器 | `swiss-stage-editor` | 已存在 |
+| 晋级面板 | `advancement-panel` | **需移除**（晋级自动计算） |
+| 晋级状态 | `advancement-status` | **新增**：显示"自动计算"状态 |
+
+**瑞士轮比赛卡片**（32场比赛，每场需要唯一标识）：
+```
+swiss-match-card-{swissRecord}-{index}
+// 例如: swiss-match-card-0-0-1, swiss-match-card-0-0-2, ...
+// 或: swiss-match-card-r1-1, swiss-match-card-r1-2, ...
+```
+
+**淘汰赛比赛卡片**（7场比赛）：
+```
+elim-match-card-{bracket}-{index}
+// 例如: elim-match-card-quarterfinals-1, elim-match-card-semifinals-1, elim-match-card-finals-1
+```
+
+#### 前台首页 (`/`)
+
+| 元素 | data-testid | 说明 |
+|------|-------------|------|
+| 英雄区域 | `hero-section` | 已存在 |
+| 战队区域 | `teams-section` | 已存在 |
+| 赛程区域 | `schedule-section` | 已存在 |
+| 瑞士轮Tab | `home-swiss-tab` | **新增** |
+| 淘汰赛Tab | `home-elimination-tab` | **新增** |
+| 瑞士轮展示组件 | `swiss-stage-display` | **新增** |
+| 淘汰赛展示组件 | `elimination-stage-display` | **新增** |
+
+#### 战队管理页面 (`/admin/teams`)
+
+| 元素 | data-testid | 说明 |
+|------|-------------|------|
+| 战队卡片 | `team-card-{teamId}` | **新增**：用于E2E唯一标识 |
+| 添加战队按钮 | `add-team-button` | 已存在 |
+| 战队数量限制提示 | `team-limit-warning` | **新增**：当添加第17支战队时显示 |
+
+### 7.3 E2E测试用例设计
+
+#### 7.3.1 瑞士轮赛制测试
+
+```typescript
+// tests/e2e/specs/swiss-stage.spec.ts
+
+test.describe('瑞士轮16队赛制 E2E', () => {
+  
+  /**
+   * 瑞士轮第一轮展示验证
+   * 验证10个战绩分组正确显示
+   */
+  test('瑞士轮 - 10个战绩分组展示 @P0', async ({ page }) => {
+    await page.goto('/');
+    
+    // 验证瑞士轮Tab可见
+    await expect(page.getByTestId('home-swiss-tab')).toBeVisible();
+    await page.getByTestId('home-swiss-tab').click();
+    
+    // 验证所有10个战绩分组可见
+    const recordGroups = [
+      '0-0', '1-0', '0-1', '2-0', '1-1', '0-2',
+      '3-0', '2-1', '1-2', '0-3'
+    ];
+    
+    for (const record of recordGroups) {
+      const group = page.getByTestId(`swiss-record-group-${record}`);
+      await expect(group).toBeVisible();
+    }
+  });
+  
+  /**
+   * 瑞士轮BO赛制标识验证
+   * 验证第一轮显示BO1，其他显示BO3
+   */
+  test('瑞士轮 - BO赛制标识 @P0', async ({ page }) => {
+    await page.goto('/');
+    await page.getByTestId('home-swiss-tab').click();
+    
+    // 验证第一轮BO1
+    const round1Matches = page.getByTestId('swiss-record-group-0-0')
+      .getByTestId(/swiss-match-card-/);
+    await expect(round1Matches.first().getByText('BO1')).toBeVisible();
+    
+    // 验证第二轮BO3
+    const round2Matches = page.getByTestId('swiss-record-group-1-0')
+      .getByTestId(/swiss-match-card-/);
+    await expect(round2Matches.first().getByText('BO3')).toBeVisible();
+  });
+  
+  /**
+   * 瑞士轮32场比赛槽位初始化
+   */
+  test('瑞士轮 - 32场比赛槽位初始化 @P0', async ({ page }) => {
+    await page.goto('/admin/schedule');
+    await page.getByTestId('swiss-tab').click();
+    
+    // 验证总比赛数量
+    const matchCount = await page.getByTestId('schedule-match-count').textContent();
+    expect(matchCount).toContain('32');
+    
+    // 验证各分组比赛数量
+    const round1Count = await page.getByTestId('swiss-record-group-0-0')
+      .getByTestId(/swiss-match-card-/).count();
+    expect(round1Count).toBe(8);
+  });
+});
+```
+
+#### 7.3.2 淘汰赛单败赛制测试
+
+```typescript
+// tests/e2e/specs/elimination-stage.spec.ts
+
+test.describe('淘汰赛单败赛制 E2E', () => {
+  
+  /**
+   * 淘汰赛7场比赛展示验证
+   */
+  test('淘汰赛 - 7场比赛展示 @P0', async ({ page }) => {
+    await page.goto('/');
+    await page.getByTestId('home-elimination-tab').click();
+    
+    // 验证四分之一决赛（4场）
+    for (let i = 1; i <= 4; i++) {
+      await expect(page.getByTestId(`elim-match-card-quarterfinals-${i}`)).toBeVisible();
+    }
+    
+    // 验证半决赛（2场）
+    for (let i = 1; i <= 2; i++) {
+      await expect(page.getByTestId(`elim-match-card-semifinals-${i}`)).toBeVisible();
+    }
+    
+    // 验证决赛（1场）
+    await expect(page.getByTestId(`elim-match-card-finals-1`)).toBeVisible();
+  });
+  
+  /**
+   * 淘汰赛BO5赛制标识验证
+   */
+  test('淘汰赛 - 所有比赛显示BO5标识 @P0', async ({ page }) => {
+    await page.goto('/');
+    await page.getByTestId('home-elimination-tab').click();
+    
+    // 验证所有7场比赛都显示BO5
+    const allElimMatches = page.getByTestId('elimination-stage-display')
+      .getByTestId(/elim-match-card-/);
+    
+    const matchCount = await allElimMatches.count();
+    expect(matchCount).toBe(7);
+    
+    // 每个比赛卡片都应该有BO5标识
+    for (let i = 0; i < matchCount; i++) {
+      await expect(allElimMatches.nth(i).getByText('BO5')).toBeVisible();
+    }
+  });
+  
+  /**
+   * 淘汰赛连接线验证
+   */
+  test('淘汰赛 - 连接线正确连接 @P0', async ({ page }) => {
+    await page.goto('/');
+    await page.getByTestId('home-elimination-tab').click();
+    
+    // 验证QF1/QF2 -> SF1的连接线
+    await expect(page.getByTestId('connector-qf1-sf1')).toBeVisible();
+    await expect(page.getByTestId('connector-qf2-sf1')).toBeVisible();
+    
+    // 验证QF3/QF4 -> SF2的连接线
+    await expect(page.getByTestId('connector-qf3-sf2')).toBeVisible();
+    await expect(page.getByTestId('connector-qf4-sf2')).toBeVisible();
+    
+    // 验证SF1/SF2 -> F的连接线
+    await expect(page.getByTestId('connector-sf1-f')).toBeVisible();
+    await expect(page.getByTestId('connector-sf2-f')).toBeVisible();
+  });
+});
+```
+
+#### 7.3.3 晋级自动计算测试
+
+```typescript
+// tests/e2e/specs/advancement-auto.spec.ts
+
+test.describe('晋级名单自动计算 E2E', () => {
+  
+  /**
+   * 晋级状态显示验证
+   */
+  test('晋级 - 自动计算状态显示 @P0', async ({ page }) => {
+    await page.goto('/admin/schedule');
+    await page.getByTestId('swiss-tab').click();
+    
+    // 验证晋级面板显示"自动计算"状态
+    const statusText = await page.getByTestId('advancement-status').textContent();
+    expect(statusText).toContain('自动计算');
+    
+    // 验证不再有手动拖拽的分类卡片
+    const categories = ['winners2_0', 'winners2_1', 'losersBracket', 'eliminated3rd', 'eliminated0_3'];
+    for (const cat of categories) {
+      await expect(page.getByTestId(`advancement-category-${cat}`)).not.toBeVisible();
+    }
+  });
+  
+  /**
+   * 晋级名单根据比赛结果自动更新
+   */
+  test('晋级 - 比赛结果更新后自动重新计算 @P1', async ({ page }) => {
+    await page.goto('/admin/schedule');
+    await page.getByTestId('swiss-tab').click();
+    
+    // 编辑第一轮某场比赛结果
+    const matchCard = page.getByTestId('swiss-match-card-r1-1');
+    await matchCard.click();
+    
+    // 设置比分和胜者
+    await page.getByTestId('score-a-input').fill('3');
+    await page.getByTestId('score-b-input').fill('1');
+    await page.getByTestId('winner-select').selectOption('teamA');
+    await page.getByTestId('save-match-button').click();
+    
+    // 验证晋级名单自动更新
+    // （具体验证逻辑根据UI实现而定）
+    await page.waitForTimeout(500);
+  });
+});
+```
+
+#### 7.3.4 16队战队限制测试
+
+```typescript
+// tests/e2e/specs/team-limit.spec.ts
+
+test.describe('16队战队限制 E2E', () => {
+  
+  /**
+   * 添加第16支战队成功
+   */
+  test('战队限制 - 第16支战队添加成功 @P0', async ({ page }) => {
+    await page.goto('/admin/teams');
+    
+    // 获取当前战队数量
+    const initialCount = await page.getByTestId('team-list').getByTestId(/team-card-/).count();
+    
+    // 添加新战队
+    await page.getByTestId('add-team-button').click();
+    await page.getByTestId('team-name-input').fill('Test Team 16');
+    await page.getByTestId('save-team-button').click();
+    
+    // 验证添加成功
+    const newCount = await page.getByTestId('team-list').getByTestId(/team-card-/).count();
+    expect(newCount).toBe(initialCount + 1);
+  });
+  
+  /**
+   * 添加第17支战队被阻止
+   */
+  test('战队限制 - 第17支战队添加被阻止 @P0', async ({ page }) => {
+    await page.goto('/admin/teams');
+    
+    // 确保已有16支战队（通过fixture或测试数据准备）
+    
+    // 尝试添加第17支战队
+    await page.getByTestId('add-team-button').click();
+    await page.getByTestId('team-name-input').fill('Test Team 17');
+    await page.getByTestId('save-team-button').click();
+    
+    // 验证限制提示出现
+    await expect(page.getByTestId('team-limit-warning')).toBeVisible();
+    await expect(page.getByTestId('team-limit-warning')).toContainText('16');
+    
+    // 验证战队数量未增加
+    const count = await page.getByTestId('team-list').getByTestId(/team-card-/).count();
+    expect(count).toBe(16);
+  });
+});
+```
+
+### 7.4 现有E2E测试需修改的部分
+
+由于架构变更，以下现有测试需要修改：
+
+| 测试文件 | 需要修改的内容 |
+|---------|--------------|
+| `05-schedule.spec.ts` | - 晋级分类从5个改为2个（top8/eliminated）<br>- 移除TEST-111和TEST-112中的拖拽测试<br>- 更新match count预期（14场→32场瑞士轮） |
+| `06-advancement.spec.ts` | - 移除整个文件的拖拽相关测试<br>- 添加晋级自动计算验证测试<br>- 更新分类选择器 |
+| `03-teams.spec.ts` | - 添加16队限制测试 |
+
+### 7.5 Page Object 更新
+
+```typescript
+// tests/e2e/pages/SchedulePage.ts 更新
+
+export class SchedulePage extends BasePage {
+  // ... 现有代码 ...
+  
+  // 新增：晋级状态
+  readonly advancementStatus: Locator;
+  
+  // 新增：瑞士轮比赛卡片定位器
+  getSwissMatchCard(swissRecord: string, index: number): Locator {
+    return this.page.getByTestId(`swiss-match-card-${swissRecord}-${index}`);
+  }
+  
+  // 新增：淘汰赛比赛卡片定位器
+  getElimMatchCard(bracket: string, index: number): Locator {
+    return this.page.getByTestId(`elim-match-card-${bracket}-${index}`);
+  }
+}
+```
 
 ---
 

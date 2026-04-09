@@ -8,6 +8,7 @@ import {
   BOARD_HEIGHT,
   ELIMINATION_POSITIONS,
   createPlaceholderMatch,
+  ELIMINATION_BO_FORMAT,
 } from './eliminationConstants';
 
 interface EliminationStageProps {
@@ -17,16 +18,26 @@ interface EliminationStageProps {
   onMatchUpdate?: (match: Match) => void;
 }
 
-// 淘汰赛比赛编号到真实ID的映射（与后端初始化槽位一致）
+// 淘汰赛比赛编号到真实ID的映射（8队单败：4QF + 2SF + 1F）
 const GAME_NUMBER_TO_ID: Record<number, string> = {
-  1: 'elim-winners-1',
-  2: 'elim-winners-2',
-  3: 'elim-losers-3',
-  4: 'elim-losers-4',
-  5: 'elim-winners-5',
-  6: 'elim-losers-6',
-  7: 'elim-losers-7',
-  8: 'elim-grand-8',
+  1: 'elim-qf-1',
+  2: 'elim-qf-2',
+  3: 'elim-qf-3',
+  4: 'elim-qf-4',
+  5: 'elim-sf-1',
+  6: 'elim-sf-2',
+  7: 'elim-f-1',
+};
+
+// 淘汰赛比赛编号到 bracket 和 index 的映射（8队单败：4QF + 2SF + 1F）
+const GAME_NUMBER_TO_BRACKET_INDEX: Record<number, { bracket: string; index: number }> = {
+  1: { bracket: 'quarterfinals', index: 1 },
+  2: { bracket: 'quarterfinals', index: 2 },
+  3: { bracket: 'quarterfinals', index: 3 },
+  4: { bracket: 'quarterfinals', index: 4 },
+  5: { bracket: 'semifinals', index: 1 },
+  6: { bracket: 'semifinals', index: 2 },
+  7: { bracket: 'finals', index: 1 },
 };
 
 const EliminationStage: React.FC<EliminationStageProps> = ({
@@ -57,12 +68,18 @@ const EliminationStage: React.FC<EliminationStageProps> = ({
       displayMatch = createPlaceholderMatch(gameNum);
     }
 
+    // 生成正确的 testId
+    const bracketInfo = gameNum ? GAME_NUMBER_TO_BRACKET_INDEX[gameNum] : null;
+    const testId = bracketInfo
+      ? `elim-match-card-${bracketInfo.bracket}-${bracketInfo.index}`
+      : 'bracket-match';
+
     return (
       <div className="absolute" style={{ left: pos.x, top: pos.y }}>
         {editable && onMatchUpdate ? (
           <EditableBracketMatchCard match={displayMatch} teams={teams} onUpdate={onMatchUpdate} />
         ) : (
-          <BracketMatchCard match={displayMatch} teams={teams} />
+          <BracketMatchCard match={displayMatch} teams={teams} testId={testId} />
         )}
       </div>
     );
@@ -81,30 +98,50 @@ const EliminationStage: React.FC<EliminationStageProps> = ({
         {/* 连接线层（在比赛卡片下方） */}
         <EliminationConnectors />
 
-        {/* 比赛卡片层 */}
-        <div data-testid="elimination-match-g1">
-          {renderMatch(getMatch(1), ELIMINATION_POSITIONS.g1, 1)}
+        {/* 阶段标签 */}
+        <div className="absolute top-0 left-0 text-xs text-gray-500 uppercase tracking-wider">
+          Quarterfinals
         </div>
-        <div data-testid="elimination-match-g2">
-          {renderMatch(getMatch(2), ELIMINATION_POSITIONS.g2, 2)}
+        <div className="absolute top-0 left-[300px] text-xs text-gray-500 uppercase tracking-wider">
+          Semifinals
         </div>
-        <div data-testid="elimination-match-g3">
-          {renderMatch(getMatch(3), ELIMINATION_POSITIONS.g3, 3)}
+        <div className="absolute top-0 left-[580px] text-xs text-gray-500 uppercase tracking-wider">
+          Final
         </div>
-        <div data-testid="elimination-match-g4">
-          {renderMatch(getMatch(4), ELIMINATION_POSITIONS.g4, 4)}
+
+        {/* BO5 标识 */}
+        <div
+          className="absolute top-0 right-0 text-xs text-blue-400 bg-blue-900/20 px-2 py-1 rounded"
+          data-testid="elimination-bo-format"
+        >
+          {ELIMINATION_BO_FORMAT}
         </div>
-        <div data-testid="elimination-match-g5">
-          {renderMatch(getMatch(5), ELIMINATION_POSITIONS.g5, 5)}
+
+        {/* 比赛卡片层 - 四分之一决赛 */}
+        <div data-testid="elimination-match-qf1">
+          {renderMatch(getMatch(1), ELIMINATION_POSITIONS.qf1, 1)}
         </div>
-        <div data-testid="elimination-match-g6">
-          {renderMatch(getMatch(6), ELIMINATION_POSITIONS.g6, 6)}
+        <div data-testid="elimination-match-qf2">
+          {renderMatch(getMatch(2), ELIMINATION_POSITIONS.qf2, 2)}
         </div>
-        <div data-testid="elimination-match-g7">
-          {renderMatch(getMatch(7), ELIMINATION_POSITIONS.g7, 7)}
+        <div data-testid="elimination-match-qf3">
+          {renderMatch(getMatch(3), ELIMINATION_POSITIONS.qf3, 3)}
         </div>
-        <div data-testid="elimination-match-g8">
-          {renderMatch(getMatch(8), ELIMINATION_POSITIONS.g8, 8)}
+        <div data-testid="elimination-match-qf4">
+          {renderMatch(getMatch(4), ELIMINATION_POSITIONS.qf4, 4)}
+        </div>
+
+        {/* 比赛卡片层 - 半决赛 */}
+        <div data-testid="elimination-match-sf1">
+          {renderMatch(getMatch(5), ELIMINATION_POSITIONS.sf1, 5)}
+        </div>
+        <div data-testid="elimination-match-sf2">
+          {renderMatch(getMatch(6), ELIMINATION_POSITIONS.sf2, 6)}
+        </div>
+
+        {/* 比赛卡片层 - 决赛 */}
+        <div data-testid="elimination-match-f">
+          {renderMatch(getMatch(7), ELIMINATION_POSITIONS.f, 7)}
         </div>
       </div>
     </div>

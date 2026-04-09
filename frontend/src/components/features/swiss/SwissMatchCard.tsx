@@ -11,6 +11,8 @@ interface SwissMatchCardProps {
   teams: Team[];
   onClick?: () => void;
   className?: string;
+  record?: string;
+  index?: number;
 }
 
 const SwissMatchCard: React.FC<SwissMatchCardProps> = ({
@@ -18,18 +20,24 @@ const SwissMatchCard: React.FC<SwissMatchCardProps> = ({
   teams,
   onClick,
   className = '',
+  record,
+  index,
 }) => {
   const teamA = teams.find(t => t.id === match.teamAId);
   const teamB = teams.find(t => t.id === match.teamBId);
   const isFinished = match.status === 'finished';
 
-  return (
+  const testId = record && index !== undefined
+    ? `swiss-match-card-${record}-${index}`
+    : 'swiss-match';
+
+return (
     <Card
       className={`bg-gray-800/80 border-gray-700 p-2.5 hover:bg-gray-800 transition-colors group relative overflow-hidden ${
         onClick ? 'cursor-pointer hover:border-blue-500/50' : ''
       } ${className}`}
       onClick={onClick}
-      data-testid="swiss-match"
+      data-testid={testId}
     >
       <SwissMatchStatusBadge status={match.status} />
 

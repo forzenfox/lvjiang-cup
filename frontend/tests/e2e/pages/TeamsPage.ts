@@ -214,48 +214,21 @@ export class TeamsPage {
   }
 
   /**
-   * 获取战队卡片列表
-   */
-  async getTeamCards(): Promise<Locator[]> {
-    const teamCards = this.page.locator('[data-testid="admin-team-card"], .card:has(.text-white)');
-    const count = await teamCards.count();
-    const cards: Locator[] = [];
-    for (let i = 0; i < count; i++) {
-      cards.push(teamCards.nth(i));
-    }
-    return cards;
-  }
-
-  /**
    * 获取战队数量
    */
   async getTeamCount(): Promise<number> {
-    // 尝试多种定位方式
-    const teamCards = this.page.locator(
-      '[data-testid="admin-team-card"], .card:has(.text-white), .bg-gray-800:has(.text-white)'
-    );
+    // 使用 data-testid 定位战队卡片
+    const teamCards = this.page.locator('[data-testid^="team-card-"]');
     return await teamCards.count();
-  }
-
-  /**
-   * 获取战队卡片列表
-   */
-  async getTeamCards(): Promise<Locator[]> {
-    const teamCards = this.page.locator('[data-testid="admin-team-card"], .card:has(.text-white)');
-    const count = await teamCards.count();
-    const cards: Locator[] = [];
-    for (let i = 0; i < count; i++) {
-      cards.push(teamCards.nth(i));
-    }
-    return cards;
   }
 
   /**
    * 根据名称查找战队卡片
    */
   async findTeamCardByName(name: string): Promise<Locator | null> {
+    // 使用 data-testid 定位战队卡片
     const card = this.page
-      .locator('[data-testid="admin-team-card"], .card:has(.text-white)')
+      .locator('[data-testid^="team-card-"]')
       .filter({ hasText: name })
       .first();
     if (await card.isVisible().catch(() => false)) {

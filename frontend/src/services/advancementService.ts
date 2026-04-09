@@ -86,11 +86,8 @@ function handleError(error: unknown, defaultMessage: string): never {
  *
  * // 更新晋级规则
  * await advancementService.update({
- *   winners2_0: ['team1', 'team2'],
- *   winners2_1: ['team3', 'team4'],
- *   losersBracket: ['team5', 'team6'],
- *   eliminated3rd: ['team7', 'team8'],
- *   eliminated0_3: ['team9', 'team10']
+ *   top8: ['team1', 'team2', 'team3', 'team4', 'team5', 'team6', 'team7', 'team8'],
+ *   eliminated: ['team9', 'team10', 'team11', 'team12', 'team13', 'team14', 'team15', 'team16']
  * });
  * ```
  */

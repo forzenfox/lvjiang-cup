@@ -93,6 +93,9 @@ const AdminTeams: React.FC = () => {
   const [teamToDelete, setTeamToDelete] = useState<string | null>(null);
   const [hasLoaded, setHasLoaded] = useState(false);
 
+  // 战队数量限制
+  const MAX_TEAMS = 16;
+
   // ==================== 垂直列表展开方案：新增状态 ====================
   // 展开的战队ID（同时只能展开一个）
   const [expandedTeamId, setExpandedTeamId] = useState<string | null>(null);
@@ -279,6 +282,12 @@ const AdminTeams: React.FC = () => {
   };
 
   const handleCreateNew = () => {
+    // 检查是否达到战队数量限制
+    if (teams.length >= MAX_TEAMS) {
+      toast.error(`最多只能添加 ${MAX_TEAMS} 支战队`);
+      return;
+    }
+
     // 使用特殊前缀标记新战队
     const newTeam: Team = {
       id: 'new-team',
@@ -439,6 +448,11 @@ const AdminTeams: React.FC = () => {
     <AdminLayout>
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-white">战队管理</h1>
+        {teams.length >= MAX_TEAMS && (
+          <div data-testid="team-limit-warning" className="text-sm text-amber-400 bg-amber-400/10 px-3 py-1 rounded">
+            已达到战队数量上限 ({teams.length}/{MAX_TEAMS})
+          </div>
+        )}
         <div className="flex gap-2">
           <Button
             variant="outline"
@@ -449,7 +463,7 @@ const AdminTeams: React.FC = () => {
             <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
             刷新
           </Button>
-          <Button onClick={handleCreateNew} disabled={loading}>
+          <Button onClick={handleCreateNew} disabled={loading || teams.length >= MAX_TEAMS} data-testid="add-team-button">
             <Plus className="w-4 h-4 mr-2" /> 添加战队
           </Button>
         </div>
@@ -477,7 +491,7 @@ const AdminTeams: React.FC = () => {
             return (
               <Card
                 key={team.id}
-                data-testid={`team-item-${team.id}`}
+                data-testid={`team-card-${team.id}`}
                 className="bg-[#0F172A] border-white/10 overflow-hidden"
               >
                 {/* 战队头部（可点击展开） */}

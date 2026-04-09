@@ -1,41 +1,38 @@
 import { Match } from '@/types';
 
 // 画布尺寸
-export const BOARD_WIDTH = 1200;
+export const BOARD_WIDTH = 800;
 export const BOARD_HEIGHT = 650;
 
-// 比赛位置配置（固定坐标）
+// 比赛位置配置（8队单败赛制）
 export const ELIMINATION_POSITIONS = {
-  g1: { x: 20, y: 20 },
-  g2: { x: 20, y: 160 },
-  g3: { x: 20, y: 340 },
-  g4: { x: 20, y: 480 },
-  g5: { x: 300, y: 90 },
-  g6: { x: 300, y: 410 },
-  g7: { x: 580, y: 410 },
-  g8: { x: 860, y: 250 },
+  qf1: { x: 20, y: 30 },
+  qf2: { x: 20, y: 190 },
+  qf3: { x: 20, y: 350 },
+  qf4: { x: 20, y: 510 },
+  sf1: { x: 300, y: 110 },
+  sf2: { x: 300, y: 430 },
+  f: { x: 580, y: 270 },
 };
 
-// 连接线配置
+// 连接线配置（单败赛制）
 export const ELIMINATION_CONNECTORS = [
-  // G1 -> G5 (胜者路径)
-  { from: 'g1' as const, to: 'g5' as const },
-  // G2 -> G5 (胜者路径)
-  { from: 'g2' as const, to: 'g5' as const },
-  // G3 -> G6 (败者路径)
-  { from: 'g3' as const, to: 'g6' as const },
-  // G4 -> G6 (败者路径)
-  { from: 'g4' as const, to: 'g6' as const },
-  // G5 -> G8 (胜者组决赛)
-  { from: 'g5' as const, to: 'g8' as const },
-  // G6 -> G7 (败者组晋级)
-  { from: 'g6' as const, to: 'g7' as const },
-  // G7 -> G8 (总决赛)
-  { from: 'g7' as const, to: 'g8' as const },
+  // QF1 -> SF1
+  { from: 'qf1' as const, to: 'sf1' as const },
+  // QF2 -> SF1
+  { from: 'qf2' as const, to: 'sf1' as const },
+  // QF3 -> SF2
+  { from: 'qf3' as const, to: 'sf2' as const },
+  // QF4 -> SF2
+  { from: 'qf4' as const, to: 'sf2' as const },
+  // SF1 -> F
+  { from: 'sf1' as const, to: 'f' as const },
+  // SF2 -> F
+  { from: 'sf2' as const, to: 'f' as const },
 ];
 
 // 游戏编号类型
-type GameKey = 'g1' | 'g2' | 'g3' | 'g4' | 'g5' | 'g6' | 'g7' | 'g8';
+type GameKey = 'qf1' | 'qf2' | 'qf3' | 'qf4' | 'sf1' | 'sf2' | 'f';
 
 // 占位比赛数据生成
 export const createPlaceholderMatch = (gameNum?: number): Match => ({
@@ -50,6 +47,7 @@ export const createPlaceholderMatch = (gameNum?: number): Match => ({
   startTime: '',
   stage: 'elimination',
   eliminationGameNumber: gameNum,
+  boFormat: 'BO5',
 });
 
 // 根据比赛编号获取位置
@@ -58,4 +56,7 @@ export const getPositionByGameKey = (key: GameKey) => {
 };
 
 // 获取所有游戏键
-export const GAME_KEYS: GameKey[] = ['g1', 'g2', 'g3', 'g4', 'g5', 'g6', 'g7', 'g8'];
+export const GAME_KEYS: GameKey[] = ['qf1', 'qf2', 'qf3', 'qf4', 'sf1', 'sf2', 'f'];
+
+// BO5 赛制标识
+export const ELIMINATION_BO_FORMAT = 'BO5';

@@ -89,13 +89,6 @@ export class HomePage extends BasePage {
   }
 
   /**
-   * 切换到淘汰赛Tab
-   */
-  async switchToElimination() {
-    await this.eliminationTab.click();
-  }
-
-  /**
    * 切换到瑞士轮Tab
    */
   async switchToSwiss() {

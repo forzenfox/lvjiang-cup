@@ -194,6 +194,8 @@ export interface Match {
   startTime?: string;
   swissRecord?: string;
   swissDay?: number;
+  swissRound?: number; // 瑞士轮第几轮 (1-4)
+  boFormat?: 'BO1' | 'BO3' | 'BO5'; // 比赛赛制
   eliminationBracket?: 'winners' | 'losers' | 'grand_finals';
   eliminationGameNumber?: number;
   createdAt?: string;
@@ -209,6 +211,8 @@ export interface UpdateMatchRequest {
   winnerId?: string;
   status?: 'upcoming' | 'ongoing' | 'finished';
   startTime?: string;
+  swissRound?: number;
+  boFormat?: 'BO1' | 'BO3' | 'BO5';
 }
 
 export interface FindMatchesByStageRequest {
@@ -239,17 +243,12 @@ export interface UpdateStreamRequest {
  * 晋级相关类型
  */
 export interface Advancement {
-  winners2_0: string[];
-  winners2_1: string[];
-  losersBracket: string[];
-  eliminated3rd: string[];
-  eliminated0_3: string[];
+  top8: string[];
+  eliminated: string[];
+  rankings?: { teamId: string; record: string; rank: number }[];
 }
 
 export interface UpdateAdvancementRequest {
-  winners2_0?: string[];
-  winners2_1?: string[];
-  losersBracket?: string[];
-  eliminated3rd?: string[];
-  eliminated0_3?: string[];
+  top8?: string[];
+  eliminated?: string[];
 }

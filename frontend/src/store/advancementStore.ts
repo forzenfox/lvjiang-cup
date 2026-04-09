@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { SwissAdvancementResult, AdvancementCategory } from '@/types';
+import type { SwissAdvancementResult } from '@/types';
 
 interface AdvancementStore {
   // 当前生效的名单
@@ -8,24 +8,36 @@ interface AdvancementStore {
 
   // 元数据
   lastUpdated: string;
-  updatedBy: string;
 
   // 操作方法
-  setAdvancement: (data: SwissAdvancementResult, user: string) => void;
-  moveTeam: (teamId: string, from: AdvancementCategory | null, to: AdvancementCategory) => void;
+  setAdvancement: (data: SwissAdvancementResult) => void;
   reset: () => void;
   restoreDefault: () => void;
   getAllTeamIds: () => string[];
-  getUnassignedTeams: (allTeamIds: string[]) => string[];
 }
 
-// 默认晋级名单（与 data.ts 中的 swissAdvancement 保持一致）
+// 默认晋级名单（16队，前8名晋级）
 const defaultAdvancement: SwissAdvancementResult = {
-  winners2_0: ['team1', 'team2'], // 驴酱 / IC
-  winners2_1: ['team4', 'team8'], // 小熊 / 雨酱
-  losersBracket: ['team3', 'team7'], // PLG / 69
-  eliminated3rd: ['team5'], // 搓搓鸟
-  eliminated0_3: ['team6'], // 100J
+  top8: ['team1', 'team2', 'team3', 'team4', 'team5', 'team6', 'team7', 'team8'],
+  eliminated: ['team9', 'team10', 'team11', 'team12', 'team13', 'team14', 'team15', 'team16'],
+  rankings: [
+    { teamId: 'team1', record: '3-0', rank: 1 },
+    { teamId: 'team2', record: '3-0', rank: 2 },
+    { teamId: 'team3', record: '2-1', rank: 3 },
+    { teamId: 'team4', record: '2-1', rank: 4 },
+    { teamId: 'team5', record: '2-1', rank: 5 },
+    { teamId: 'team6', record: '2-1', rank: 6 },
+    { teamId: 'team7', record: '1-2', rank: 7 },
+    { teamId: 'team8', record: '1-2', rank: 8 },
+    { teamId: 'team9', record: '1-2', rank: 9 },
+    { teamId: 'team10', record: '0-3', rank: 10 },
+    { teamId: 'team11', record: '0-3', rank: 11 },
+    { teamId: 'team12', record: '0-3', rank: 12 },
+    { teamId: 'team13', record: '0-3', rank: 13 },
+    { teamId: 'team14', record: '0-3', rank: 14 },
+    { teamId: 'team15', record: '0-3', rank: 15 },
+    { teamId: 'team16', record: '0-3', rank: 16 },
+  ],
 };
 
 export const useAdvancementStore = create<AdvancementStore>()(
@@ -33,38 +45,13 @@ export const useAdvancementStore = create<AdvancementStore>()(
     (set, get) => ({
       advancement: defaultAdvancement,
       lastUpdated: new Date().toISOString(),
-      updatedBy: 'system',
 
       // 设置完整的晋级名单
-      setAdvancement: (data, user) =>
+      setAdvancement: (data) =>
         set({
           advancement: data,
           lastUpdated: new Date().toISOString(),
-          updatedBy: user,
         }),
-
-      // 移动队伍从一个分类到另一个分类
-      moveTeam: (teamId, from, to) => {
-        const { advancement } = get();
-        const newAdvancement = { ...advancement };
-
-        // 从原分类移除（如果提供了from）
-        if (from && newAdvancement[from].includes(teamId)) {
-          newAdvancement[from] = newAdvancement[from].filter(id => id !== teamId);
-        }
-
-        // 检查是否已经在目标分类中
-        if (!newAdvancement[to].includes(teamId)) {
-          // 添加到新分类
-          newAdvancement[to] = [...newAdvancement[to], teamId];
-        }
-
-        set({
-          advancement: newAdvancement,
-          lastUpdated: new Date().toISOString(),
-          updatedBy: 'admin',
-        });
-      },
 
       // 重置到上次保存的状态（从 localStorage 重新加载）
       reset: () => {
@@ -76,7 +63,6 @@ export const useAdvancementStore = create<AdvancementStore>()(
               set({
                 advancement: data.state.advancement || defaultAdvancement,
                 lastUpdated: data.state.lastUpdated || new Date().toISOString(),
-                updatedBy: data.state.updatedBy || 'system',
               });
             }
           } catch (e) {
@@ -90,25 +76,12 @@ export const useAdvancementStore = create<AdvancementStore>()(
         set({
           advancement: defaultAdvancement,
           lastUpdated: new Date().toISOString(),
-          updatedBy: 'system',
         }),
 
-      // 获取所有已分配的队��ID
+      // 获取所有队伍ID（top8 + eliminated）
       getAllTeamIds: () => {
         const { advancement } = get();
-        return [
-          ...advancement.winners2_0,
-          ...advancement.winners2_1,
-          ...advancement.losersBracket,
-          ...advancement.eliminated3rd,
-          ...advancement.eliminated0_3,
-        ];
-      },
-
-      // 获取未分配的队伍
-      getUnassignedTeams: (allTeamIds: string[]) => {
-        const assignedIds = get().getAllTeamIds();
-        return allTeamIds.filter(id => !assignedIds.includes(id));
+        return [...advancement.top8, ...advancement.eliminated];
       },
     }),
     {
@@ -116,49 +89,57 @@ export const useAdvancementStore = create<AdvancementStore>()(
       partialize: state => ({
         advancement: state.advancement,
         lastUpdated: state.lastUpdated,
-        updatedBy: state.updatedBy,
       }),
     }
   )
 );
 
-// 分类配置信息（用于界面展示）
-export const categoryConfig: Record<
-  AdvancementCategory,
-  { label: string; color: string; description: string }
-> = {
-  winners2_0: {
-    label: '2-0 晋级（胜者组）',
-    color: 'bg-green-500',
-    description: '2胜0负直接晋级胜者组',
-  },
-  winners2_1: {
-    label: '2-1 晋级（胜者组）',
-    color: 'bg-green-400',
-    description: '2胜1负晋级胜者组',
-  },
-  losersBracket: {
-    label: '晋级败者组',
-    color: 'bg-orange-500',
-    description: '1胜2负但积分前2名，晋级败者组',
-  },
-  eliminated3rd: {
-    label: '积分第三淘汰',
-    color: 'bg-red-500',
-    description: '1胜2负积分第3名，被淘汰',
-  },
-  eliminated0_3: {
-    label: '0-3 淘汰',
-    color: 'bg-red-600',
-    description: '0胜3负直接淘汰',
-  },
-};
+/**
+ * 根据比赛结果自动计算晋级名单
+ * @param matches - 所有比赛数组
+ * @param teams - 所有队伍数组
+ * @returns 晋级结果（top8和eliminated）
+ */
+export function calculateAdvancement(
+  matches: { stage: string; status: string; winnerId: string | null; teamAId: string; teamBId: string }[],
+  teams: { id: string }[]
+): SwissAdvancementResult {
+  const teamRecords = new Map<string, { wins: number; losses: number }>();
 
-// 分类顺序（用于界面展示）
-export const categoryOrder: AdvancementCategory[] = [
-  'winners2_0',
-  'winners2_1',
-  'losersBracket',
-  'eliminated3rd',
-  'eliminated0_3',
-];
+  // 初始化所有队伍的战绩
+  teams.forEach(team => {
+    teamRecords.set(team.id, { wins: 0, losses: 0 });
+  });
+
+  // 遍历所有瑞士轮比赛，统计每支队伍的战绩
+  matches
+    .filter(m => m.stage === 'swiss' && m.status === 'finished' && m.winnerId)
+    .forEach(match => {
+      const winnerId = match.winnerId!;
+      const loserId = match.teamAId === winnerId ? match.teamBId : match.teamAId;
+
+      // 更新胜者战绩
+      const winnerRecord = teamRecords.get(winnerId)!;
+      teamRecords.set(winnerId, { wins: winnerRecord.wins + 1, losses: winnerRecord.losses });
+
+      // 更新败者战绩
+      const loserRecord = teamRecords.get(loserId)!;
+      teamRecords.set(loserId, { wins: loserRecord.wins, losses: loserRecord.losses + 1 });
+    });
+
+  // 按战绩排序
+  const sortedTeams = [...teamRecords.entries()]
+    .map(([teamId, record]) => ({ teamId, record: `${record.wins}-${record.losses}` }))
+    .sort((a, b) => {
+      const [aWins, aLosses] = a.record.split('-').map(Number);
+      const [bWins, bLosses] = b.record.split('-').map(Number);
+      if (aWins !== bWins) return bWins - aWins;
+      return bLosses - aLosses;
+    });
+
+  return {
+    top8: sortedTeams.slice(0, 8).map(t => t.teamId),
+    eliminated: sortedTeams.slice(8).map(t => t.teamId),
+    rankings: sortedTeams.map((t, index) => ({ ...t, rank: index + 1 })),
+  };
+}

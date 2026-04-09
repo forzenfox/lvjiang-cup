@@ -135,4 +135,22 @@ export class SchedulePage extends BasePage {
   async expectEmptyState() {
     await expect(this.emptyMessage).toBeVisible();
   }
+
+  /**
+   * 获取瑞士轮比赛卡片
+   * @param swissRecord 战绩记录，如 '0-0', '1-0', '0-1' 等
+   * @param index 在该战绩分组中的索引（从0开始）
+   */
+  getSwissMatchCard(swissRecord: string, index: number): Locator {
+    return this.page.getByTestId(`swiss-match-card-${swissRecord}-${index}`);
+  }
+
+  /**
+   * 获取淘汰赛比赛卡片
+   * @param bracket 淘汰赛阶段，如 'quarterfinals', 'semifinals', 'finals'
+   * @param index 在该阶段的索引（从1开始）
+   */
+  getElimMatchCard(bracket: string, index: number): Locator {
+    return this.page.getByTestId(`elim-match-card-${bracket}-${index}`);
+  }
 }
