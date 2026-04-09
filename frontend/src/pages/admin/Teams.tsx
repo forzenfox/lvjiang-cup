@@ -794,13 +794,13 @@ const AdminTeams: React.FC = () => {
                                               <select
                                                 value={editingPlayerData.position}
                                                 onChange={(e) => setEditingPlayerData({ ...editingPlayerData, position: e.target.value as PositionType })}
-                                                className="w-full px-2 py-1.5 bg-white/5 border border-white/10 rounded text-white text-sm focus:outline-none focus:border-blue-500"
+                                                className="w-full px-2 py-1.5 bg-white/5 border border-white/10 rounded text-white text-sm focus:outline-none focus:border-blue-500 dark:bg-gray-800"
                                               >
-                                                <option value="TOP">上单</option>
-                                                <option value="JUNGLE">打野</option>
-                                                <option value="MID">中单</option>
-                                                <option value="ADC">ADC</option>
-                                                <option value="SUPPORT">辅助</option>
+                                                <option value="TOP" className="bg-gray-800 text-white">上单</option>
+                                                <option value="JUNGLE" className="bg-gray-800 text-white">打野</option>
+                                                <option value="MID" className="bg-gray-800 text-white">中单</option>
+                                                <option value="ADC" className="bg-gray-800 text-white">ADC</option>
+                                                <option value="SUPPORT" className="bg-gray-800 text-white">辅助</option>
                                               </select>
                                             </div>
                                             <div>
@@ -824,14 +824,14 @@ const AdminTeams: React.FC = () => {
                                               <select
                                                 value={editingPlayerData.level || ''}
                                                 onChange={(e) => setEditingPlayerData({ ...editingPlayerData, level: e.target.value as PlayerLevel || undefined })}
-                                                className="w-full px-2 py-1.5 bg-white/5 border border-white/10 rounded text-white text-sm focus:outline-none focus:border-blue-500"
+                                                className="w-full px-2 py-1.5 bg-white/5 border border-white/10 rounded text-white text-sm focus:outline-none focus:border-blue-500 dark:bg-gray-800"
                                               >
-                                                <option value="">未设置</option>
-                                                <option value="S">S</option>
-                                                <option value="A">A</option>
-                                                <option value="B">B</option>
-                                                <option value="C">C</option>
-                                                <option value="D">D</option>
+                                                <option value="" className="bg-gray-800 text-white">未设置</option>
+                                                <option value="S" className="bg-gray-800 text-white">S</option>
+                                                <option value="A" className="bg-gray-800 text-white">A</option>
+                                                <option value="B" className="bg-gray-800 text-white">B</option>
+                                                <option value="C" className="bg-gray-800 text-white">C</option>
+                                                <option value="D" className="bg-gray-800 text-white">D</option>
                                               </select>
                                             </div>
                                             <div className="flex items-end">

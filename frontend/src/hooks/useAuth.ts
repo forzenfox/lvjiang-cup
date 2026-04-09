@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { login as loginApi, getCurrentUser, logout as logoutApi } from '../api/auth';
 import type { LoginRequest, UserInfo } from '../api/types';
+import { isTokenValid } from '../utils/tokenUtils';
 
 /**
  * 认证状态接口
@@ -80,8 +81,18 @@ export function useAuth(): UseAuthReturn {
         return;
       }
 
+      if (!isTokenValid(token)) {
+        localStorage.removeItem(TOKEN_KEY);
+        setState({
+          isAuthenticated: false,
+          user: null,
+          loading: false,
+          error: null,
+        });
+        return;
+      }
+
       try {
-        // Token 存在，尝试获取用户信息
         const userInfo = await getCurrentUser();
         setState({
           isAuthenticated: true,
@@ -90,7 +101,6 @@ export function useAuth(): UseAuthReturn {
           error: null,
         });
       } catch {
-        // Token 无效或过期，清除本地存储
         localStorage.removeItem(TOKEN_KEY);
         setState({
           isAuthenticated: false,

@@ -73,14 +73,32 @@ const HeroSelector: React.FC<HeroSelectorProps> = ({
   if (!visible) return null;
 
   return (
-    <div
-      ref={containerRef}
-      className={cn(
-        'absolute z-50 w-full mt-2 bg-[#0F172A] border border-white/10 rounded-xl shadow-xl',
-        'animate-in fade-in zoom-in-95 duration-150'
-      )}
-      style={{ maxHeight: '320px' }}
-    >
+    <>
+      {/* 滚动条样式 - 使用与主题协调的深蓝色 */}
+      <style>{`
+        .hero-selector-scroll::-webkit-scrollbar {
+          width: 6px;
+        }
+        .hero-selector-scroll::-webkit-scrollbar-track {
+          background: rgba(30, 41, 59, 0.5);
+          border-radius: 3px;
+        }
+        .hero-selector-scroll::-webkit-scrollbar-thumb {
+          background: rgba(59, 130, 246, 0.5);
+          border-radius: 3px;
+        }
+        .hero-selector-scroll::-webkit-scrollbar-thumb:hover {
+          background: rgba(59, 130, 246, 0.7);
+        }
+      `}</style>
+      <div
+        ref={containerRef}
+        className={cn(
+          'absolute z-50 w-full mt-2 bg-[#0F172A] border border-white/10 rounded-xl shadow-xl',
+          'animate-in fade-in zoom-in-95 duration-150'
+        )}
+        style={{ maxHeight: '320px' }}
+      >
       <div className="sticky top-0 px-3 py-3 border-b border-white/10 bg-[#0F172A]">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#64748B]" />
@@ -108,8 +126,8 @@ const HeroSelector: React.FC<HeroSelectorProps> = ({
         </div>
       </div>
 
-      <div className="p-2 overflow-y-auto" style={{ maxHeight: '240px' }}>
-        <div className="grid grid-cols-2 gap-1.5">
+      <div className="p-2 overflow-y-auto hero-selector-scroll" style={{ maxHeight: '240px' }}>
+        <div className="grid gap-1.5" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))' }}>
           {filteredHeroes.map((heroName) => {
             const isSelected = localSelected.includes(heroName);
             return (
@@ -164,6 +182,7 @@ const HeroSelector: React.FC<HeroSelectorProps> = ({
         </div>
       </div>
     </div>
+  </>
   );
 };
 

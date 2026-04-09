@@ -3,15 +3,19 @@ import { renderHook, act, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import * as authApi from '@/api/auth';
+import { isTokenValid, getTokenRemainingTime } from '@/utils/tokenUtils';
 
-// Mock auth API
 vi.mock('@/api/auth', () => ({
   login: vi.fn(),
   getCurrentUser: vi.fn(),
   logout: vi.fn(),
 }));
 
-// Mock react-router-dom's useNavigate
+vi.mock('@/utils/tokenUtils', () => ({
+  isTokenValid: vi.fn(() => true),
+  getTokenRemainingTime: vi.fn(() => Number.MAX_SAFE_INTEGER),
+}));
+
 const mockNavigate = vi.fn();
 vi.mock('react-router-dom', async () => {
   const actual = await vi.importActual('react-router-dom');
@@ -37,6 +41,8 @@ describe('useAuth Hook', () => {
     localStorage.clear();
     mockNavigate.mockClear();
     vi.clearAllMocks();
+    vi.mocked(isTokenValid).mockReturnValue(true);
+    vi.mocked(getTokenRemainingTime).mockReturnValue(Number.MAX_SAFE_INTEGER);
   });
 
   afterEach(() => {
@@ -96,6 +102,46 @@ describe('useAuth Hook', () => {
     it('Token 无效时应该清除 Token 并保持未认证', async () => {
       localStorage.setItem('token', 'invalid-token');
       vi.mocked(authApi.getCurrentUser).mockRejectedValue(new Error('Invalid token'));
+
+      const wrapper = ({ children }: { children: React.ReactNode }) => (
+        <MemoryRouter>{children}</MemoryRouter>
+      );
+
+      const { result } = renderHook(() => useAuth(), { wrapper });
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      expect(result.current.isAuthenticated).toBe(false);
+      expect(result.current.user).toBeNull();
+      expect(localStorage.getItem('token')).toBeNull();
+    });
+
+    it('过期 Token 应该清除 Token 并保持未认证', async () => {
+      localStorage.setItem('token', 'expired-token');
+      vi.mocked(authApi.getCurrentUser).mockResolvedValue({ id: '1', username: 'admin', role: 'admin' });
+      vi.mocked(isTokenValid).mockReturnValue(false);
+
+      const wrapper = ({ children }: { children: React.ReactNode }) => (
+        <MemoryRouter>{children}</MemoryRouter>
+      );
+
+      const { result } = renderHook(() => useAuth(), { wrapper });
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      expect(result.current.isAuthenticated).toBe(false);
+      expect(result.current.user).toBeNull();
+      expect(localStorage.getItem('token')).toBeNull();
+    });
+
+    it('格式错误的 Token 应该清除 Token 并保持未认证', async () => {
+      localStorage.setItem('token', 'invalid-format-token');
+      vi.mocked(authApi.getCurrentUser).mockResolvedValue({ id: '1', username: 'admin', role: 'admin' });
+      vi.mocked(isTokenValid).mockReturnValue(false);
 
       const wrapper = ({ children }: { children: React.ReactNode }) => (
         <MemoryRouter>{children}</MemoryRouter>

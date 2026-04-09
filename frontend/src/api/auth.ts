@@ -10,21 +10,21 @@ import { jwtDecode } from 'jwt-decode';
  * 从 JWT Token 中解析用户信息
  * @param token JWT Token
  * @returns 用户信息
+ * @throws 如果 token 格式无效则抛出错误
  */
 function parseToken(token: string): UserInfo {
   try {
     const decoded = jwtDecode<{ username: string; sub: string }>(token);
+    if (!decoded.sub) {
+      throw new Error('Invalid token payload');
+    }
     return {
-      id: decoded.sub || 'admin',
-      username: decoded.username || 'admin',
+      id: decoded.sub,
+      username: decoded.username,
       role: 'admin',
     };
   } catch {
-    return {
-      id: 'admin',
-      username: 'admin',
-      role: 'admin',
-    };
+    throw new Error('Invalid token format');
   }
 }
 
@@ -41,13 +41,18 @@ export async function login(data: LoginRequest): Promise<LoginResponse> {
     throw new Error(responseData.message || '登录失败');
   }
 
-  // 登录成功后自动保存 Token
-  // 后端返回 access_token，前端使用 token
   const token = responseData.data.access_token || responseData.data.token;
-  if (token) {
-    localStorage.setItem('token', token);
+  if (!token) {
+    throw new Error('登录响应中缺少 token');
   }
 
+  try {
+    parseToken(token);
+  } catch {
+    throw new Error('登录响应 token 格式无效');
+  }
+
+  localStorage.setItem('token', token);
   return responseData.data;
 }
 
