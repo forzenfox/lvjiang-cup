@@ -14,6 +14,7 @@ import { RefreshCw, Trophy, Calendar, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { initSlots } from '@/api/admin';
+import { getUploadUrl } from '@/utils/upload';
 
 // 将前端 Match 转换为 API UpdateMatchRequest
 const toUpdateMatchRequest = (match: Match): UpdateMatchRequest => ({
@@ -94,7 +95,7 @@ const AdminSchedule: React.FC = () => {
       const frontendTeams = teamsResult.data.map(t => ({
         id: t.id,
         name: t.name,
-        logo: t.logo || t.logoUrl || '',
+        logo: getUploadUrl(t.logo || t.logoUrl) || '',
         battleCry: t.battleCry || '',
         players: (t.members || []).map((player, index: number) => ({
           id: player.id || `p-${t.id}-${index}`,

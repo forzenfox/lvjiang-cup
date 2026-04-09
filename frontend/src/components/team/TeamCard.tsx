@@ -1,6 +1,7 @@
 import React from 'react';
 import { Crown } from 'lucide-react';
 import { PositionIcon } from '../common/PositionIcon';
+import { getUploadUrl } from '@/utils/upload';
 
 export interface TeamMember {
   id: string;
@@ -48,7 +49,7 @@ const TeamCard: React.FC<TeamCardProps> = ({ team, onMembersClick }) => {
       {/* 战队图标区域 */}
       <div className="h-[128px] bg-gradient-to-br from-[rgba(30,58,138,0.5)] to-[rgba(88,28,135,0.5)] flex items-center justify-center p-4">
         <img
-          src={logoThumbnailUrl || logoUrl || '/assets/default-team-logo.png'}
+          src={getUploadUrl(logoThumbnailUrl || logoUrl) || '/assets/default-team-logo.png'}
           alt={`${name} logo`}
           className="w-[96px] h-[96px] object-contain shadow-[0_4px_12px_rgba(0,0,0,0.3)]"
           data-testid="team-logo"

@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { getChampionIconUrl } from '../../utils/championUtils';
 import type { PlayerLevel } from '../../api/types';
 import { getLevelBadgeClasses, getCaptainBadgeClasses } from '../../utils/levelColors';
+import { getUploadUrl } from '@/utils/upload';
 
 interface MemberCardProps {
   member: TeamMember;
@@ -140,7 +141,7 @@ const MemberCard: React.FC<MemberCardProps> = ({ member }) => {
           >
             {member.avatarUrl ? (
               <img
-                src={member.avatarUrl}
+                src={getUploadUrl(member.avatarUrl)}
                 alt={member.nickname}
                 className="w-full h-full object-cover"
               />

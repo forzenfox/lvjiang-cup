@@ -9,6 +9,7 @@ import { getPositionLabel } from '../../utils/position';
 import { PositionType } from '../../types/position';
 import { PlayerDetailModal } from '../team/PlayerDetailModal';
 import { getLevelBadgeClasses, getCaptainBadgeClasses } from '../../utils/levelColors';
+import { getUploadUrl } from '@/utils/upload';
 
 // 本地 Team 类型（与后端数据模型一致）
 interface Team {
@@ -156,7 +157,7 @@ const TeamSection: React.FC<TeamSectionProps> = ({ refreshInterval = 30000 }) =>
     return {
       id: apiTeam.id,
       name: apiTeam.name,
-      logo: apiTeam.logo || apiTeam.logoUrl || `https://api.dicebear.com/7.x/identicon/svg?seed=${apiTeam.id}`,
+      logo: getUploadUrl(apiTeam.logo || apiTeam.logoUrl) || `https://api.dicebear.com/7.x/identicon/svg?seed=${apiTeam.id}`,
       players,
       battleCry: apiTeam.battleCry || '暂无参赛宣言',
     };

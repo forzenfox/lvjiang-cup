@@ -9,6 +9,7 @@ import SwissStage from './SwissStage';
 import EliminationStage from './EliminationStage';
 import { useAdvancementStore } from '@/store/advancementStore';
 import { PositionType } from '@/types/position';
+import { getUploadUrl } from '@/utils/upload';
 
 // 本地 Match 类型（兼容现有UI组件）
 type MatchStatus = 'upcoming' | 'ongoing' | 'finished';
@@ -92,7 +93,7 @@ const convertApiTeamToLocal = (apiTeam: ApiTeam): Team => {
   return {
     id: apiTeam.id,
     name: apiTeam.name,
-    logo: apiTeam.logo || apiTeam.logoUrl || `https://api.dicebear.com/7.x/identicon/svg?seed=${apiTeam.id}`,
+    logo: getUploadUrl(apiTeam.logo || apiTeam.logoUrl) || `https://api.dicebear.com/7.x/identicon/svg?seed=${apiTeam.id}`,
     players,
     battleCry: apiTeam.battleCry || '暂无参赛宣言',
   };

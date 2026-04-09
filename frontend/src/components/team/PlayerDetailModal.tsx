@@ -4,6 +4,7 @@ import type { Player } from '@/api/types';
 import { PositionType } from '@/types/position';
 import { getChampionIconUrl } from '@/utils/championUtils';
 import { getLevelBadgeClasses, getCaptainBadgeClasses } from '@/utils/levelColors';
+import { getUploadUrl } from '@/utils/upload';
 
 interface PlayerDetailModalProps {
   player: Player;
@@ -172,7 +173,7 @@ export const PlayerDetailModal: React.FC<PlayerDetailModalProps> = ({
               {player.avatarUrl ? (
                 <img
                   data-testid="player-avatar"
-                  src={player.avatarUrl}
+                  src={getUploadUrl(player.avatarUrl)}
                   alt={player.nickname}
                   className="w-full h-full object-cover"
                 />
