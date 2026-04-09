@@ -93,6 +93,8 @@ describe('AdvancementService', () => {
       const result = await service.findOne();
 
       expect(result).toEqual({
+        top8: [],
+        eliminated: [],
         winners2_0: [],
         winners2_1: [],
         losersBracket: [],

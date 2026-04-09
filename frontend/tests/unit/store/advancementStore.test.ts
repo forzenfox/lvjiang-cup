@@ -1,11 +1,8 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { useAdvancementStore, categoryConfig, categoryOrder } from '@/store/advancementStore';
-import type { SwissAdvancementResult } from '@/types';
+import { useAdvancementStore, calculateAdvancement } from '@/store/advancementStore';
 
-// 清理 localStorage 和 store 状态
 const cleanup = () => {
   localStorage.clear();
-  // 重置 store 到初始状态
   const store = useAdvancementStore.getState();
   store.restoreDefault();
 };
@@ -19,18 +16,15 @@ describe('advancementStore', () => {
     it('应该有正确的初始 advancement 数据', () => {
       const state = useAdvancementStore.getState();
 
-      expect(state.advancement.winners2_0).toEqual(['team1', 'team2']);
-      expect(state.advancement.winners2_1).toEqual(['team4', 'team8']);
-      expect(state.advancement.losersBracket).toEqual(['team3', 'team7']);
-      expect(state.advancement.eliminated3rd).toEqual(['team5']);
-      expect(state.advancement.eliminated0_3).toEqual(['team6']);
+      expect(state.advancement.top8).toEqual(['team1', 'team2', 'team3', 'team4', 'team5', 'team6', 'team7', 'team8']);
+      expect(state.advancement.eliminated).toEqual(['team9', 'team10', 'team11', 'team12', 'team13', 'team14', 'team15', 'team16']);
+      expect(state.advancement.rankings).toHaveLength(16);
     });
 
-    it('应该有正确的初始元数据', () => {
+    it('应该有 lastUpdated 时间戳', () => {
       const state = useAdvancementStore.getState();
-
-      expect(state.updatedBy).toBe('system');
       expect(state.lastUpdated).toBeDefined();
+      expect(typeof state.lastUpdated).toBe('string');
     });
   });
 
@@ -38,103 +32,35 @@ describe('advancementStore', () => {
     it('应该能设置新的 advancement 数据', () => {
       const store = useAdvancementStore.getState();
 
-      const newAdvancement: SwissAdvancementResult = {
-        winners2_0: ['team1'],
-        winners2_1: ['team2', 'team4'],
-        losersBracket: ['team3', 'team7', 'team8'],
-        eliminated3rd: ['team5'],
-        eliminated0_3: ['team6'],
+      const newAdvancement = {
+        top8: ['team1', 'team2', 'team3', 'team4', 'team5', 'team6', 'team7', 'team8'],
+        eliminated: ['team9', 'team10', 'team11', 'team12', 'team13', 'team14', 'team15', 'team16'],
+        rankings: [
+          { teamId: 'team1', record: '3-0', rank: 1 },
+          { teamId: 'team2', record: '3-0', rank: 2 },
+        ],
       };
 
-      store.setAdvancement(newAdvancement, 'admin');
+      store.setAdvancement(newAdvancement);
 
       const state = useAdvancementStore.getState();
       expect(state.advancement).toEqual(newAdvancement);
-      expect(state.updatedBy).toBe('admin');
       expect(state.lastUpdated).toBeDefined();
     });
   });
 
-  describe('moveTeam', () => {
-    it('应该能将队伍从一个分类移动到另一个分类', () => {
-      const store = useAdvancementStore.getState();
-
-      // 将 team1 从 winners2_0 移动到 winners2_1
-      store.moveTeam('team1', 'winners2_0', 'winners2_1');
-
-      const state = useAdvancementStore.getState();
-      expect(state.advancement.winners2_0).not.toContain('team1');
-      expect(state.advancement.winners2_1).toContain('team1');
-      expect(state.updatedBy).toBe('admin');
-    });
-
-    it('应该能添加新队伍到分类', () => {
-      const store = useAdvancementStore.getState();
-
-      // 假设有一个未分配的队伍
-      store.moveTeam('team9', null, 'winners2_0');
-
-      const state = useAdvancementStore.getState();
-      expect(state.advancement.winners2_0).toContain('team9');
-    });
-
-    it('不应该重复添加已存在的队伍', () => {
-      const store = useAdvancementStore.getState();
-
-      // team1 已经在 winners2_0 中
-      const originalLength = store.advancement.winners2_0.length;
-      store.moveTeam('team1', null, 'winners2_0');
-
-      const state = useAdvancementStore.getState();
-      expect(state.advancement.winners2_0.length).toBe(originalLength);
-    });
-  });
-
   describe('getAllTeamIds', () => {
-    it('应该返回所有已分配的队伍ID', () => {
+    it('应该返回所有队伍ID（top8 + eliminated）', () => {
       const store = useAdvancementStore.getState();
 
       const allIds = store.getAllTeamIds();
 
       expect(allIds).toContain('team1');
       expect(allIds).toContain('team2');
-      expect(allIds).toContain('team3');
-      expect(allIds).toContain('team4');
-      expect(allIds).toContain('team5');
-      expect(allIds).toContain('team6');
-      expect(allIds).toContain('team7');
       expect(allIds).toContain('team8');
-      expect(allIds.length).toBe(8);
-    });
-  });
-
-  describe('getUnassignedTeams', () => {
-    it('应该返回未分配的队伍', () => {
-      const store = useAdvancementStore.getState();
-
-      const allTeamIds = [
-        'team1',
-        'team2',
-        'team3',
-        'team4',
-        'team5',
-        'team6',
-        'team7',
-        'team8',
-        'team9',
-      ];
-      const unassigned = store.getUnassignedTeams(allTeamIds);
-
-      expect(unassigned).toEqual(['team9']);
-    });
-
-    it('当所有队伍都已分配时应该返回空数组', () => {
-      const store = useAdvancementStore.getState();
-
-      const allTeamIds = ['team1', 'team2', 'team3', 'team4', 'team5', 'team6', 'team7', 'team8'];
-      const unassigned = store.getUnassignedTeams(allTeamIds);
-
-      expect(unassigned).toEqual([]);
+      expect(allIds).toContain('team9');
+      expect(allIds).toContain('team16');
+      expect(allIds.length).toBe(16);
     });
   });
 
@@ -142,47 +68,113 @@ describe('advancementStore', () => {
     it('应该恢复到默认数据', () => {
       const store = useAdvancementStore.getState();
 
-      // 先修改数据
-      store.moveTeam('team1', 'winners2_0', 'winners2_1');
+      const newAdvancement = {
+        top8: ['team9', 'team10', 'team11', 'team12', 'team13', 'team14', 'team15', 'team16'],
+        eliminated: ['team1', 'team2', 'team3', 'team4', 'team5', 'team6', 'team7', 'team8'],
+        rankings: [],
+      };
+      store.setAdvancement(newAdvancement);
 
-      // 恢复默认
       store.restoreDefault();
 
       const state = useAdvancementStore.getState();
-      expect(state.advancement.winners2_0).toEqual(['team1', 'team2']);
-      expect(state.advancement.winners2_1).toEqual(['team4', 'team8']);
-      expect(state.updatedBy).toBe('system');
+      expect(state.advancement.top8).toEqual(['team1', 'team2', 'team3', 'team4', 'team5', 'team6', 'team7', 'team8']);
+      expect(state.advancement.eliminated).toEqual(['team9', 'team10', 'team11', 'team12', 'team13', 'team14', 'team15', 'team16']);
     });
   });
 
-  describe('categoryConfig', () => {
-    it('应该有正确的分类配置', () => {
-      expect(categoryConfig.winners2_0.label).toBe('2-0 晋级（胜者组）');
-      expect(categoryConfig.winners2_0.color).toBe('bg-green-500');
+  describe('calculateAdvancement', () => {
+    it('应该根据比赛结果正确计算晋级名单', () => {
+      const matches = [
+        { stage: 'swiss', status: 'finished', winnerId: 'team1', teamAId: 'team1', teamBId: 'team2' },
+        { stage: 'swiss', status: 'finished', winnerId: 'team2', teamAId: 'team3', teamBId: 'team2' },
+        { stage: 'swiss', status: 'finished', winnerId: 'team3', teamAId: 'team3', teamBId: 'team4' },
+        { stage: 'swiss', status: 'finished', winnerId: 'team4', teamAId: 'team5', teamBId: 'team4' },
+        { stage: 'swiss', status: 'finished', winnerId: 'team5', teamAId: 'team6', teamBId: 'team5' },
+        { stage: 'swiss', status: 'finished', winnerId: 'team6', teamAId: 'team7', teamBId: 'team6' },
+        { stage: 'swiss', status: 'finished', winnerId: 'team7', teamAId: 'team8', teamBId: 'team7' },
+        { stage: 'swiss', status: 'finished', winnerId: 'team8', teamAId: 'team9', teamBId: 'team8' },
+      ];
 
-      expect(categoryConfig.winners2_1.label).toBe('2-1 晋级（胜者组）');
-      expect(categoryConfig.winners2_1.color).toBe('bg-green-400');
+      const teams = [
+        { id: 'team1' }, { id: 'team2' }, { id: 'team3' }, { id: 'team4' },
+        { id: 'team5' }, { id: 'team6' }, { id: 'team7' }, { id: 'team8' },
+        { id: 'team9' }, { id: 'team10' },
+      ];
 
-      expect(categoryConfig.losersBracket.label).toBe('晋级败者组');
-      expect(categoryConfig.losersBracket.color).toBe('bg-orange-500');
+      const result = calculateAdvancement(matches, teams);
 
-      expect(categoryConfig.eliminated3rd.label).toBe('积分第三淘汰');
-      expect(categoryConfig.eliminated3rd.color).toBe('bg-red-500');
-
-      expect(categoryConfig.eliminated0_3.label).toBe('0-3 淘汰');
-      expect(categoryConfig.eliminated0_3.color).toBe('bg-red-600');
+      expect(result.top8).toContain('team1');
+      expect(result.top8).toContain('team8');
+      expect(result.eliminated).toContain('team9');
+      expect(result.rankings).toHaveLength(10);
     });
-  });
 
-  describe('categoryOrder', () => {
-    it('应该有正确的分类顺序', () => {
-      expect(categoryOrder).toEqual([
-        'winners2_0',
-        'winners2_1',
-        'losersBracket',
-        'eliminated3rd',
-        'eliminated0_3',
-      ]);
+    it('应该正确排序：胜场多的在前，负场少的在前', () => {
+      const matches = [
+        { stage: 'swiss', status: 'finished', winnerId: 'team1', teamAId: 'team1', teamBId: 'team2' },
+        { stage: 'swiss', status: 'finished', winnerId: 'team1', teamAId: 'team1', teamBId: 'team3' },
+        { stage: 'swiss', status: 'finished', winnerId: 'team1', teamAId: 'team1', teamBId: 'team4' },
+      ];
+
+      const teams = [
+        { id: 'team1' }, { id: 'team2' }, { id: 'team3' }, { id: 'team4' },
+      ];
+
+      const result = calculateAdvancement(matches, teams);
+
+      expect(result.rankings[0].teamId).toBe('team1');
+      expect(result.rankings[0].record).toBe('3-0');
+    });
+
+    it('应该忽略非瑞士轮比赛', () => {
+      const matches = [
+        { stage: 'elimination', status: 'finished', winnerId: 'team1', teamAId: 'team1', teamBId: 'team2' },
+        { stage: 'swiss', status: 'finished', winnerId: 'team1', teamAId: 'team1', teamBId: 'team2' },
+        { stage: 'swiss', status: 'finished', winnerId: 'team2', teamAId: 'team3', teamBId: 'team2' },
+        { stage: 'swiss', status: 'finished', winnerId: 'team3', teamAId: 'team3', teamBId: 'team4' },
+        { stage: 'swiss', status: 'finished', winnerId: 'team4', teamAId: 'team5', teamBId: 'team4' },
+        { stage: 'swiss', status: 'finished', winnerId: 'team5', teamAId: 'team6', teamBId: 'team5' },
+        { stage: 'swiss', status: 'finished', winnerId: 'team6', teamAId: 'team7', teamBId: 'team6' },
+        { stage: 'swiss', status: 'finished', winnerId: 'team7', teamAId: 'team8', teamBId: 'team7' },
+        { stage: 'swiss', status: 'finished', winnerId: 'team8', teamAId: 'team9', teamBId: 'team8' },
+      ];
+
+      const teams = [
+        { id: 'team1' }, { id: 'team2' }, { id: 'team3' }, { id: 'team4' },
+        { id: 'team5' }, { id: 'team6' }, { id: 'team7' }, { id: 'team8' },
+        { id: 'team9' }, { id: 'team10' },
+      ];
+
+      const result = calculateAdvancement(matches, teams);
+
+      expect(result.top8).toContain('team1');
+      expect(result.eliminated).toContain('team9');
+    });
+
+    it('应该忽略未结束的比赛', () => {
+      const matches = [
+        { stage: 'swiss', status: 'ongoing', winnerId: null, teamAId: 'team1', teamBId: 'team2' },
+        { stage: 'swiss', status: 'finished', winnerId: 'team1', teamAId: 'team1', teamBId: 'team2' },
+        { stage: 'swiss', status: 'finished', winnerId: 'team2', teamAId: 'team3', teamBId: 'team2' },
+        { stage: 'swiss', status: 'finished', winnerId: 'team3', teamAId: 'team3', teamBId: 'team4' },
+        { stage: 'swiss', status: 'finished', winnerId: 'team4', teamAId: 'team5', teamBId: 'team4' },
+        { stage: 'swiss', status: 'finished', winnerId: 'team5', teamAId: 'team6', teamBId: 'team5' },
+        { stage: 'swiss', status: 'finished', winnerId: 'team6', teamAId: 'team7', teamBId: 'team6' },
+        { stage: 'swiss', status: 'finished', winnerId: 'team7', teamAId: 'team8', teamBId: 'team7' },
+        { stage: 'swiss', status: 'finished', winnerId: 'team8', teamAId: 'team9', teamBId: 'team8' },
+      ];
+
+      const teams = [
+        { id: 'team1' }, { id: 'team2' }, { id: 'team3' }, { id: 'team4' },
+        { id: 'team5' }, { id: 'team6' }, { id: 'team7' }, { id: 'team8' },
+        { id: 'team9' }, { id: 'team10' },
+      ];
+
+      const result = calculateAdvancement(matches, teams);
+
+      expect(result.top8).toContain('team1');
+      expect(result.eliminated).toContain('team9');
     });
   });
 });

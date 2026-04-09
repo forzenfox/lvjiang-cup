@@ -365,7 +365,38 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
       }
     }
 
+    await this.migrateAdvancementTable();
+
     this.logger.log('Migration completed');
+  }
+
+  private async migrateAdvancementTable() {
+    const tableExists = await this.tableExists('advancement');
+    if (!tableExists) {
+      return;
+    }
+
+    const columns = await this.getTableColumns('advancement');
+    const newColumns = [
+      { name: 'winners2_0', sql: 'ALTER TABLE advancement ADD COLUMN winners2_0 TEXT DEFAULT \'[]\'' },
+      { name: 'winners2_1', sql: 'ALTER TABLE advancement ADD COLUMN winners2_1 TEXT DEFAULT \'[]\'' },
+      { name: 'losers_bracket', sql: 'ALTER TABLE advancement ADD COLUMN losers_bracket TEXT DEFAULT \'[]\'' },
+      { name: 'eliminated_3rd', sql: 'ALTER TABLE advancement ADD COLUMN eliminated_3rd TEXT DEFAULT \'[]\'' },
+      { name: 'eliminated_0_3', sql: 'ALTER TABLE advancement ADD COLUMN eliminated_0_3 TEXT DEFAULT \'[]\'' },
+    ];
+
+    for (const col of newColumns) {
+      if (!columns.includes(col.name)) {
+        try {
+          await run(this.db, col.sql);
+          this.logger.log(`Migrated: Added ${col.name} to advancement`);
+        } catch (err) {
+          if (!err.message?.includes('duplicate column name')) {
+            this.logger.warn(`Migration failed for advancement.${col.name}: ${err.message}`);
+          }
+        }
+      }
+    }
   }
 
   private async tableExists(tableName: string): Promise<boolean> {
@@ -426,12 +457,11 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     `,
     );
 
-    // 初始化 advancement
     await run(
       this.db,
       `
-      INSERT OR IGNORE INTO advancement (id, winners2_0, winners2_1, losers_bracket, eliminated_3rd, eliminated_0_3)
-      VALUES (1, '[]', '[]', '[]', '[]', '[]')
+      INSERT OR IGNORE INTO advancement (id, top8, eliminated, winners2_0, winners2_1, losers_bracket, eliminated_3rd, eliminated_0_3)
+      VALUES (1, '[]', '[]', '[]', '[]', '[]', '[]', '[]')
     `,
     );
   }
@@ -447,7 +477,7 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     );
     await run(
       this.db,
-      `UPDATE advancement SET top8 = '[]', eliminated = '[]', updated_at = CURRENT_TIMESTAMP WHERE id = 1`,
+      `UPDATE advancement SET top8 = '[]', eliminated = '[]', winners2_0 = '[]', winners2_1 = '[]', losers_bracket = '[]', eliminated_3rd = '[]', eliminated_0_3 = '[]', updated_at = CURRENT_TIMESTAMP WHERE id = 1`,
     );
     this.logger.log('All data cleared');
   }

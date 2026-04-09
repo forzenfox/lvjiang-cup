@@ -46,6 +46,8 @@ describe('AdvancementController', () => {
     it('应该返回完整的晋级名单', async () => {
       // Arrange
       const advancementData: Advancement = {
+        top8: ['team1', 'team2'],
+        eliminated: ['team3', 'team4'],
         winners2_0: ['team1', 'team2'],
         winners2_1: ['team3', 'team4'],
         losersBracket: ['team5', 'team6'],
@@ -65,6 +67,8 @@ describe('AdvancementController', () => {
     it('应该返回空的晋级名单当没有数据', async () => {
       // Arrange
       const emptyAdvancement: Advancement = {
+        top8: [],
+        eliminated: [],
         winners2_0: [],
         winners2_1: [],
         losersBracket: [],
@@ -97,6 +101,8 @@ describe('AdvancementController', () => {
         eliminated0_3: ['team6'],
       };
       const updatedAdvancement: Advancement = {
+        top8: ['team1', 'team2'],
+        eliminated: [],
         winners2_0: ['team1', 'team2'],
         winners2_1: ['team3'],
         losersBracket: ['team4'],
@@ -119,6 +125,8 @@ describe('AdvancementController', () => {
         winners2_0: ['team1'],
       };
       const updatedAdvancement: Advancement = {
+        top8: [],
+        eliminated: [],
         winners2_0: ['team1'],
         winners2_1: [],
         losersBracket: [],
@@ -143,6 +151,8 @@ describe('AdvancementController', () => {
         losersBracket: ['team4', 'team5'],
       };
       const updatedAdvancement: Advancement = {
+        top8: ['team1', 'team2'],
+        eliminated: [],
         winners2_0: ['team1', 'team2'],
         winners2_1: ['team3'],
         losersBracket: ['team4', 'team5'],
@@ -208,6 +218,8 @@ describe('AdvancementController', () => {
     it('应该返回正确的Advancement对象格式', async () => {
       // Arrange
       const advancementData: Advancement = {
+        top8: ['team1', 'team2'],
+        eliminated: ['team3'],
         winners2_0: ['team1', 'team2'],
         winners2_1: ['team3'],
         losersBracket: ['team4'],
@@ -235,6 +247,8 @@ describe('AdvancementController', () => {
     it('应该返回所有数组类型的属性', async () => {
       // Arrange
       const advancementData: Advancement = {
+        top8: [],
+        eliminated: [],
         winners2_0: [],
         winners2_1: [],
         losersBracket: [],

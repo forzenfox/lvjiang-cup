@@ -125,4 +125,218 @@ describe('TeamsService', () => {
       await expect(service.remove('non-existent-id')).rejects.toThrow(NotFoundException);
     });
   });
+
+  describe('findMembersByTeamId', () => {
+    it('should return members for a team', async () => {
+      const mockMembers = [
+        { id: 'm1', team_id: 'team1', nickname: 'Player1', position: 'MID', is_captain: 1 },
+        { id: 'm2', team_id: 'team1', nickname: 'Player2', position: 'ADC', is_captain: 0 },
+      ];
+      mockDatabaseService.get.mockResolvedValue({ id: 'team1' });
+      mockDatabaseService.all.mockResolvedValue(mockMembers);
+
+      const result = await service.findMembersByTeamId('team1');
+
+      expect(result).toHaveLength(2);
+      expect(result[0].nickname).toBe('Player1');
+      expect(result[0].isCaptain).toBe(true);
+    });
+
+    it('should throw NotFoundException for non-existent team', async () => {
+      mockDatabaseService.get.mockResolvedValue(null);
+
+      await expect(service.findMembersByTeamId('non-existent')).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('findMemberById', () => {
+    it('should return a member', async () => {
+      const mockMember = {
+        id: 'm1',
+        team_id: 'team1',
+        nickname: 'Player1',
+        position: 'MID',
+        is_captain: 1,
+        champion_pool: '["Ahri","Zed"]',
+      };
+      mockDatabaseService.get.mockResolvedValue(mockMember);
+
+      const result = await service.findMemberById('m1');
+
+      expect(result.nickname).toBe('Player1');
+      expect(result.championPool).toEqual(['Ahri', 'Zed']);
+    });
+
+    it('should throw NotFoundException for non-existent member', async () => {
+      mockDatabaseService.get.mockResolvedValue(null);
+
+      await expect(service.findMemberById('non-existent')).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('createMember', () => {
+    it('should create a new member', async () => {
+      mockDatabaseService.get.mockResolvedValueOnce({ id: 'team1' });
+      mockDatabaseService.run.mockResolvedValue({ changes: 1 });
+      mockDatabaseService.get.mockResolvedValue({
+        id: 'm1',
+        team_id: 'team1',
+        nickname: 'NewPlayer',
+        position: 'TOP',
+        is_captain: 0,
+      });
+
+      const result = await service.createMember('team1', {
+        nickname: 'NewPlayer',
+        position: 'TOP',
+      });
+
+      expect(mockDatabaseService.run).toHaveBeenCalled();
+      expect(result.nickname).toBe('NewPlayer');
+    });
+
+    it('should throw NotFoundException for non-existent team', async () => {
+      mockDatabaseService.get.mockResolvedValue(null);
+
+      await expect(
+        service.createMember('non-existent', { nickname: 'Player', position: 'MID' }),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('should clear cache after creating member', async () => {
+      mockDatabaseService.get.mockResolvedValueOnce({ id: 'team1' });
+      mockDatabaseService.run.mockResolvedValue({ changes: 1 });
+      mockDatabaseService.get.mockResolvedValue({
+        id: 'm1',
+        team_id: 'team1',
+        nickname: 'Player',
+        position: 'MID',
+        is_captain: 0,
+      });
+
+      await service.createMember('team1', { nickname: 'Player', position: 'MID' });
+
+      expect(mockCacheService.del).toHaveBeenCalledWith('teams:all');
+      expect(mockCacheService.del).toHaveBeenCalledWith('team:team1');
+    });
+  });
+
+  describe('updateMember', () => {
+    it('should update a member', async () => {
+      mockDatabaseService.get.mockResolvedValueOnce({
+        id: 'm1',
+        team_id: 'team1',
+        nickname: 'OldName',
+        position: 'MID',
+        is_captain: 0,
+      });
+      mockDatabaseService.run.mockResolvedValue({ changes: 1 });
+      mockDatabaseService.get.mockResolvedValue({
+        id: 'm1',
+        team_id: 'team1',
+        nickname: 'NewName',
+        position: 'MID',
+        is_captain: 0,
+      });
+
+      const result = await service.updateMember('m1', { nickname: 'NewName' });
+
+      expect(result.nickname).toBe('NewName');
+    });
+
+    it('should throw NotFoundException for non-existent member', async () => {
+      mockDatabaseService.get.mockResolvedValue(null);
+
+      await expect(service.updateMember('non-existent', { nickname: 'Name' })).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+
+    it('should update captain status and clear other captains', async () => {
+      mockDatabaseService.get.mockResolvedValueOnce({
+        id: 'm1',
+        team_id: 'team1',
+        nickname: 'Player',
+        position: 'MID',
+        is_captain: 0,
+      });
+      mockDatabaseService.run.mockResolvedValue({ changes: 1 });
+      mockDatabaseService.get.mockResolvedValue({
+        id: 'm1',
+        team_id: 'team1',
+        nickname: 'Player',
+        position: 'MID',
+        is_captain: 1,
+      });
+
+      await service.updateMember('m1', { isCaptain: true });
+
+      expect(mockDatabaseService.run).toHaveBeenCalledWith(
+        expect.stringContaining('UPDATE team_members SET is_captain = 0'),
+        expect.any(Array),
+      );
+    });
+  });
+
+  describe('removeMember', () => {
+    it('should remove a member', async () => {
+      mockDatabaseService.get.mockResolvedValueOnce({
+        id: 'm1',
+        team_id: 'team1',
+        nickname: 'Player',
+        position: 'MID',
+        is_captain: 0,
+      });
+      mockDatabaseService.run.mockResolvedValue({ changes: 1 });
+
+      await service.removeMember('m1');
+
+      expect(mockDatabaseService.run).toHaveBeenCalledWith(
+        'DELETE FROM team_members WHERE id = ?',
+        ['m1'],
+      );
+      expect(mockCacheService.del).toHaveBeenCalled();
+    });
+
+    it('should throw NotFoundException for non-existent member', async () => {
+      mockDatabaseService.get.mockResolvedValue(null);
+
+      await expect(service.removeMember('non-existent')).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('updateCaptain', () => {
+    it('should update team captain', async () => {
+      mockDatabaseService.get
+        .mockResolvedValueOnce({ id: 'team1' })
+        .mockResolvedValueOnce({ id: 'm1', team_id: 'team1', nickname: 'Player' });
+      mockDatabaseService.run.mockResolvedValue({ changes: 1 });
+      mockDatabaseService.get.mockResolvedValue({
+        id: 'm1',
+        team_id: 'team1',
+        nickname: 'Player',
+        is_captain: 1,
+      });
+
+      const result = await service.updateCaptain('team1', 'm1');
+
+      expect(result.isCaptain).toBe(true);
+    });
+
+    it('should throw NotFoundException for non-existent team', async () => {
+      mockDatabaseService.get.mockResolvedValue(null);
+
+      await expect(service.updateCaptain('non-existent', 'm1')).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+
+    it('should throw NotFoundException for non-existent member in team', async () => {
+      mockDatabaseService.get.mockResolvedValueOnce({ id: 'team1' }).mockResolvedValueOnce(null);
+
+      await expect(service.updateCaptain('team1', 'non-existent')).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+  });
 });

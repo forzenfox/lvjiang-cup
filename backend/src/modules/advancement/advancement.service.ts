@@ -4,8 +4,13 @@ import { CacheService } from '../../cache/cache.service';
 import { UpdateAdvancementDto } from './dto/update-advancement.dto';
 
 export interface Advancement {
-  top8: string[];        // 前8名晋级淘汰赛
-  eliminated: string[];  // 被淘汰队伍
+  top8: string[];
+  eliminated: string[];
+  winners2_0: string[];
+  winners2_1: string[];
+  losersBracket: string[];
+  eliminated3rd: string[];
+  eliminated0_3: string[];
   rankings?: { teamId: string; record: string; rank: number }[];
 }
 
@@ -40,6 +45,11 @@ export class AdvancementService {
     const advancement: Advancement = {
       top8: JSON.parse(result?.top8 || '[]'),
       eliminated: JSON.parse(result?.eliminated || '[]'),
+      winners2_0: JSON.parse(result?.winners2_0 || '[]'),
+      winners2_1: JSON.parse(result?.winners2_1 || '[]'),
+      losersBracket: JSON.parse(result?.losers_bracket || '[]'),
+      eliminated3rd: JSON.parse(result?.eliminated_3rd || '[]'),
+      eliminated0_3: JSON.parse(result?.eliminated_0_3 || '[]'),
     };
 
     // 写入缓存
@@ -72,6 +82,11 @@ export class AdvancementService {
     return {
       top8: sortedTeams.slice(0, 8).map(t => t.teamId),
       eliminated: sortedTeams.slice(8).map(t => t.teamId),
+      winners2_0: [],
+      winners2_1: [],
+      losersBracket: [],
+      eliminated3rd: [],
+      eliminated0_3: [],
       rankings: sortedTeams.map((t, index) => ({ ...t, rank: index + 1 })),
     };
   }
@@ -88,10 +103,30 @@ export class AdvancementService {
       updates.push('eliminated = ?');
       values.push(JSON.stringify(updateAdvancementDto.eliminated));
     }
+    if (updateAdvancementDto.winners2_0 !== undefined) {
+      updates.push('winners2_0 = ?');
+      values.push(JSON.stringify(updateAdvancementDto.winners2_0));
+    }
+    if (updateAdvancementDto.winners2_1 !== undefined) {
+      updates.push('winners2_1 = ?');
+      values.push(JSON.stringify(updateAdvancementDto.winners2_1));
+    }
+    if (updateAdvancementDto.losersBracket !== undefined) {
+      updates.push('losers_bracket = ?');
+      values.push(JSON.stringify(updateAdvancementDto.losersBracket));
+    }
+    if (updateAdvancementDto.eliminated3rd !== undefined) {
+      updates.push('eliminated_3rd = ?');
+      values.push(JSON.stringify(updateAdvancementDto.eliminated3rd));
+    }
+    if (updateAdvancementDto.eliminated0_3 !== undefined) {
+      updates.push('eliminated_0_3 = ?');
+      values.push(JSON.stringify(updateAdvancementDto.eliminated0_3));
+    }
 
     if (updates.length > 0) {
       updates.push('updated_at = CURRENT_TIMESTAMP');
-      values.push(1); // id = 1
+      values.push(1);
 
       await this.databaseService.run(
         `UPDATE advancement SET ${updates.join(', ')} WHERE id = ?`,
@@ -101,7 +136,6 @@ export class AdvancementService {
 
     this.logger.log('Advancement info updated');
 
-    // 清除缓存
     this.cacheService.del(this.CACHE_KEY);
 
     return this.findOne();

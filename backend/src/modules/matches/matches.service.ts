@@ -19,6 +19,7 @@ export interface Match {
   stage: 'swiss' | 'elimination';
   swissRecord?: string;
   swissRound?: number;
+  swissDay?: number;
   boFormat?: 'BO1' | 'BO3' | 'BO5';
   eliminationBracket?: 'quarterfinals' | 'semifinals' | 'finals';
   eliminationGameNumber?: number;
