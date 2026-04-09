@@ -8,7 +8,7 @@ import { TopIcon, JungleIcon, MidIcon, AdcIcon, SupportIcon } from '../icons/Pos
 import { getPositionLabel } from '../../utils/position';
 import { PositionType } from '../../types/position';
 import { PlayerDetailModal } from '../team/PlayerDetailModal';
-import type { PlayerLevel } from '../../api/types';
+import { getLevelBadgeClasses, getCaptainBadgeClasses } from '../../utils/levelColors';
 
 // 本地 Team 类型（与后端数据模型一致）
 interface Team {
@@ -18,15 +18,6 @@ interface Team {
   battleCry: string;
   players: Player[];
 }
-
-// 等级颜色配置
-const LEVEL_COLORS: Record<PlayerLevel, string> = {
-  S: 'bg-amber-500/20 text-amber-400 border-amber-500/30',
-  A: 'bg-purple-500/20 text-purple-400 border-purple-500/30',
-  B: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
-  C: 'bg-green-500/20 text-green-400 border-green-500/30',
-  D: 'bg-gray-500/20 text-gray-400 border-gray-500/30',
-};
 
 const PositionIcon: React.FC<{ position: PositionType }> = ({ position }) => {
   switch (position) {
@@ -286,12 +277,12 @@ const TeamSection: React.FC<TeamSectionProps> = ({ refreshInterval = 30000 }) =>
                           <img src={player.avatarUrl} alt={player.nickname} className="w-8 h-8 rounded-full bg-gray-300 object-cover ring-2 ring-white/50" />
                           <span className="text-sm font-semibold text-gray-700">{player.nickname}</span>
                           {player.level && (
-                            <span className={`px-1.5 py-0.5 text-[10px] font-bold rounded border ${LEVEL_COLORS[player.level]}`}>
+                            <span className={getLevelBadgeClasses(player.level)}>
                               {player.level}
                             </span>
                           )}
                           {player.isCaptain && (
-                            <span className="px-1.5 py-0.5 text-[10px] font-medium rounded bg-amber-500/20 text-amber-600 border border-amber-500/30">
+                            <span className={getCaptainBadgeClasses()}>
                               队长
                             </span>
                           )}

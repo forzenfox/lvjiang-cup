@@ -1,25 +1,48 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { UploadService, UploadResult } from '../../src/modules/upload/upload.service';
-import { BadRequestException } from '@nestjs/common';
-import * as fs from 'fs';
+import { UploadResult } from '../../src/modules/upload/upload.service';
 
-// 模拟 fs 模块
-jest.mock('fs', () => ({
-  existsSync: jest.fn(),
+const mockFs = {
+  existsSync: jest.fn().mockReturnValue(true),
   mkdirSync: jest.fn(),
   promises: {
-    writeFile: jest.fn(),
+    writeFile: jest.fn().mockResolvedValue(undefined),
+    readdir: jest.fn().mockResolvedValue([]),
+    unlink: jest.fn().mockResolvedValue(undefined),
   },
+};
+
+jest.mock('fs', () => mockFs);
+
+jest.mock('../../src/database/database.service', () => ({
+  DatabaseService: jest.fn().mockImplementation(() => ({
+    all: jest.fn().mockResolvedValue([]),
+    get: jest.fn().mockResolvedValue(undefined),
+    run: jest.fn().mockResolvedValue({ changes: 0, lastID: 0 }),
+  })),
 }));
+
+import { Test, TestingModule } from '@nestjs/testing';
+import { UploadService } from '../../src/modules/upload/upload.service';
+import { DatabaseService } from '../../src/database/database.service';
 
 describe('UploadService', () => {
   let service: UploadService;
 
   beforeEach(async () => {
     jest.clearAllMocks();
+    mockFs.existsSync.mockReturnValue(true);
 
     const module: TestingModule = await Test.createTestingModule({
-      providers: [UploadService],
+      providers: [
+        UploadService,
+        {
+          provide: DatabaseService,
+          useValue: {
+            all: jest.fn().mockResolvedValue([]),
+            get: jest.fn().mockResolvedValue(undefined),
+            run: jest.fn().mockResolvedValue({ changes: 0, lastID: 0 }),
+          },
+        },
+      ],
     }).compile();
 
     service = module.get<UploadService>(UploadService);
@@ -31,128 +54,68 @@ describe('UploadService', () => {
 
   describe('uploadTeamLogo - 上传战队图标', () => {
     it('应该正确上传战队图标并返回 URL', async () => {
-      // Arrange
-      const teamId = 'team1';
+      const filename = '550e8400-e29b-41d4-a716-446655440000.png';
       const fileBuffer = Buffer.from('test logo content');
 
-      (fs.existsSync as jest.Mock).mockReturnValue(true);
-      (fs.promises.writeFile as jest.Mock).mockResolvedValue(undefined);
+      const result: UploadResult = await service.uploadTeamLogo(filename, fileBuffer);
 
-      // Act
-      const result: UploadResult = await service.uploadTeamLogo(teamId, fileBuffer);
-
-      // Assert
       expect(result).toHaveProperty('url');
-      expect(result.url).toContain('/uploads/teams/team1/logo.png');
-    });
-
-    it('应该同时保存缩略图', async () => {
-      // Arrange
-      const teamId = 'team1';
-      const fileBuffer = Buffer.from('test logo content');
-      const thumbnailBuffer = Buffer.from('test thumbnail content');
-
-      (fs.existsSync as jest.Mock).mockReturnValue(true);
-      (fs.promises.writeFile as jest.Mock).mockResolvedValue(undefined);
-
-      // Act
-      const result: UploadResult = await service.uploadTeamLogo(teamId, fileBuffer, thumbnailBuffer);
-
-      // Assert
-      expect(result).toHaveProperty('thumbnailUrl');
-      expect(result.thumbnailUrl).toContain('/uploads/teams/team1/logo_thumbnail.png');
-      expect(fs.promises.writeFile).toHaveBeenCalledTimes(2);
+      expect(result.url).toBe(`/uploads/teams/${filename}`);
     });
 
     it('应该在目录不存在时创建目录', async () => {
-      // Arrange
-      const teamId = 'team1';
+      const filename = 'test-logo.png';
       const fileBuffer = Buffer.from('test logo content');
 
-      (fs.existsSync as jest.Mock).mockReturnValue(false);
-      (fs.promises.writeFile as jest.Mock).mockResolvedValue(undefined);
+      mockFs.existsSync.mockReturnValue(false);
 
-      // Act
-      await service.uploadTeamLogo(teamId, fileBuffer);
+      await service.uploadTeamLogo(filename, fileBuffer);
 
-      // Assert
-      expect(fs.mkdirSync).toHaveBeenCalled();
+      expect(mockFs.mkdirSync).toHaveBeenCalled();
     });
   });
 
   describe('uploadMemberAvatar - 上传队员头像', () => {
     it('应该正确上传队员头像并返回 URL', async () => {
-      // Arrange
-      const memberId = 'member1';
+      const filename = 'member-avatar.png';
       const fileBuffer = Buffer.from('test avatar content');
 
-      (fs.existsSync as jest.Mock).mockReturnValue(true);
-      (fs.promises.writeFile as jest.Mock).mockResolvedValue(undefined);
+      const result: UploadResult = await service.uploadMemberAvatar(filename, fileBuffer);
 
-      // Act
-      const result: UploadResult = await service.uploadMemberAvatar(memberId, fileBuffer);
-
-      // Assert
       expect(result).toHaveProperty('url');
-      expect(result.url).toContain('/uploads/members/member1/avatar.png');
-    });
-
-    it('不应该包含 thumbnailUrl', async () => {
-      // Arrange
-      const memberId = 'member1';
-      const fileBuffer = Buffer.from('test avatar content');
-
-      (fs.existsSync as jest.Mock).mockReturnValue(true);
-      (fs.promises.writeFile as jest.Mock).mockResolvedValue(undefined);
-
-      // Act
-      const result: UploadResult = await service.uploadMemberAvatar(memberId, fileBuffer);
-
-      // Assert
-      expect(result).not.toHaveProperty('thumbnailUrl');
+      expect(result.url).toBe(`/uploads/members/${filename}`);
     });
   });
 
   describe('uploadImage - 通用图片上传', () => {
     it('logo 类型应该调用 uploadTeamLogo', async () => {
-      // Arrange
-      const id = 'team1';
+      const filename = 'team-logo.png';
       const fileBuffer = Buffer.from('test content');
 
-      (fs.existsSync as jest.Mock).mockReturnValue(true);
-      (fs.promises.writeFile as jest.Mock).mockResolvedValue(undefined);
+      const result: UploadResult = await service.uploadImage('logo', filename, fileBuffer);
 
-      // Act
-      const result: UploadResult = await service.uploadImage('logo', id, fileBuffer);
-
-      // Assert
-      expect(result.url).toContain('/uploads/teams/team1/logo.png');
+      expect(result.url).toContain('/uploads/teams/');
     });
 
     it('avatar 类型应该调用 uploadMemberAvatar', async () => {
-      // Arrange
-      const id = 'member1';
+      const filename = 'member-avatar.png';
       const fileBuffer = Buffer.from('test content');
 
-      (fs.existsSync as jest.Mock).mockReturnValue(true);
-      (fs.promises.writeFile as jest.Mock).mockResolvedValue(undefined);
+      const result: UploadResult = await service.uploadImage('avatar', filename, fileBuffer);
 
-      // Act
-      const result: UploadResult = await service.uploadImage('avatar', id, fileBuffer);
-
-      // Assert
-      expect(result.url).toContain('/uploads/members/member1/avatar.png');
+      expect(result.url).toContain('/uploads/members/');
     });
+  });
 
-    it('无效类型应该抛出错误', async () => {
-      // Arrange
-      const id = 'someId';
-      const fileBuffer = Buffer.from('test content');
+  describe('cleanupOrphanedFiles - 清理孤立文件', () => {
+    it('应该扫描并识别孤立文件', async () => {
+      mockFs.existsSync.mockReturnValue(true);
+      mockFs.promises.readdir.mockResolvedValue(['used-file.png', 'orphaned-file.png']);
+      mockFs.promises.unlink.mockResolvedValue(undefined);
 
-      // Act & Assert
-      await expect(service.uploadImage('invalid' as any, id, fileBuffer)).rejects.toThrow(
-        BadRequestException,
-      );
+      const result = await service.cleanupOrphanedFiles();
+
+      expect(result.scannedFiles).toBe(4);
     });
   });
 });

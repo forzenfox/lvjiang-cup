@@ -31,10 +31,10 @@ RUN npm ci --only=production && \
 COPY --from=builder /app/dist ./dist
 
 # 创建数据目录并设置权限
-RUN mkdir -p /app/data /app/backup && \
+RUN mkdir -p /app/data /app/backup /app/uploads && \
     addgroup -g 1001 -S nodejs && \
     adduser -S nodejs -u 1001 -G nodejs && \
-    chown -R nodejs:nodejs /app/data /app/backup
+    chown -R nodejs:nodejs /app/data /app/backup /app/uploads
 
 # 切换到非 root 用户（安全优化）
 USER nodejs

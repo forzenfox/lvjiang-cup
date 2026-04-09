@@ -1,6 +1,7 @@
 /**
  * 路径工具函数
  * 处理上传文件路径相关逻辑
+ * 支持开发环境（相对路径）和生产环境（绝对路径）
  */
 
 import * as path from 'path';
@@ -8,65 +9,76 @@ import { uploadConfig } from '../../config/upload.config';
 
 /**
  * 获取上传基准目录
- * 生产环境：app 运行目录（process.cwd()）
- * 开发环境：项目根目录
+ * - 生产环境 (/app/uploads): 绝对路径，容器内直接使用
+ * - 开发环境 (./uploads): 相对路径，相对于 process.cwd()
  */
 export function getUploadBaseDir(): string {
-  const isProduction = process.env.NODE_ENV === 'production';
-  return isProduction
-    ? process.cwd()  // 生产环境：app 运行目录
-    : path.join(process.cwd(), '..', '..');  // 开发环境：项目根目录
+  const baseDir = uploadConfig.baseDir;
+
+  if (path.isAbsolute(baseDir) || /^[a-zA-Z]:/.test(baseDir)) {
+    return baseDir;
+  }
+
+  return path.resolve(process.cwd(), baseDir);
 }
 
 /**
  * 获取上传完整目录路径
- * @param subDir 子目录（如 'teams', 'members'）
- * @param id 关联 ID（如 teamId, memberId）
+ * @param subDir 子目录 ('teams' | 'members')
  */
-export function getUploadDir(subDir: string, id?: string): string {
+export function getUploadDir(subDir: string): string {
   const baseDir = getUploadBaseDir();
-  const relativePath = path.join(uploadConfig.relativeDir, subDir, id || '');
-  return path.join(baseDir, relativePath);
+  return path.join(baseDir, subDir);
 }
 
 /**
- * 获取战队 logo 路径
+ * 获取战队 logo 存储路径 (磁盘)
+ * @param filename UUID 文件名 (含扩展名)
  */
-export function getTeamLogoPath(teamId: string): string {
-  return getUploadDir(uploadConfig.teamLogoDir, teamId);
+export function getTeamLogoPath(filename: string): string {
+  return path.join(getUploadDir(uploadConfig.teamLogoDir), filename);
 }
 
 /**
- * 获取队员头像路径
+ * 获取队员头像存储路径 (磁盘)
+ * @param filename UUID 文件名 (含扩展名)
  */
-export function getMemberAvatarPath(memberId: string): string {
-  return getUploadDir(uploadConfig.memberAvatarDir, memberId);
+export function getMemberAvatarPath(filename: string): string {
+  return path.join(getUploadDir(uploadConfig.memberAvatarDir), filename);
 }
 
 /**
- * 获取上传访问 URL 前缀
+ * 获取战队 logo 访问 URL
+ * @param filename UUID 文件名 (含扩展名)
  */
-export function getUploadUrlPrefix(): string {
-  return `/${uploadConfig.relativeDir}`;
+export function getTeamLogoUrl(filename: string): string {
+  return `/uploads/${uploadConfig.teamLogoDir}/${filename}`;
 }
 
 /**
- * 获取战队 logo URL
+ * 获取战队 logo 缩略图访问 URL
+ * @param filename UUID 文件名 (含扩展名)
  */
-export function getTeamLogoUrl(teamId: string): string {
-  return `${getUploadUrlPrefix()}/${uploadConfig.teamLogoDir}/${teamId}/${uploadConfig.logoFileName}`;
+export function getTeamLogoThumbnailUrl(filename: string): string {
+  const basename = filename.replace(/\.[^.]+$/, '');
+  const ext = path.extname(filename) || '.png';
+  return `/uploads/${uploadConfig.teamLogoDir}/${basename}_thumb${ext}`;
 }
 
 /**
- * 获取战队 logo 缩略图 URL
+ * 获取队员头像访问 URL
+ * @param filename UUID 文件名 (含扩展名)
  */
-export function getTeamLogoThumbnailUrl(teamId: string): string {
-  return `${getUploadUrlPrefix()}/${uploadConfig.teamLogoDir}/${teamId}/${uploadConfig.thumbnailFileName}`;
+export function getMemberAvatarUrl(filename: string): string {
+  return `/uploads/${uploadConfig.memberAvatarDir}/${filename}`;
 }
 
 /**
- * 获取队员头像 URL
+ * 获取战队 logo 缩略图存储路径 (磁盘)
+ * @param filename UUID 文件名 (含扩展名)
  */
-export function getMemberAvatarUrl(memberId: string): string {
-  return `${getUploadUrlPrefix()}/${uploadConfig.memberAvatarDir}/${memberId}/${uploadConfig.avatarFileName}`;
+export function getTeamLogoThumbnailPath(filename: string): string {
+  const basename = filename.replace(/\.[^.]+$/, '');
+  const ext = path.extname(filename) || '.png';
+  return path.join(getUploadDir(uploadConfig.teamLogoDir), `${basename}_thumb${ext}`);
 }

@@ -3,15 +3,6 @@ import { UploadController } from '../../src/modules/upload/upload.controller';
 import { UploadService } from '../../src/modules/upload/upload.service';
 import { JwtAuthGuard } from '../../src/modules/auth/guards/jwt-auth.guard';
 import { BadRequestException } from '@nestjs/common';
-import * as fs from 'fs';
-
-// 模拟 fs 模块
-jest.mock('fs', () => ({
-  ...jest.requireActual('fs'),
-  promises: {
-    readFile: jest.fn(),
-  },
-}));
 
 describe('UploadController', () => {
   let controller: UploadController;
@@ -21,7 +12,6 @@ describe('UploadController', () => {
     uploadImage: jest.fn(),
   };
 
-  // 模拟认证守卫
   const mockJwtAuthGuard = {
     canActivate: jest.fn(() => true),
   };
@@ -52,95 +42,84 @@ describe('UploadController', () => {
 
   describe('POST /admin/upload/image - 上传图片', () => {
     it('应该上传战队图标并返回成功结果', async () => {
-      // Arrange
       const mockFile = {
         originalname: 'logo.png',
         buffer: Buffer.from('test'),
-        path: '/tmp/uploads/teams/team1/logo.png',
+        mimetype: 'image/png',
       };
 
-      (fs.promises.readFile as jest.Mock).mockResolvedValue(Buffer.from('test'));
       mockUploadService.uploadImage.mockResolvedValue({
-        url: '/uploads/teams/team1/logo.png',
-        thumbnailUrl: '/uploads/teams/team1/logo_thumbnail.png',
+        url: '/uploads/teams/abc123.png',
       });
 
-      // Act
-      const result = await controller.uploadImage(mockFile as any, 'logo', 'team1');
+      const result = await controller.uploadImage(mockFile as any, 'logo');
 
-      // Assert
       expect(result).toHaveProperty('url');
-      expect(result).toHaveProperty('thumbnailUrl');
-      expect(result.url).toBe('/uploads/teams/team1/logo.png');
-      expect(result.thumbnailUrl).toBe('/uploads/teams/team1/logo_thumbnail.png');
+      expect(result.url).toBe('/uploads/teams/abc123.png');
     });
 
     it('应该上传队员头像并返回成功结果', async () => {
-      // Arrange
       const mockFile = {
         originalname: 'avatar.png',
         buffer: Buffer.from('test'),
-        path: '/tmp/uploads/members/member1/avatar.png',
+        mimetype: 'image/png',
       };
 
-      (fs.promises.readFile as jest.Mock).mockResolvedValue(Buffer.from('test'));
       mockUploadService.uploadImage.mockResolvedValue({
-        url: '/uploads/members/member1/avatar.png',
+        url: '/uploads/members/def456.png',
       });
 
-      // Act
-      const result = await controller.uploadImage(mockFile as any, 'avatar', 'member1');
+      const result = await controller.uploadImage(mockFile as any, 'avatar');
 
-      // Assert
       expect(result).toHaveProperty('url');
-      expect(result.url).toBe('/uploads/members/member1/avatar.png');
+      expect(result.url).toBe('/uploads/members/def456.png');
     });
 
     it('应该在缺少文件时抛出错误', async () => {
-      // Arrange
       const mockFile = null;
 
-      // Act & Assert
-      await expect(controller.uploadImage(mockFile as any, 'logo', 'team1')).rejects.toThrow(
+      await expect(controller.uploadImage(mockFile as any, 'logo')).rejects.toThrow(
         BadRequestException,
       );
     });
 
     it('应该在类型无效时抛出错误', async () => {
-      // Arrange
       const mockFile = {
         originalname: 'image.png',
         buffer: Buffer.from('test'),
-        path: '/tmp/uploads/test.png',
+        mimetype: 'image/png',
       };
 
-      // Act & Assert
-      await expect(controller.uploadImage(mockFile as any, 'invalid', 'team1')).rejects.toThrow(
+      await expect(controller.uploadImage(mockFile as any, 'invalid')).rejects.toThrow(
         BadRequestException,
       );
     });
 
-    it('应该在缺少ID时抛出错误', async () => {
-      // Arrange
+    it('应该生成 UUID 文件名', async () => {
       const mockFile = {
-        originalname: 'image.png',
+        originalname: 'logo.png',
         buffer: Buffer.from('test'),
-        path: '/tmp/uploads/test.png',
+        mimetype: 'image/png',
       };
 
-      // Act & Assert
-      await expect(controller.uploadImage(mockFile as any, 'logo', '')).rejects.toThrow(
-        BadRequestException,
+      mockUploadService.uploadImage.mockResolvedValue({
+        url: '/uploads/teams/550e8400-e29b-41d4-a716-446655440000.png',
+      });
+
+      const result = await controller.uploadImage(mockFile as any, 'logo');
+
+      expect(mockUploadService.uploadImage).toHaveBeenCalledWith(
+        'logo',
+        expect.stringMatching(/^[0-9a-f-]+\.png$/),
+        mockFile.buffer,
       );
     });
   });
 
   describe('未认证访问 - 返回 401', () => {
     it('应该在未认证时拒绝访问上传接口', async () => {
-      // Arrange
       mockJwtAuthGuard.canActivate.mockReturnValueOnce(false);
 
-      // Act & Assert
       const canActivate = mockJwtAuthGuard.canActivate();
       expect(canActivate).toBe(false);
     });

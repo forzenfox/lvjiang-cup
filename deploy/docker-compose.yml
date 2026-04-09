@@ -39,11 +39,13 @@ services:
       - ADMIN_USERNAME=${ADMIN_USERNAME:-admin}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD}
       - DATABASE_PATH=/app/data/lvjiang.db
+      - UPLOAD_BASE_DIR=/app/uploads
       - CORS_ORIGIN=${CORS_ORIGIN}
     volumes:
       # 数据持久化
       - ../data:/app/data
       - ../backup:/app/backup
+      - ../uploads:/app/uploads
     networks:
       - npm-network
     logging: *default-logging

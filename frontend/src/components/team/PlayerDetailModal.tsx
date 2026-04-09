@@ -3,6 +3,7 @@ import { X, Star, ExternalLink } from 'lucide-react';
 import type { Player } from '@/api/types';
 import { PositionType } from '@/types/position';
 import { getChampionIconUrl } from '@/utils/championUtils';
+import { getLevelBadgeClasses, getCaptainBadgeClasses } from '@/utils/levelColors';
 
 interface PlayerDetailModalProps {
   player: Player;
@@ -191,14 +192,7 @@ export const PlayerDetailModal: React.FC<PlayerDetailModalProps> = ({
               <div className="flex items-center justify-center gap-2 mb-1">
                 <h3 className="text-xl font-bold text-slate-100">{player.nickname}</h3>
                 {player.isCaptain && (
-                  <span
-                    className="px-2 py-0.5 text-xs font-medium rounded-full"
-                    style={{
-                      background: 'rgba(251, 191, 36, 0.2)',
-                      color: '#FBBF24',
-                      border: '1px solid rgba(251, 191, 36, 0.3)',
-                    }}
-                  >
+                  <span className={getCaptainBadgeClasses('rounded-full')}>
                     队长
                   </span>
                 )}
@@ -276,13 +270,7 @@ export const PlayerDetailModal: React.FC<PlayerDetailModalProps> = ({
             >
               <div className="flex items-center justify-between">
                 <h4 className="text-sm font-medium text-slate-300">实力等级</h4>
-                <span className={`px-3 py-1 text-sm font-bold rounded border ${
-                  player.level === 'S' ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' :
-                  player.level === 'A' ? 'bg-purple-500/20 text-purple-400 border-purple-500/30' :
-                  player.level === 'B' ? 'bg-blue-500/20 text-blue-400 border-blue-500/30' :
-                  player.level === 'C' ? 'bg-green-500/20 text-green-400 border-green-500/30' :
-                  'bg-gray-500/20 text-gray-400 border-gray-500/30'
-                }`}>
+                <span className={getLevelBadgeClasses(player.level, 'px-3 py-1 text-sm')}>
                   {player.level}
                 </span>
               </div>

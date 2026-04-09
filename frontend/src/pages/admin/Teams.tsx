@@ -12,6 +12,7 @@ import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { getPositionLabel } from '@/utils/position';
 import { PositionType } from '@/types/position';
 import HeroSelector from '@/components/team/HeroSelector';
+import { getLevelBadgeClasses, getCaptainBadgeClasses } from '@/utils/levelColors';
 
 interface MemberFormData {
   avatarUrl?: string;
@@ -98,9 +99,13 @@ const AdminTeams: React.FC = () => {
   
   // 正在编辑的战队ID
   const [editingTeamId, setEditingTeamId] = useState<string | null>(null);
+
+  // 是否正在编辑战队信息（true=编辑战队，false=编辑队员）
+  const [isEditingTeam, setIsEditingTeam] = useState(false);
   
   // 战队编辑表单数据
   const [editingTeamData, setEditingTeamData] = useState<{
+    id?: string;
     name: string;
     logo: string;
     battleCry: string;
@@ -176,6 +181,10 @@ const AdminTeams: React.FC = () => {
 
   // 开始编辑战队
   const handleStartEditTeam = (team: Team) => {
+    setIsEditingTeam(true);
+    if (expandedTeamId !== team.id) {
+      setExpandedTeamId(team.id);
+    }
     setEditingTeamId(team.id);
     setEditingTeamData({
       name: team.name,
@@ -186,6 +195,7 @@ const AdminTeams: React.FC = () => {
 
   // 取消编辑战队
   const handleCancelEditTeam = () => {
+    setIsEditingTeam(false);
     setEditingTeamId(null);
     setEditingTeamData(null);
   };
@@ -230,6 +240,7 @@ const AdminTeams: React.FC = () => {
       }
 
       // 退出编辑模式
+      setIsEditingTeam(false);
       setEditingTeamId(null);
       setEditingTeamData(null);
 
@@ -289,7 +300,7 @@ const AdminTeams: React.FC = () => {
   };
 
   // 提取直播间房间号
-  const extractRoomNumber = (url: string): string => {
+  const _extractRoomNumber = (url: string): string => {
     const defaultPrefix = 'https://www.douyu.com/';
     if (!url) return defaultPrefix;
     // 如果已经是完整URL，直接返回
@@ -340,6 +351,7 @@ const AdminTeams: React.FC = () => {
     }
 
     // 设置当前编辑的战队ID
+    setIsEditingTeam(false);
     setEditingTeamId(teamId);
     setExpandedPlayerIndex(index);
     setEditingPlayerIndex(index);
@@ -348,6 +360,8 @@ const AdminTeams: React.FC = () => {
 
   // 取消队员编辑
   const handleCancelEditMember = () => {
+    setIsEditingTeam(false);
+    setEditingTeamId(null);
     setEditingPlayerIndex(null);
     setEditingPlayerData(null);
   };
@@ -410,7 +424,8 @@ const AdminTeams: React.FC = () => {
         t.id === editingTeamId ? { ...t, players: newPlayers } : t
       );
       setTeams(updatedTeams);
-      
+
+      setIsEditingTeam(false);
       setEditingPlayerIndex(null);
       setEditingPlayerData(null);
       toast.success('队员信息已保存');
@@ -457,7 +472,7 @@ const AdminTeams: React.FC = () => {
         <div className="space-y-4">
           {teams.map(team => {
             const isExpanded = expandedTeamId === team.id;
-            const isEditing = editingTeamId === team.id;
+            const isTeamBeingEdited = isEditingTeam && editingTeamId === team.id;
 
             return (
               <Card
@@ -495,7 +510,7 @@ const AdminTeams: React.FC = () => {
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
-                    {!isEditing && (
+                    {!isEditingTeam && editingTeamId === null && (
                       <>
                         <Button
                           variant="ghost"
@@ -504,7 +519,7 @@ const AdminTeams: React.FC = () => {
                             e.stopPropagation();
                             handleStartEditTeam(team);
                           }}
-                          disabled={loading || editingTeamId !== null}
+                          disabled={loading}
                           aria-label="编辑"
                         >
                           <Edit2 className="w-4 h-4 text-blue-400" />
@@ -538,7 +553,7 @@ const AdminTeams: React.FC = () => {
                     className="border-t border-white/10"
                   >
                     {/* 编辑模式 */}
-                    {isEditing && editingTeamData ? (
+                    {isTeamBeingEdited && editingTeamData ? (
                       <div className="p-4 space-y-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div>
@@ -730,7 +745,7 @@ const AdminTeams: React.FC = () => {
                                             {player.nickname || '未填写'}
                                           </span>
                                           {player.isCaptain && (
-                                            <span className="px-1.5 py-0.5 text-[10px] font-medium rounded bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                                            <span className={getCaptainBadgeClasses()}>
                                               队长
                                             </span>
                                           )}
@@ -760,7 +775,7 @@ const AdminTeams: React.FC = () => {
                                   </div>
                                   {(isPlayerExpanded || isPlayerEditing) && (
                                     <div className="px-3 pb-3 border-t border-white/10 pt-3">
-                                      {isPlayerEditing ? (
+                                      {isPlayerEditing && editingPlayerData ? (
                                         <div className="space-y-3">
                                           {/* 第1行：基础信息 - 昵称 + 游戏ID */}
                                           <div className="grid grid-cols-2 gap-3">
@@ -978,13 +993,7 @@ const AdminTeams: React.FC = () => {
                                             <div>
                                               <span className="text-gray-500">实力等级:</span>
                                               {player.level ? (
-                                                <span className={`ml-2 px-1.5 py-0.5 text-xs font-bold rounded border ${
-                                                  player.level === 'S' ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' :
-                                                  player.level === 'A' ? 'bg-purple-500/20 text-purple-400 border-purple-500/30' :
-                                                  player.level === 'B' ? 'bg-blue-500/20 text-blue-400 border-blue-500/30' :
-                                                  player.level === 'C' ? 'bg-green-500/20 text-green-400 border-green-500/30' :
-                                                  'bg-gray-500/20 text-gray-400 border-gray-500/30'
-                                                }`}>
+                                                <span className={`ml-2 ${getLevelBadgeClasses(player.level)}`}>
                                                   {player.level}
                                                 </span>
                                               ) : (
@@ -1024,7 +1033,7 @@ const AdminTeams: React.FC = () => {
                                           )}
 
                                           {player.isCaptain && (
-                                            <div className="inline-flex items-center px-2 py-0.5 bg-yellow-500/20 text-yellow-400 text-xs rounded">
+                                            <div className={getCaptainBadgeClasses('inline-flex items-center')}>
                                               队长
                                             </div>
                                           )}

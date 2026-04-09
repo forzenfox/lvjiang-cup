@@ -21,6 +21,7 @@ export interface TeamMember {
   isCaptain?: boolean;
   liveUrl?: string;
   sortOrder?: number;
+  level?: 'S' | 'A' | 'B' | 'C' | 'D';
 }
 
 export interface Team {
@@ -79,6 +80,7 @@ export class TeamsService {
           isCaptain: Boolean(m.is_captain),
           liveUrl: m.live_url,
           sortOrder: m.sort_order,
+          level: m.level,
         })),
     }));
 
@@ -127,6 +129,7 @@ export class TeamsService {
         isCaptain: Boolean(m.is_captain),
         liveUrl: m.live_url,
         sortOrder: m.sort_order,
+        level: m.level,
       })),
     };
 
@@ -175,7 +178,7 @@ export class TeamsService {
           pos, // 位置：TOP/JUNGLE/MID/ADC/SUPPORT
           teamId, // 战队 ID
           60, // 默认评分
-          i === 0 ? 1 : 0, // 第一个位置（上单）设为队长
+          0, // 默认不设置队长，由管理员后期编辑
         ],
       );
 
@@ -424,6 +427,10 @@ export class TeamsService {
       updates.push('sort_order = ?');
       values.push(updateMemberDto.sortOrder);
     }
+    if (updateMemberDto.level !== undefined) {
+      updates.push('level = ?');
+      values.push(updateMemberDto.level);
+    }
 
     if (updates.length > 0) {
       updates.push('updated_at = CURRENT_TIMESTAMP');
@@ -520,6 +527,7 @@ export class TeamsService {
       isCaptain: Boolean(m.is_captain),
       liveUrl: m.live_url,
       sortOrder: m.sort_order,
+      level: m.level,
     };
   }
 }

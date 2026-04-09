@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 import { DatabaseModule } from './database/database.module';
 import { CacheModule } from './cache/cache.module';
 import { TeamsModule } from './modules/teams/teams.module';
@@ -10,6 +12,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { AdminModule } from './modules/admin/admin.module';
 import { UploadModule } from './modules/upload/upload.module';
 import appConfig from './config/app.config';
+import { getUploadBaseDir } from './common/utils/path.util';
 
 @Module({
   imports: [
@@ -18,6 +21,10 @@ import appConfig from './config/app.config';
       load: [appConfig],
       envFilePath: `.env.${process.env.NODE_ENV || 'development'}`,
       ignoreEnvFile: false,
+    }),
+    ServeStaticModule.forRoot({
+      rootPath: getUploadBaseDir(),
+      serveRoot: '/uploads',
     }),
     DatabaseModule,
     CacheModule,

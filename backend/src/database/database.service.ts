@@ -172,6 +172,7 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
         is_captain INTEGER DEFAULT 0,
         live_url TEXT,
         sort_order INTEGER,
+        level TEXT CHECK(level IN ('S', 'A', 'B', 'C', 'D')),
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (team_id) REFERENCES teams(id) ON DELETE CASCADE
@@ -354,6 +355,16 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
         }
       } catch (err) {
         this.logger.warn(`Migration failed for players rename: ${err.message}`);
+      }
+    }
+
+    // 添加 level 字段到 team_members 表
+    if (teamMembersExists && !(await this.columnExists('team_members', 'level'))) {
+      try {
+        await run(this.db, "ALTER TABLE team_members ADD COLUMN level TEXT CHECK(level IN ('S', 'A', 'B', 'C', 'D'))");
+        this.logger.log('Migrated: Added level column to team_members');
+      } catch (err) {
+        this.logger.warn(`Migration failed for adding level column: ${err.message}`);
       }
     }
 

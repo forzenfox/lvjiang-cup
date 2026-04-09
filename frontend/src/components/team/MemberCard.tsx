@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { getChampionIconUrl } from '../../utils/championUtils';
 import type { PlayerLevel } from '../../api/types';
+import { getLevelBadgeClasses, getCaptainBadgeClasses } from '../../utils/levelColors';
 
 interface MemberCardProps {
   member: TeamMember;
@@ -19,15 +20,6 @@ export interface TeamMember {
   liveUrl?: string;
   level?: PlayerLevel;
 }
-
-// 等级颜色配置
-const LEVEL_COLORS: Record<PlayerLevel, string> = {
-  S: 'bg-amber-500/20 text-amber-400 border-amber-500/30',
-  A: 'bg-purple-500/20 text-purple-400 border-purple-500/30',
-  B: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
-  C: 'bg-green-500/20 text-green-400 border-green-500/30',
-  D: 'bg-gray-500/20 text-gray-400 border-gray-500/30',
-};
 
 const POSITION_CONFIG = {
   TOP: { label: '上单', icon: '/assets/positions/top.png' },
@@ -170,18 +162,21 @@ const MemberCard: React.FC<MemberCardProps> = ({ member }) => {
               {member.nickname}
             </h4>
             {member.level && (
-              <span className={`px-1.5 py-0.5 text-[10px] font-bold rounded border ${LEVEL_COLORS[member.level]}`}>
+              <span className={getLevelBadgeClasses(member.level)}>
                 {member.level}
               </span>
             )}
             {member.isCaptain && (
-              <svg
-                className="w-4 h-4 text-amber-500 flex-shrink-0"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-              </svg>
+              <span className={getCaptainBadgeClasses('flex items-center gap-1')}>
+                <svg
+                  className="w-3 h-3"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                </svg>
+                队长
+              </span>
             )}
           </div>
 

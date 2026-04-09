@@ -56,4 +56,9 @@ export class UpdateMemberDto {
   @IsNumber()
   @IsOptional()
   sortOrder?: number;
+
+  @ApiPropertyOptional({ description: '实力等级', enum: ['S', 'A', 'B', 'C', 'D'] })
+  @IsString()
+  @IsOptional()
+  level?: 'S' | 'A' | 'B' | 'C' | 'D';
 }
