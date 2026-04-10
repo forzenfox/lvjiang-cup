@@ -4,6 +4,13 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui
 import { Button } from '../ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 
+// 隐藏滚动条的样式
+const styles = `
+  #streamers-scroll::-webkit-scrollbar {
+    display: none;
+  }
+`;
+
 // 扩展Window接口，添加APP_CONFIG类型
 declare global {
   interface Window {
@@ -158,6 +165,15 @@ interface StreamerSectionProps {
 }
 
 const StreamerSection: React.FC<StreamerSectionProps> = ({ refreshInterval = 30000 }) => {
+  // 注入隐藏滚动条的样式
+  useEffect(() => {
+    const styleElement = document.createElement('style');
+    styleElement.textContent = styles;
+    document.head.appendChild(styleElement);
+    return () => {
+      document.head.removeChild(styleElement);
+    };
+  }, []);
   const [streamers, setStreamers] = useState<Streamer[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -291,7 +307,8 @@ const StreamerSection: React.FC<StreamerSectionProps> = ({ refreshInterval = 300
             {/* 水平滚动卡片 */}
             <div 
               id="streamers-scroll"
-              className="flex space-x-6 overflow-x-auto pb-8 snap-x snap-mandatory scrollbar-hide"
+              className="flex space-x-6 overflow-x-auto pb-8 snap-x snap-mandatory"
+              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
               data-testid="streamers-grid"
             >
               {filteredStreamers.map(streamer => (
