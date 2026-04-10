@@ -5,6 +5,18 @@ import { Button } from '../ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import Modal from '../ui/Modal';
 
+// 扩展Window接口，添加APP_CONFIG类型
+declare global {
+  interface Window {
+    APP_CONFIG: {
+      API_BASE_URL: string;
+      APP_NAME: string;
+      VERSION: string;
+      STREAMERS: Streamer[];
+    };
+  }
+}
+
 // 主播类型定义
 interface Streamer {
   id: string;
@@ -20,75 +32,15 @@ interface Streamer {
   level?: string;
 }
 
-// 模拟数据
-const mockStreamers: Streamer[] = [
-  {
-    id: '1',
-    nickname: 'PDD',
-    avatarUrl: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=professional%20gamer%20streamer%20portrait%2C%20male%2C%20confident%2C%20gaming%20background%2C%20high%20quality&image_size=square_hd',
-    posterUrl: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=professional%20gamer%20streamer%20poster%2C%20male%2C%20dynamic%20pose%2C%20gaming%20scene%2C%20vibrant%20colors%2C%20high%20quality&image_size=landscape_16_9',
-    bio: '知名游戏主播，驴酱杯创始人之一，以幽默风趣的直播风格和高超的游戏技术深受观众喜爱。',
-    liveUrl: 'https://live.example.com/pdd',
-    isStar: true,
-    isGuest: false,
-    level: 'S'
-  },
-  {
-    id: '2',
-    nickname: '大司马',
-    avatarUrl: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=professional%20gamer%20streamer%20portrait%2C%20male%2C%20glasses%2C%20smiling%2C%20gaming%20background%2C%20high%20quality&image_size=square_hd',
-    posterUrl: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=professional%20gamer%20streamer%20poster%2C%20male%2C%20teaching%20pose%2C%20gaming%20scene%2C%20warm%20colors%2C%20high%20quality&image_size=landscape_16_9',
-    bio: '金牌讲师，游戏解说，以其独特的教学风格和幽默的直播内容著称。',
-    liveUrl: 'https://live.example.com/dasma',
-    isStar: true,
-    isGuest: false,
-    level: 'A'
-  },
-  {
-    id: '3',
-    nickname: 'Uzi',
-    avatarUrl: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=professional%20esports%20player%20portrait%2C%20male%2C%20focused%2C%20gaming%20background%2C%20high%20quality&image_size=square_hd',
-    posterUrl: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=professional%20esports%20player%20poster%2C%20male%2C%20competitive%20pose%2C%20gaming%20arena%2C%20intense%20colors%2C%20high%20quality&image_size=landscape_16_9',
-    bio: '前职业选手，世界冠军，被誉为世界第一ADC，技术精湛，比赛经验丰富。',
-    liveUrl: 'https://live.example.com/uzi',
-    isStar: false,
-    isGuest: true,
-    level: 'S'
-  },
-  {
-    id: '4',
-    nickname: 'TheShy',
-    avatarUrl: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=professional%20esports%20player%20portrait%2C%20male%2C%20cool%2C%20gaming%20background%2C%20high%20quality&image_size=square_hd',
-    posterUrl: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=professional%20esports%20player%20poster%2C%20male%2C%20aggressive%20pose%2C%20gaming%20arena%2C%20dynamic%20colors%2C%20high%20quality&image_size=landscape_16_9',
-    bio: '顶级上单选手，以其激进的打法和出色的操作闻名，多次获得世界冠军。',
-    liveUrl: 'https://live.example.com/theshy',
-    isStar: false,
-    isGuest: true,
-    level: 'S'
-  },
-  {
-    id: '5',
-    nickname: 'Rookie',
-    avatarUrl: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=professional%20esports%20player%20portrait%2C%20male%2C%20asian%2C%20confident%2C%20gaming%20background%2C%20high%20quality&image_size=square_hd',
-    posterUrl: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=professional%20esports%20player%20poster%2C%20male%2C%20mid%20laner%2C%20gaming%20arena%2C%20vibrant%20colors%2C%20high%20quality&image_size=landscape_16_9',
-    bio: '世界级中单选手，操作细腻，意识出色，多次带领队伍取得好成绩。',
-    liveUrl: 'https://live.example.com/rookie',
-    isStar: false,
-    isGuest: true,
-    level: 'S'
-  },
-  {
-    id: '6',
-    nickname: 'Letme',
-    avatarUrl: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=professional%20esports%20player%20portrait%2C%20male%2C%20calm%2C%20gaming%20background%2C%20high%20quality&image_size=square_hd',
-    posterUrl: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=professional%20esports%20player%20poster%2C%20male%2C%20top%20laner%2C%20gaming%20arena%2C%20steady%20colors%2C%20high%20quality&image_size=landscape_16_9',
-    bio: '前职业上单选手，以稳健的打法和团队意识著称，退役后转型主播。',
-    liveUrl: 'https://live.example.com/letme',
-    isStar: true,
-    isGuest: false,
-    level: 'A'
+// 从配置文件获取主播数据
+const getStreamersFromConfig = (): Streamer[] => {
+  // 检查window.APP_CONFIG是否存在
+  if (typeof window !== 'undefined' && window.APP_CONFIG && window.APP_CONFIG.STREAMERS) {
+    return window.APP_CONFIG.STREAMERS;
   }
-];
+  //  fallback 数据
+  return [];
+};
 
 // 骨架屏组件
 const StreamerCardSkeleton: React.FC = () => (
@@ -331,8 +283,13 @@ const StreamerSection: React.FC<StreamerSectionProps> = ({ refreshInterval = 300
       setError(null);
       // 模拟API请求延迟
       await new Promise(resolve => setTimeout(resolve, 1000));
-      // 使用模拟数据
-      setStreamers(mockStreamers);
+      // 从配置文件获取数据
+      const streamersFromConfig = getStreamersFromConfig();
+      if (streamersFromConfig.length > 0) {
+        setStreamers(streamersFromConfig);
+      } else {
+        setError('配置文件中没有主播数据');
+      }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : '获取主播数据失败';
       setError(errorMessage);
