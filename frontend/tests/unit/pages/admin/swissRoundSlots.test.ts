@@ -11,8 +11,8 @@ import {
 
 describe('swissRoundSlots', () => {
   describe('swissRoundSlots 数据', () => {
-    it('应该包含 10 个轮次槽位', () => {
-      expect(swissRoundSlots).toHaveLength(10);
+    it('应该包含 13 个轮次槽位', () => {
+      expect(swissRoundSlots).toHaveLength(13);
     });
 
     it('应该包含所有必需的战绩类型', () => {
@@ -27,6 +27,9 @@ describe('swissRoundSlots', () => {
       expect(records).toContain('2-1');
       expect(records).toContain('1-2');
       expect(records).toContain('0-3');
+      expect(records).toContain('3-1');
+      expect(records).toContain('2-2');
+      expect(records).toContain('1-3');
     });
 
     it('每个槽位应该有正确的结构', () => {
@@ -91,6 +94,21 @@ describe('swissRoundSlots', () => {
       const slot0_3 = swissRoundSlots.find(s => s.swissRecord === '0-3');
       expect(slot0_3?.maxMatches).toBe(1);
     });
+
+    it('3-1 战绩应该有 2 个比赛槽位', () => {
+      const slot3_1 = swissRoundSlots.find(s => s.swissRecord === '3-1');
+      expect(slot3_1?.maxMatches).toBe(2);
+    });
+
+    it('2-2 战绩应该有 2 个比赛槽位', () => {
+      const slot2_2 = swissRoundSlots.find(s => s.swissRecord === '2-2');
+      expect(slot2_2?.maxMatches).toBe(2);
+    });
+
+    it('1-3 战绩应该有 2 个比赛槽位', () => {
+      const slot1_3 = swissRoundSlots.find(s => s.swissRecord === '1-3');
+      expect(slot1_3?.maxMatches).toBe(2);
+    });
   });
 
   describe('getRoundFormat', () => {
@@ -132,6 +150,18 @@ describe('swissRoundSlots', () => {
 
     it('0-3 战绩应该返回 BO5', () => {
       expect(getRoundFormat('0-3')).toBe('BO5');
+    });
+
+    it('3-1 战绩应该返回 BO3', () => {
+      expect(getRoundFormat('3-1')).toBe('BO3');
+    });
+
+    it('2-2 战绩应该返回 BO3', () => {
+      expect(getRoundFormat('2-2')).toBe('BO3');
+    });
+
+    it('1-3 战绩应该返回 BO3', () => {
+      expect(getRoundFormat('1-3')).toBe('BO3');
     });
 
     it('空字符串应该返回 BO3', () => {
@@ -207,6 +237,27 @@ describe('swissRoundSlots', () => {
       expect(slot?.roundName).toBe('Round 4 Low');
     });
 
+    it('应该找到 3-1 战绩的槽位', () => {
+      const slot = getSlotByRecord('3-1');
+      expect(slot).toBeDefined();
+      expect(slot?.swissRecord).toBe('3-1');
+      expect(slot?.roundName).toBe('Round 5 High');
+    });
+
+    it('应该找到 2-2 战绩的槽位', () => {
+      const slot = getSlotByRecord('2-2');
+      expect(slot).toBeDefined();
+      expect(slot?.swissRecord).toBe('2-2');
+      expect(slot?.roundName).toBe('Round 5 Mid');
+    });
+
+    it('应该找到 1-3 战绩的槽位', () => {
+      const slot = getSlotByRecord('1-3');
+      expect(slot).toBeDefined();
+      expect(slot?.swissRecord).toBe('1-3');
+      expect(slot?.roundName).toBe('Round 5 Low');
+    });
+
     it('不存在的战绩应该返回 undefined', () => {
       const slot = getSlotByRecord('non-existent');
       expect(slot).toBeUndefined();
@@ -221,8 +272,8 @@ describe('swissRoundSlots', () => {
   describe('getTotalSlots', () => {
     it('应该返回正确的总槽位数', () => {
       const total = getTotalSlots();
-      // 8 + 4 + 4 + 2 + 4 + 2 + 1 + 3 + 3 + 1 = 32
-      expect(total).toBe(32);
+      // 8 + 4 + 4 + 2 + 4 + 2 + 1 + 3 + 3 + 1 + 2 + 2 + 2 = 38
+      expect(total).toBe(38);
     });
 
     it('返回值应该是正整数', () => {
@@ -244,6 +295,9 @@ describe('swissRoundSlots', () => {
       expect(getSwissRound('2-1')).toBe(3);
       expect(getSwissRound('1-2')).toBe(3);
       expect(getSwissRound('0-3')).toBe(3);
+      expect(getSwissRound('3-1')).toBe(4);
+      expect(getSwissRound('2-2')).toBe(4);
+      expect(getSwissRound('1-3')).toBe(4);
     });
   });
 

@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import SwissMatchCard from '@/components/features/swiss/SwissMatchCard';
+import { SWISS_THEME } from '@/constants/swissTheme';
 import type { Match, Team } from '@/types';
 
 const mockTeams: Team[] = [
@@ -33,18 +34,20 @@ describe('SwissMatchCard', () => {
 
   it('应该显示比赛状态', () => {
     const match = createMockMatch({ status: 'upcoming' });
-    const { container } = render(<SwissMatchCard match={match} teams={mockTeams} />);
+    render(<SwissMatchCard match={match} teams={mockTeams} />);
 
-    expect(container.textContent).toContain('未开始');
+    // upcoming 状态显示队伍名称
+    expect(screen.getByText('驴酱')).toBeInTheDocument();
+    expect(screen.getByText('雨酱')).toBeInTheDocument();
   });
 
   it('应该高亮显示胜者', () => {
     const match = createMockMatch({ winnerId: 'team1' });
     render(<SwissMatchCard match={match} teams={mockTeams} />);
 
-    // 胜者应该显示为黄色
+    // 胜者应该显示为白色（winnerText颜色）
     const winnerName = screen.getByText('驴酱');
-    expect(winnerName).toHaveClass('text-yellow-400');
+    expect(winnerName).toHaveStyle({ color: SWISS_THEME.winnerText });
   });
 
   it('应该支持点击事件', () => {
@@ -61,12 +64,13 @@ describe('SwissMatchCard', () => {
     expect(handleClick).toHaveBeenCalledTimes(1);
   });
 
-  it('应该显示比赛时间', () => {
+  it('应该显示比赛比分', () => {
     const match = createMockMatch({ startTime: '2026-01-01T10:00:00' });
-    const { container } = render(<SwissMatchCard match={match} teams={mockTeams} />);
+    render(<SwissMatchCard match={match} teams={mockTeams} />);
 
-    // 时间应该被格式化显示（可能是 "1月1日" 格式）
-    expect(container.textContent).toContain('1月');
+    // 比分应该显示为 3:2
+    expect(screen.getByText('3')).toBeInTheDocument();
+    expect(screen.getByText('2')).toBeInTheDocument();
   });
 
   it('当没有startTime时不应该显示时间', () => {

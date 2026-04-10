@@ -5,51 +5,13 @@ import { matchService, teamService, advancementService } from '@/services';
 import type { Match as ApiMatch, Team as ApiTeam } from '@/api/types';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import SwissStage from './SwissStage';
+import SwissStage from './SwissStageResponsive';
 import EliminationStage from './EliminationStage';
 import { useAdvancementStore } from '@/store/advancementStore';
 import { PositionType } from '@/types/position';
 import { getUploadUrl } from '@/utils/upload';
-
-// 本地 Match 类型（兼容现有UI组件）
-type MatchStatus = 'upcoming' | 'ongoing' | 'finished';
-type MatchStage = 'swiss' | 'elimination';
-type EliminationBracket = 'winners' | 'losers' | 'grand_finals';
-
-interface Player {
-  id: string;
-  name: string;
-  avatar: string;
-  position: PositionType;
-  description: string;
-}
-
-interface Team {
-  id: string;
-  name: string;
-  logo: string;
-  players: Player[];
-  battleCry: string;
-}
-
-interface Match {
-  id: string;
-  teamAId: string;
-  teamBId: string;
-  teamA?: Team;
-  teamB?: Team;
-  scoreA: number;
-  scoreB: number;
-  winnerId: string | null;
-  round: string;
-  status: MatchStatus;
-  startTime: string;
-  stage: MatchStage;
-  swissRecord?: string;
-  swissDay?: number;
-  eliminationGameNumber?: number;
-  eliminationBracket?: EliminationBracket;
-}
+import SwissEmptyState from './swiss/SwissEmptyState';
+import type { Match, Team, MatchStatus, EliminationBracket, Player } from '@/types';
 
 // 将 API Match 转换为本地 Match 格式
 const convertApiMatchToLocal = (apiMatch: ApiMatch, teams: Team[]): Match => {
@@ -57,7 +19,17 @@ const convertApiMatchToLocal = (apiMatch: ApiMatch, teams: Team[]): Match => {
   const teamB = teams.find(t => t.id === apiMatch.teamBId);
 
   // 将 API stage 映射到本地 stage
-  const stage: MatchStage = apiMatch.stage === 'elimination' ? 'elimination' : 'swiss';
+  const stage: Match['stage'] = apiMatch.stage === 'elimination' ? 'elimination' : 'swiss';
+
+  // 将 API eliminationBracket 映射到本地格式
+  const bracketMap: Record<string, EliminationBracket> = {
+    'winners': 'quarterfinals',
+    'losers': 'semifinals',
+    'grand_finals': 'finals',
+  };
+  const eliminationBracket = apiMatch.eliminationBracket
+    ? bracketMap[apiMatch.eliminationBracket] || undefined
+    : undefined;
 
   return {
     id: apiMatch.id,
@@ -73,11 +45,9 @@ const convertApiMatchToLocal = (apiMatch: ApiMatch, teams: Team[]): Match => {
     startTime: apiMatch.startTime || '',
     stage,
     swissRecord: apiMatch.swissRecord,
-    swissDay: apiMatch.swissDay,
     swissRound: apiMatch.swissRound,
     boFormat: apiMatch.boFormat,
-    eliminationGameNumber: apiMatch.eliminationGameNumber,
-    eliminationBracket: apiMatch.eliminationBracket,
+    eliminationBracket,
   };
 };
 
@@ -173,13 +143,10 @@ const ScheduleSection: React.FC<ScheduleSectionProps> = ({ refreshInterval = 300
         setMatches(convertedMatches);
 
         if (advancementData) {
-          setAdvancement(
-            {
-              top8: advancementData.top8 || [],
-              eliminated: advancementData.eliminated || [],
-            },
-            'api'
-          );
+          setAdvancement({
+            top8: advancementData.top8 || [],
+            eliminated: advancementData.eliminated || [],
+          });
         }
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : '获取赛程数据失败';
@@ -230,7 +197,7 @@ const ScheduleSection: React.FC<ScheduleSectionProps> = ({ refreshInterval = 300
   return (
     <section
       id="schedule"
-      className="py-20 px-4 bg-gradient-to-b from-primary via-primary to-gray-900"
+      className="py-20 px-4 bg-[#0F172A]"
     >
       <div className="max-w-7xl mx-auto">
         <motion.h2
@@ -271,7 +238,11 @@ const ScheduleSection: React.FC<ScheduleSectionProps> = ({ refreshInterval = 300
                 transition={{ duration: 0.3 }}
                 data-testid="swiss-stage-display"
               >
-                <SwissStage matches={swissMatches} teams={teams} advancement={advancement} />
+                {swissMatches.length === 0 ? (
+                  <SwissEmptyState message="暂无赛程信息，赛程信息将在比赛开始前公布" />
+                ) : (
+                  <SwissStage matches={swissMatches} teams={teams} advancement={advancement} />
+                )}
               </motion.div>
             </TabsContent>
 
@@ -282,7 +253,11 @@ const ScheduleSection: React.FC<ScheduleSectionProps> = ({ refreshInterval = 300
                 transition={{ duration: 0.3 }}
                 data-testid="elimination-stage-display"
               >
-                <EliminationStage matches={eliminationMatches} teams={teams} />
+                {eliminationMatches.length === 0 ? (
+                  <SwissEmptyState message="暂无淘汰赛信息" />
+                ) : (
+                  <EliminationStage matches={eliminationMatches} teams={teams} />
+                )}
               </motion.div>
             </TabsContent>
           </Tabs>

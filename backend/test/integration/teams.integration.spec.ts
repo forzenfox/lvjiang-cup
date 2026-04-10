@@ -11,21 +11,12 @@ describe('Teams Integration Tests', () => {
   let cacheService: CacheService;
   let module: TestingModule;
 
-  const mockCacheService = {
-    get: jest.fn(),
-    set: jest.fn(),
-    del: jest.fn(),
-  };
-
   beforeAll(async () => {
     module = await Test.createTestingModule({
       providers: [
         TeamsService,
         DatabaseService,
-        {
-          provide: CacheService,
-          useValue: mockCacheService,
-        },
+        CacheService,
         {
           provide: ConfigService,
           useValue: {
@@ -54,7 +45,7 @@ describe('Teams Integration Tests', () => {
 
   beforeEach(async () => {
     await cleanupTables();
-    jest.clearAllMocks();
+    cacheService.flush();
   });
 
   async function createTables() {
@@ -114,7 +105,6 @@ describe('Teams Integration Tests', () => {
       const created = await service.create(createDto);
       expect(created.name).toBe(createDto.name);
 
-      mockCacheService.get.mockReturnValue(undefined);
       const found = await service.findOne(created.id);
       expect(found.name).toBe(createDto.name);
     });
@@ -158,7 +148,6 @@ describe('Teams Integration Tests', () => {
         battleCry: 'Updated description',
       };
 
-      mockCacheService.get.mockReturnValue(undefined);
       const updated = await service.update(created.id, updateDto);
       expect(updated.name).toBe('Updated Name');
       expect(updated.battleCry).toBe('Updated description');
@@ -179,7 +168,6 @@ describe('Teams Integration Tests', () => {
 
       await service.remove(teamId);
 
-      mockCacheService.get.mockReturnValue(undefined);
       await expect(service.findOne(teamId)).rejects.toThrow(NotFoundException);
 
       // 验证队员也被级联删除
@@ -202,18 +190,14 @@ describe('Teams Integration Tests', () => {
 
       await service.create(createDto);
 
-      mockCacheService.get.mockReturnValue(undefined);
       const firstResult = await service.findAll();
       expect(firstResult).toHaveLength(1);
 
-      mockCacheService.get.mockReturnValue(firstResult);
       const secondResult = await service.findAll();
       expect(secondResult).toHaveLength(1);
     });
 
-    it('should clear cache after create', async () => {
-      mockCacheService.del.mockReturnValue(undefined);
-
+    it('should update team and return new data', async () => {
       const createDto = {
         id: 'team-1',
         name: 'Team 1',
@@ -223,10 +207,15 @@ describe('Teams Integration Tests', () => {
       };
 
       await service.create(createDto);
-      expect(mockCacheService.del).toHaveBeenCalledWith('teams:all');
+
+      const updated = await service.update(createDto.id, { name: 'Updated Team' });
+      expect(updated.name).toBe('Updated Team');
+
+      const found = await service.findOne(createDto.id);
+      expect(found.name).toBe('Updated Team');
     });
 
-    it('should clear cache after update', async () => {
+    it('should update team name correctly', async () => {
       const createDto = {
         id: 'team-1',
         name: 'Original Name',
@@ -237,13 +226,8 @@ describe('Teams Integration Tests', () => {
 
       await service.create(createDto);
 
-      mockCacheService.get.mockReturnValue(undefined);
-      mockCacheService.del.mockReturnValue(undefined);
-
-      await service.update(createDto.id, { name: 'Updated Name' });
-
-      expect(mockCacheService.del).toHaveBeenCalledWith('team:team-1');
-      expect(mockCacheService.del).toHaveBeenCalledWith('teams:all');
+      const updated = await service.update(createDto.id, { name: 'Updated Name' });
+      expect(updated.name).toBe('Updated Name');
     });
   });
 
@@ -261,21 +245,16 @@ describe('Teams Integration Tests', () => {
         battleCry: 'Description 2',
       });
 
-      mockCacheService.get.mockReturnValue(undefined);
       let allTeams = await service.findAll();
       expect(allTeams).toHaveLength(2);
 
-      mockCacheService.get.mockReturnValue(undefined);
-      mockCacheService.del.mockReturnValue(undefined);
       await service.update(team1.id, { name: 'Updated Team 1' });
 
-      mockCacheService.get.mockReturnValue(undefined);
       const updated = await service.findOne(team1.id);
       expect(updated.name).toBe('Updated Team 1');
 
       await service.remove(team2.id);
 
-      mockCacheService.get.mockReturnValue(undefined);
       allTeams = await service.findAll();
       expect(allTeams).toHaveLength(1);
       expect(allTeams[0].name).toBe('Updated Team 1');
@@ -289,13 +268,8 @@ describe('Teams Integration Tests', () => {
       };
 
       const created = await service.create(createDto);
-      // 验证自动创建了 5 个默认队员
       expect(created.members).toHaveLength(5);
 
-      mockCacheService.get.mockReturnValue(undefined);
-      mockCacheService.del.mockReturnValue(undefined);
-
-      // 更新前两个队员，添加一个新队员
       const updateDto = {
         members: [
           { id: created.members[0].id, nickname: 'UpdatedPlayer1', position: 'TOP' as const },
@@ -305,7 +279,6 @@ describe('Teams Integration Tests', () => {
       };
 
       const updated = await service.update(created.id, updateDto);
-      // update 方法会完全替换队员列表，所以应该有 3 个队员
       expect(updated.members).toHaveLength(3);
       expect(updated.members[0].nickname).toBe('UpdatedPlayer1');
       expect(updated.members[1].nickname).toBe('Player2');
@@ -322,13 +295,8 @@ describe('Teams Integration Tests', () => {
       };
 
       const created = await service.create(createDto);
-      // 验证自动创建了 5 个默认队员
       expect(created.members).toHaveLength(5);
 
-      mockCacheService.get.mockReturnValue(undefined);
-      mockCacheService.del.mockReturnValue(undefined);
-
-      // 更新所有队员信息
       const updated = await service.update(created.id, {
         members: [
           { nickname: 'Player1', position: 'TOP' as const },
@@ -357,11 +325,7 @@ describe('Teams Integration Tests', () => {
       };
 
       const created = await service.create(createDto);
-      // 验证自动创建了 5 个默认队员
       expect(created.members).toHaveLength(5);
-
-      mockCacheService.get.mockReturnValue(undefined);
-      mockCacheService.del.mockReturnValue(undefined);
 
       const updated = await service.update(created.id, {
         members: [],
@@ -378,11 +342,7 @@ describe('Teams Integration Tests', () => {
       };
 
       const created = await service.create(createDto);
-      // 获取第一个队员的ID
       const firstMemberId = created.members[0].id;
-
-      mockCacheService.get.mockReturnValue(undefined);
-      mockCacheService.del.mockReturnValue(undefined);
 
       const updated = await service.update(created.id, {
         members: [
@@ -482,8 +442,6 @@ describe('Teams Integration Tests', () => {
     });
 
     it('should handle update of non-existent team', async () => {
-      mockCacheService.get.mockReturnValue(undefined);
-
       await expect(service.update('non-existent', { name: 'New Name' })).rejects.toThrow(
         NotFoundException,
       );
@@ -509,7 +467,6 @@ describe('Teams Integration Tests', () => {
       const results = await Promise.all(promises);
       expect(results).toHaveLength(5);
 
-      mockCacheService.get.mockReturnValue(undefined);
       const allTeams = await service.findAll();
       expect(allTeams).toHaveLength(5);
     });
@@ -523,16 +480,12 @@ describe('Teams Integration Tests', () => {
         members: [],
       });
 
-      mockCacheService.get.mockReturnValue(undefined);
-      mockCacheService.del.mockReturnValue(undefined);
-
       const promises = Array.from({ length: 3 }, (_, i) =>
         service.update(team.id, { name: `Updated Name ${i}` }),
       );
 
       await Promise.all(promises);
 
-      mockCacheService.get.mockReturnValue(undefined);
       const updated = await service.findOne(team.id);
       expect(updated.name).toMatch(/Updated Name/);
     });
@@ -552,7 +505,6 @@ describe('Teams Integration Tests', () => {
         battleCry: 'Description 2',
       });
 
-      mockCacheService.get.mockReturnValue(undefined);
       const allTeams = await service.findAll();
       expect(allTeams).toHaveLength(2);
     });

@@ -77,6 +77,8 @@ export class MatchesService {
       stage: match.stage,
       swissRecord: match.swiss_record,
       swissDay: match.swiss_day,
+      swissRound: match.swiss_round,
+      boFormat: match.bo_format,
       eliminationBracket: match.elimination_bracket,
       eliminationGameNumber: match.elimination_game_number,
     }));
@@ -131,6 +133,8 @@ export class MatchesService {
       stage: match.stage,
       swissRecord: match.swiss_record,
       swissDay: match.swiss_day,
+      swissRound: match.swiss_round,
+      boFormat: match.bo_format,
       eliminationBracket: match.elimination_bracket,
       eliminationGameNumber: match.elimination_game_number,
     };
@@ -237,7 +241,7 @@ export class MatchesService {
       return;
     }
 
-    // 瑞士轮槽位（32场）- 16队4轮赛制
+    // 瑞士轮槽位（36场）- 16队5轮赛制
     const swissSlots = [
       // 第一轮：0-0，8场 BO1
       { id: 'swiss-r1-1', round: 'Round 1', stage: 'swiss', swissRecord: '0-0', swissDay: 1, swissRound: 1, boFormat: 'BO1' },
@@ -281,6 +285,11 @@ export class MatchesService {
       { id: 'swiss-r4-ml3', round: 'Round 4 Mid-Low', stage: 'swiss', swissRecord: '1-2', swissDay: 4, swissRound: 4, boFormat: 'BO3' },
       // 第四轮：0-3，1场 BO3
       { id: 'swiss-r4-l1', round: 'Round 4 Low', stage: 'swiss', swissRecord: '0-3', swissDay: 4, swissRound: 4, boFormat: 'BO3' },
+      // 第五轮：2-2，4场 BO3（决出最后晋级名额）
+      { id: 'swiss-r5-1', round: 'Round 5', stage: 'swiss', swissRecord: '2-2', swissDay: 5, swissRound: 5, boFormat: 'BO3' },
+      { id: 'swiss-r5-2', round: 'Round 5', stage: 'swiss', swissRecord: '2-2', swissDay: 5, swissRound: 5, boFormat: 'BO3' },
+      { id: 'swiss-r5-3', round: 'Round 5', stage: 'swiss', swissRecord: '2-2', swissDay: 5, swissRound: 5, boFormat: 'BO3' },
+      { id: 'swiss-r5-4', round: 'Round 5', stage: 'swiss', swissRecord: '2-2', swissDay: 5, swissRound: 5, boFormat: 'BO3' },
     ];
 
     // 淘汰赛槽位（7场）- 8队单败赛制

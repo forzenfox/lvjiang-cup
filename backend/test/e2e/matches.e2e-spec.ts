@@ -108,6 +108,22 @@ describe('Matches API (e2e)', () => {
   });
 
   describe('GET /api/matches', () => {
+    it('性能 - 列表查询应在200ms内完成', async () => {
+      const startTime = Date.now();
+      await request(app.getHttpServer()).get('/matches').expect(200);
+      const duration = Date.now() - startTime;
+
+      expect(duration).toBeLessThan(200);
+    });
+
+    it('性能 - 筛选查询应在200ms内完成', async () => {
+      const startTime = Date.now();
+      await request(app.getHttpServer()).get('/matches?stage=swiss').expect(200);
+      const duration = Date.now() - startTime;
+
+      expect(duration).toBeLessThan(200);
+    });
+
     it('列表查询 - 应该返回比赛列表', async () => {
       const response = await request(app.getHttpServer()).get('/matches').expect(200);
 
@@ -116,6 +132,28 @@ describe('Matches API (e2e)', () => {
       expect(response.body).toHaveProperty('page');
       expect(response.body).toHaveProperty('pageSize');
       expect(Array.isArray(response.body.data)).toBe(true);
+    });
+
+    it('槽位数量 - 瑞士轮应该有36个槽位', async () => {
+      const matchesService = app.get<MatchesService>(MatchesService);
+      const swissMatches = await matchesService.findAll('swiss');
+
+      expect(swissMatches.length).toBe(36);
+    });
+
+    it('槽位数量 - 淘汰赛应该有7个槽位', async () => {
+      const matchesService = app.get<MatchesService>(MatchesService);
+      const eliminationMatches = await matchesService.findAll('elimination');
+
+      expect(eliminationMatches.length).toBe(7);
+    });
+
+    it('槽位分布 - 应该有第5轮槽位', async () => {
+      const matchesService = app.get<MatchesService>(MatchesService);
+      const swissMatches = await matchesService.findAll('swiss');
+
+      const round5Matches = swissMatches.filter((match: any) => match.swissRound === 5);
+      expect(round5Matches.length).toBe(4);
     });
 
     it('筛选查询 - 应该按阶段筛选瑞士轮比赛', async () => {

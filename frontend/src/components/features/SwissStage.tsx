@@ -54,7 +54,7 @@ const RoundColumn: React.FC<{
       <div className="flex flex-col gap-3 min-h-[60px]" data-testid="swiss-match-list">
         {matches.length > 0 ? (
           matches.map((match, idx) => (
-            <SwissMatchCard key={match.id} match={match} teams={teams} record={record} index={idx} />
+            <SwissMatchCard key={match.id} match={match} teams={teams} />
           ))
         ) : (
           <div
@@ -77,8 +77,8 @@ const SwissStage: React.FC<SwissStageProps> = ({
   // 从 store 获取晋级名单（如果没有传入 props）
   const storeAdvancement = useAdvancementStore(state => state.advancement);
   const advancement = propAdvancement || {
-    top8: storeAdvancement.winners2_0 || [],
-    eliminated: storeAdvancement.eliminated0_3 || [],
+    top8: storeAdvancement.top8,
+    eliminated: storeAdvancement.eliminated,
   };
 
   // 按战绩分组

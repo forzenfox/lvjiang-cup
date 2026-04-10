@@ -171,27 +171,6 @@ describe('AdvancementController', () => {
     });
   });
 
-  describe('未认证访问 - 返回 401', () => {
-    it('应该在未认证时拒绝访问更新接口', async () => {
-      // Arrange
-      mockJwtAuthGuard.canActivate.mockReturnValueOnce(false);
-
-      // Act & Assert
-      const canActivate = mockJwtAuthGuard.canActivate();
-      expect(canActivate).toBe(false);
-    });
-
-    it('应该在未认证时多次拒绝访问', async () => {
-      // Arrange
-      mockJwtAuthGuard.canActivate.mockReturnValueOnce(false);
-
-      // Act & Assert
-      const canActivate = mockJwtAuthGuard.canActivate();
-      expect(canActivate).toBe(false);
-      expect(mockJwtAuthGuard.canActivate).toHaveBeenCalled();
-    });
-  });
-
   describe('参数验证 - 返回 400', () => {
     it('应该在参数不是数组时抛出错误', async () => {
       // Arrange

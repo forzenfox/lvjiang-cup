@@ -143,32 +143,4 @@ describe('AdminController', () => {
     });
   });
 
-  describe('未认证访问 - 返回 401', () => {
-    it('应该在未认证时拒绝访问初始化槽位接口', async () => {
-      // Arrange
-      mockJwtAuthGuard.canActivate.mockReturnValueOnce(false);
-
-      // Act & Assert
-      const canActivate = mockJwtAuthGuard.canActivate();
-      expect(canActivate).toBe(false);
-    });
-
-    it('应该在未认证时拒绝访问重置槽位接口', async () => {
-      // Arrange
-      mockJwtAuthGuard.canActivate.mockReturnValueOnce(false);
-
-      // Act & Assert
-      const canActivate = mockJwtAuthGuard.canActivate();
-      expect(canActivate).toBe(false);
-    });
-
-    it('应该在未认证时拒绝访问清空数据接口', async () => {
-      // Arrange
-      mockJwtAuthGuard.canActivate.mockReturnValueOnce(false);
-
-      // Act & Assert
-      const canActivate = mockJwtAuthGuard.canActivate();
-      expect(canActivate).toBe(false);
-    });
-  });
 });

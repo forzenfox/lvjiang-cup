@@ -11,11 +11,8 @@ const mockTeams: Team[] = [
 ];
 
 const mockAdvancement = {
-  winners2_0: [] as string[],
-  winners2_1: [] as string[],
-  losersBracket: [] as string[],
-  eliminated3rd: [] as string[],
-  eliminated0_3: [] as string[],
+  top8: [] as string[],
+  eliminated: [] as string[],
 };
 
 describe('SwissStageVisualEditor 点击编辑功能', () => {

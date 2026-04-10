@@ -31,7 +31,7 @@ const BracketMatchCard = React.forwardRef<HTMLDivElement, BracketMatchCardProps>
   ({ match, teams, testId }, ref) => {
     const teamA = teams.find(t => t.id === match.teamAId);
     const teamB = teams.find(t => t.id === match.teamBId);
-    const isGrandFinals = match.eliminationBracket === 'grand_finals';
+    const isGrandFinals = match.eliminationBracket === 'finals';
 
     // Determine winner
     const teamAWon = match.winnerId === match.teamAId;

@@ -3,7 +3,7 @@ import AdminLayout from '../../components/layout/AdminLayout';
 import { teamService } from '@/services/teamService';
 import { matchService } from '@/services/matchService';
 import { advancementService } from '@/services/advancementService';
-import type { Match, MatchStatus } from '@/types';
+import type { Match, MatchStatus, Team } from '@/types';
 import type { UpdateMatchRequest } from '@/api/types';
 import { Toaster, toast } from 'sonner';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../components/ui/tabs';
@@ -66,10 +66,8 @@ const toFrontendMatch = (apiMatch: any): Match => ({
   startTime: apiMatch.startTime || '',
   stage: apiMatch.stage as 'swiss' | 'elimination',
   swissRecord: apiMatch.swissRecord,
-  swissDay: apiMatch.swissDay,
   swissRound: apiMatch.swissRound,
   boFormat: apiMatch.boFormat,
-  eliminationGameNumber: apiMatch.eliminationGameNumber,
   eliminationBracket: apiMatch.eliminationBracket,
 });
 
@@ -188,7 +186,7 @@ const AdminSchedule: React.FC = () => {
         top8: newAdvancement.top8,
         eliminated: newAdvancement.eliminated,
       });
-      setAdvancement(newAdvancement, 'admin');
+      setAdvancement(newAdvancement);
       toast.success('晋级名单已保存');
     } catch (error) {
       console.error('Failed to save advancement:', error);
@@ -200,7 +198,7 @@ const AdminSchedule: React.FC = () => {
   const handleAutoCalculateAdvancement = async () => {
     const swissMatches = matches.filter(m => m.stage === 'swiss');
     const calculated = calculateAdvancement(swissMatches, teams);
-    setAdvancement(calculated, 'admin');
+    setAdvancement(calculated);
     toast.success('已根据比赛结果自动计算晋级名单');
   };
 
@@ -251,7 +249,7 @@ const AdminSchedule: React.FC = () => {
             </p>
           </div>
           <div className="flex gap-2">
-            {matches.length === 0 && (
+            {(matches.length === 0 || swissMatches.length === 0 || eliminationMatches.length === 0) && (
               <Button
                 data-testid="init-slots-button"
                 variant="default"
@@ -276,7 +274,7 @@ const AdminSchedule: React.FC = () => {
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto bg-gray-900/50 rounded-lg border border-gray-800 p-6">
+        <div className="flex-1 overflow-y-auto bg-[#0F172A] rounded-lg border border-gray-800 p-6">
           {loading && matches.length === 0 ? (
             <div className="flex items-center justify-center h-64 text-gray-500">
               <RefreshCw className="w-8 h-8 animate-spin mr-2" />
@@ -313,6 +311,14 @@ const AdminSchedule: React.FC = () => {
                   <div className="text-center py-12 text-gray-500">
                     <p>请先添加战队数据</p>
                   </div>
+                ) : swissMatches.length === 0 ? (
+                  <div className="text-center py-12">
+                    <div className="text-gray-400">
+                      <Calendar className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                      <p className="text-lg">比赛槽位未初始化</p>
+                      <p className="text-sm mt-2 text-gray-500">请先点击右上角"初始化比赛槽位"按钮创建比赛槽位</p>
+                    </div>
+                  </div>
                 ) : (
                   <>
                     <div className="mb-4 flex justify-between items-center">
@@ -345,6 +351,14 @@ const AdminSchedule: React.FC = () => {
                 {teams.length === 0 ? (
                   <div className="text-center py-12 text-gray-500">
                     <p>请先添加战队数据</p>
+                  </div>
+                ) : eliminationMatches.length === 0 ? (
+                  <div className="text-center py-12">
+                    <div className="text-gray-400">
+                      <Trophy className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                      <p className="text-lg">比赛槽位未初始化</p>
+                      <p className="text-sm mt-2 text-gray-500">请先点击右上角"初始化比赛槽位"按钮创建比赛槽位</p>
+                    </div>
                   </div>
                 ) : (
                   <EliminationStage

@@ -3,6 +3,7 @@ import { MatchesService } from '../../src/modules/matches/matches.service';
 import { DatabaseService } from '../../src/database/database.service';
 import { CacheService } from '../../src/cache/cache.service';
 import { NotFoundException } from '@nestjs/common';
+import { MatchStatus } from '../../src/modules/matches/dto/update-match.dto';
 
 describe('MatchesService', () => {
   let service: MatchesService;
@@ -48,10 +49,6 @@ describe('MatchesService', () => {
   });
 
   describe('findAll', () => {
-    it('should be defined', () => {
-      expect(service.findAll).toBeDefined();
-    });
-
     it('should return matches from cache', async () => {
       const mockMatches = [
         { id: '1', round: 'Round 1', stage: 'swiss', scoreA: 0, scoreB: 0, status: 'upcoming' },
@@ -90,13 +87,21 @@ describe('MatchesService', () => {
 
       expect(result.every((m) => m.stage === 'swiss')).toBe(true);
     });
+
+    it('should cache results after database query', async () => {
+      mockCacheService.get.mockReturnValue(undefined);
+      const mockMatch = { id: '1', round: 'Round 1', stage: 'swiss', score_a: 0, score_b: 0, status: 'upcoming' };
+      mockDatabaseService.all
+        .mockResolvedValueOnce([mockMatch])
+        .mockResolvedValueOnce([]);
+
+      await service.findAll();
+
+      expect(mockCacheService.set).toHaveBeenCalledWith('matches:all', expect.any(Array));
+    });
   });
 
   describe('findOne', () => {
-    it('should be defined', () => {
-      expect(service.findOne).toBeDefined();
-    });
-
     it('should return a match from cache', async () => {
       const mockMatch = {
         id: '1',
@@ -114,17 +119,82 @@ describe('MatchesService', () => {
       expect(mockCacheService.get).toHaveBeenCalledWith('match:1');
     });
 
+    it('should return a match from database when cache is empty', async () => {
+      mockCacheService.get.mockReturnValue(undefined);
+      mockDatabaseService.get.mockResolvedValue({
+        id: '1',
+        round: 'Round 1',
+        stage: 'swiss',
+        score_a: 0,
+        score_b: 0,
+        status: 'upcoming',
+      });
+
+      const result = await service.findOne('1');
+
+      expect(result.id).toBe('1');
+      expect(mockDatabaseService.get).toHaveBeenCalledWith(expect.any(String), ['1']);
+    });
+
     it('should throw NotFoundException for non-existent match', async () => {
       mockCacheService.get.mockReturnValue(undefined);
       mockDatabaseService.get.mockResolvedValue(null);
 
       await expect(service.findOne('non-existent-id')).rejects.toThrow(NotFoundException);
     });
+
+    it('should cache result after database query', async () => {
+      mockCacheService.get.mockReturnValue(undefined);
+      mockDatabaseService.get.mockResolvedValue({
+        id: '1',
+        round: 'Round 1',
+        stage: 'swiss',
+        score_a: 0,
+        score_b: 0,
+        status: 'upcoming',
+      });
+
+      await service.findOne('1');
+
+      expect(mockCacheService.set).toHaveBeenCalledWith('match:1', expect.any(Object));
+    });
   });
 
   describe('update', () => {
-    it('should be defined', () => {
-      expect(service.update).toBeDefined();
+    it('should update match score successfully', async () => {
+      mockDatabaseService.get
+        .mockResolvedValueOnce({ id: '1' }) // for existence check
+        .mockResolvedValueOnce({
+          id: '1',
+          round: 'Round 1',
+          stage: 'swiss',
+          score_a: 2,
+          score_b: 1,
+          status: 'finished',
+        }); // for returning updated match
+
+      const result = await service.update('1', { scoreA: 2, scoreB: 1, status: MatchStatus.FINISHED });
+
+      expect(mockDatabaseService.run).toHaveBeenCalled();
+      expect(mockCacheService.del).toHaveBeenCalledWith('matches:all');
+      expect(mockCacheService.del).toHaveBeenCalledWith('match:1');
+    });
+
+    it('should update match teams successfully', async () => {
+      mockDatabaseService.get
+        .mockResolvedValueOnce({ id: '1' })
+        .mockResolvedValueOnce({
+          id: '1',
+          team_a_id: 'team-a',
+          team_b_id: 'team-b',
+        });
+
+      await service.update('1', { teamAId: 'team-a', teamBId: 'team-b' });
+
+      expect(mockDatabaseService.run).toHaveBeenCalledWith(
+        expect.stringContaining('team_a_id'),
+        expect.any(Array),
+      );
     });
 
     it('should throw NotFoundException for non-existent match', async () => {
@@ -133,11 +203,35 @@ describe('MatchesService', () => {
       const updateDto = { scoreA: 2 };
       await expect(service.update('non-existent-id', updateDto)).rejects.toThrow(NotFoundException);
     });
+
+    it('should not update when no fields provided', async () => {
+      mockDatabaseService.get.mockResolvedValue({ id: '1' });
+
+      await service.update('1', {});
+
+      expect(mockDatabaseService.run).not.toHaveBeenCalled();
+    });
   });
 
   describe('clearScores', () => {
-    it('should be defined', () => {
-      expect(service.clearScores).toBeDefined();
+    it('should clear match scores successfully', async () => {
+      mockDatabaseService.get
+        .mockResolvedValueOnce({ id: '1' }) // for existence check
+        .mockResolvedValueOnce({
+          id: '1',
+          score_a: 0,
+          score_b: 0,
+          status: 'upcoming',
+        }); // for returning cleared match
+
+      const result = await service.clearScores('1');
+
+      expect(mockDatabaseService.run).toHaveBeenCalledWith(
+        expect.stringContaining('score_a = 0'),
+        ['1'],
+      );
+      expect(mockCacheService.del).toHaveBeenCalledWith('matches:all');
+      expect(mockCacheService.del).toHaveBeenCalledWith('match:1');
     });
 
     it('should throw NotFoundException for non-existent match', async () => {
@@ -148,8 +242,105 @@ describe('MatchesService', () => {
   });
 
   describe('initSlots', () => {
-    it('should be defined', () => {
-      expect(service.initSlots).toBeDefined();
+    it('should initialize 36 swiss stage slots', async () => {
+      mockDatabaseService.get.mockResolvedValue({ count: 0 });
+      mockDatabaseService.run.mockResolvedValue({ changes: 1, lastID: 1 });
+
+      await service.initSlots();
+
+      // 验证插入了36个瑞士轮槽位 + 7个淘汰赛槽位 = 43次调用
+      expect(mockDatabaseService.run).toHaveBeenCalledTimes(43);
+    });
+
+    it('should not initialize if slots already exist', async () => {
+      mockDatabaseService.get.mockResolvedValue({ count: 10 });
+
+      await service.initSlots();
+
+      expect(mockDatabaseService.run).not.toHaveBeenCalled();
+    });
+
+    it('should create swiss round 5 slots', async () => {
+      mockDatabaseService.get.mockResolvedValue({ count: 0 });
+      mockDatabaseService.run.mockResolvedValue({ changes: 1, lastID: 1 });
+
+      await service.initSlots();
+
+      // 验证第5轮的槽位被创建
+      const calls = mockDatabaseService.run.mock.calls;
+      const round5Calls = calls.filter((call) =>
+        call[1] && call[1][0] && call[1][0].startsWith('swiss-r5'),
+      );
+      expect(round5Calls.length).toBe(4);
+    });
+
+    it('should clear cache after initialization', async () => {
+      mockDatabaseService.get.mockResolvedValue({ count: 0 });
+      mockDatabaseService.run.mockResolvedValue({ changes: 1, lastID: 1 });
+
+      await service.initSlots();
+
+      expect(mockCacheService.del).toHaveBeenCalledWith('matches:all');
+    });
+  });
+
+  describe('边界值测试', () => {
+    it('should handle negative score in update', async () => {
+      mockDatabaseService.get
+        .mockResolvedValueOnce({ id: '1' })
+        .mockResolvedValueOnce({
+          id: '1',
+          score_a: -1,
+          score_b: 0,
+        });
+
+      const result = await service.update('1', { scoreA: -1 });
+
+      expect(mockDatabaseService.run).toHaveBeenCalled();
+    });
+
+    it('should handle very large score', async () => {
+      mockDatabaseService.get
+        .mockResolvedValueOnce({ id: '1' })
+        .mockResolvedValueOnce({
+          id: '1',
+          score_a: 999999,
+          score_b: 0,
+        });
+
+      const result = await service.update('1', { scoreA: 999999 });
+
+      expect(mockDatabaseService.run).toHaveBeenCalled();
+    });
+
+    it('should handle invalid stage filter', async () => {
+      mockCacheService.get.mockReturnValue(undefined);
+      mockDatabaseService.all.mockResolvedValue([]);
+
+      const result = await service.findAll('invalid-stage');
+
+      expect(result).toEqual([]);
+    });
+
+    it('should handle empty match id in findOne', async () => {
+      mockCacheService.get.mockReturnValue(undefined);
+      mockDatabaseService.get.mockResolvedValue(null);
+
+      await expect(service.findOne('')).rejects.toThrow(NotFoundException);
+    });
+
+    it('should handle score with decimal values', async () => {
+      mockDatabaseService.get
+        .mockResolvedValueOnce({ id: '1' })
+        .mockResolvedValueOnce({
+          id: '1',
+          score_a: 1.5,
+          score_b: 0,
+        });
+
+      const result = await service.update('1', { scoreA: 1.5 } as any);
+
+      expect(mockDatabaseService.run).toHaveBeenCalled();
     });
   });
 });

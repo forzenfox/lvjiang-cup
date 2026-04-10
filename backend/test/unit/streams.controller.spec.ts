@@ -133,35 +133,6 @@ describe('StreamsController', () => {
     });
   });
 
-  describe('未认证访问 - 返回 401', () => {
-    it('应该在未认证时拒绝访问更新接口', async () => {
-      // Arrange
-      mockJwtAuthGuard.canActivate.mockReturnValueOnce(false);
-
-      // Act & Assert
-      const canActivate = mockJwtAuthGuard.canActivate();
-      expect(canActivate).toBe(false);
-    });
-
-    it('应该在未认证时拒绝访问创建接口', async () => {
-      // Arrange
-      mockJwtAuthGuard.canActivate.mockReturnValueOnce(false);
-
-      // Act & Assert
-      const canActivate = mockJwtAuthGuard.canActivate();
-      expect(canActivate).toBe(false);
-    });
-
-    it('应该在未认证时拒绝访问删除接口', async () => {
-      // Arrange
-      mockJwtAuthGuard.canActivate.mockReturnValueOnce(false);
-
-      // Act & Assert
-      const canActivate = mockJwtAuthGuard.canActivate();
-      expect(canActivate).toBe(false);
-    });
-  });
-
   describe('参数验证 - 返回 400', () => {
     it('应该在参数无效时抛出错误', async () => {
       // Arrange

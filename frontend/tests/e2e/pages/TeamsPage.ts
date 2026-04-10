@@ -21,6 +21,8 @@ export class TeamsPage {
   readonly teamDescriptionInput: Locator;
   readonly saveButton: Locator;
   readonly cancelButton: Locator;
+  readonly saveTeamBtn: Locator;
+  readonly cancelEditTeamBtn: Locator;
 
   // 删除确认对话框
   readonly deleteDialog: Locator;
@@ -45,6 +47,8 @@ export class TeamsPage {
     this.teamDescriptionInput = page.locator('textarea[placeholder*="简介"]').first();
     this.saveButton = page.getByRole('button', { name: '保存战队' });
     this.cancelButton = page.getByRole('button', { name: '取消' });
+    this.saveTeamBtn = page.getByTestId('save-team-btn');
+    this.cancelEditTeamBtn = page.getByTestId('cancel-edit-team-btn');
 
     // 删除确认对话框
     this.deleteDialog = page.getByRole('alertdialog');
@@ -82,11 +86,30 @@ export class TeamsPage {
   }
 
   /**
-   * 点击添加战队按钮
+   * 点击添加战队按钮 - 验证编辑模式正确激活
    */
   async clickAddTeam(): Promise<void> {
     await this.addButton.click();
-    await expect(this.teamNameInput).toBeVisible();
+    await this.waitForEditMode();
+  }
+
+  /**
+   * 等待编辑模式激活并验证表单元素
+   */
+  async waitForEditMode(): Promise<void> {
+    await expect(this.teamNameInput).toBeVisible({ timeout: 5000 });
+    await expect(this.saveTeamBtn).toBeVisible({ timeout: 5000 });
+    await expect(this.cancelEditTeamBtn).toBeVisible({ timeout: 5000 });
+    await expect(this.teamNameInput).toBeEnabled();
+  }
+
+  /**
+   * 验证添加战队后处于编辑模式（编辑按钮应隐藏）
+   */
+  async expectEditModeActive(): Promise<void> {
+    await expect(this.saveTeamBtn).toBeVisible();
+    await expect(this.cancelEditTeamBtn).toBeVisible();
+    await expect(this.teamNameInput).toBeEnabled();
   }
 
   /**
