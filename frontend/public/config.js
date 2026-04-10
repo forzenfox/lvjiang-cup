@@ -24,7 +24,7 @@ window.APP_CONFIG = {
 
   // 主播配置
   STREAMERS: [
-    // 驴酱明星主播
+    // 驴酱主播
     {
       id: '1',
       nickname: '洞主',
