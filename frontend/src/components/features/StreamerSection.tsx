@@ -3,7 +3,6 @@ import { Loader2, AlertCircle, X } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui/card';
 import { Button } from '../ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
-import Modal from '../ui/Modal';
 
 // 扩展Window接口，添加APP_CONFIG类型
 declare global {
@@ -103,7 +102,7 @@ const ErrorState: React.FC<{ message: string; onRetry: () => void }> = ({ messag
 // 主播卡片组件
 const StreamerCard: React.FC<{ streamer: Streamer; onClick: () => void }> = ({ streamer, onClick }) => {
   return (
-    <Card className="bg-white/5 border-white/10 hover:border-secondary/50 transition-all duration-300 hover:transform hover:-translate-y-2 group overflow-hidden">
+    <Card className="bg-white/5 border-white/10 hover:border-secondary/50 transition-all duration-300 hover:transform hover:-translate-y-2 group overflow-hidden cursor-pointer" onClick={onClick}>
       {/* 海报区域 */}
       <div className="relative h-64 overflow-hidden">
         <img 
@@ -137,121 +136,21 @@ const StreamerCard: React.FC<{ streamer: Streamer; onClick: () => void }> = ({ s
         <p className="text-sm text-gray-400 mb-4 line-clamp-2">
           {streamer.bio}
         </p>
-        <div className="flex space-x-2">
-          <Button 
-            className="flex-1 bg-secondary hover:bg-secondary/80"
-            onClick={(e) => {
-              e.stopPropagation();
-              window.open(streamer.liveUrl, '_blank');
-            }}
-          >
-            进入直播间
-          </Button>
-          <Button 
-            variant="outline" 
-            className="border-secondary text-secondary hover:bg-secondary/10"
-            onClick={onClick}
-          >
-            详情
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
-
-// 主播详情模态框
-const StreamerDetailModal: React.FC<{ 
-  streamer: Streamer | null; 
-  isOpen: boolean; 
-  onClose: () => void 
-}> = ({ streamer, isOpen, onClose }) => {
-  if (!streamer) return null;
-
-  return (
-    <Modal visible={isOpen} onClose={onClose} title={streamer.nickname} className="max-w-2xl bg-gray-900 border-white/10 text-white">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* 海报 */}
-        <div className="relative rounded-lg overflow-hidden">
-          <img 
-            src={streamer.posterUrl} 
-            alt={streamer.nickname} 
-            className="w-full h-80 object-cover"
-          />
-          {/* 标签 */}
-          <div className="absolute top-4 left-4 flex space-x-2">
-            {streamer.isStar && (
-                <span className="bg-yellow-500 text-black px-2 py-1 rounded-full text-xs font-bold">
-                  驴酱
-                </span>
-              )}
-            {streamer.isGuest && (
-              <span className="bg-purple-500 text-white px-2 py-1 rounded-full text-xs font-bold">
-                嘉宾
-              </span>
-            )}
-          </div>
-        </div>
-        
-        {/* 详细信息 */}
-        <div className="space-y-4">
-          <div>
-            <h3 className="text-lg font-semibold mb-2 text-gray-300">个人简介</h3>
-            <p className="text-gray-400">{streamer.bio}</p>
-          </div>
-          
-          {streamer.level && (
-            <div>
-              <h3 className="text-lg font-semibold mb-2 text-gray-300">等级</h3>
-              <span className={`inline-block px-3 py-1 rounded-full text-sm font-bold ${
-                streamer.level === 'S' ? 'bg-yellow-500 text-black' :
-                streamer.level === 'A' ? 'bg-blue-500 text-white' :
-                streamer.level === 'B' ? 'bg-green-500 text-white' :
-                streamer.level === 'C' ? 'bg-orange-500 text-white' :
-                'bg-gray-500 text-white'
-              }`}>
-                {streamer.level}
-              </span>
-            </div>
-          )}
-          
-          <div>
-            <h3 className="text-lg font-semibold mb-2 text-gray-300">直播间</h3>
-            <a 
-              href={streamer.liveUrl} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="text-secondary hover:underline flex items-center"
-            >
-              {streamer.liveUrl}
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2">
-                <path d="M5 12h14" />
-                <path d="m12 5 7 7-7 7" />
-              </svg>
-            </a>
-          </div>
-        </div>
-      </div>
-      <div className="flex justify-end space-x-2 mt-6 pt-4 border-t border-white/10">
         <Button 
-          className="bg-secondary hover:bg-secondary/80"
-          onClick={() => {
+          className="w-full bg-secondary hover:bg-secondary/80"
+          onClick={(e) => {
+            e.stopPropagation();
             window.open(streamer.liveUrl, '_blank');
           }}
         >
           进入直播间
         </Button>
-        <Button 
-          variant="outline" 
-          className="border-white/20 text-white hover:bg-white/10"
-          onClick={onClose}
-        >
-          关闭
-        </Button>
-      </div>
-    </Modal>
+      </CardContent>
+    </Card>
   );
 };
+
+
 
 interface StreamerSectionProps {
   /** 自动刷新间隔（毫秒），默认 30000ms (30秒) */
@@ -263,18 +162,6 @@ const StreamerSection: React.FC<StreamerSectionProps> = ({ refreshInterval = 300
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'all' | 'star' | 'guest'>('all');
-  const [selectedStreamer, setSelectedStreamer] = useState<Streamer | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-
-  const handleStreamerClick = (streamer: Streamer) => {
-    setSelectedStreamer(streamer);
-    setIsModalOpen(true);
-  };
-
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setSelectedStreamer(null);
-  };
 
   // 获取主播数据
   const fetchStreamers = useCallback(async () => {
@@ -378,17 +265,44 @@ const StreamerSection: React.FC<StreamerSectionProps> = ({ refreshInterval = 300
           </div>
         ) : (
           /* 正常数据展示 */
-          <div
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"
-            data-testid="streamers-grid"
-          >
-            {filteredStreamers.map(streamer => (
-              <StreamerCard
-                key={streamer.id}
-                streamer={streamer}
-                onClick={() => handleStreamerClick(streamer)}
-              />
-            ))}
+          <div className="relative">
+            {/* 滚动指示器 */}
+            <div className="absolute left-0 top-1/2 -translate-y-1/2 z-10 hidden md:block">
+              <button 
+                className="bg-black/50 hover:bg-black/80 text-white p-2 rounded-full"
+                onClick={() => document.getElementById('streamers-scroll')?.scrollBy({ left: -300, behavior: 'smooth' })}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="m15 18-6-6 6-6" />
+                </svg>
+              </button>
+            </div>
+            <div className="absolute right-0 top-1/2 -translate-y-1/2 z-10 hidden md:block">
+              <button 
+                className="bg-black/50 hover:bg-black/80 text-white p-2 rounded-full"
+                onClick={() => document.getElementById('streamers-scroll')?.scrollBy({ left: 300, behavior: 'smooth' })}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="m9 18 6-6-6-6" />
+                </svg>
+              </button>
+            </div>
+            
+            {/* 水平滚动卡片 */}
+            <div 
+              id="streamers-scroll"
+              className="flex space-x-6 overflow-x-auto pb-8 snap-x snap-mandatory scrollbar-hide"
+              data-testid="streamers-grid"
+            >
+              {filteredStreamers.map(streamer => (
+                <div key={streamer.id} className="flex-shrink-0 w-80 snap-center">
+                  <StreamerCard
+                    streamer={streamer}
+                    onClick={() => window.open(streamer.liveUrl, '_blank')}
+                  />
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
