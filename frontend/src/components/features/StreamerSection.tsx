@@ -314,12 +314,7 @@ const StreamerSection: React.FC<StreamerSectionProps> = ({ refreshInterval = 300
           </div>
         )}
 
-        {/* 主播详情模态框 */}
-        <StreamerDetailModal
-          streamer={selectedStreamer}
-          isOpen={isModalOpen}
-          onClose={handleCloseModal}
-        />
+
       </div>
     </section>
   );
