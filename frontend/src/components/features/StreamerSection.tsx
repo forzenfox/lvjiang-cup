@@ -179,18 +179,30 @@ const StreamerSection: React.FC<StreamerSectionProps> = ({ refreshInterval = 300
   useEffect(() => {
     const handleWheel = (event: WheelEvent) => {
       const scrollContainer = document.getElementById('streamers-scroll');
-      // 检查事件目标是否在滚动容器内
-      if (scrollContainer && scrollContainer.contains(event.target as Node)) {
-        event.preventDefault();
-        scrollContainer.scrollLeft += event.deltaY;
+      if (scrollContainer) {
+        // 检查鼠标是否在滚动容器内
+        const rect = scrollContainer.getBoundingClientRect();
+        const mouseX = event.clientX;
+        const mouseY = event.clientY;
+        
+        if (mouseX >= rect.left && mouseX <= rect.right && mouseY >= rect.top && mouseY <= rect.bottom) {
+          event.preventDefault();
+          event.stopPropagation();
+          scrollContainer.scrollLeft += event.deltaY;
+        }
       }
     };
 
-    // 绑定到整个文档，使用事件委托
-    document.addEventListener('wheel', handleWheel);
+    // 绑定到滚动容器，使用passive: false确保可以preventDefault
+    const scrollContainer = document.getElementById('streamers-scroll');
+    if (scrollContainer) {
+      scrollContainer.addEventListener('wheel', handleWheel, { passive: false });
+    }
 
     return () => {
-      document.removeEventListener('wheel', handleWheel);
+      if (scrollContainer) {
+        scrollContainer.removeEventListener('wheel', handleWheel);
+      }
     };
   }, []);
   const [streamers, setStreamers] = useState<Streamer[]>([]);
