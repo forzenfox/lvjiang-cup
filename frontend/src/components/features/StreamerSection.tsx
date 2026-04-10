@@ -179,21 +179,18 @@ const StreamerSection: React.FC<StreamerSectionProps> = ({ refreshInterval = 300
   useEffect(() => {
     const handleWheel = (event: WheelEvent) => {
       const scrollContainer = document.getElementById('streamers-scroll');
-      if (scrollContainer) {
+      // 检查事件目标是否在滚动容器内
+      if (scrollContainer && scrollContainer.contains(event.target as Node)) {
         event.preventDefault();
         scrollContainer.scrollLeft += event.deltaY;
       }
     };
 
-    const scrollContainer = document.getElementById('streamers-scroll');
-    if (scrollContainer) {
-      scrollContainer.addEventListener('wheel', handleWheel);
-    }
+    // 绑定到整个文档，使用事件委托
+    document.addEventListener('wheel', handleWheel);
 
     return () => {
-      if (scrollContainer) {
-        scrollContainer.removeEventListener('wheel', handleWheel);
-      }
+      document.removeEventListener('wheel', handleWheel);
     };
   }, []);
   const [streamers, setStreamers] = useState<Streamer[]>([]);
@@ -330,7 +327,7 @@ const StreamerSection: React.FC<StreamerSectionProps> = ({ refreshInterval = 300
             <div 
               id="streamers-scroll"
               className="flex space-x-6 overflow-x-auto pb-8 snap-x snap-mandatory"
-              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', minHeight: '400px' }}
               data-testid="streamers-grid"
             >
               {filteredStreamers.map(streamer => (
