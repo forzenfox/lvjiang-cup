@@ -115,7 +115,7 @@ const StreamerCard: React.FC<{ streamer: Streamer; onClick: () => void }> = ({ s
         <div className="absolute top-4 left-4 flex space-x-2">
           {streamer.isStar && (
                 <span className="bg-yellow-500 text-black px-2 py-1 rounded-full text-xs font-bold">
-                  驴酱主播
+                  驴酱
                 </span>
               )}
           {streamer.isGuest && (
@@ -182,7 +182,7 @@ const StreamerDetailModal: React.FC<{
           <div className="absolute top-4 left-4 flex space-x-2">
             {streamer.isStar && (
                 <span className="bg-yellow-500 text-black px-2 py-1 rounded-full text-xs font-bold">
-                  驴酱主播
+                  驴酱
                 </span>
               )}
             {streamer.isGuest && (
@@ -341,7 +341,7 @@ const StreamerSection: React.FC<StreamerSectionProps> = ({ refreshInterval = 300
     >
       <div className="container mx-auto px-4">
         <h2 className="text-4xl md:text-5xl font-bold text-center mb-16 text-white uppercase tracking-wider">
-          驴酱主播
+          驴酱
         </h2>
 
         {/* 标签切换 */}
@@ -353,7 +353,7 @@ const StreamerSection: React.FC<StreamerSectionProps> = ({ refreshInterval = 300
           >
             <TabsList className="bg-gray-800/50">
               <TabsTrigger value="all">全部主播</TabsTrigger>
-              <TabsTrigger value="star">驴酱主播</TabsTrigger>
+              <TabsTrigger value="star">驴酱</TabsTrigger>
               <TabsTrigger value="guest">嘉宾主播</TabsTrigger>
             </TabsList>
           </Tabs>
