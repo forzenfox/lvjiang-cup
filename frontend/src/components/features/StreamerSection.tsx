@@ -353,7 +353,7 @@ const StreamerSection: React.FC<StreamerSectionProps> = ({ refreshInterval = 300
           >
             <TabsList className="bg-gray-800/50">
               <TabsTrigger value="all">全部主播</TabsTrigger>
-              <TabsTrigger value="star">驴酱</TabsTrigger>
+              <TabsTrigger value="star">驴酱主播</TabsTrigger>
               <TabsTrigger value="guest">嘉宾主播</TabsTrigger>
             </TabsList>
           </Tabs>
