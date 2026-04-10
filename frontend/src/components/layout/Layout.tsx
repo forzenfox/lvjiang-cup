@@ -27,6 +27,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           </div>
           <nav className="flex items-center space-x-2 md:space-x-8">
             <button
+              onClick={() => scrollToSection('streamers')}
+              className="text-xs md:text-sm font-medium text-gray-300 hover:text-secondary transition-colors"
+            >
+              主播
+            </button>
+            <button
               onClick={() => scrollToSection('teams')}
               className="text-xs md:text-sm font-medium text-gray-300 hover:text-secondary transition-colors"
             >

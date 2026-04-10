@@ -175,36 +175,7 @@ const StreamerSection: React.FC<StreamerSectionProps> = ({ refreshInterval = 300
     };
   }, []);
 
-  // 添加鼠标滚轮左右滚动功能
-  useEffect(() => {
-    const handleWheel = (event: WheelEvent) => {
-      const scrollContainer = document.getElementById('streamers-scroll');
-      if (scrollContainer) {
-        // 检查鼠标是否在滚动容器内
-        const rect = scrollContainer.getBoundingClientRect();
-        const mouseX = event.clientX;
-        const mouseY = event.clientY;
-        
-        if (mouseX >= rect.left && mouseX <= rect.right && mouseY >= rect.top && mouseY <= rect.bottom) {
-          event.preventDefault();
-          event.stopPropagation();
-          scrollContainer.scrollLeft += event.deltaY;
-        }
-      }
-    };
 
-    // 绑定到滚动容器，使用passive: false确保可以preventDefault
-    const scrollContainer = document.getElementById('streamers-scroll');
-    if (scrollContainer) {
-      scrollContainer.addEventListener('wheel', handleWheel, { passive: false });
-    }
-
-    return () => {
-      if (scrollContainer) {
-        scrollContainer.removeEventListener('wheel', handleWheel);
-      }
-    };
-  }, []);
   const [streamers, setStreamers] = useState<Streamer[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
