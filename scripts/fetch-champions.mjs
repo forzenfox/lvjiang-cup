@@ -31,17 +31,16 @@ async function fetchChampions(version) {
   return res.json();
 }
 
-function transformData(data, version) {
+function transformData(data) {
   console.log('🔄 转换数据格式...');
   const champions = {};
 
-  for (const [enName, champ] of Object.entries(data.data)) {
-    champions[enName] = {
-      enName: champ.id,
-      cnName: champ.name,
+  for (const [id, champ] of Object.entries(data.data)) {
+    champions[champ.id] = {
+      id: champ.id,
+      name: champ.name,
       title: champ.title,
-      tags: champ.tags || [],
-      version
+      tags: champ.tags || []
     };
   }
 
@@ -62,7 +61,7 @@ async function main() {
     console.log(`   最新版本: ${version}\n`);
 
     const data = await fetchChampions(version);
-    const champions = transformData(data, version);
+    const champions = transformData(data);
 
     writeOutput(champions);
 

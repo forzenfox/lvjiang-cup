@@ -91,8 +91,8 @@ const SwissStage: React.FC<SwissStageProps> = ({
   );
 
   return (
-    <div className="w-full overflow-x-auto" data-testid="swiss-stage">
-      <div className="flex gap-8 min-w-[1400px] p-4" data-testid="swiss-container">
+    <div className="w-full" data-testid="swiss-stage">
+      <div className="flex flex-wrap justify-center gap-8 p-4" data-testid="swiss-container">
         {/* 第一轮：0-0 */}
         <div className="flex flex-col gap-4 w-64" data-testid="swiss-round-1">
           <RoundColumn

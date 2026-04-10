@@ -38,15 +38,19 @@ describe('champion API', () => {
       const result = await getChampionList();
 
       expect(result.version).toBe('16.7.1');
-      expect(result.champions.Yasuo).toBe('亚索');
-      expect(result.champions.Ahri).toBe('九尾妖狐·阿狸');
+      expect(result.champions.Yasuo.name).toBe('亚索');
+      expect(result.champions.Yasuo.title).toBe('疾风剑豪');
+      expect(result.champions.Yasuo.tags).toEqual(['Fighter']);
+      expect(result.champions.Ahri.name).toBe('九尾妖狐·阿狸');
     });
 
     it('应该使用缓存的版本', async () => {
       const cachedData = {
         version: '16.7.1',
         lastUpdated: Date.now(),
-        champions: { Yasuo: '亚索' },
+        champions: {
+          Yasuo: { id: 'Yasuo', name: '亚索', title: '疾风剑豪', tags: ['Fighter'] },
+        },
       };
       localStorage.setItem('lol_champion_cache', JSON.stringify(cachedData));
 
@@ -59,7 +63,7 @@ describe('champion API', () => {
       const result = await getChampionList();
 
       expect(result.version).toBe('16.7.1');
-      expect(result.champions.Yasuo).toBe('亚索');
+      expect(result.champions.Yasuo.name).toBe('亚索');
     });
   });
 
@@ -81,7 +85,9 @@ describe('champion API', () => {
       const cachedData = {
         version: '16.7.1',
         lastUpdated: Date.now(),
-        champions: { Yasuo: '亚索' },
+        champions: {
+          Yasuo: { id: 'Yasuo', name: '亚索', title: '疾风剑豪', tags: ['Fighter'] },
+        },
       };
       localStorage.setItem('lol_champion_cache', JSON.stringify(cachedData));
 
