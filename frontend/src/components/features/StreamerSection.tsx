@@ -341,7 +341,7 @@ const StreamerSection: React.FC<StreamerSectionProps> = ({ refreshInterval = 300
     >
       <div className="container mx-auto px-4">
         <h2 className="text-4xl md:text-5xl font-bold text-center mb-16 text-white uppercase tracking-wider">
-          驴酱
+          主播阵容
         </h2>
 
         {/* 标签切换 */}
