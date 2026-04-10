@@ -174,6 +174,28 @@ const StreamerSection: React.FC<StreamerSectionProps> = ({ refreshInterval = 300
       document.head.removeChild(styleElement);
     };
   }, []);
+
+  // 添加鼠标滚轮左右滚动功能
+  useEffect(() => {
+    const handleWheel = (event: WheelEvent) => {
+      const scrollContainer = document.getElementById('streamers-scroll');
+      if (scrollContainer) {
+        event.preventDefault();
+        scrollContainer.scrollLeft += event.deltaY;
+      }
+    };
+
+    const scrollContainer = document.getElementById('streamers-scroll');
+    if (scrollContainer) {
+      scrollContainer.addEventListener('wheel', handleWheel);
+    }
+
+    return () => {
+      if (scrollContainer) {
+        scrollContainer.removeEventListener('wheel', handleWheel);
+      }
+    };
+  }, []);
   const [streamers, setStreamers] = useState<Streamer[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
