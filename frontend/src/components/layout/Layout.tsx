@@ -1,6 +1,18 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Trophy } from 'lucide-react';
+
+// 隐藏滚动条的样式
+const styles = `
+  /* 隐藏垂直滚动条 */
+  body::-webkit-scrollbar {
+    display: none;
+  }
+  body {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+`;
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -13,6 +25,74 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       element.scrollIntoView({ behavior: 'smooth' });
     }
   };
+
+  // 注入隐藏滚动条的样式
+  useEffect(() => {
+    const styleElement = document.createElement('style');
+    styleElement.textContent = styles;
+    document.head.appendChild(styleElement);
+    return () => {
+      document.head.removeChild(styleElement);
+    };
+  }, []);
+
+  // 添加键盘事件监听器，实现上下键切换模块
+  useEffect(() => {
+    const sections = ['streamers', 'teams', 'schedule'];
+    let currentIndex = 0;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
+        event.preventDefault();
+        if (event.key === 'ArrowUp') {
+          currentIndex = (currentIndex - 1 + sections.length) % sections.length;
+        } else {
+          currentIndex = (currentIndex + 1) % sections.length;
+        }
+        scrollToSection(sections[currentIndex]);
+      }
+    };
+
+    // 添加键盘事件监听器
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
+
+  // 添加鼠标滚轮事件监听器，实现滚轮切换模块
+  useEffect(() => {
+    const sections = ['streamers', 'teams', 'schedule'];
+    let currentIndex = 0;
+    let lastScrollTime = 0;
+
+    const handleWheel = (event: WheelEvent) => {
+      // 防止滚动事件触发过于频繁
+      const now = Date.now();
+      if (now - lastScrollTime < 500) {
+        return;
+      }
+      lastScrollTime = now;
+
+      event.preventDefault();
+      if (event.deltaY > 0) {
+        // 向下滚动，切换到下一个模块
+        currentIndex = (currentIndex + 1) % sections.length;
+      } else {
+        // 向上滚动，切换到上一个模块
+        currentIndex = (currentIndex - 1 + sections.length) % sections.length;
+      }
+      scrollToSection(sections[currentIndex]);
+    };
+
+    // 添加鼠标滚轮事件监听器
+    document.addEventListener('wheel', handleWheel, { passive: false });
+
+    return () => {
+      document.removeEventListener('wheel', handleWheel);
+    };
+  }, []);
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
