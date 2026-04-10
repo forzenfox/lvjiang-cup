@@ -3,7 +3,7 @@ import { Loader2, AlertCircle, X } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui/card';
 import { Button } from '../ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
-import { Modal, ModalContent, ModalHeader, ModalTitle, ModalDescription, ModalFooter, ModalClose } from '../ui/modal';
+import Modal from '../ui/Modal';
 
 // 主播类型定义
 interface Streamer {
@@ -217,92 +217,86 @@ const StreamerDetailModal: React.FC<{
   if (!streamer) return null;
 
   return (
-    <Modal open={isOpen} onOpenChange={onClose}>
-      <ModalContent className="bg-gray-900 border-white/10 text-white max-w-2xl">
-        <ModalHeader>
-          <ModalTitle className="text-2xl font-bold text-secondary">{streamer.nickname}</ModalTitle>
-          <ModalClose className="text-gray-400 hover:text-white" />
-        </ModalHeader>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6">
-          {/* 海报 */}
-          <div className="relative rounded-lg overflow-hidden">
-            <img 
-              src={streamer.posterUrl} 
-              alt={streamer.nickname} 
-              className="w-full h-80 object-cover"
-            />
-            {/* 标签 */}
-            <div className="absolute top-4 left-4 flex space-x-2">
-              {streamer.isStar && (
-                <span className="bg-yellow-500 text-black px-2 py-1 rounded-full text-xs font-bold">
-                  明星
-                </span>
-              )}
-              {streamer.isGuest && (
-                <span className="bg-purple-500 text-white px-2 py-1 rounded-full text-xs font-bold">
-                  嘉宾
-                </span>
-              )}
-            </div>
-          </div>
-          
-          {/* 详细信息 */}
-          <div className="space-y-4">
-            <div>
-              <h3 className="text-lg font-semibold mb-2 text-gray-300">个人简介</h3>
-              <p className="text-gray-400">{streamer.bio}</p>
-            </div>
-            
-            {streamer.level && (
-              <div>
-                <h3 className="text-lg font-semibold mb-2 text-gray-300">等级</h3>
-                <span className={`inline-block px-3 py-1 rounded-full text-sm font-bold ${
-                  streamer.level === 'S' ? 'bg-yellow-500 text-black' :
-                  streamer.level === 'A' ? 'bg-blue-500 text-white' :
-                  streamer.level === 'B' ? 'bg-green-500 text-white' :
-                  streamer.level === 'C' ? 'bg-orange-500 text-white' :
-                  'bg-gray-500 text-white'
-                }`}>
-                  {streamer.level}
-                </span>
-              </div>
+    <Modal visible={isOpen} onClose={onClose} title={streamer.nickname} className="max-w-2xl bg-gray-900 border-white/10 text-white">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* 海报 */}
+        <div className="relative rounded-lg overflow-hidden">
+          <img 
+            src={streamer.posterUrl} 
+            alt={streamer.nickname} 
+            className="w-full h-80 object-cover"
+          />
+          {/* 标签 */}
+          <div className="absolute top-4 left-4 flex space-x-2">
+            {streamer.isStar && (
+              <span className="bg-yellow-500 text-black px-2 py-1 rounded-full text-xs font-bold">
+                明星
+              </span>
             )}
-            
-            <div>
-              <h3 className="text-lg font-semibold mb-2 text-gray-300">直播间</h3>
-              <a 
-                href={streamer.liveUrl} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-secondary hover:underline flex items-center"
-              >
-                {streamer.liveUrl}
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2">
-                  <path d="M5 12h14" />
-                  <path d="m12 5 7 7-7 7" />
-                </svg>
-              </a>
-            </div>
+            {streamer.isGuest && (
+              <span className="bg-purple-500 text-white px-2 py-1 rounded-full text-xs font-bold">
+                嘉宾
+              </span>
+            )}
           </div>
         </div>
-        <ModalFooter className="border-t border-white/10 pt-4">
-          <Button 
-            className="bg-secondary hover:bg-secondary/80"
-            onClick={() => {
-              window.open(streamer.liveUrl, '_blank');
-            }}
-          >
-            进入直播间
-          </Button>
-          <Button 
-            variant="outline" 
-            className="border-white/20 text-white hover:bg-white/10"
-            onClick={onClose}
-          >
-            关闭
-          </Button>
-        </ModalFooter>
-      </ModalContent>
+        
+        {/* 详细信息 */}
+        <div className="space-y-4">
+          <div>
+            <h3 className="text-lg font-semibold mb-2 text-gray-300">个人简介</h3>
+            <p className="text-gray-400">{streamer.bio}</p>
+          </div>
+          
+          {streamer.level && (
+            <div>
+              <h3 className="text-lg font-semibold mb-2 text-gray-300">等级</h3>
+              <span className={`inline-block px-3 py-1 rounded-full text-sm font-bold ${
+                streamer.level === 'S' ? 'bg-yellow-500 text-black' :
+                streamer.level === 'A' ? 'bg-blue-500 text-white' :
+                streamer.level === 'B' ? 'bg-green-500 text-white' :
+                streamer.level === 'C' ? 'bg-orange-500 text-white' :
+                'bg-gray-500 text-white'
+              }`}>
+                {streamer.level}
+              </span>
+            </div>
+          )}
+          
+          <div>
+            <h3 className="text-lg font-semibold mb-2 text-gray-300">直播间</h3>
+            <a 
+              href={streamer.liveUrl} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-secondary hover:underline flex items-center"
+            >
+              {streamer.liveUrl}
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2">
+                <path d="M5 12h14" />
+                <path d="m12 5 7 7-7 7" />
+              </svg>
+            </a>
+          </div>
+        </div>
+      </div>
+      <div className="flex justify-end space-x-2 mt-6 pt-4 border-t border-white/10">
+        <Button 
+          className="bg-secondary hover:bg-secondary/80"
+          onClick={() => {
+            window.open(streamer.liveUrl, '_blank');
+          }}
+        >
+          进入直播间
+        </Button>
+        <Button 
+          variant="outline" 
+          className="border-white/20 text-white hover:bg-white/10"
+          onClick={onClose}
+        >
+          关闭
+        </Button>
+      </div>
     </Modal>
   );
 };
