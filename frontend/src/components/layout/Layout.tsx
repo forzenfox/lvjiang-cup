@@ -61,38 +61,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     };
   }, []);
 
-  // 添加鼠标滚轮事件监听器，实现滚轮切换模块
-  useEffect(() => {
-    const sections = ['streamers', 'teams', 'schedule'];
-    let currentIndex = 0;
-    let lastScrollTime = 0;
 
-    const handleWheel = (event: WheelEvent) => {
-      // 防止滚动事件触发过于频繁
-      const now = Date.now();
-      if (now - lastScrollTime < 500) {
-        return;
-      }
-      lastScrollTime = now;
-
-      event.preventDefault();
-      if (event.deltaY > 0) {
-        // 向下滚动，切换到下一个模块
-        currentIndex = (currentIndex + 1) % sections.length;
-      } else {
-        // 向上滚动，切换到上一个模块
-        currentIndex = (currentIndex - 1 + sections.length) % sections.length;
-      }
-      scrollToSection(sections[currentIndex]);
-    };
-
-    // 添加鼠标滚轮事件监听器
-    document.addEventListener('wheel', handleWheel, { passive: false });
-
-    return () => {
-      document.removeEventListener('wheel', handleWheel);
-    };
-  }, []);
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
