@@ -4,6 +4,8 @@ import Layout from '../components/layout/Layout';
 import HeroSection from '../components/features/HeroSection';
 import ScheduleSection from '../components/features/ScheduleSection';
 import TeamSection from '../components/features/TeamSection';
+import StreamerSection from '../components/features/StreamerSection';
+import { Button } from '../components/ui/button';
 import { streamService, teamService, matchService, advancementService } from '../services';
 
 /**
@@ -175,9 +177,10 @@ const Home: React.FC = () => {
       <GlobalLoadingIndicator visible={state.loading} />
 
       {/* 页面内容 */}
-      <HeroSection />
-      <TeamSection />
-      <ScheduleSection />
+      <HeroSection refreshInterval={REFRESH_INTERVAL} />
+      <StreamerSection refreshInterval={REFRESH_INTERVAL} />
+      <TeamSection refreshInterval={REFRESH_INTERVAL} />
+      <ScheduleSection refreshInterval={REFRESH_INTERVAL} />
     </Layout>
   );
 };
