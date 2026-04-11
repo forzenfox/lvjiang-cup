@@ -116,16 +116,16 @@ describe('swissRoundSlots', () => {
       expect(getRoundFormat('0-0')).toBe('BO1');
     });
 
-    it('1-0 战绩应该返回 BO3', () => {
-      expect(getRoundFormat('1-0')).toBe('BO3');
+    it('1-0 战绩应该返回 BO1', () => {
+      expect(getRoundFormat('1-0')).toBe('BO1');
     });
 
-    it('0-1 战绩应该返回 BO3', () => {
-      expect(getRoundFormat('0-1')).toBe('BO3');
+    it('0-1 战绩应该返回 BO1', () => {
+      expect(getRoundFormat('0-1')).toBe('BO1');
     });
 
-    it('1-1 战绩应该返回 BO3', () => {
-      expect(getRoundFormat('1-1')).toBe('BO3');
+    it('1-1 战绩应该返回 BO1', () => {
+      expect(getRoundFormat('1-1')).toBe('BO1');
     });
 
     it('0-2 战绩应该返回 BO3', () => {

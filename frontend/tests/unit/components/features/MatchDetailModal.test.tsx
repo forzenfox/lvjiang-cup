@@ -10,11 +10,11 @@ const mockTeams: Team[] = [
     logo: '/logo1.png',
     battleCry: '冲啊',
     players: [
-      { id: 'p1', nickname: '小明', position: 'top', avatarUrl: '/avatar1.png' },
-      { id: 'p2', nickname: '小红', position: 'jungle', avatarUrl: '/avatar2.png' },
-      { id: 'p3', nickname: '小刚', position: 'mid' },
-      { id: 'p4', nickname: '小丽', position: 'adc', avatarUrl: '/avatar4.png' },
-      { id: 'p5', nickname: '小华', position: 'support' },
+      { id: 'p1', nickname: '小明', position: 'TOP', avatarUrl: '/avatar1.png' },
+      { id: 'p2', nickname: '小红', position: 'JUNGLE', avatarUrl: '/avatar2.png' },
+      { id: 'p3', nickname: '小刚', position: 'MID' },
+      { id: 'p4', nickname: '小丽', position: 'ADC', avatarUrl: '/avatar4.png' },
+      { id: 'p5', nickname: '小华', position: 'SUPPORT' },
     ],
   },
   {
@@ -23,11 +23,11 @@ const mockTeams: Team[] = [
     logo: '/logo2.png',
     battleCry: '加油',
     players: [
-      { id: 'p6', nickname: '阿强', position: 'top' },
-      { id: 'p7', nickname: '阿伟', position: 'jungle', avatarUrl: '/avatar7.png' },
-      { id: 'p8', nickname: '阿杰', position: 'mid', avatarUrl: '/avatar8.png' },
-      { id: 'p9', nickname: '阿美', position: 'adc' },
-      { id: 'p10', nickname: '阿丽', position: 'support', avatarUrl: '/avatar10.png' },
+      { id: 'p6', nickname: '阿强', position: 'TOP' },
+      { id: 'p7', nickname: '阿伟', position: 'JUNGLE', avatarUrl: '/avatar7.png' },
+      { id: 'p8', nickname: '阿杰', position: 'MID', avatarUrl: '/avatar8.png' },
+      { id: 'p9', nickname: '阿美', position: 'ADC' },
+      { id: 'p10', nickname: '阿丽', position: 'SUPPORT', avatarUrl: '/avatar10.png' },
     ],
   },
 ];

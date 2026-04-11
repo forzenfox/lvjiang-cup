@@ -44,7 +44,9 @@ describe('SwissStage 组件', () => {
     );
 
     expect(screen.getByText('Round 1')).toBeInTheDocument();
-    expect(screen.getByText('BO1')).toBeInTheDocument();
+    // Round 1 显示 BO1 赛制
+    const bo1Elements = screen.getAllByText('BO1');
+    expect(bo1Elements.length).toBeGreaterThan(0);
   });
 });
 
@@ -57,6 +59,9 @@ describe('SwissStage 轮次标题显示', () => {
     );
 
     expect(screen.getByText('Round 1')).toBeInTheDocument();
-    expect(screen.getByText('BO1')).toBeInTheDocument();
+    // 验证 Round 1 显示 BO1 赛制 (在标题栏中)
+    const round1Column = screen.getByTestId('swiss-round-1');
+    expect(round1Column).toBeInTheDocument();
+    expect(round1Column.textContent).toContain('BO1');
   });
 });

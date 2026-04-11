@@ -39,6 +39,29 @@ export const getSwissRound = (swissRecord: string): number => {
 };
 
 /**
+ * 根据战绩获取比赛赛制
+ * @param swissRecord 战绩字符串，如 "2-1"
+ * @returns 赛制格式 (BO1/BO3/BO5)
+ */
+export const getRoundFormat = (swissRecord: string): 'BO1' | 'BO3' | 'BO5' => {
+  switch (swissRecord) {
+    // BO1: 第一轮和第二轮
+    case '0-0':      // 第一轮
+    case '1-0':      // 第二轮高组
+    case '0-1':      // 第二轮低组
+    case '1-1':      // 第三轮中游组
+      return 'BO1';
+    // BO5: 晋级/淘汰决胜轮
+    case '3-0':
+    case '0-3':
+      return 'BO5';
+    // BO3: 关键晋级/淘汰战
+    default:
+      return 'BO3';
+  }
+};
+
+/**
  * 判断队伍是否已被淘汰
  * @param swissRecord 战绩字符串
  * @returns 是否淘汰

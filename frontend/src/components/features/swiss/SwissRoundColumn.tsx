@@ -2,6 +2,7 @@ import React from 'react';
 import { Match, Team } from '@/types';
 import SwissMatchCard from './SwissMatchCard';
 import { SWISS_THEME } from '@/constants/swissTheme';
+import { getRoundFormat } from '@/pages/admin/swissRoundSlots';
 
 interface SwissRoundColumnProps {
   title: string;
@@ -32,7 +33,7 @@ const SwissRoundColumn: React.FC<SwissRoundColumnProps> = ({
       data-testid={testId}
       data-record={record}
     >
-      {/* 标题栏 - 官方LPL风格 */}
+      {/* 标题栏 - 官方 LPL 风格 */}
       <div
         className="flex items-center justify-between px-4"
         style={{
@@ -50,14 +51,24 @@ const SwissRoundColumn: React.FC<SwissRoundColumnProps> = ({
         >
           {title}
         </span>
-        <span
-          style={{
-            color: SWISS_THEME.titleText,
-            fontSize: `${SWISS_THEME.titleFontSize}px`,
-          }}
-        >
-          {record}
-        </span>
+        <div className="flex items-center gap-2">
+          <span
+            style={{
+              color: SWISS_THEME.titleText,
+              fontSize: `${SWISS_THEME.titleFontSize}px`,
+            }}
+          >
+            {record}
+          </span>
+          <span
+            style={{
+              color: SWISS_THEME.titleText,
+              fontSize: `${SWISS_THEME.titleFontSize}px`,
+            }}
+          >
+            {getRoundFormat(record)}
+          </span>
+        </div>
       </div>
 
       {/* 比赛列表 */}
