@@ -414,7 +414,46 @@ netstat -tlnp | grep :443
 
 3. 检查 NPM 配置中的 API 路由
 
-### 问题 5：前端配置未生效
+### 问题 5：上传战队图标失败（EACCES: permission denied）
+
+**错误信息**：
+```
+EACCES: permission denied, mkdir '/app/uploads/teams'
+```
+
+**原因**：
+- `uploads` 目录不存在或由 root 用户创建
+- 容器内的 nodejs 用户（UID 1001）没有写入权限
+
+**解决方案**：
+
+方式一：使用修复脚本（推荐）
+```bash
+cd /opt/lvjiang-cup/deploy
+chmod +x fix-upload-permissions.sh
+./fix-upload-permissions.sh
+```
+
+方式二：手动修复
+```bash
+# 1. 创建 uploads 目录
+mkdir -p /opt/lvjiang-cup/uploads
+
+# 2. 设置正确的权限（UID 1001 对应容器内的 nodejs 用户）
+chown -R 1001:1001 /opt/lvjiang-cup/uploads
+
+# 3. 重启后端容器
+docker restart lvjiang-backend
+
+# 4. 验证权限
+docker exec lvjiang-backend ls -ld /app/uploads
+```
+
+**验证**：
+- 权限应该显示为 `1001:1001`
+- 重新尝试上传战队图标
+
+### 问题 6：前端配置未生效
 
 1. 检查 config.js 是否存在：
    ```bash
@@ -431,7 +470,7 @@ netstat -tlnp | grep :443
    docker-compose restart frontend
    ```
 
-### 问题 6：日志文件过大
+### 问题 7：日志文件过大
 
 1. 检查日志大小：
    ```bash

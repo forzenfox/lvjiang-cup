@@ -148,11 +148,11 @@ EOF
     exit 0
 fi
 
-# 创建数据目录
-mkdir -p $PROJECT_DIR/data $PROJECT_DIR/backup
+# 创建数据目录（包括上传文件目录）
+mkdir -p $PROJECT_DIR/data $PROJECT_DIR/backup $PROJECT_DIR/uploads
 
-# 设置数据目录权限（与Dockerfile中的nodejs用户匹配）
-chown -R 1001:1001 $PROJECT_DIR/data $PROJECT_DIR/backup
+# 设置数据目录权限（与 Dockerfile 中的 nodejs 用户匹配）
+chown -R 1001:1001 $PROJECT_DIR/data $PROJECT_DIR/backup $PROJECT_DIR/uploads
 
 # 拉取镜像并启动
 echo "拉取镜像..."
