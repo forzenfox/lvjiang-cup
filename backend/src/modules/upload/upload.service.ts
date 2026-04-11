@@ -106,7 +106,7 @@ export class UploadService {
         const files = await fs.promises.readdir(dir);
         for (const file of files) {
           result.scannedFiles++;
-          const fileUrl = `/uploads/${path.basename(dir)}/${file}`;
+          const fileUrl = `/api/uploads/${path.basename(dir)}/${file}`;
 
           if (!usedUrls.has(fileUrl)) {
             const filePath = path.join(dir, file);

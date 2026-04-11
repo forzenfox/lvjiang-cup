@@ -1,7 +1,7 @@
 import React from 'react';
 import { Match, Team } from '@/types';
 import { useAdvancementStore } from '@/store/advancementStore';
-import { SwissMatchCard, SwissStatusBadge, SwissTeamList } from './swiss';
+import { SwissStatusBadge, SwissTeamList, SwissRoundColumn } from './swiss';
 
 // 10个战绩分组的配置
 const RECORD_GROUPS = [
@@ -26,49 +26,6 @@ interface SwissStageProps {
   };
 }
 
-const RoundColumn: React.FC<{
-  roundName: string;
-  isBo3: boolean;
-  matches: Match[];
-  teams: Team[];
-  className?: string;
-  record?: string;
-}> = ({ roundName, isBo3, matches, teams, className, record }) => {
-  return (
-    <div
-      className={`flex flex-col gap-3 min-w-[200px] ${className}`}
-      data-testid="swiss-round-column"
-    >
-      <div className="text-center pb-2 border-b border-gray-800">
-        <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider">{roundName}</h3>
-        <div className="flex items-center justify-center mt-1">
-          <span
-            className={`text-[10px] px-1.5 py-0.5 rounded font-mono ${
-              isBo3 ? 'bg-blue-600/20 text-blue-400' : 'bg-green-600/20 text-green-400'
-            }`}
-          >
-            {isBo3 ? 'BO3' : 'BO1'}
-          </span>
-        </div>
-      </div>
-      <div className="flex flex-col gap-3 min-h-[60px]" data-testid="swiss-match-list">
-        {matches.length > 0 ? (
-          matches.map((match, idx) => (
-            <SwissMatchCard key={match.id} match={match} teams={teams} record={record} index={idx} />
-          ))
-        ) : (
-          <div
-            className="flex items-center justify-center h-20 border border-dashed border-gray-800 rounded bg-gray-900/30 text-xs text-gray-600"
-            data-testid="swiss-empty-slot"
-          >
-            等待对阵
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
-
 const SwissStage: React.FC<SwissStageProps> = ({
   matches,
   teams,
@@ -77,8 +34,8 @@ const SwissStage: React.FC<SwissStageProps> = ({
   // 从 store 获取晋级名单（如果没有传入 props）
   const storeAdvancement = useAdvancementStore(state => state.advancement);
   const advancement = propAdvancement || {
-    top8: storeAdvancement.winners2_0 || [],
-    eliminated: storeAdvancement.eliminated0_3 || [],
+    top8: storeAdvancement.top8,
+    eliminated: storeAdvancement.eliminated,
   };
 
   // 按战绩分组
@@ -91,13 +48,12 @@ const SwissStage: React.FC<SwissStageProps> = ({
   );
 
   return (
-    <div className="w-full overflow-x-auto" data-testid="swiss-stage">
-      <div className="flex gap-8 min-w-[1400px] p-4" data-testid="swiss-container">
+    <div className="w-full" data-testid="swiss-stage">
+      <div className="flex flex-wrap justify-center gap-8 p-4" data-testid="swiss-container">
         {/* 第一轮：0-0 */}
         <div className="flex flex-col gap-4 w-64" data-testid="swiss-round-1">
-          <RoundColumn
-            roundName={RECORD_GROUPS[0].label}
-            isBo3={false}
+          <SwissRoundColumn
+            title={RECORD_GROUPS[0].label}
             matches={matchesByRecord['0-0']}
             teams={teams}
             record="0-0"
@@ -106,16 +62,14 @@ const SwissStage: React.FC<SwissStageProps> = ({
 
         {/* 第二轮：1-0 & 0-1 */}
         <div className="flex flex-col gap-8 w-64 mt-8" data-testid="swiss-round-2">
-          <RoundColumn
-            roundName={RECORD_GROUPS[1].label}
-            isBo3={true}
+          <SwissRoundColumn
+            title={RECORD_GROUPS[1].label}
             matches={matchesByRecord['1-0']}
             teams={teams}
             record="1-0"
           />
-          <RoundColumn
-            roundName={RECORD_GROUPS[2].label}
-            isBo3={true}
+          <SwissRoundColumn
+            title={RECORD_GROUPS[2].label}
             matches={matchesByRecord['0-1']}
             teams={teams}
             record="0-1"
@@ -130,18 +84,16 @@ const SwissStage: React.FC<SwissStageProps> = ({
             <SwissTeamList teams={teams} ids={advancement.top8.slice(0, 4)} />
           </div>
 
-          <RoundColumn
-            roundName={RECORD_GROUPS[4].label}
-            isBo3={true}
+          <SwissRoundColumn
+            title={RECORD_GROUPS[4].label}
             matches={matchesByRecord['1-1']}
             teams={teams}
             record="1-1"
           />
 
           <div className="mt-4">
-            <RoundColumn
-              roundName={RECORD_GROUPS[5].label}
-              isBo3={true}
+            <SwissRoundColumn
+              title={RECORD_GROUPS[5].label}
               matches={matchesByRecord['0-2']}
               teams={teams}
               record="0-2"
@@ -157,17 +109,15 @@ const SwissStage: React.FC<SwissStageProps> = ({
             <SwissTeamList teams={teams} ids={advancement.top8.slice(4, 6)} />
           </div>
 
-          <RoundColumn
-            roundName={RECORD_GROUPS[7].label}
-            isBo3={true}
+          <SwissRoundColumn
+            title={RECORD_GROUPS[7].label}
             matches={matchesByRecord['2-1']}
             teams={teams}
             record="2-1"
           />
 
-          <RoundColumn
-            roundName={RECORD_GROUPS[8].label}
-            isBo3={true}
+          <SwissRoundColumn
+            title={RECORD_GROUPS[8].label}
             matches={matchesByRecord['1-2']}
             teams={teams}
             record="1-2"

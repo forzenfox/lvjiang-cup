@@ -226,58 +226,60 @@ export const swissMatches: Match[] = [
   { id: 'swiss-r1-7', teamAId: 'team13', teamBId: 'team14', scoreA: 1, scoreB: 0, winnerId: 'team13', round: 'Round 1', status: 'finished', startTime: '2025-11-13T20:00:00Z', stage: 'swiss', swissRecord: '0-0', swissRound: 1, boFormat: 'BO1' },
   { id: 'swiss-r1-8', teamAId: 'team15', teamBId: 'team16', scoreA: 0, scoreB: 1, winnerId: 'team16', round: 'Round 1', status: 'finished', startTime: '2025-11-13T21:00:00Z', stage: 'swiss', swissRecord: '0-0', swissRound: 1, boFormat: 'BO1' },
 
-  // ========== 第二轮：8场 BO3 (swissRound: 2) ==========
+  // ========== 第二轮：8场 BO1 (swissRound: 2) ==========
   // 1-0 组 (4场)
-  { id: 'swiss-r2-1', teamAId: 'team1', teamBId: 'team5', scoreA: 2, scoreB: 0, winnerId: 'team1', round: 'Round 2', status: 'finished', startTime: '2025-11-14T18:00:00Z', stage: 'swiss', swissRecord: '1-0', swissRound: 2, boFormat: 'BO3' },
-  { id: 'swiss-r2-2', teamAId: 'team9', teamBId: 'team13', scoreA: 2, scoreB: 1, winnerId: 'team9', round: 'Round 2', status: 'finished', startTime: '2025-11-14T19:00:00Z', stage: 'swiss', swissRecord: '1-0', swissRound: 2, boFormat: 'BO3' },
-  { id: 'swiss-r2-3', teamAId: 'team4', teamBId: 'team8', scoreA: 2, scoreB: 1, winnerId: 'team4', round: 'Round 2', status: 'finished', startTime: '2025-11-14T20:00:00Z', stage: 'swiss', swissRecord: '1-0', swissRound: 2, boFormat: 'BO3' },
-  { id: 'swiss-r2-4', teamAId: 'team12', teamBId: 'team16', scoreA: 2, scoreB: 0, winnerId: 'team12', round: 'Round 2', status: 'finished', startTime: '2025-11-14T21:00:00Z', stage: 'swiss', swissRecord: '1-0', swissRound: 2, boFormat: 'BO3' },
+  { id: 'swiss-r2-1', teamAId: 'team1', teamBId: 'team5', scoreA: 1, scoreB: 0, winnerId: 'team1', round: 'Round 2', status: 'finished', startTime: '2025-11-14T18:00:00Z', stage: 'swiss', swissRecord: '1-0', swissRound: 2, boFormat: 'BO1' },
+  { id: 'swiss-r2-2', teamAId: 'team4', teamBId: 'team8', scoreA: 1, scoreB: 0, winnerId: 'team4', round: 'Round 2', status: 'finished', startTime: '2025-11-14T19:00:00Z', stage: 'swiss', swissRecord: '1-0', swissRound: 2, boFormat: 'BO1' },
+  { id: 'swiss-r2-3', teamAId: 'team9', teamBId: 'team13', scoreA: 1, scoreB: 0, winnerId: 'team9', round: 'Round 2', status: 'finished', startTime: '2025-11-14T20:00:00Z', stage: 'swiss', swissRecord: '1-0', swissRound: 2, boFormat: 'BO1' },
+  { id: 'swiss-r2-4', teamAId: 'team12', teamBId: 'team16', scoreA: 1, scoreB: 0, winnerId: 'team12', round: 'Round 2', status: 'finished', startTime: '2025-11-14T21:00:00Z', stage: 'swiss', swissRecord: '1-0', swissRound: 2, boFormat: 'BO1' },
   // 0-1 组 (4场)
-  { id: 'swiss-r2-5', teamAId: 'team2', teamBId: 'team6', scoreA: 2, scoreB: 1, winnerId: 'team2', round: 'Round 2', status: 'finished', startTime: '2025-11-14T18:00:00Z', stage: 'swiss', swissRecord: '0-1', swissRound: 2, boFormat: 'BO3' },
-  { id: 'swiss-r2-6', teamAId: 'team3', teamBId: 'team7', scoreA: 2, scoreB: 0, winnerId: 'team3', round: 'Round 2', status: 'finished', startTime: '2025-11-14T19:00:00Z', stage: 'swiss', swissRecord: '0-1', swissRound: 2, boFormat: 'BO3' },
-  { id: 'swiss-r2-7', teamAId: 'team10', teamBId: 'team14', scoreA: 1, scoreB: 2, winnerId: 'team14', round: 'Round 2', status: 'finished', startTime: '2025-11-14T20:00:00Z', stage: 'swiss', swissRecord: '0-1', swissRound: 2, boFormat: 'BO3' },
-  { id: 'swiss-r2-8', teamAId: 'team11', teamBId: 'team15', scoreA: 0, scoreB: 2, winnerId: 'team15', round: 'Round 2', status: 'finished', startTime: '2025-11-14T21:00:00Z', stage: 'swiss', swissRecord: '0-1', swissRound: 2, boFormat: 'BO3' },
+  { id: 'swiss-r2-5', teamAId: 'team2', teamBId: 'team6', scoreA: 1, scoreB: 0, winnerId: 'team2', round: 'Round 2', status: 'finished', startTime: '2025-11-14T18:00:00Z', stage: 'swiss', swissRecord: '0-1', swissRound: 2, boFormat: 'BO1' },
+  { id: 'swiss-r2-6', teamAId: 'team3', teamBId: 'team7', scoreA: 1, scoreB: 0, winnerId: 'team3', round: 'Round 2', status: 'finished', startTime: '2025-11-14T19:00:00Z', stage: 'swiss', swissRecord: '0-1', swissRound: 2, boFormat: 'BO1' },
+  { id: 'swiss-r2-7', teamAId: 'team10', teamBId: 'team14', scoreA: 0, scoreB: 1, winnerId: 'team14', round: 'Round 2', status: 'finished', startTime: '2025-11-14T20:00:00Z', stage: 'swiss', swissRecord: '0-1', swissRound: 2, boFormat: 'BO1' },
+  { id: 'swiss-r2-8', teamAId: 'team11', teamBId: 'team15', scoreA: 0, scoreB: 1, winnerId: 'team15', round: 'Round 2', status: 'finished', startTime: '2025-11-14T21:00:00Z', stage: 'swiss', swissRecord: '0-1', swissRound: 2, boFormat: 'BO1' },
 
-  // ========== 第三轮：8场 BO3 (swissRound: 3) ==========
+  // ========== 第三轮：8场 BO1 (swissRound: 3) ==========
   // 2-0 组 (2场)
-  { id: 'swiss-r3-1', teamAId: 'team1', teamBId: 'team4', scoreA: 2, scoreB: 1, winnerId: 'team1', round: 'Round 3', status: 'finished', startTime: '2025-11-15T18:00:00Z', stage: 'swiss', swissRecord: '2-0', swissRound: 3, boFormat: 'BO3' },
-  { id: 'swiss-r3-2', teamAId: 'team9', teamBId: 'team12', scoreA: 2, scoreB: 0, winnerId: 'team9', round: 'Round 3', status: 'finished', startTime: '2025-11-15T19:00:00Z', stage: 'swiss', swissRecord: '2-0', swissRound: 3, boFormat: 'BO3' },
+  { id: 'swiss-r3-1', teamAId: 'team1', teamBId: 'team4', scoreA: 1, scoreB: 0, winnerId: 'team1', round: 'Round 3', status: 'finished', startTime: '2025-11-15T18:00:00Z', stage: 'swiss', swissRecord: '2-0', swissRound: 3, boFormat: 'BO1' },
+  { id: 'swiss-r3-2', teamAId: 'team9', teamBId: 'team12', scoreA: 1, scoreB: 0, winnerId: 'team9', round: 'Round 3', status: 'finished', startTime: '2025-11-15T19:00:00Z', stage: 'swiss', swissRecord: '2-0', swissRound: 3, boFormat: 'BO1' },
   // 1-1 组 (4场)
-  { id: 'swiss-r3-3', teamAId: 'team5', teamBId: 'team8', scoreA: 2, scoreB: 1, winnerId: 'team5', round: 'Round 3', status: 'finished', startTime: '2025-11-15T18:00:00Z', stage: 'swiss', swissRecord: '1-1', swissRound: 3, boFormat: 'BO3' },
-  { id: 'swiss-r3-4', teamAId: 'team2', teamBId: 'team3', scoreA: 2, scoreB: 1, winnerId: 'team2', round: 'Round 3', status: 'finished', startTime: '2025-11-15T19:00:00Z', stage: 'swiss', swissRecord: '1-1', swissRound: 3, boFormat: 'BO3' },
-  { id: 'swiss-r3-5', teamAId: 'team13', teamBId: 'team16', scoreA: 1, scoreB: 2, winnerId: 'team16', round: 'Round 3', status: 'finished', startTime: '2025-11-15T20:00:00Z', stage: 'swiss', swissRecord: '1-1', swissRound: 3, boFormat: 'BO3' },
-  { id: 'swiss-r3-6', teamAId: 'team14', teamBId: 'team15', scoreA: 2, scoreB: 0, winnerId: 'team14', round: 'Round 3', status: 'finished', startTime: '2025-11-15T21:00:00Z', stage: 'swiss', swissRecord: '1-1', swissRound: 3, boFormat: 'BO3' },
+  { id: 'swiss-r3-3', teamAId: 'team5', teamBId: 'team8', scoreA: 1, scoreB: 0, winnerId: 'team5', round: 'Round 3', status: 'finished', startTime: '2025-11-15T18:00:00Z', stage: 'swiss', swissRecord: '1-1', swissRound: 3, boFormat: 'BO1' },
+  { id: 'swiss-r3-4', teamAId: 'team2', teamBId: 'team3', scoreA: 1, scoreB: 0, winnerId: 'team2', round: 'Round 3', status: 'finished', startTime: '2025-11-15T19:00:00Z', stage: 'swiss', swissRecord: '1-1', swissRound: 3, boFormat: 'BO1' },
+  { id: 'swiss-r3-5', teamAId: 'team13', teamBId: 'team16', scoreA: 0, scoreB: 1, winnerId: 'team16', round: 'Round 3', status: 'finished', startTime: '2025-11-15T20:00:00Z', stage: 'swiss', swissRecord: '1-1', swissRound: 3, boFormat: 'BO1' },
+  { id: 'swiss-r3-6', teamAId: 'team14', teamBId: 'team15', scoreA: 1, scoreB: 0, winnerId: 'team14', round: 'Round 3', status: 'finished', startTime: '2025-11-15T21:00:00Z', stage: 'swiss', swissRecord: '1-1', swissRound: 3, boFormat: 'BO1' },
   // 0-2 组 (2场)
-  { id: 'swiss-r3-7', teamAId: 'team6', teamBId: 'team7', scoreA: 0, scoreB: 2, winnerId: 'team7', round: 'Round 3', status: 'finished', startTime: '2025-11-15T20:00:00Z', stage: 'swiss', swissRecord: '0-2', swissRound: 3, boFormat: 'BO3' },
-  { id: 'swiss-r3-8', teamAId: 'team10', teamBId: 'team11', scoreA: 2, scoreB: 1, winnerId: 'team10', round: 'Round 3', status: 'finished', startTime: '2025-11-15T21:00:00Z', stage: 'swiss', swissRecord: '0-2', swissRound: 3, boFormat: 'BO3' },
+  { id: 'swiss-r3-7', teamAId: 'team6', teamBId: 'team7', scoreA: 0, scoreB: 1, winnerId: 'team7', round: 'Round 3', status: 'finished', startTime: '2025-11-15T20:00:00Z', stage: 'swiss', swissRecord: '0-2', swissRound: 3, boFormat: 'BO1' },
+  { id: 'swiss-r3-8', teamAId: 'team10', teamBId: 'team11', scoreA: 1, scoreB: 0, winnerId: 'team10', round: 'Round 3', status: 'finished', startTime: '2025-11-15T21:00:00Z', stage: 'swiss', swissRecord: '0-2', swissRound: 3, boFormat: 'BO1' },
 
-  // ========== 第四轮：8场 BO3 (swissRound: 4) ==========
-  // 3-0 组 (1场) - 提前晋级
-  { id: 'swiss-r4-1', teamAId: 'team1', teamBId: 'team9', scoreA: 2, scoreB: 0, winnerId: 'team1', round: 'Round 4', status: 'finished', startTime: '2025-11-16T18:00:00Z', stage: 'swiss', swissRecord: '3-0', swissRound: 4, boFormat: 'BO3' },
-  // 2-1 组 (3场) - 胜者晋级
-  { id: 'swiss-r4-2', teamAId: 'team4', teamBId: 'team5', scoreA: 2, scoreB: 1, winnerId: 'team4', round: 'Round 4', status: 'finished', startTime: '2025-11-16T18:00:00Z', stage: 'swiss', swissRecord: '2-1', swissRound: 4, boFormat: 'BO3' },
-  { id: 'swiss-r4-3', teamAId: 'team2', teamBId: 'team12', scoreA: 2, scoreB: 0, winnerId: 'team2', round: 'Round 4', status: 'finished', startTime: '2025-11-16T19:00:00Z', stage: 'swiss', swissRecord: '2-1', swissRound: 4, boFormat: 'BO3' },
-  { id: 'swiss-r4-4', teamAId: 'team16', teamBId: 'team14', scoreA: 2, scoreB: 1, winnerId: 'team16', round: 'Round 4', status: 'finished', startTime: '2025-11-16T20:00:00Z', stage: 'swiss', swissRecord: '2-1', swissRound: 4, boFormat: 'BO3' },
-  // 1-2 组 (3场) - 败者淘汰
-  { id: 'swiss-r4-5', teamAId: 'team8', teamBId: 'team3', scoreA: 1, scoreB: 2, winnerId: 'team3', round: 'Round 4', status: 'finished', startTime: '2025-11-16T18:00:00Z', stage: 'swiss', swissRecord: '1-2', swissRound: 4, boFormat: 'BO3' },
-  { id: 'swiss-r4-6', teamAId: 'team13', teamBId: 'team15', scoreA: 2, scoreB: 0, winnerId: 'team13', round: 'Round 4', status: 'finished', startTime: '2025-11-16T19:00:00Z', stage: 'swiss', swissRecord: '1-2', swissRound: 4, boFormat: 'BO3' },
-  { id: 'swiss-r4-7', teamAId: 'team7', teamBId: 'team10', scoreA: 2, scoreB: 1, winnerId: 'team7', round: 'Round 4', status: 'finished', startTime: '2025-11-16T20:00:00Z', stage: 'swiss', swissRecord: '1-2', swissRound: 4, boFormat: 'BO3' },
-  // 0-3 组 (1场) - 淘汰
-  { id: 'swiss-r4-8', teamAId: 'team6', teamBId: 'team11', scoreA: 0, scoreB: 2, winnerId: 'team11', round: 'Round 4', status: 'finished', startTime: '2025-11-16T21:00:00Z', stage: 'swiss', swissRecord: '0-3', swissRound: 4, boFormat: 'BO3' },
+  // ========== 第四轮：6场 BO3 (swissRound: 4) ==========
+  // 2-1 组 (3场) - 胜者3-1晋级，败者2-2进入第五轮
+  { id: 'swiss-r4-1', teamAId: 'team4', teamBId: 'team5', scoreA: 2, scoreB: 1, winnerId: 'team4', round: 'Round 4', status: 'finished', startTime: '2025-11-16T18:00:00Z', stage: 'swiss', swissRecord: '2-1', swissRound: 4, boFormat: 'BO3' },
+  { id: 'swiss-r4-2', teamAId: 'team2', teamBId: 'team16', scoreA: 2, scoreB: 0, winnerId: 'team2', round: 'Round 4', status: 'finished', startTime: '2025-11-16T19:00:00Z', stage: 'swiss', swissRecord: '2-1', swissRound: 4, boFormat: 'BO3' },
+  { id: 'swiss-r4-3', teamAId: 'team14', teamBId: 'team7', scoreA: 1, scoreB: 2, winnerId: 'team7', round: 'Round 4', status: 'finished', startTime: '2025-11-16T20:00:00Z', stage: 'swiss', swissRecord: '2-1', swissRound: 4, boFormat: 'BO3' },
+  // 1-2 组 (3场) - 胜者2-2进入第五轮，败者1-3淘汰
+  { id: 'swiss-r4-4', teamAId: 'team8', teamBId: 'team3', scoreA: 0, scoreB: 2, winnerId: 'team3', round: 'Round 4', status: 'finished', startTime: '2025-11-16T18:00:00Z', stage: 'swiss', swissRecord: '1-2', swissRound: 4, boFormat: 'BO3' },
+  { id: 'swiss-r4-5', teamAId: 'team13', teamBId: 'team10', scoreA: 2, scoreB: 1, winnerId: 'team13', round: 'Round 4', status: 'finished', startTime: '2025-11-16T19:00:00Z', stage: 'swiss', swissRecord: '1-2', swissRound: 4, boFormat: 'BO3' },
+  { id: 'swiss-r4-6', teamAId: 'team6', teamBId: 'team11', scoreA: 0, scoreB: 2, winnerId: 'team11', round: 'Round 4', status: 'finished', startTime: '2025-11-16T20:00:00Z', stage: 'swiss', swissRecord: '0-3', swissRound: 4, boFormat: 'BO3' },
+
+  // ========== 第五轮：3场 BO3 (swissRound: 5) ==========
+  // 2-2 组 (3场) - 胜者3-2晋级，败者2-3淘汰
+  { id: 'swiss-r5-1', teamAId: 'team5', teamBId: 'team16', scoreA: 2, scoreB: 1, winnerId: 'team5', round: 'Round 5', status: 'finished', startTime: '2025-11-17T18:00:00Z', stage: 'swiss', swissRecord: '2-2', swissRound: 5, boFormat: 'BO3' },
+  { id: 'swiss-r5-2', teamAId: 'team14', teamBId: 'team8', scoreA: 1, scoreB: 2, winnerId: 'team8', round: 'Round 5', status: 'finished', startTime: '2025-11-17T19:00:00Z', stage: 'swiss', swissRecord: '2-2', swissRound: 5, boFormat: 'BO3' },
+  { id: 'swiss-r5-3', teamAId: 'team13', teamBId: 'team3', scoreA: 2, scoreB: 0, winnerId: 'team13', round: 'Round 5', status: 'finished', startTime: '2025-11-17T20:00:00Z', stage: 'swiss', swissRecord: '2-2', swissRound: 5, boFormat: 'BO3' },
 ];
 
 // 淘汰赛7场比赛 (四分之一决赛4场 + 半决赛2场 + 决赛1场)
 export const eliminationMatches: Match[] = [
-  // 四分之一决赛 (4场) - top8: team1, team4, team9, team5, team2, team16, team14, team3
-  { id: 'elim-qf-1', teamAId: 'team1', teamBId: 'team8', scoreA: 3, scoreB: 1, winnerId: 'team1', round: 'Quarterfinals', status: 'finished', startTime: '2025-11-17T18:00:00Z', stage: 'elimination', eliminationBracket: 'quarterfinals', boFormat: 'BO5' },
-  { id: 'elim-qf-2', teamAId: 'team4', teamBId: 'team5', scoreA: 3, scoreB: 2, winnerId: 'team4', round: 'Quarterfinals', status: 'finished', startTime: '2025-11-17T19:00:00Z', stage: 'elimination', eliminationBracket: 'quarterfinals', boFormat: 'BO5' },
-  { id: 'elim-qf-3', teamAId: 'team2', teamBId: 'team9', scoreA: 3, scoreB: 1, winnerId: 'team2', round: 'Quarterfinals', status: 'finished', startTime: '2025-11-18T18:00:00Z', stage: 'elimination', eliminationBracket: 'quarterfinals', boFormat: 'BO5' },
-  { id: 'elim-qf-4', teamAId: 'team3', teamBId: 'team14', scoreA: 3, scoreB: 2, winnerId: 'team3', round: 'Quarterfinals', status: 'finished', startTime: '2025-11-18T19:00:00Z', stage: 'elimination', eliminationBracket: 'quarterfinals', boFormat: 'BO5' },
+  // 四分之一决赛 (4场) - top8: team1, team9, team4, team2, team7, team5, team8, team13
+  { id: 'elim-qf-1', teamAId: 'team1', teamBId: 'team13', scoreA: 3, scoreB: 1, winnerId: 'team1', round: 'Quarterfinals', status: 'finished', startTime: '2025-11-18T18:00:00Z', stage: 'elimination', eliminationBracket: 'quarterfinals', boFormat: 'BO5' },
+  { id: 'elim-qf-2', teamAId: 'team4', teamBId: 'team8', scoreA: 3, scoreB: 2, winnerId: 'team4', round: 'Quarterfinals', status: 'finished', startTime: '2025-11-18T19:00:00Z', stage: 'elimination', eliminationBracket: 'quarterfinals', boFormat: 'BO5' },
+  { id: 'elim-qf-3', teamAId: 'team2', teamBId: 'team5', scoreA: 3, scoreB: 1, winnerId: 'team2', round: 'Quarterfinals', status: 'finished', startTime: '2025-11-19T18:00:00Z', stage: 'elimination', eliminationBracket: 'quarterfinals', boFormat: 'BO5' },
+  { id: 'elim-qf-4', teamAId: 'team9', teamBId: 'team7', scoreA: 3, scoreB: 2, winnerId: 'team9', round: 'Quarterfinals', status: 'finished', startTime: '2025-11-19T19:00:00Z', stage: 'elimination', eliminationBracket: 'quarterfinals', boFormat: 'BO5' },
   // 半决赛 (2场)
-  { id: 'elim-sf-1', teamAId: 'team1', teamBId: 'team4', scoreA: 3, scoreB: 2, winnerId: 'team1', round: 'Semifinals', status: 'finished', startTime: '2025-11-20T18:00:00Z', stage: 'elimination', eliminationBracket: 'semifinals', boFormat: 'BO5' },
-  { id: 'elim-sf-2', teamAId: 'team2', teamBId: 'team16', scoreA: 3, scoreB: 1, winnerId: 'team2', round: 'Semifinals', status: 'finished', startTime: '2025-11-20T19:00:00Z', stage: 'elimination', eliminationBracket: 'semifinals', boFormat: 'BO5' },
+  { id: 'elim-sf-1', teamAId: 'team1', teamBId: 'team4', scoreA: 3, scoreB: 2, winnerId: 'team1', round: 'Semifinals', status: 'finished', startTime: '2025-11-21T18:00:00Z', stage: 'elimination', eliminationBracket: 'semifinals', boFormat: 'BO5' },
+  { id: 'elim-sf-2', teamAId: 'team2', teamBId: 'team9', scoreA: 3, scoreB: 1, winnerId: 'team2', round: 'Semifinals', status: 'finished', startTime: '2025-11-21T19:00:00Z', stage: 'elimination', eliminationBracket: 'semifinals', boFormat: 'BO5' },
   // 决赛 (1场)
-  { id: 'elim-f-1', teamAId: 'team1', teamBId: 'team2', scoreA: 3, scoreB: 2, winnerId: 'team1', round: 'Finals', status: 'finished', startTime: '2025-11-22T18:00:00Z', stage: 'elimination', eliminationBracket: 'finals', boFormat: 'BO5' },
+  { id: 'elim-f-1', teamAId: 'team1', teamBId: 'team2', scoreA: 3, scoreB: 2, winnerId: 'team1', round: 'Finals', status: 'finished', startTime: '2025-11-23T18:00:00Z', stage: 'elimination', eliminationBracket: 'finals', boFormat: 'BO5' },
 ];
 
 // 合并所有比赛
@@ -285,30 +287,30 @@ export const initialMatches: Match[] = [...swissMatches, ...eliminationMatches];
 
 // 瑞士轮晋级结果
 export const swissAdvancement = {
-  top8: ['team1', 'team4', 'team9', 'team5', 'team2', 'team16', 'team14', 'team3'],
-  eliminated: ['team7', 'team10', 'team6', 'team11', 'team13', 'team15', 'team8', 'team12'],
+  top8: ['team1', 'team9', 'team4', 'team2', 'team7', 'team5', 'team8', 'team13'],
+  eliminated: ['team6', 'team11', 'team3', 'team10', 'team14', 'team16', 'team12', 'team15'],
   rankings: [
-    { teamId: 'team1', record: '4-0', rank: 1 },
-    { teamId: 'team4', record: '3-1', rank: 2 },
-    { teamId: 'team9', record: '3-1', rank: 3 },
-    { teamId: 'team5', record: '3-1', rank: 4 },
-    { teamId: 'team2', record: '3-1', rank: 5 },
-    { teamId: 'team16', record: '3-1', rank: 6 },
-    { teamId: 'team14', record: '2-2', rank: 7 },
-    { teamId: 'team3', record: '2-2', rank: 8 },
-    { teamId: 'team7', record: '2-2', rank: 9 },
-    { teamId: 'team10', record: '1-3', rank: 10 },
-    { teamId: 'team6', record: '1-3', rank: 11 },
-    { teamId: 'team11', record: '1-3', rank: 12 },
-    { teamId: 'team13', record: '1-3', rank: 13 },
+    { teamId: 'team1', record: '3-0', rank: 1 },
+    { teamId: 'team9', record: '3-0', rank: 2 },
+    { teamId: 'team4', record: '3-1', rank: 3 },
+    { teamId: 'team2', record: '3-1', rank: 4 },
+    { teamId: 'team7', record: '3-1', rank: 5 },
+    { teamId: 'team5', record: '3-2', rank: 6 },
+    { teamId: 'team8', record: '3-2', rank: 7 },
+    { teamId: 'team13', record: '3-2', rank: 8 },
+    { teamId: 'team3', record: '2-3', rank: 9 },
+    { teamId: 'team10', record: '2-3', rank: 10 },
+    { teamId: 'team14', record: '2-3', rank: 11 },
+    { teamId: 'team16', record: '2-3', rank: 12 },
+    { teamId: 'team12', record: '1-3', rank: 13 },
     { teamId: 'team15', record: '1-3', rank: 14 },
-    { teamId: 'team8', record: '0-4', rank: 15 },
-    { teamId: 'team12', record: '0-4', rank: 16 },
+    { teamId: 'team6', record: '0-3', rank: 15 },
+    { teamId: 'team11', record: '0-3', rank: 16 },
   ],
 };
 
 export const initialStreamInfo: StreamInfo = {
-  title: '驴酱杯 2025 - 总决赛',
+  title: '驴酱杯 2025 - 瑞士轮赛程',
   url: 'https://www.douyu.com/138243',
-  isLive: true,
+  isLive: false,
 };

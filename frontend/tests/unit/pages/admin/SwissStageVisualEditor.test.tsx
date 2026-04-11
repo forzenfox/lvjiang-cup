@@ -11,11 +11,8 @@ const mockTeams: Team[] = [
 ];
 
 const mockAdvancement = {
-  winners2_0: [] as string[],
-  winners2_1: [] as string[],
-  losersBracket: [] as string[],
-  eliminated3rd: [] as string[],
-  eliminated0_3: [] as string[],
+  top8: [] as string[],
+  eliminated: [] as string[],
 };
 
 describe('SwissStageVisualEditor 点击编辑功能', () => {
@@ -45,7 +42,6 @@ describe('SwissStageVisualEditor 点击编辑功能', () => {
         advancement={mockAdvancement}
         onMatchUpdate={onMatchUpdate}
         onMatchCreate={onMatchCreate}
-        onAdvancementUpdate={onAdvancementUpdate}
       />
     );
 
@@ -73,7 +69,6 @@ describe('SwissStageVisualEditor 点击编辑功能', () => {
   it('点击空槽位且有onCreate时应弹出编辑界面', () => {
     const onMatchUpdate = vi.fn();
     const onMatchCreate = vi.fn();
-    const onAdvancementUpdate = vi.fn();
 
     render(
       <SwissStageVisualEditor
@@ -82,7 +77,6 @@ describe('SwissStageVisualEditor 点击编辑功能', () => {
         advancement={mockAdvancement}
         onMatchUpdate={onMatchUpdate}
         onMatchCreate={onMatchCreate}
-        onAdvancementUpdate={onAdvancementUpdate}
       />
     );
 
@@ -109,7 +103,6 @@ describe('SwissStageVisualEditor 点击编辑功能', () => {
 
   it('点击空槽位但无onCreate时不应弹出编辑界面', () => {
     const onMatchUpdate = vi.fn();
-    const onAdvancementUpdate = vi.fn();
 
     render(
       <SwissStageVisualEditor
@@ -117,8 +110,6 @@ describe('SwissStageVisualEditor 点击编辑功能', () => {
         teams={mockTeams}
         advancement={mockAdvancement}
         onMatchUpdate={onMatchUpdate}
-        onAdvancementUpdate={onAdvancementUpdate}
-        // 不提供 onMatchCreate
       />
     );
 

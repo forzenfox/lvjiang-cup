@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Match, Team, MatchStatus } from '@/types';
 import { Card } from '@/components/ui/card';
-import { Clock, Save, RotateCcw, Check } from 'lucide-react';
+import { Clock } from 'lucide-react';
 import { formatDateTime } from '@/utils/datetime';
-import { swissRoundSlots, SwissRoundSlot, getRoundFormat } from './swissRoundSlots';
+import { swissRoundSlots, SwissRoundSlot } from './swissRoundSlots';
 import MatchEditDialog from '@/pages/admin/components/MatchEditDialog';
-import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
+import { SWISS_STAGE_CONFIG } from '@/constants/swissStageConfig';
+import SwissRecordGroup from '@/components/features/swiss/SwissRecordGroup';
 
 interface SwissStageVisualEditorProps {
   matches: Match[];
@@ -16,10 +16,6 @@ interface SwissStageVisualEditorProps {
     eliminated: string[];
   };
   onMatchUpdate: (match: Match) => void;
-  onAdvancementUpdate?: (advancement: {
-    top8: string[];
-    eliminated: string[];
-  }) => void;
   onMatchCreate?: (match: Omit<Match, 'id'>) => void;
   onMatchDelete?: (matchId: string) => void;
 }
@@ -73,7 +69,6 @@ const FixedSlotMatchCard: React.FC<FixedSlotMatchCardProps> = ({
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const isEmpty = !match;
 
-  // 获取显示用的队伍信息
   const displayMatch = match || {
     id: `new-${slot.swissRecord}-${slotIndex}`,
     teamAId: '',
@@ -105,7 +100,6 @@ const FixedSlotMatchCard: React.FC<FixedSlotMatchCardProps> = ({
     } else if (onCreate) {
       onCreate(updatedMatch);
     }
-    // 返回 true 让 MatchEditDialog 关闭对话框
     return true;
   };
 
@@ -200,192 +194,149 @@ const FixedSlotMatchCard: React.FC<FixedSlotMatchCardProps> = ({
   );
 };
 
-interface RoundColumnProps {
-  slot: SwissRoundSlot;
-  matches: Match[];
-  teams: Team[];
-  className?: string;
-  onMatchUpdate: (match: Match) => void;
-  onMatchCreate?: (match: Omit<Match, 'id'>) => void;
-}
-
-const RoundColumn: React.FC<RoundColumnProps> = ({
-  slot,
-  matches,
-  teams,
-  className,
-  onMatchUpdate,
-  onMatchCreate,
-}) => {
-  const slots = Array.from({ length: slot.maxMatches }, (_, i) => {
-    const match = matches[i] || null;
-    return { match, index: i };
-  });
-
-  const roundFormat = getRoundFormat(slot.swissRecord);
-
-  return (
-    <div className={`flex flex-col gap-3 min-w-[200px] ${className}`}>
-      <div className="text-center pb-2 border-b border-gray-800">
-        <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider">
-          {slot.roundName}
-        </h3>
-        <div className="flex items-center justify-center gap-2 mt-1">
-          <span className="text-xs text-gray-500">({slot.swissRecord})</span>
-          <span
-            className={`text-[10px] px-1.5 py-0.5 rounded font-mono ${
-              roundFormat === 'BO1'
-                ? 'bg-green-600/20 text-green-400'
-                : 'bg-blue-600/20 text-blue-400'
-            }`}
-          >
-            {roundFormat}
-          </span>
-        </div>
-      </div>
-      <div className="flex flex-col gap-3 min-h-[60px]">
-        {slots.map(({ match, index }) => (
-          <FixedSlotMatchCard
-            key={`${slot.swissRecord}-${index}`}
-            match={match}
-            teams={teams}
-            slot={slot}
-            slotIndex={index}
-            onUpdate={onMatchUpdate}
-            onCreate={onMatchCreate}
-          />
-        ))}
-      </div>
-    </div>
-  );
-};
-
-// 10个战绩分组的配置（用于编辑器布局）
-const EDITOR_RECORD_GROUPS = [
-  { record: '0-0', label: 'Round 1' },
-  { record: '1-0', label: 'Round 2 High' },
-  { record: '0-1', label: 'Round 2 Low' },
-  { record: '1-1', label: 'Round 3 Mid' },
-  { record: '0-2', label: 'Round 3 Low' },
-  { record: '2-0', label: '2-0 Group' },
-  { record: '3-0', label: '3-0 Group' },
-  { record: '2-1', label: 'Round 4 High' },
-  { record: '1-2', label: 'Last Chance' },
-  { record: '0-3', label: '0-3 Group' },
-];
-
 const SwissStageVisualEditor: React.FC<SwissStageVisualEditorProps> = ({
   matches,
   teams,
   advancement,
   onMatchUpdate,
-  onAdvancementUpdate,
   onMatchCreate,
 }) => {
-  const matchesByRecord = swissRoundSlots.reduce(
-    (acc, slot) => {
-      acc[slot.swissRecord] = matches.filter(m => m.swissRecord === slot.swissRecord);
-      return acc;
-    },
-    {} as Record<string, Match[]>
-  );
+  const matchesByRecord = useMemo(() => {
+    return swissRoundSlots.reduce(
+      (acc, slot) => {
+        acc[slot.swissRecord] = matches.filter(m => m.swissRecord === slot.swissRecord);
+        return acc;
+      },
+      {} as Record<string, Match[]>
+    );
+  }, [matches]);
+
+  const qualifiedTeams = useMemo(() => {
+    if (!advancement?.top8) return [];
+    return teams.filter(t => advancement.top8.includes(t.id));
+  }, [teams, advancement]);
+
+  const eliminatedTeams = useMemo(() => {
+    if (!advancement?.eliminated) return [];
+    return teams.filter(t => advancement.eliminated.includes(t.id));
+  }, [teams, advancement]);
+
+  const allRounds = SWISS_STAGE_CONFIG.rounds;
+
+  const COL_WIDTH = 240;
+  const COL_GAP = 16;
+  const TOTAL_COLS = 5;
+  const BO1_COLS = 3;
+  const BO3_COLS = 2;
+
+  const totalWidth = COL_WIDTH * TOTAL_COLS + COL_GAP * (TOTAL_COLS - 1);
+  const bo1Width = COL_WIDTH * BO1_COLS + COL_GAP * (BO1_COLS - 1);
+  const bo3Width = COL_WIDTH * BO3_COLS + COL_GAP * (BO3_COLS - 1);
 
   return (
     <div data-testid="swiss-stage-editor" className="w-full">
-      {/* 操作栏 */}
-      <div
-        data-testid="advancement-toolbar"
-        className="flex justify-between items-center mb-4 p-3 bg-gray-800/50 rounded-lg border border-gray-700"
-      >
-        <div className="flex items-center gap-2">
-          <span data-testid="advancement-sync-status" className="text-sm text-gray-400">
-            <span className="text-green-400 flex items-center gap-1">
-              <Check className="w-3 h-3" />
-              已同步
-            </span>
-          </span>
-          <span
-            data-testid="advancement-status"
-            className="ml-4 text-sm text-blue-400 bg-blue-900/20 px-2 py-1 rounded"
-          >
-            晋级状态：自动计算
-          </span>
-        </div>
-        <div className="flex gap-2">
-          <Button
-            data-testid="advancement-refresh-button"
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              toast.info('晋级状态根据比赛结果自动计算');
-            }}
-            className="border-gray-600 text-gray-300 hover:bg-gray-700"
-          >
-            <RotateCcw className="w-4 h-4 mr-1" />
-            刷新
-          </Button>
-        </div>
-      </div>
-
-      <div className="flex gap-8 min-w-[1400px] p-4 overflow-x-auto">
-        {/* 第一轮：0-0 */}
-        <div className="flex flex-col gap-4 w-64">
-          <RoundColumn
-            slot={swissRoundSlots[0]}
-            matches={matchesByRecord['0-0'] || []}
-            teams={teams}
-            onMatchUpdate={onMatchUpdate}
-            onMatchCreate={onMatchCreate}
-          />
-        </div>
-
-        {/* 第二轮：1-0 & 0-1 */}
-        <div className="flex flex-col gap-8 w-64 mt-8">
-          <RoundColumn
-            slot={swissRoundSlots[1]}
-            matches={matchesByRecord['1-0'] || []}
-            teams={teams}
-            onMatchUpdate={onMatchUpdate}
-            onMatchCreate={onMatchCreate}
-          />
-          <RoundColumn
-            slot={swissRoundSlots[2]}
-            matches={matchesByRecord['0-1'] || []}
-            teams={teams}
-            onMatchUpdate={onMatchUpdate}
-            onMatchCreate={onMatchCreate}
-          />
-        </div>
-
-        {/* 第三轮：1-1, 0-2 */}
-        <div className="flex flex-col gap-8 w-64">
-          <RoundColumn
-            slot={swissRoundSlots[3]}
-            matches={matchesByRecord['1-1'] || []}
-            teams={teams}
-            onMatchUpdate={onMatchUpdate}
-            onMatchCreate={onMatchCreate}
-          />
-          <div className="mt-4">
-            <RoundColumn
-              slot={swissRoundSlots[4]}
-              matches={matchesByRecord['0-2'] || []}
-              teams={teams}
-              onMatchUpdate={onMatchUpdate}
-              onMatchCreate={onMatchCreate}
-            />
+      <div className="p-4 overflow-x-auto min-w-[900px]">
+        {/* BO1/BO3 区域标签 - 精确对齐下方列 */}
+        <div className="flex mb-2" style={{ width: totalWidth }}>
+          {/* BO1 标签 - 精确覆盖第1-3轮 */}
+          <div className="flex flex-col items-center" style={{ width: bo1Width }}>
+            <div className="flex items-center justify-center w-full pb-3 border-b-4 border-green-500">
+              <span className="px-6 py-1.5 bg-green-600/20 text-green-400 text-sm font-bold rounded border-2 border-green-500/50">
+                BO1
+              </span>
+            </div>
+          </div>
+          {/* BO3 标签 - 精确覆盖第4-5轮 */}
+          <div className="flex flex-col items-center" style={{ width: bo3Width }}>
+            <div className="flex items-center justify-center w-full pb-3 border-b-4 border-blue-500">
+              <span className="px-6 py-1.5 bg-blue-600/20 text-blue-400 text-sm font-bold rounded border-2 border-blue-500/50">
+                BO3
+              </span>
+            </div>
           </div>
         </div>
 
-        {/* 第四轮：2-1, 1-2 */}
-        <div className="flex flex-col gap-8 w-64 mt-16">
-          <RoundColumn
-            slot={swissRoundSlots[5]}
-            matches={matchesByRecord['2-1'] || []}
-            teams={teams}
-            onMatchUpdate={onMatchUpdate}
-            onMatchCreate={onMatchCreate}
-          />
+        {/* 5轮比赛列 - 均匀分布 */}
+        <div className="flex gap-4" style={{ width: totalWidth }}>
+          {allRounds.map(round => (
+            <div
+              key={round.round}
+              className="flex-shrink-0"
+              style={{ width: COL_WIDTH }}
+            >
+              {/* 轮次标题 */}
+              <div className="text-center pb-2 mb-3" style={{ borderBottom: '1px solid rgb(55 65 81)' }}>
+                <h3 className="text-sm font-bold text-white uppercase tracking-wider">
+                  {round.label}
+                </h3>
+                <span className="text-xs text-gray-500">
+                  ({round.records.length} 组)
+                </span>
+              </div>
+
+              {/* 该轮的所有战绩分组 */}
+              <div className="space-y-4">
+                {round.records.map(record => {
+                  const slot = swissRoundSlots.find(s => s.swissRecord === record);
+                  if (!slot) return null;
+                  const slotMatches = matchesByRecord[record] || [];
+                  return (
+                    <div key={record} className="space-y-2">
+                      {/* 战绩标签 */}
+                      <div className="text-xs text-gray-400 uppercase tracking-wider text-center font-medium bg-gray-800/50 py-1 rounded">
+                        {record}
+                      </div>
+                      {/* 该战绩的比赛槽位 */}
+                      <div className="space-y-2">
+                        {slotMatches.map((match, idx) => (
+                          <FixedSlotMatchCard
+                            key={`${record}-${idx}`}
+                            match={match}
+                            teams={teams}
+                            slot={slot}
+                            slotIndex={idx}
+                            onUpdate={onMatchUpdate}
+                            onCreate={onMatchCreate}
+                          />
+                        ))}
+                        {Array.from({ length: Math.max(0, slot.maxMatches - slotMatches.length) }).map((_, idx) => (
+                          <FixedSlotMatchCard
+                            key={`empty-${record}-${idx}`}
+                            match={null}
+                            teams={teams}
+                            slot={slot}
+                            slotIndex={slotMatches.length + idx}
+                            onUpdate={onMatchUpdate}
+                            onCreate={onMatchCreate}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* 晋级/淘汰区域 */}
+        <div className="flex gap-6 pt-6 mt-6 border-t border-gray-700">
+          {qualifiedTeams.length > 0 && (
+            <SwissRecordGroup
+              type="qualified"
+              title="3-2 晋级"
+              teams={qualifiedTeams}
+              data-testid="editor-qualified-3-2"
+            />
+          )}
+          {eliminatedTeams.length > 0 && (
+            <SwissRecordGroup
+              type="eliminated"
+              title="2-3 淘汰"
+              teams={eliminatedTeams}
+              data-testid="editor-eliminated-2-3"
+            />
+          )}
         </div>
       </div>
     </div>

@@ -45,10 +45,6 @@ describe('TeamsService', () => {
   });
 
   describe('findAll', () => {
-    it('should be defined', () => {
-      expect(service.findAll).toBeDefined();
-    });
-
     it('should return teams from cache', async () => {
       const mockTeams = [{ id: '1', name: 'Team 1', players: [] }];
       mockCacheService.get.mockReturnValue(mockTeams);
@@ -70,13 +66,20 @@ describe('TeamsService', () => {
       expect(result).toHaveLength(1);
       expect(mockDatabaseService.all).toHaveBeenCalledTimes(2);
     });
+
+    it('should cache results after database query', async () => {
+      mockCacheService.get.mockReturnValue(undefined);
+      mockDatabaseService.all
+        .mockResolvedValueOnce([{ id: '1', name: 'Team 1' }])
+        .mockResolvedValueOnce([]);
+
+      await service.findAll();
+
+      expect(mockCacheService.set).toHaveBeenCalledWith('teams:all', expect.any(Array));
+    });
   });
 
   describe('findOne', () => {
-    it('should be defined', () => {
-      expect(service.findOne).toBeDefined();
-    });
-
     it('should return a team from cache', async () => {
       const mockTeam = { id: '1', name: 'Team 1', players: [] };
       mockCacheService.get.mockReturnValue(mockTeam);
@@ -85,6 +88,27 @@ describe('TeamsService', () => {
 
       expect(result).toEqual(mockTeam);
       expect(mockCacheService.get).toHaveBeenCalledWith('team:1');
+    });
+
+    it('should return a team from database when cache is empty', async () => {
+      mockCacheService.get.mockReturnValue(undefined);
+      mockDatabaseService.get.mockResolvedValue({ id: '1', name: 'Team 1' });
+      mockDatabaseService.all.mockResolvedValue([]);
+
+      const result = await service.findOne('1');
+
+      expect(result.id).toBe('1');
+      expect(mockDatabaseService.get).toHaveBeenCalledWith(expect.any(String), ['1']);
+    });
+
+    it('should cache result after database query', async () => {
+      mockCacheService.get.mockReturnValue(undefined);
+      mockDatabaseService.get.mockResolvedValue({ id: '1', name: 'Team 1' });
+      mockDatabaseService.all.mockResolvedValue([]);
+
+      await service.findOne('1');
+
+      expect(mockCacheService.set).toHaveBeenCalledWith('team:1', expect.any(Object));
     });
 
     it('should throw NotFoundException for non-existent team', async () => {
@@ -96,14 +120,108 @@ describe('TeamsService', () => {
   });
 
   describe('create', () => {
-    it('should be defined', () => {
-      expect(service.create).toBeDefined();
+    it('should create team with auto-generated UUID', async () => {
+      mockDatabaseService.run.mockResolvedValue({ changes: 1 });
+      mockDatabaseService.get.mockResolvedValue({
+        id: '550e8400-e29b-41d4-a716-446655440000',
+        name: 'Test Team',
+        logo: 'logo.png',
+        battle_cry: 'Test',
+      });
+
+      const result = await service.create({
+        name: 'Test Team',
+        logo: 'logo.png',
+        battleCry: 'Test',
+      });
+
+      expect(result.id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i);
+      expect(result.name).toBe('Test Team');
+    });
+
+    it('should create team with auto-generated UUID when id not provided', async () => {
+      mockDatabaseService.run.mockResolvedValue({ changes: 1 });
+      mockDatabaseService.get.mockResolvedValue({
+        id: 'team-1',
+        name: 'Test Team',
+      });
+
+      const result = await service.create({
+        name: 'Test Team',
+      });
+
+      // 验证创建了战队 + 5 个默认队员 = 6 次调用
+      expect(mockDatabaseService.run).toHaveBeenCalledTimes(6);
+      expect(result.id).toBe('team-1');
+    });
+
+    it('should create default 5 players when not provided', async () => {
+      mockDatabaseService.run.mockResolvedValue({ changes: 1 });
+      mockDatabaseService.get.mockResolvedValue({
+        id: 'team-1',
+        name: 'Test Team',
+      });
+
+      await service.create({
+        name: 'Test Team',
+      });
+
+      // 验证插入了 5 个默认队员
+      expect(mockDatabaseService.run).toHaveBeenCalledTimes(6); // 1 team + 5 players
+    });
+
+    it('should clear cache after creation', async () => {
+      mockDatabaseService.run.mockResolvedValue({ changes: 1 });
+      mockDatabaseService.get.mockResolvedValue({
+        id: 'team-1',
+        name: 'Test Team',
+      });
+
+      await service.create({ name: 'Test Team' });
+
+      expect(mockCacheService.del).toHaveBeenCalledWith('teams:all');
     });
   });
 
   describe('update', () => {
-    it('should be defined', () => {
-      expect(service.update).toBeDefined();
+    it('should update team successfully', async () => {
+      mockDatabaseService.get
+        .mockResolvedValueOnce({ id: '1' }) // existence check
+        .mockResolvedValue({
+          id: '1',
+          name: 'Updated Name',
+          logo: 'new-logo.png',
+        });
+
+      const result = await service.update('1', { name: 'Updated Name', logo: 'new-logo.png' });
+
+      expect(mockDatabaseService.run).toHaveBeenCalled();
+      expect(result.name).toBe('Updated Name');
+    });
+
+    it('should update team with players', async () => {
+      mockDatabaseService.get.mockResolvedValueOnce({ id: '1' });
+      mockDatabaseService.run.mockResolvedValue({ changes: 1 });
+
+      await service.update('1', {
+        members: [{ id: 'p1', nickname: 'NewPlayer', position: 'MID' }],
+      });
+
+      // 验证删除了旧队员并插入了新队员
+      expect(mockDatabaseService.run).toHaveBeenCalledWith(
+        'DELETE FROM team_members WHERE team_id = ?',
+        ['1'],
+      );
+    });
+
+    it('should clear cache after update', async () => {
+      mockDatabaseService.get.mockResolvedValueOnce({ id: '1' });
+      mockDatabaseService.run.mockResolvedValue({ changes: 1 });
+
+      await service.update('1', { name: 'Updated' });
+
+      expect(mockCacheService.del).toHaveBeenCalledWith('teams:all');
+      expect(mockCacheService.del).toHaveBeenCalledWith('team:1');
     });
 
     it('should throw NotFoundException for non-existent team', async () => {
@@ -112,11 +230,44 @@ describe('TeamsService', () => {
       const updateDto = { name: 'Updated Name' };
       await expect(service.update('non-existent-id', updateDto)).rejects.toThrow(NotFoundException);
     });
+
+    it('should not update when no fields provided', async () => {
+      mockDatabaseService.get.mockResolvedValue({ id: '1' });
+
+      await service.update('1', {});
+
+      expect(mockDatabaseService.run).not.toHaveBeenCalled();
+    });
   });
 
   describe('remove', () => {
-    it('should be defined', () => {
-      expect(service.remove).toBeDefined();
+    it('should remove team successfully', async () => {
+      mockDatabaseService.get.mockResolvedValue({ id: '1' });
+      mockDatabaseService.run.mockResolvedValue({ changes: 1 });
+
+      await service.remove('1');
+
+      expect(mockDatabaseService.run).toHaveBeenCalledWith('DELETE FROM teams WHERE id = ?', ['1']);
+    });
+
+    it('should delete team and rely on database cascade', async () => {
+      mockDatabaseService.get.mockResolvedValue({ id: '1' });
+      mockDatabaseService.run.mockResolvedValue({ changes: 1 });
+
+      await service.remove('1');
+
+      // 验证只删除了战队（数据库外键约束会级联删除队员）
+      expect(mockDatabaseService.run).toHaveBeenCalledWith('DELETE FROM teams WHERE id = ?', ['1']);
+    });
+
+    it('should clear cache after removal', async () => {
+      mockDatabaseService.get.mockResolvedValue({ id: '1' });
+      mockDatabaseService.run.mockResolvedValue({ changes: 1 });
+
+      await service.remove('1');
+
+      expect(mockCacheService.del).toHaveBeenCalledWith('teams:all');
+      expect(mockCacheService.del).toHaveBeenCalledWith('team:1');
     });
 
     it('should throw NotFoundException for non-existent team', async () => {
@@ -337,6 +488,87 @@ describe('TeamsService', () => {
       await expect(service.updateCaptain('team1', 'non-existent')).rejects.toThrow(
         NotFoundException,
       );
+    });
+  });
+
+  describe('边界值测试', () => {
+    it('should handle very long team name', async () => {
+      mockDatabaseService.get.mockResolvedValue({ id: '1' });
+      const longName = 'A'.repeat(500);
+      mockDatabaseService.run.mockResolvedValue({ changes: 1 });
+
+      await service.update('1', { name: longName });
+
+      expect(mockDatabaseService.run).toHaveBeenCalledWith(
+        expect.stringContaining('name'),
+        expect.arrayContaining([longName]),
+      );
+    });
+
+    it('should handle special characters in team name', async () => {
+      mockDatabaseService.get.mockResolvedValue({ id: '1' });
+      const specialName = "Team <script>alert('xss')</script> ' OR 1=1--";
+      mockDatabaseService.run.mockResolvedValue({ changes: 1 });
+
+      await service.update('1', { name: specialName });
+
+      expect(mockDatabaseService.run).toHaveBeenCalled();
+    });
+
+    it('should handle empty string as team name in update', async () => {
+      mockDatabaseService.get.mockResolvedValue({ id: '1' });
+      mockDatabaseService.run.mockResolvedValue({ changes: 1 });
+
+      await service.update('1', { name: '' });
+
+      expect(mockDatabaseService.run).toHaveBeenCalledWith(
+        expect.stringContaining('name'),
+        expect.arrayContaining(['']),
+      );
+    });
+
+    it('should handle invalid UUID format', async () => {
+      mockDatabaseService.get.mockResolvedValueOnce({ id: 'invalid-uuid' });
+      mockDatabaseService.get.mockResolvedValue({
+        id: 'invalid-uuid',
+        name: 'Test',
+      });
+
+      const result = await service.findOne('invalid-uuid');
+
+      expect(result.id).toBe('invalid-uuid');
+    });
+
+    it('should handle member with empty nickname', async () => {
+      mockDatabaseService.get.mockResolvedValueOnce({ id: 'team1' });
+      mockDatabaseService.run.mockResolvedValue({ changes: 1 });
+      mockDatabaseService.get.mockResolvedValue({
+        id: 'm1',
+        team_id: 'team1',
+        nickname: '',
+        position: 'MID',
+        is_captain: 0,
+      });
+
+      const result = await service.createMember('team1', { nickname: '', position: 'MID' });
+
+      expect(mockDatabaseService.run).toHaveBeenCalled();
+      expect(result.nickname).toBe('');
+    });
+
+    it('should handle team with maximum players count', async () => {
+      mockDatabaseService.get.mockResolvedValue({ id: '1' });
+      mockDatabaseService.run.mockResolvedValue({ changes: 1 });
+
+      const manyMembers = Array.from({ length: 20 }, (_, i) => ({
+        id: `p${i}`,
+        nickname: `Player${i}`,
+        position: 'TOP' as const,
+      }));
+
+      await service.update('1', { members: manyMembers });
+
+      expect(mockDatabaseService.run).toHaveBeenCalled();
     });
   });
 });

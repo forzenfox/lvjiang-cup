@@ -98,12 +98,7 @@ const ErrorState: React.FC<{ message: string; onRetry: () => void }> = ({ messag
   </div>
 );
 
-interface TeamSectionProps {
-  /** 自动刷新间隔（毫秒），默认 30000ms (30秒) */
-  refreshInterval?: number;
-}
-
-const TeamSection: React.FC<TeamSectionProps> = ({ refreshInterval = 30000 }) => {
+const TeamSection: React.FC = () => {
   const [teams, setTeams] = useState<Team[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -181,36 +176,13 @@ const TeamSection: React.FC<TeamSectionProps> = ({ refreshInterval = 30000 }) =>
   }, []);
 
   useEffect(() => {
-    // 初始加载
     fetchTeams();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    // 设置自动刷新
-    const interval = setInterval(() => {
-      fetchTeams();
-    }, refreshInterval);
-
-    // 页面可见性检测：切换回页面时立即刷新
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        fetchTeams();
-      }
-    };
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
-    // 清理函数
-    return () => {
-      clearInterval(interval);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, [refreshInterval, fetchTeams]);
+  }, [fetchTeams]);
 
   return (
     <section
       id="teams"
-      className="min-h-screen py-20 bg-gradient-to-b from-background to-black relative"
+      className="min-h-screen py-20 bg-black relative"
     >
       <div className="container mx-auto px-4">
         <h2 className="text-4xl md:text-5xl font-bold text-center mb-16 text-white uppercase tracking-wider">

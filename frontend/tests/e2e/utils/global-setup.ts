@@ -62,7 +62,7 @@ async function globalSetup(config: FullConfig) {
 
     // 执行登录操作
     console.log('🔐 正在执行登录...');
-    await page.goto(`${baseURL}/admin`, { waitUntil: 'domcontentloaded' });
+    await page.goto(`${baseURL}/admin/login`, { waitUntil: 'domcontentloaded' });
 
     // 填写登录表单
     const adminUsername = process.env.ADMIN_USERNAME!;
@@ -70,14 +70,14 @@ async function globalSetup(config: FullConfig) {
 
     // 输入用户名
     const usernameInput = page
-      .locator('input[name="username"], input[placeholder*="用户名"], input[type="text"]')
+      .locator('input#username, input[name="username"], input[placeholder*="用户名"], input[type="text"]')
       .first();
     await usernameInput.waitFor({ state: 'visible', timeout: 10000 });
     await usernameInput.fill(adminUsername);
 
     // 输入密码
     const passwordInput = page
-      .locator('input[name="password"], input[placeholder*="密码"], input[type="password"]')
+      .locator('input#password, input[name="password"], input[placeholder*="密码"], input[type="password"]')
       .first();
     await passwordInput.waitFor({ state: 'visible', timeout: 10000 });
     await passwordInput.fill(adminPassword);

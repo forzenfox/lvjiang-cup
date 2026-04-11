@@ -11,3 +11,4 @@ export { TeamsPage } from './TeamsPage';
 export { SchedulePage } from './SchedulePage';
 export { StreamPage } from './StreamPage';
 export { AdvancementPage } from './AdvancementPage';
+export { SwissStageEditorPage } from './SwissStageEditorPage';

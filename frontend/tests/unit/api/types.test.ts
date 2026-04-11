@@ -91,17 +91,16 @@ describe('API Types Compliance', () => {
   describe('Advancement Interface', () => {
     it('should have correct structure', () => {
       const advancement: Advancement = {
-        winners2_0: ['team-1', 'team-2'],
-        winners2_1: ['team-3', 'team-4'],
-        losersBracket: ['team-5', 'team-6'],
-        eliminated3rd: ['team-7'],
-        eliminated0_3: ['team-8'],
+        top8: ['team-1', 'team-2', 'team-3', 'team-4', 'team-5', 'team-6', 'team-7', 'team-8'],
+        eliminated: ['team-9', 'team-10', 'team-11', 'team-12', 'team-13', 'team-14', 'team-15', 'team-16'],
+        rankings: [
+          { teamId: 'team-1', record: '3-0', rank: 1 },
+          { teamId: 'team-2', record: '2-1', rank: 2 },
+        ],
       };
-      expect(advancement.winners2_0).toBeInstanceOf(Array);
-      expect(advancement.winners2_1).toBeInstanceOf(Array);
-      expect(advancement.losersBracket).toBeInstanceOf(Array);
-      expect(advancement.eliminated3rd).toBeInstanceOf(Array);
-      expect(advancement.eliminated0_3).toBeInstanceOf(Array);
+      expect(advancement.top8).toBeInstanceOf(Array);
+      expect(advancement.eliminated).toBeInstanceOf(Array);
+      expect(advancement.rankings).toBeInstanceOf(Array);
     });
   });
 });

@@ -4,17 +4,17 @@ const API_VERSION_URL = 'https://ddragon.leagueoflegends.com/api/versions.json';
 const CACHE_KEY = 'lol_champion_cache';
 const CACHE_TTL = 24 * 60 * 60 * 1000;
 
-interface ChampionCache {
-  version: string;
-  lastUpdated: number;
-  champions: Record<string, string>;
-}
-
-interface ChampionData {
+export interface Champion {
   id: string;
   name: string;
   title: string;
   tags: string[];
+}
+
+interface ChampionCache {
+  version: string;
+  lastUpdated: number;
+  champions: Record<string, Champion>;
 }
 
 export async function fetchLatestVersion(): Promise<string | null> {
@@ -29,7 +29,7 @@ export async function fetchLatestVersion(): Promise<string | null> {
   }
 }
 
-export async function fetchChampions(version: string): Promise<Record<string, ChampionData>> {
+export async function fetchChampions(version: string): Promise<Record<string, Champion>> {
   const url = `${CDN_BASE_URL}/${version}/data/zh_CN/champion.json`;
   const res = await fetch(url);
   if (!res.ok) throw new Error('Failed to fetch champions');
@@ -55,18 +55,17 @@ function setCache(cache: ChampionCache): void {
   }
 }
 
-function createChampionMap(champions: Record<string, ChampionData>): Record<string, string> {
-  const map: Record<string, string> = {};
-  for (const enName in champions) {
-    const champion = champions[enName];
-    map[enName] = champion.name;
+function createChampionMap(champions: Record<string, Champion>): Record<string, Champion> {
+  const map: Record<string, Champion> = {};
+  for (const id in champions) {
+    map[id] = champions[id];
   }
   return map;
 }
 
 export async function getChampionList(): Promise<{
   version: string;
-  champions: Record<string, string>;
+  champions: Record<string, Champion>;
 }> {
   const cached = getCache();
   const latestVersion = await fetchLatestVersion();
@@ -105,20 +104,20 @@ export async function getChampionList(): Promise<{
   return { version: 'unknown', champions: {} };
 }
 
-export function getChampionIcon(enName: string, version: string): string {
-  if (!enName || !version) return '';
-  return `${CDN_BASE_URL}/${version}/img/champion/${enName}.png`;
+export function getChampionIcon(id: string, version: string): string {
+  if (!id || !version) return '';
+  return `${CDN_BASE_URL}/${version}/img/champion/${id}.png`;
 }
 
-export function getChampionNameByEn(enName: string, championMap: Record<string, string>): string {
-  return championMap[enName] || enName;
+export function getChampionNameById(id: string, championMap: Record<string, Champion>): string {
+  return championMap[id]?.name || id;
 }
 
 export async function getChampionNameToEn(): Promise<Record<string, string>> {
   const { champions } = await getChampionList();
   const map: Record<string, string> = {};
-  for (const enName in champions) {
-    map[champions[enName]] = enName;
+  for (const id in champions) {
+    map[champions[id].name] = id;
   }
   return map;
 }

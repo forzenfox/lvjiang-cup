@@ -11,22 +11,12 @@ describe('Matches Integration Tests', () => {
   let cacheService: CacheService;
   let module: TestingModule;
 
-  const mockCacheService = {
-    get: jest.fn(),
-    set: jest.fn(),
-    del: jest.fn(),
-    flush: jest.fn(),
-  };
-
   beforeAll(async () => {
     module = await Test.createTestingModule({
       providers: [
         MatchesService,
         DatabaseService,
-        {
-          provide: CacheService,
-          useValue: mockCacheService,
-        },
+        CacheService,
         {
           provide: ConfigService,
           useValue: {
@@ -55,7 +45,7 @@ describe('Matches Integration Tests', () => {
 
   beforeEach(async () => {
     await cleanupTables();
-    jest.clearAllMocks();
+    cacheService.flush();
   });
 
   async function createTables() {
@@ -95,6 +85,7 @@ describe('Matches Integration Tests', () => {
   async function cleanupTables() {
     await databaseService.run('DELETE FROM matches');
     await databaseService.run('DELETE FROM teams');
+    cacheService.flush();
   }
 
   describe('CRUD Operations', () => {
@@ -124,7 +115,6 @@ describe('Matches Integration Tests', () => {
         ],
       );
 
-      mockCacheService.get.mockReturnValue(undefined);
       const found = await service.findOne(match.id);
       expect(found.id).toBe(match.id);
       expect(found.stage).toBe(match.stage);
@@ -145,9 +135,6 @@ describe('Matches Integration Tests', () => {
         [match.id, match.teamAId, match.teamBId, match.stage, match.round, 'upcoming'],
       );
 
-      mockCacheService.get.mockReturnValue(undefined);
-      mockCacheService.del.mockReturnValue(undefined);
-
       const updated = await service.update(match.id, {
         scoreA: 2,
         scoreB: 1,
@@ -160,41 +147,37 @@ describe('Matches Integration Tests', () => {
     });
 
     it('should throw NotFoundException for non-existent match', async () => {
-      mockCacheService.get.mockReturnValue(undefined);
       await expect(service.findOne('non-existent')).rejects.toThrow(NotFoundException);
     });
   });
 
   describe('Cache Integration', () => {
-    it('should cache matches after first retrieval', async () => {
+    it('should cache matches and return consistent data', async () => {
       await databaseService.run(
         `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status) 
          VALUES (?, ?, ?, ?, ?, ?)`,
         ['match-1', 'team-1', 'team-2', 'swiss', '第一轮', 'upcoming'],
       );
 
-      mockCacheService.get.mockReturnValue(undefined);
       const first = await service.findAll();
       expect(first).toHaveLength(1);
 
-      mockCacheService.get.mockReturnValue(first);
       const second = await service.findAll();
       expect(second).toHaveLength(1);
     });
 
-    it('should clear cache after update', async () => {
+    it('should update match and return new data', async () => {
       await databaseService.run(
         `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status) 
          VALUES (?, ?, ?, ?, ?, ?)`,
         ['match-1', 'team-1', 'team-2', 'swiss', '第一轮', 'upcoming'],
       );
 
-      mockCacheService.get.mockReturnValue(undefined);
-      mockCacheService.del.mockReturnValue(undefined);
+      const updated = await service.update('match-1', { scoreA: 2 });
+      expect(updated.scoreA).toBe(2);
 
-      await service.update('match-1', { scoreA: 2 });
-
-      expect(mockCacheService.del).toHaveBeenCalledWith('match:match-1');
+      const found = await service.findOne('match-1');
+      expect(found.scoreA).toBe(2);
     });
   });
 
@@ -209,7 +192,6 @@ describe('Matches Integration Tests', () => {
         ['match-2', 'team-3', 'team-4', 'elimination', '决赛', 'upcoming'],
       );
 
-      mockCacheService.get.mockReturnValue(undefined);
       const swissMatches = await service.findAll('swiss');
       expect(swissMatches).toHaveLength(1);
       expect(swissMatches[0].stage).toBe('swiss');
@@ -223,9 +205,6 @@ describe('Matches Integration Tests', () => {
         ['match-1', 'team-1', 'team-2', 'swiss', '第一轮', 'finished', 2, 1, 'team-1'],
       );
 
-      mockCacheService.get.mockReturnValue(undefined);
-      mockCacheService.del.mockReturnValue(undefined);
-
       const cleared = await service.clearScores('match-1');
       expect(cleared.scoreA).toBe(0);
       expect(cleared.scoreB).toBe(0);
@@ -234,31 +213,24 @@ describe('Matches Integration Tests', () => {
     });
   });
 
-  // ==================== 新增测试用例 ====================
-
   describe('比赛 CRUD 完整流程', () => {
     it('should complete full match lifecycle: create → update → finish → clear', async () => {
-      // 创建比赛
       await databaseService.run(
         `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status, swiss_record, swiss_day) 
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
         ['match-1', 'team-1', 'team-2', 'swiss', '第一轮', 'upcoming', '0-0', 1],
       );
 
-      mockCacheService.get.mockReturnValue(undefined);
       let match = await service.findOne('match-1');
       expect(match.status).toBe('upcoming');
       expect(match.scoreA).toBe(0);
       expect(match.scoreB).toBe(0);
 
-      // 更新为进行中
-      mockCacheService.del.mockReturnValue(undefined);
       await databaseService.run(`UPDATE matches SET status = ? WHERE id = ?`, [
         'ongoing',
         'match-1',
       ]);
 
-      // 更新比分
       match = await service.update('match-1', {
         scoreA: 2,
         scoreB: 1,
@@ -269,7 +241,6 @@ describe('Matches Integration Tests', () => {
       expect(match.scoreB).toBe(1);
       expect(match.winnerId).toBe('team-1');
 
-      // 清空比分
       match = await service.clearScores('match-1');
       expect(match.scoreA).toBe(0);
       expect(match.scoreB).toBe(0);
@@ -301,7 +272,6 @@ describe('Matches Integration Tests', () => {
         ],
       );
 
-      mockCacheService.get.mockReturnValue(undefined);
       const match = await service.findOne('match-full');
       expect(match.stage).toBe('elimination');
       expect(match.eliminationBracket).toBe('grand_finals');
@@ -318,10 +288,6 @@ describe('Matches Integration Tests', () => {
         ['match-1', 'team-1', 'team-2', 'swiss', '第一轮', 'upcoming'],
       );
 
-      mockCacheService.get.mockReturnValue(undefined);
-      mockCacheService.del.mockReturnValue(undefined);
-
-      // team-1 获胜
       let match = await service.update('match-1', {
         scoreA: 2,
         scoreB: 1,
@@ -329,7 +295,6 @@ describe('Matches Integration Tests', () => {
       });
       expect(match.winnerId).toBe('team-1');
 
-      // 更新比分，team-2 获胜
       match = await service.update('match-1', {
         scoreA: 1,
         scoreB: 2,
@@ -345,9 +310,6 @@ describe('Matches Integration Tests', () => {
         ['match-1', 'team-1', 'team-2', 'swiss', '第一轮', 'upcoming'],
       );
 
-      mockCacheService.get.mockReturnValue(undefined);
-      mockCacheService.del.mockReturnValue(undefined);
-
       const match = await service.update('match-1', {
         scoreA: 1,
         scoreB: 1,
@@ -359,15 +321,11 @@ describe('Matches Integration Tests', () => {
     });
 
     it('should handle BO3 and BO5 match formats', async () => {
-      // BO3 比赛
       await databaseService.run(
         `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status) 
          VALUES (?, ?, ?, ?, ?, ?)`,
         ['match-bo3', 'team-1', 'team-2', 'swiss', '第二轮', 'upcoming'],
       );
-
-      mockCacheService.get.mockReturnValue(undefined);
-      mockCacheService.del.mockReturnValue(undefined);
 
       let match = await service.update('match-bo3', {
         scoreA: 2,
@@ -377,7 +335,6 @@ describe('Matches Integration Tests', () => {
       expect(match.scoreA).toBe(2);
       expect(match.winnerId).toBe('team-1');
 
-      // BO5 比赛
       await databaseService.run(
         `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status) 
          VALUES (?, ?, ?, ?, ?, ?)`,
@@ -403,12 +360,10 @@ describe('Matches Integration Tests', () => {
         ['swiss-r1', 'team-1', 'team-2', 'swiss', 'Round 1', 'finished', '0-0', 1],
       );
 
-      mockCacheService.get.mockReturnValue(undefined);
       let match = await service.findOne('swiss-r1');
       expect(match.swissRecord).toBe('0-0');
       expect(match.swissDay).toBe(1);
 
-      // Round 2 High: 1-0
       await databaseService.run(
         `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status, swiss_record, swiss_day) 
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -418,7 +373,6 @@ describe('Matches Integration Tests', () => {
       match = await service.findOne('swiss-r2h');
       expect(match.swissRecord).toBe('1-0');
 
-      // Round 2 Low: 0-1
       await databaseService.run(
         `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status, swiss_record, swiss_day) 
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -469,12 +423,10 @@ describe('Matches Integration Tests', () => {
         ],
       );
 
-      mockCacheService.get.mockReturnValue(undefined);
       let match = await service.findOne('elim-winners-1');
       expect(match.eliminationBracket).toBe('winners');
       expect(match.eliminationGameNumber).toBe(1);
 
-      // 败者组第一轮
       await databaseService.run(
         `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status, 
          elimination_bracket, elimination_game_number) 
@@ -546,35 +498,26 @@ describe('Matches Integration Tests', () => {
         ['match-1', 'team-1', 'team-2', 'swiss', '第一轮', 'upcoming'],
       );
 
-      mockCacheService.get.mockReturnValue(undefined);
-      mockCacheService.del.mockReturnValue(undefined);
-
-      // 多次更新
       await service.update('match-1', { scoreA: 1 });
       await service.update('match-1', { scoreB: 1 });
       await service.update('match-1', { scoreA: 2, winnerId: 'team-1' });
 
-      // 验证缓存清除被调用
-      expect(mockCacheService.del).toHaveBeenCalledWith('match:match-1');
-      expect(mockCacheService.del).toHaveBeenCalledWith('matches:all');
+      const match = await service.findOne('match-1');
+      expect(match.scoreA).toBe(2);
+      expect(match.scoreB).toBe(1);
+      expect(match.winnerId).toBe('team-1');
     });
 
-    it('should handle cache miss correctly', async () => {
+    it('should handle cache miss and retrieve data from database', async () => {
       await databaseService.run(
         `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status, score_a, score_b) 
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
         ['match-1', 'team-1', 'team-2', 'swiss', '第一轮', 'finished', 2, 1],
       );
 
-      // 模拟缓存未命中
-      mockCacheService.get.mockReturnValue(undefined);
-
       const match = await service.findOne('match-1');
       expect(match.scoreA).toBe(2);
       expect(match.scoreB).toBe(1);
-
-      // 验证缓存被设置
-      expect(mockCacheService.set).toHaveBeenCalledWith('match:match-1', expect.any(Object));
     });
   });
 
@@ -586,17 +529,12 @@ describe('Matches Integration Tests', () => {
         ['match-1', 'team-1', 'team-2', 'swiss', '第一轮', 'upcoming', 0, 0],
       );
 
-      mockCacheService.get.mockReturnValue(undefined);
-      mockCacheService.del.mockReturnValue(undefined);
-
-      // 只更新 scoreA
       let match = await service.update('match-1', { scoreA: 1 });
       expect(match.scoreA).toBe(1);
-      expect(match.scoreB).toBe(0); // 保持不变
+      expect(match.scoreB).toBe(0);
 
-      // 只更新 winnerId
       match = await service.update('match-1', { winnerId: 'team-1' });
-      expect(match.scoreA).toBe(1); // 保持不变
+      expect(match.scoreA).toBe(1);
       expect(match.winnerId).toBe('team-1');
     });
 
@@ -607,10 +545,6 @@ describe('Matches Integration Tests', () => {
         ['match-1', 'team-1', 'team-2', 'swiss', '第一轮', 'upcoming'],
       );
 
-      mockCacheService.get.mockReturnValue(undefined);
-      mockCacheService.del.mockReturnValue(undefined);
-
-      // 模拟并发更新
       const promises = [
         service.update('match-1', { scoreA: 1 }),
         service.update('match-1', { scoreB: 1 }),
@@ -619,8 +553,6 @@ describe('Matches Integration Tests', () => {
 
       await Promise.all(promises);
 
-      // 验证最终状态
-      mockCacheService.get.mockReturnValue(undefined);
       const match = await service.findOne('match-1');
       expect(match).toBeDefined();
     });
@@ -628,7 +560,6 @@ describe('Matches Integration Tests', () => {
 
   describe('与 Teams 模块集成', () => {
     it('should associate matches with teams', async () => {
-      // 创建队伍
       await databaseService.run(`INSERT INTO teams (id, name, logo) VALUES (?, ?, ?)`, [
         'team-1',
         'Team One',
@@ -640,28 +571,24 @@ describe('Matches Integration Tests', () => {
         'logo2.png',
       ]);
 
-      // 创建比赛
       await databaseService.run(
         `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status) 
          VALUES (?, ?, ?, ?, ?, ?)`,
         ['match-1', 'team-1', 'team-2', 'swiss', '第一轮', 'upcoming'],
       );
 
-      mockCacheService.get.mockReturnValue(undefined);
       const match = await service.findOne('match-1');
       expect(match.teamAId).toBe('team-1');
       expect(match.teamBId).toBe('team-2');
     });
 
     it('should handle matches with null teams', async () => {
-      // 创建未分配队伍的比赛（比赛槽位）
       await databaseService.run(
         `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status) 
          VALUES (?, ?, ?, ?, ?, ?)`,
         ['slot-1', null, null, 'swiss', 'Round 1', 'upcoming'],
       );
 
-      mockCacheService.get.mockReturnValue(undefined);
       const match = await service.findOne('slot-1');
       expect(match.teamAId).toBeNull();
       expect(match.teamBId).toBeNull();
@@ -670,7 +597,6 @@ describe('Matches Integration Tests', () => {
 
   describe('数据一致性验证', () => {
     it('should maintain match count consistency', async () => {
-      // 创建多场比赛
       for (let i = 0; i < 5; i++) {
         await databaseService.run(
           `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status) 
@@ -679,11 +605,9 @@ describe('Matches Integration Tests', () => {
         );
       }
 
-      mockCacheService.get.mockReturnValue(undefined);
       const allMatches = await service.findAll();
       expect(allMatches).toHaveLength(5);
 
-      // 按阶段过滤
       const swissMatches = await service.findAll('swiss');
       expect(swissMatches).toHaveLength(5);
     });
@@ -695,7 +619,6 @@ describe('Matches Integration Tests', () => {
         ['match-1', 'team-1', 'team-2', 'swiss', '第一轮', 'upcoming'],
       );
 
-      // 验证状态可以更新
       await databaseService.run(`UPDATE matches SET status = ? WHERE id = ?`, [
         'ongoing',
         'match-1',
@@ -707,7 +630,6 @@ describe('Matches Integration Tests', () => {
       );
       expect(match!.status).toBe('ongoing');
 
-      // 更新为完成
       await databaseService.run(`UPDATE matches SET status = ? WHERE id = ?`, [
         'finished',
         'match-1',
@@ -728,18 +650,12 @@ describe('Matches Integration Tests', () => {
         ['match-1', 'team-1', 'team-2', 'swiss', '第一轮', 'upcoming'],
       );
 
-      mockCacheService.get.mockReturnValue(undefined);
-      mockCacheService.del.mockReturnValue(undefined);
-
-      // 并发更新不同字段
       const promises = Array.from({ length: 5 }, (_, i) =>
         service.update('match-1', { scoreA: i + 1 }),
       );
 
       await Promise.all(promises);
 
-      // 验证最终状态（最后一个更新生效）
-      mockCacheService.get.mockReturnValue(undefined);
       const match = await service.findOne('match-1');
       expect(match.scoreA).toBeGreaterThanOrEqual(1);
     });
@@ -755,7 +671,6 @@ describe('Matches Integration Tests', () => {
 
       await Promise.all(promises);
 
-      mockCacheService.get.mockReturnValue(undefined);
       const allMatches = await service.findAll();
       expect(allMatches).toHaveLength(10);
     });
@@ -763,8 +678,6 @@ describe('Matches Integration Tests', () => {
 
   describe('错误处理测试', () => {
     it('should handle update of non-existent match', async () => {
-      mockCacheService.get.mockReturnValue(undefined);
-
       await expect(service.update('non-existent', { scoreA: 1 })).rejects.toThrow(
         NotFoundException,
       );

@@ -135,7 +135,7 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     return all<T>(this.db, sql, params);
   }
 
-  private async initTables() {
+  async initTables() {
     // teams 表
     await run(
       this.db,
@@ -197,7 +197,9 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
         stage TEXT CHECK(stage IN ('swiss', 'elimination')),
         swiss_record TEXT,
         swiss_day INTEGER,
-        elimination_bracket TEXT CHECK(elimination_bracket IN ('winners', 'losers', 'grand_finals')),
+        swiss_round INTEGER,
+        bo_format TEXT,
+        elimination_bracket TEXT CHECK(elimination_bracket IN ('winners', 'losers', 'grand_finals', 'quarterfinals', 'semifinals', 'finals')),
         elimination_game_number INTEGER,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,

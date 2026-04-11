@@ -27,6 +27,13 @@ test.describe('【第二阶段-3】战队列表功能测试', () => {
     await dashboardPage.expectPageLoaded();
   });
 
+  test.afterEach(async ({ page }) => {
+    // 清理测试数据 - 解决测试隔离问题
+    if (teamsPage) {
+      await teamsPage.cleanupTestData();
+    }
+  });
+
   /**
    * TEST-104: 查看战队列表 (US-104)
    * 优先级: P1
@@ -136,6 +143,59 @@ test.describe('【第二阶段-4】战队增删改功能测试', () => {
     // 验证前台页面可以访问
     await homePage.goto();
     await homePage.scrollToTeams();
+  });
+
+  /**
+   * TEST-105-EDIT-MODE: 添加战队后应直接进入编辑模式
+   * 优先级: P0
+   * 验证点击添加战队后，战队卡片展开并显示编辑表单
+   * 这是针对 bug: 添加战队后无法编辑 的回归测试
+   */
+  test('TEST-105-EDIT-MODE: 添加战队后应直接进入编辑模式 @P0', async ({ page }) => {
+    // 导航到战队管理
+    await dashboardPage.navigateToTeams();
+    await teamsPage.expectPageLoaded();
+
+    // 记录添加前的战队数量
+    const initialCount = await teamsPage.getTeamCount();
+
+    // 点击添加战队按钮
+    await teamsPage.clickAddTeam();
+
+    // 验证编辑模式已激活
+    await teamsPage.expectEditModeActive();
+
+    // 验证输入框可编辑
+    const nameInput = page.getByTestId('team-name-input');
+    await expect(nameInput).toBeEnabled();
+    await expect(nameInput).toHaveValue('');
+
+    // 填写战队名称
+    const editModeTeamName = `编辑模式测试-${Date.now()}`;
+    await nameInput.fill(editModeTeamName);
+    await expect(nameInput).toHaveValue(editModeTeamName);
+
+    // 验证保存按钮可用
+    const saveBtn = page.getByTestId('save-team-btn');
+    await expect(saveBtn).toBeVisible();
+    await expect(saveBtn).toBeEnabled();
+
+    // 保存战队
+    await saveBtn.click();
+    await page.waitForTimeout(2000);
+
+    // 刷新页面验证战队已创建
+    await page.reload();
+    await teamsPage.expectPageLoaded();
+
+    // 验证战队数量增加
+    const newCount = await teamsPage.getTeamCount();
+    expect(newCount).toBeGreaterThan(initialCount);
+
+    // 验证新战队存在
+    await teamsPage.expectTeamExists(editModeTeamName);
+
+    console.log(`✅ 添加战队后正确进入编辑模式: ${editModeTeamName}`);
   });
 
   /**

@@ -297,10 +297,11 @@ const AdminTeams: React.FC = () => {
       players: [],
     };
 
-    // 添加到列表开头并展开
+    // 添加到列表开头并展开，同时进入编辑模式
     setTeams([newTeam, ...teams]);
     setExpandedTeamId('new-team');
     setEditingTeamId('new-team');
+    setIsEditingTeam(true);
     setEditingTeamData({
       name: '',
       logo: '',

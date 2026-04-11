@@ -15,6 +15,9 @@ export const swissRoundSlots: SwissRoundSlot[] = [
   { swissRecord: '2-1', roundName: 'Round 4 Mid-High', maxMatches: 3 },
   { swissRecord: '1-2', roundName: 'Round 4 Mid-Low', maxMatches: 3 },
   { swissRecord: '0-3', roundName: 'Round 4 Low', maxMatches: 1 },
+  { swissRecord: '3-1', roundName: 'Round 5 High', maxMatches: 2 },
+  { swissRecord: '2-2', roundName: 'Round 5 Mid', maxMatches: 2 },
+  { swissRecord: '1-3', roundName: 'Round 5 Low', maxMatches: 2 },
 ];
 
 export const getRoundFormat = (swissRecord: string): 'BO1' | 'BO3' | 'BO5' => {
