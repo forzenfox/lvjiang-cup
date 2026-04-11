@@ -1,12 +1,19 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect, useRef, useCallback } from 'react';
 import { Match, Team } from '@/types';
 import SwissRecordSection from './SwissRecordSection';
 import { SWISS_THEME } from '@/constants/swissTheme';
 import {
   SWISS_COLUMNS,
-  getIndicatorRatio,
+  PROMOTION_PATHS,
   type SwissColumnConfig,
 } from '@/constants/swissTreeConfig';
+
+export interface SwissMatchCardPosition {
+  slotId: string;
+  columnId: number;
+  x: number;
+  y: number;
+}
 
 interface SwissRoundTreeProps {
   matches: Match[];
@@ -32,6 +39,79 @@ const SwissRoundTree: React.FC<SwissRoundTreeProps> = ({
   className = '',
   'data-testid': testId = 'swiss-round-tree',
 }) => {
+  // 屏幕宽度状态，用于响应式计算
+  const [screenWidth, setScreenWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1280);
+
+  useEffect(() => {
+    const handleResize = () => setScreenWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Hover 状态 - 用于预览相邻列
+  const [hoveredColumnId, setHoveredColumnId] = useState<number | null>(null);
+
+  // 滚动容器引用 - 用于计算卡片的相对位置
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  // 强制重新渲染计数器 - 用于在位置更新后重新渲染SVG连接线
+  const [lineRenderKey, setLineRenderKey] = useState(0);
+
+  // 比赛卡片位置注册表 - 用于绘制晋级路径连接线
+  const cardPositionRegistry = useRef<Map<string, SwissMatchCardPosition>>(new Map());
+
+  // 清除位置注册表
+  const clearCardPositions = useCallback(() => {
+    cardPositionRegistry.current.clear();
+  }, []);
+
+  // 当activeTab切换时，清除位置注册表
+  useEffect(() => {
+    clearCardPositions();
+  }, [activeTab, clearCardPositions]);
+
+  // 注册比赛卡片位置
+  const registerCardPosition = useCallback((
+    slotId: string,
+    columnId: number,
+    x: number,
+    y: number
+  ) => {
+    cardPositionRegistry.current.set(slotId, { slotId, columnId, x, y });
+  }, []);
+
+  // 获取目标卡槽位置
+  const getTargetPosition = useCallback((targetSlotId: string): SwissMatchCardPosition | null => {
+    return cardPositionRegistry.current.get(targetSlotId) || null;
+  }, []);
+
+  // 计算晋级路径连接线
+  const promotionLines = useMemo(() => {
+    const lines: Array<{
+      fromSlotId: string;
+      toSlotId: string;
+      isWinPath: boolean;
+      key: string;
+    }> = [];
+
+    // 遍历所有槽位的晋级路径
+    Object.entries(PROMOTION_PATHS).forEach(([fromSlotId, targetSlotIds]) => {
+      // 只处理胜场路径（不以-loser结尾的）
+      const isWinPath = !fromSlotId.includes('-loser');
+
+      targetSlotIds.forEach((targetSlotId) => {
+        lines.push({
+          fromSlotId,
+          toSlotId: targetSlotId,
+          isWinPath,
+          key: `${fromSlotId}-${targetSlotId}`,
+        });
+      });
+    });
+
+    return lines;
+  }, [lineRenderKey]);
+
   // 按战绩分组比赛
   const matchesByRecord = useMemo(() => {
     const result: Record<string, Match[]> = {};
@@ -57,29 +137,76 @@ const SwissRoundTree: React.FC<SwissRoundTreeProps> = ({
     return teams.filter(t => advancement.eliminated.includes(t.id));
   }, [teams, advancement]);
 
-  // 获取下划线指示器比例
-  const indicatorRatio = useMemo(() => getIndicatorRatio(activeTab), [activeTab]);
+  // 计算容器宽度和列宽度 - PC端固定4列，通过减小边距来放大列宽
+  // 固定4列
+  const fixedColumnCount = 4;
+  // 基础边距（左右各）
+  const basePadding = 40;
+  // 可用宽度
+  const availableWidth = screenWidth - basePadding * 2;
+  // 每列宽度 = 可用宽度 / 4，最小保持原来的230px，最大可放大到原来的1.3倍
+  const columnWidth = Math.min(
+    Math.floor(availableWidth / fixedColumnCount),
+    Math.floor(SWISS_THEME.columnWidth * 1.3)
+  );
+  // 列间距保持不变
+  const columnGap = SWISS_THEME.gap;
+  // 容器宽度
+  const visibleWidth = fixedColumnCount * columnWidth + (fixedColumnCount - 1) * columnGap;
 
   // 计算滑动偏移量
   // BO1: 显示第1-4列 (索引0-3)，偏移0
   // BO3: 显示第3-6列 (索引2-5)，需要向左滑动2列的宽度
-  const slideOffset = activeTab === 'bo1' 
-    ? 0 
-    : -2 * (SWISS_THEME.columnWidth + SWISS_THEME.gap);
+  const slideOffset = activeTab === 'bo1'
+    ? 0
+    : -2 * (columnWidth + columnGap);
 
-  // 计算容器宽度（4列可见）
-  const visibleWidth = 4 * SWISS_THEME.columnWidth + 3 * SWISS_THEME.gap;
+  // 计算列透明度 - hover预览效果
+  const getColumnOpacity = (columnId: number): number => {
+    if (hoveredColumnId === null) return 0.9;
+    if (columnId === hoveredColumnId) return 1;
+    if (Math.abs(columnId - hoveredColumnId) === 1) return 0.4;
+    return 0.9;
+  };
+
+  // 处理列hover事件
+  const handleColumnHover = (columnId: number | null) => {
+    setHoveredColumnId(columnId);
+  };
+
+  // 处理比赛卡片位置变化
+  const handleMatchCardPositionChange = useCallback((
+    slotId: string,
+    x: number,
+    y: number
+  ) => {
+    // slotId的格式是 "r1-0-0-1"，columnId需要从slotId中提取
+    // 例如：r1 -> 1, r2 -> 2, 等
+    const match = slotId.match(/^r(\d+)-/);
+    if (match) {
+      const columnId = parseInt(match[1], 10);
+      const prevPosition = cardPositionRegistry.current.get(slotId);
+      
+      // 只有位置变化时才更新并触发重新渲染
+      if (!prevPosition || prevPosition.x !== x || prevPosition.y !== y) {
+        cardPositionRegistry.current.set(slotId, { slotId, columnId, x, y });
+        setLineRenderKey(k => k + 1);
+      }
+    }
+  }, []);
 
   // 渲染单列
   const renderColumn = (column: SwissColumnConfig) => {
     return (
       <div
         key={column.id}
-        className="flex flex-col gap-2 flex-shrink-0 transition-all duration-300"
-        style={{ 
-          width: `${SWISS_THEME.columnWidth}px`,
-          opacity: 0.9,
+        className="flex flex-col gap-2 flex-shrink-0 transition-all duration-300 cursor-pointer"
+        style={{
+          width: `${columnWidth}px`,
+          opacity: getColumnOpacity(column.id),
         }}
+        onMouseEnter={() => handleColumnHover(column.id)}
+        onMouseLeave={() => handleColumnHover(null)}
         data-testid={`${testId}-column-${column.id}`}
       >
         {/* 列标题 */}
@@ -113,6 +240,8 @@ const SwissRoundTree: React.FC<SwissRoundTreeProps> = ({
               promotionTeams={recordConfig.type === 'promotion' ? promotionTeams : undefined}
               eliminationTeams={recordConfig.type === 'elimination' ? eliminationTeams : undefined}
               onMatchClick={onMatchClick}
+              onPositionChange={handleMatchCardPositionChange}
+              containerRef={scrollContainerRef}
             />
           ))}
         </div>
@@ -122,82 +251,134 @@ const SwissRoundTree: React.FC<SwissRoundTreeProps> = ({
 
   return (
     <div className={className} data-testid={testId}>
-      {/* BO1/BO3 切换标签 */}
+      {/* BO1/BO3 切换标签 - 方案C：模拟官方3:1宽度比例设计 + 下划线效果 */}
       <div
-        className="flex justify-center mb-4"
+        className="relative mb-4"
         style={{
-          borderBottom: `2px solid ${SWISS_THEME.tabBorder}`,
+          maxWidth: '1920px',
+          marginLeft: 'auto',
+          marginRight: 'auto',
         }}
       >
-        <div className="flex" style={{ width: '400px' }}>
+        {/* 标签容器 */}
+        <div
+          className="flex w-full"
+          style={{
+            position: 'relative',
+            borderBottom: '2px solid rgb(28, 30, 29)',  // 官方深色底边
+          }}
+        >
           <button
             onClick={() => onTabChange('bo1')}
-            className="flex-1 py-3 text-2xl font-bold transition-colors duration-300"
+            className="transition-all duration-300"
             style={{
-              color: activeTab === 'bo1' ? SWISS_THEME.tabActive : SWISS_THEME.tabInactive,
+              flex: activeTab === 'bo1' ? '3' : '1',
+              padding: '0px',
+              fontSize: '36px',
+              fontWeight: 700,
+              color: activeTab === 'bo1'
+                ? 'rgb(169, 144, 120)'  // 官方金色（激活）
+                : 'rgb(221, 221, 221)',  // 官方灰色（非激活）
               backgroundColor: 'transparent',
               border: 'none',
               cursor: 'pointer',
               fontFamily: 'dinbold, sans-serif',
+              lineHeight: '68px',
             }}
           >
             BO1
           </button>
           <button
             onClick={() => onTabChange('bo3')}
-            className="flex-1 py-3 text-2xl font-bold transition-colors duration-300"
+            className="transition-all duration-300"
             style={{
-              color: activeTab === 'bo3' ? SWISS_THEME.tabActive : SWISS_THEME.tabInactive,
+              flex: activeTab === 'bo3' ? '3' : '1',
+              padding: '0px',
+              fontSize: '36px',
+              fontWeight: 700,
+              color: activeTab === 'bo3'
+                ? 'rgb(169, 144, 120)'  // 官方金色（激活）
+                : 'rgb(221, 221, 221)',  // 官方灰色（非激活）
               backgroundColor: 'transparent',
               border: 'none',
               cursor: 'pointer',
               fontFamily: 'dinbold, sans-serif',
+              lineHeight: '68px',
             }}
           >
             BO3
           </button>
         </div>
-      </div>
 
-      {/* 下划线指示器 - 单行显示，带发光效果 */}
-      <div
-        className="relative mb-4 mx-auto"
-        style={{
-          width: '400px',
-          height: '3px',
-          backgroundColor: SWISS_THEME.tabBorder,
-          marginTop: '-2px',
-        }}
-      >
-        {/* 单个下划线，根据activeTab移动位置和改变宽度 */}
+        {/* 下划线指示器 - 模拟 ::after 伪元素效果 */}
+        {/* 官方通过 ::after 实现，我们通过动态宽度的 div 实现 */}
         <div
-          className="absolute top-0 h-full transition-all duration-500"
+          className="absolute transition-all duration-300"
           style={{
-            width: `${indicatorRatio[activeTab] * 400}px`,
-            backgroundColor: SWISS_THEME.tabIndicator,
-            left: activeTab === 'bo1' ? '0px' : `${(1 - indicatorRatio.bo3) * 400}px`,
-            boxShadow: SWISS_THEME.tabGlow,
-            transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
+            height: '2px',
+            backgroundColor: 'rgb(169, 144, 120)',  // 官方金色下划线
+            bottom: '-2px',  // 与容器的 borderBottom 重合
+            left: activeTab === 'bo1' ? '0%' : '25%',  // 激活标签的起始位置
+            width: activeTab === 'bo1' ? '75%' : '75%',  // 与激活标签同宽
+            transitionTimingFunction: 'ease-out',
           }}
         />
       </div>
 
       {/* 赛程区域 - 6列容器，带滑动动画 */}
       <div
-        className="overflow-hidden mx-auto"
+        ref={scrollContainerRef}
+        className="overflow-hidden mx-auto relative"
         style={{
           width: `${visibleWidth}px`,
           minHeight: '500px',
         }}
         data-testid={`${testId}-content`}
       >
+        {/* SVG连接线层 */}
+        <svg
+          className="absolute top-0 left-0 pointer-events-none"
+          style={{
+            width: '100%',
+            height: '100%',
+            overflow: 'visible',
+          }}
+        >
+          {promotionLines.map((line) => {
+            const fromPos = cardPositionRegistry.current.get(line.fromSlotId);
+            const toPos = cardPositionRegistry.current.get(line.toSlotId);
+
+            if (!fromPos || !toPos) return null;
+
+            const fromX = fromPos.x + columnWidth / 2;
+            const fromY = fromPos.y + (line.isWinPath ? 0 : SWISS_THEME.matchCardHeight);
+            const toX = toPos.x + columnWidth / 2;
+            const toY = toPos.y + (line.isWinPath ? SWISS_THEME.matchCardHeight : 0);
+
+            const midY = (fromY + toY) / 2;
+            const path = `M ${fromX} ${fromY} L ${fromX} ${midY} L ${toX} ${midY} L ${toX} ${toY}`;
+
+            return (
+              <path
+                key={line.key}
+                d={path}
+                fill="none"
+                stroke={line.isWinPath ? SWISS_THEME.connector : SWISS_THEME.matchBorder}
+                strokeWidth="2"
+                strokeDasharray={line.isWinPath ? 'none' : '5,5'}
+                opacity="0.5"
+              />
+            );
+          })}
+        </svg>
+
         {/* 6列容器，通过transform实现滑动 */}
         <div
           className="flex transition-transform"
           style={{
             transform: `translateX(${slideOffset}px)`,
-            width: `${6 * SWISS_THEME.columnWidth + 5 * SWISS_THEME.gap}px`,
-            gap: `${SWISS_THEME.gap}px`,
+            width: `${6 * columnWidth + 5 * columnGap}px`,
+            gap: `${columnGap}px`,
             transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
           }}
         >

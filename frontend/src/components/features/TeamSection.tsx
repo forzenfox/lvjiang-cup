@@ -182,7 +182,7 @@ const TeamSection: React.FC = () => {
   return (
     <section
       id="teams"
-      className="min-h-screen py-20 bg-gradient-to-b from-background to-black relative"
+      className="min-h-screen py-20 bg-black relative"
     >
       <div className="container mx-auto px-4">
         <h2 className="text-4xl md:text-5xl font-bold text-center mb-16 text-white uppercase tracking-wider">

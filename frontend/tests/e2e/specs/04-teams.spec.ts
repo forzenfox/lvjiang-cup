@@ -27,6 +27,13 @@ test.describe('【第二阶段-3】战队列表功能测试', () => {
     await dashboardPage.expectPageLoaded();
   });
 
+  test.afterEach(async ({ page }) => {
+    // 清理测试数据 - 解决测试隔离问题
+    if (teamsPage) {
+      await teamsPage.cleanupTestData();
+    }
+  });
+
   /**
    * TEST-104: 查看战队列表 (US-104)
    * 优先级: P1

@@ -12,6 +12,10 @@ interface SwissRecordSectionProps {
   promotionTeams?: Team[];
   eliminationTeams?: Team[];
   onMatchClick?: (match: Match) => void;
+  onPositionChange?: (slotId: string, x: number, y: number) => void;
+  containerRef?: React.RefObject<HTMLElement | null>;
+  baseX?: number;
+  baseY?: number;
   className?: string;
   'data-testid'?: string;
 }
@@ -23,6 +27,10 @@ const SwissRecordSection: React.FC<SwissRecordSectionProps> = ({
   promotionTeams,
   eliminationTeams,
   onMatchClick,
+  onPositionChange,
+  containerRef,
+  baseX = 0,
+  baseY = 0,
   className = '',
   'data-testid': testId = 'swiss-record-section',
 }) => {
@@ -217,6 +225,9 @@ const SwissRecordSection: React.FC<SwissRecordSectionProps> = ({
             match={match}
             teams={teams}
             onClick={onMatchClick ? () => onMatchClick(match) : undefined}
+            slotId={config.slotIds[index]}
+            onPositionChange={onPositionChange}
+            containerRef={containerRef}
           />
         ))}
       </div>

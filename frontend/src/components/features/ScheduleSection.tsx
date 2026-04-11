@@ -172,7 +172,7 @@ const ScheduleSection: React.FC = () => {
   return (
     <section
       id="schedule"
-      className="py-20 px-4 bg-[#0F172A]"
+      className="py-20 px-4 bg-black"
     >
       <div className="max-w-7xl mx-auto">
         <motion.h2

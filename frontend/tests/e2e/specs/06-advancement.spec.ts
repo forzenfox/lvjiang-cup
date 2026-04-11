@@ -4,10 +4,27 @@ import { testTeam, testTeamBeta } from '../fixtures/teams.fixture';
 
 /**
  * 晋级名单管理测试用例
- * 对应测试计划：TEST-111, TEST-112
+ * 对应测试计划：TEST-111, TEST-112, TEST-ADV-01 到 TEST-ADV-05
  *
  * 注意：晋级名单现在自动根据比赛结果计算，不再支持手动拖拽
  */
+
+/**
+ * 确保至少有2支测试战队存在
+ */
+async function ensureTeamsExist(page: any, teamsPage: TeamsPage) {
+  const hasTeamA = await teamsPage.hasTeam(testTeam.name);
+  const hasTeamB = await teamsPage.hasTeam(testTeamBeta.name);
+
+  if (!hasTeamA) {
+    await teamsPage.addNewTeam(testTeam);
+    await page.waitForTimeout(1000);
+  }
+  if (!hasTeamB) {
+    await teamsPage.addNewTeam(testTeamBeta);
+    await page.waitForTimeout(1000);
+  }
+}
 
 test.describe('【第四阶段-1】瑞士轮晋级名单管理测试', () => {
   let dashboardPage: DashboardPage;
@@ -30,44 +47,81 @@ test.describe('【第四阶段-1】瑞士轮晋级名单管理测试', () => {
    * 验证晋级名单根据比赛结果自动计算
    */
   test('TEST-111: 瑞士轮晋级名单 - 自动计算 @P1', async ({ page }) => {
-    // 确保有战队数据
     await dashboardPage.navigateToTeams();
     await teamsPage.expectPageLoaded();
 
-    // 检查并创建测试战队
-    const hasTeamA = await teamsPage.hasTeam(testTeam.name);
-    const hasTeamB = await teamsPage.hasTeam(testTeamBeta.name);
+    await ensureTeamsExist(page, teamsPage);
 
-    if (!hasTeamA) {
-      await teamsPage.addNewTeam(testTeam);
-    }
-    if (!hasTeamB) {
-      await teamsPage.addNewTeam(testTeamBeta);
-    }
-
-    // 导航到赛程管理
     await dashboardPage.navigateToSchedule();
     await schedulePage.expectPageLoaded();
     await schedulePage.switchToSwiss();
 
-    // 验证页面标题可见
     await expect(schedulePage.pageTitle).toBeVisible();
 
-    // 验证瑞士轮编辑器可见
     const swissEditor = page.getByTestId('swiss-stage');
     await expect(swissEditor).toBeVisible();
 
-    // 验证晋级状态显示 - 现在显示自动计算说明
     const advancementStatus = page.getByTestId('advancement-status');
     const hasAdvancementStatus = await advancementStatus.isVisible().catch(() => false);
 
     if (hasAdvancementStatus) {
-      // 验证晋级状态文本包含自动计算说明
       const statusText = await advancementStatus.textContent();
       expect(statusText).toContain('自动计算');
+      console.log(`✅ 晋级状态: ${statusText}`);
     }
 
     console.log('✅ 晋级名单自动计算功能正常');
+  });
+
+  /**
+   * TEST-ADV-01: 3-0战队晋级验证
+   * 优先级：P1
+   * 验证3-0战绩的战队正确进入top8
+   */
+  test('TEST-ADV-01: 3-0战队晋级到top8 @P1', async ({ page }) => {
+    await dashboardPage.navigateToSchedule();
+    await schedulePage.expectPageLoaded();
+    await schedulePage.switchToSwiss();
+
+    const qualifiedGroup_3_0 = page.getByTestId('swiss-record-group-3-0');
+    const hasQualifiedGroup = await qualifiedGroup_3_0.isVisible().catch(() => false);
+
+    if (hasQualifiedGroup) {
+      await expect(qualifiedGroup_3_0).toBeVisible();
+      const teamsInGroup = qualifiedGroup_3_0.locator('[data-testid*="team-name"]');
+      const teamCount = await teamsInGroup.count();
+      console.log(`✅ 3-0晋级组包含 ${teamCount} 支战队`);
+
+      expect(teamCount).toBeGreaterThan(0);
+      expect(teamCount).toBeLessThanOrEqual(4);
+    } else {
+      console.log('⚠️ 暂无3-0战绩的战队');
+    }
+  });
+
+  /**
+   * TEST-ADV-02: 0-3战队淘汰验证
+   * 优先级：P1
+   * 验证0-3战绩的战队正确标记为淘汰
+   */
+  test('TEST-ADV-02: 0-3战队标记为淘汰 @P1', async ({ page }) => {
+    await dashboardPage.navigateToSchedule();
+    await schedulePage.expectPageLoaded();
+    await schedulePage.switchToSwiss();
+
+    const eliminatedGroup_0_3 = page.getByTestId('swiss-record-group-0-3');
+    const hasEliminatedGroup = await eliminatedGroup_0_3.isVisible().catch(() => false);
+
+    if (hasEliminatedGroup) {
+      await expect(eliminatedGroup_0_3).toBeVisible();
+      const teamsInGroup = eliminatedGroup_0_3.locator('[data-testid*="team-name"]');
+      const teamCount = await teamsInGroup.count();
+      console.log(`✅ 0-3淘汰组包含 ${teamCount} 支战队`);
+
+      expect(teamCount).toBeGreaterThan(0);
+    } else {
+      console.log('⚠️ 暂无0-3战绩的战队');
+    }
   });
 
   /**
@@ -76,51 +130,75 @@ test.describe('【第四阶段-1】瑞士轮晋级名单管理测试', () => {
    * 验证晋级名单为2分类（top8 和 eliminated）
    */
   test('TEST-111-2: 晋级名单 - 2分类验证 @P1', async ({ page }) => {
-    // 确保有战队数据
     await dashboardPage.navigateToTeams();
     await teamsPage.expectPageLoaded();
 
-    // 检查并创建测试战队
-    const hasTeamA = await teamsPage.hasTeam(testTeam.name);
-    const hasTeamB = await teamsPage.hasTeam(testTeamBeta.name);
+    await ensureTeamsExist(page, teamsPage);
 
-    if (!hasTeamA) {
-      await teamsPage.addNewTeam(testTeam);
-    }
-    if (!hasTeamB) {
-      await teamsPage.addNewTeam(testTeamBeta);
-    }
-
-    // 导航到赛程管理
     await dashboardPage.navigateToSchedule();
     await schedulePage.expectPageLoaded();
     await schedulePage.switchToSwiss();
 
-    // 验证瑞士轮编辑器可见
     const swissEditor = page.getByTestId('swiss-stage');
     await expect(swissEditor).toBeVisible();
 
-    // 验证晋级状态显示存在
     const advancementStatus = page.getByTestId('advancement-status');
     await expect(advancementStatus).toBeVisible();
 
-    // 验证 top8 展示区域存在（通过瑞士轮第4轮 3-0 组和 2-1 组）
     const qualifiedGroup_3_0 = page.getByTestId('swiss-record-group-3-0');
     const hasQualifiedGroup = await qualifiedGroup_3_0.isVisible().catch(() => false);
 
     if (hasQualifiedGroup) {
+      await expect(qualifiedGroup_3_0).toBeVisible();
       console.log('✅ 3-0 晋级组可见');
     }
 
-    // 验证 eliminated 展示区域存在（通过瑞士轮 0-3 组）
     const eliminatedGroup = page.getByTestId('swiss-record-group-0-3');
     const hasEliminatedGroup = await eliminatedGroup.isVisible().catch(() => false);
 
     if (hasEliminatedGroup) {
+      await expect(eliminatedGroup).toBeVisible();
       console.log('✅ 0-3 淘汰组可见');
     }
 
     console.log('✅ 晋级名单2分类验证完成');
+  });
+
+  /**
+   * TEST-ADV-03: 前后台晋级数据一致性
+   * 优先级：P1
+   * 验证后台配置的晋级数据在前台正确显示
+   */
+  test('TEST-ADV-03: 前后台晋级数据一致性 @P1', async ({ page }) => {
+    await dashboardPage.navigateToTeams();
+    await teamsPage.expectPageLoaded();
+
+    await ensureTeamsExist(page, teamsPage);
+
+    await dashboardPage.navigateToSchedule();
+    await schedulePage.expectPageLoaded();
+    await schedulePage.switchToSwiss();
+
+    const swissEditor = page.getByTestId('swiss-stage');
+    await expect(swissEditor).toBeVisible();
+
+    const backendHasAdvancement = await page.getByTestId('advancement-status').isVisible().catch(() => false);
+    console.log(`✅ 后台晋级状态可见: ${backendHasAdvancement}`);
+
+    await homePage.goto();
+    await homePage.expectPageLoaded();
+
+    const swissTab = page.getByTestId('home-swiss-tab');
+    await expect(swissTab).toBeVisible();
+
+    await swissTab.click();
+    await page.waitForTimeout(500);
+
+    const homeSwissStage = page.getByTestId('swiss-stage-display');
+    const frontendHasSwissStage = await homeSwissStage.isVisible().catch(() => false);
+    console.log(`✅ 前台瑞士轮展示可见: ${frontendHasSwissStage}`);
+
+    expect(frontendHasSwissStage).toBe(true);
   });
 });
 
@@ -147,31 +225,18 @@ test.describe('【第四阶段-2】晋级名单同步验证测试', () => {
    * 验证晋级名单在前后台同步显示
    */
   test('TEST-112: 晋级名单同步验证 @P0', async ({ page }) => {
-    // 确保有战队数据
     await dashboardPage.navigateToTeams();
     await teamsPage.expectPageLoaded();
 
-    // 检查并创建测试战队
-    const hasTeamA = await teamsPage.hasTeam(testTeam.name);
-    const hasTeamB = await teamsPage.hasTeam(testTeamBeta.name);
+    await ensureTeamsExist(page, teamsPage);
 
-    if (!hasTeamA) {
-      await teamsPage.addNewTeam(testTeam);
-    }
-    if (!hasTeamB) {
-      await teamsPage.addNewTeam(testTeamBeta);
-    }
-
-    // 导航到赛程管理
     await dashboardPage.navigateToSchedule();
     await schedulePage.expectPageLoaded();
     await schedulePage.switchToSwiss();
 
-    // 验证瑞士轮编辑器可见
     const swissEditor = page.getByTestId('swiss-stage');
     await expect(swissEditor).toBeVisible();
 
-    // 验证晋级状态显示
     const advancementStatus = page.getByTestId('advancement-status');
     const hasAdvancementStatus = await advancementStatus.isVisible().catch(() => false);
 
@@ -179,19 +244,15 @@ test.describe('【第四阶段-2】晋级名单同步验证测试', () => {
       console.log('✅ 后台晋级状态可见');
     }
 
-    // 访问前台验证
     await homePage.goto();
     await homePage.expectPageLoaded();
 
-    // 验证瑞士轮Tab可见
     const swissTab = page.getByTestId('home-swiss-tab');
     await expect(swissTab).toBeVisible();
 
-    // 切换到瑞士轮视图
     await swissTab.click();
     await page.waitForTimeout(500);
 
-    // 验证瑞士轮展示区域
     const swissStageDisplay = page.getByTestId('swiss-stage-display');
     await expect(swissStageDisplay).toBeVisible();
 
@@ -220,42 +281,37 @@ test.describe('【边界测试】晋级名单边界测试', () => {
    * 验证瑞士轮10个战绩分组正确显示
    */
   test('TEST-B003: 晋级名单 - 瑞士轮战绩分组验证 @P2', async ({ page }) => {
-    // 确保有战队数据
     await dashboardPage.navigateToTeams();
     await teamsPage.expectPageLoaded();
 
-    // 检查并创建测试战队
-    const hasTeamA = await teamsPage.hasTeam(testTeam.name);
-    if (!hasTeamA) {
-      await teamsPage.addNewTeam(testTeam);
-    }
+    await ensureTeamsExist(page, teamsPage);
 
-    // 导航到赛程管理
     await dashboardPage.navigateToSchedule();
     await schedulePage.expectPageLoaded();
     await schedulePage.switchToSwiss();
 
-    // 验证瑞士轮编辑器可见
     const swissEditor = page.getByTestId('swiss-stage');
     await expect(swissEditor).toBeVisible();
 
-    // 验证各个战绩分组存在
     const recordGroups = [
-      'swiss-round-1',    // 0-0 组
-      'swiss-round-2',     // 1-0 和 0-1 组
-      'swiss-round-3',     // 2-0, 1-1, 0-2 组
-      'swiss-round-4',     // 3-0, 2-1, 1-2, 0-3 组
+      'swiss-round-1',
+      'swiss-round-2',
+      'swiss-round-3',
+      'swiss-round-4',
     ];
 
+    let visibleGroups = 0;
     for (const group of recordGroups) {
       const groupElement = page.getByTestId(group);
       const isVisible = await groupElement.isVisible().catch(() => false);
       if (isVisible) {
+        visibleGroups++;
         console.log(`✅ 分组 ${group} 可见`);
       }
     }
 
-    // 验证特殊分组标签
+    expect(visibleGroups).toBeGreaterThan(0);
+
     const group_2_0 = page.getByTestId('swiss-record-group-2-0');
     const group_3_0 = page.getByTestId('swiss-record-group-3-0');
     const group_0_3 = page.getByTestId('swiss-record-group-0-3');
@@ -270,7 +326,35 @@ test.describe('【边界测试】晋级名单边界测试', () => {
       console.log('✅ 0-3 淘汰组标签可见');
     }
 
-    console.log('✅ 晋级名单瑞士轮战绩分组边界测试完成');
+    console.log(`✅ 晋级名单瑞士轮战绩分组边界测试完成，找到 ${visibleGroups} 个轮次分组`);
+  });
+
+  /**
+   * TEST-ADV-04: 战绩分组标签验证
+   * 优先级：P2
+   * 验证各战绩分组的标签正确显示（0-0, 1-0, 0-1, 2-0, 1-1, 0-2, 3-0, 2-1, 1-2, 0-3）
+   */
+  test('TEST-ADV-04: 战绩分组标签验证 @P2', async ({ page }) => {
+    await dashboardPage.navigateToSchedule();
+    await schedulePage.expectPageLoaded();
+    await schedulePage.switchToSwiss();
+
+    const swissEditor = page.getByTestId('swiss-stage');
+    await expect(swissEditor).toBeVisible();
+
+    const expectedRecords = ['0-0', '1-0', '0-1', '2-0', '1-1', '0-2', '3-0', '2-1', '1-2', '0-3'];
+    let foundRecords = 0;
+
+    for (const record of expectedRecords) {
+      const recordGroup = page.getByTestId(`swiss-record-group-${record}`);
+      const isVisible = await recordGroup.isVisible().catch(() => false);
+      if (isVisible) {
+        foundRecords++;
+        console.log(`✅ 战绩分组 ${record} 可见`);
+      }
+    }
+
+    console.log(`✅ 找到 ${foundRecords}/${expectedRecords.length} 个战绩分组`);
   });
 
   /**

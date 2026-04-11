@@ -341,7 +341,6 @@ const AdminSchedule: React.FC = () => {
                       advancement={advancement}
                       onMatchUpdate={handleMatchUpdate}
                       onMatchCreate={handleMatchCreate}
-                      onAdvancementUpdate={handleAdvancementUpdate}
                     />
                   </>
                 )}

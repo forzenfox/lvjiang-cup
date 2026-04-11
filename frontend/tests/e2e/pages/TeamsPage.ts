@@ -43,9 +43,9 @@ export class TeamsPage {
     // 表单元素 - 使用 placeholder 和 label 定位
     this.teamForm = page.locator('form, .card:has(input[placeholder*="请输入战队名称"])');
     this.teamNameInput = page.locator('input[placeholder*="请输入战队名称"]').first();
-    this.teamLogoInput = page.locator('input[placeholder*="logo"]').first();
-    this.teamDescriptionInput = page.locator('textarea[placeholder*="简介"]').first();
-    this.saveButton = page.getByRole('button', { name: '保存战队' });
+    this.teamLogoInput = page.locator('input[placeholder="或输入图标 URL"]').first();
+    this.teamDescriptionInput = page.locator('textarea[placeholder="请输入参赛宣言"]').first();
+    this.saveButton = page.getByRole('button', { name: '保存' });
     this.cancelButton = page.getByRole('button', { name: '取消' });
     this.saveTeamBtn = page.getByTestId('save-team-btn');
     this.cancelEditTeamBtn = page.getByTestId('cancel-edit-team-btn');
@@ -143,9 +143,24 @@ export class TeamsPage {
    * 保存战队
    */
   async saveTeam(): Promise<void> {
-    await this.saveButton.click();
-    // 等待表单关闭
-    await this.page.waitForTimeout(500);
+    // 重新获取保存按钮的引用，因为页面可能已刷新
+    const saveBtn = this.page.getByRole('button', { name: '保存' });
+    const cancelBtn = this.page.getByTestId('cancel-edit-team-btn');
+
+    // 等待按钮可用
+    await saveBtn.waitFor({ state: 'visible', timeout: 5000 });
+
+    // 点击保存
+    await saveBtn.click();
+
+    // 等待保存完成
+    await this.page.waitForTimeout(2000);
+
+    // 等待取消按钮消失（表示表单已关闭）
+    await cancelBtn.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
+
+    // 等待页面稳定
+    await this.page.waitForLoadState('networkidle');
   }
 
   /**
@@ -240,9 +255,20 @@ export class TeamsPage {
    * 获取战队数量
    */
   async getTeamCount(): Promise<number> {
-    // 使用 data-testid 定位战队卡片
     const teamCards = this.page.locator('[data-testid^="team-card-"]');
     return await teamCards.count();
+  }
+
+  /**
+   * 获取所有战队卡片
+   */
+  async getTeamCards(): Promise<Locator[]> {
+    const count = await this.getTeamCount();
+    const cards: Locator[] = [];
+    for (let i = 0; i < count; i++) {
+      cards.push(this.page.locator('[data-testid^="team-card-"]').nth(i));
+    }
+    return cards;
   }
 
   /**
@@ -330,23 +356,90 @@ export class TeamsPage {
 
   /**
    * 加载模拟数据（用于测试）
+   * 通过 API 逐个创建团队
    */
   async loadMockData(): Promise<void> {
-    // 通过 API 调用创建测试数据
-    await this.page.evaluate(async () => {
-      const response = await fetch('/api/admin/teams', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: '测试战队',
-          logo: 'https://example.com/logo.png',
-          description: '测试描述',
-        }),
-      });
-      return response.ok;
-    });
+    // 模拟战队数据
+    const mockTeams = [
+      { name: '驴酱', logo: 'https://picsum.photos/seed/donkey/200/200', battleCry: '驴酱战队' },
+      { name: 'IC', logo: 'https://picsum.photos/seed/icstar/200/200', battleCry: 'IC战队' },
+      { name: 'PLG', logo: 'https://picsum.photos/seed/plgwater/200/200', battleCry: 'PLG战队' },
+      { name: '小熊', logo: 'https://picsum.photos/seed/xiaoxiong/200/200', battleCry: '小熊战队' },
+    ];
+
+    // 逐个创建团队
+    for (const team of mockTeams) {
+      try {
+        await this.page.evaluate(
+          async (teamData) => {
+            const response = await fetch('/api/admin/teams', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(teamData),
+            });
+            return response.ok;
+          },
+          team
+        );
+      } catch (error) {
+        console.error(`创建团队 ${team.name} 失败:`, error);
+      }
+    }
+
     // 刷新页面以加载新数据
     await this.page.reload();
     await this.waitForPageLoad();
+  }
+
+  /**
+   * 清理测试数据 - 删除所有测试创建的战队
+   * 通过 API 直接删除后端数据
+   */
+  async cleanupTestData(): Promise<void> {
+    const baseURL = this.url.replace('/admin/teams', '');
+    const cleanupUrl = `${baseURL}/api/admin/data`;
+
+    try {
+      const response = await this.page.evaluate(async (url) => {
+        const token = localStorage.getItem('token') || localStorage.getItem('auth-token');
+        const loginResponse = await fetch(`${url.replace('/api/admin/data', '/api/admin/auth/login')}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            username: 'admin',
+            password: 'admin123'
+          }),
+        });
+
+        if (!loginResponse.ok) return { success: false };
+
+        const loginData = await loginResponse.json();
+        const adminToken = loginData.data?.access_token || token;
+
+        const clearResponse = await fetch(url, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${adminToken}`,
+            'Content-Type': 'application/json'
+          },
+        });
+        return { success: clearResponse.ok };
+      }, cleanupUrl);
+
+      if (response.success) {
+        await this.page.reload();
+        await this.waitForPageLoad();
+      }
+    } catch (error) {
+      console.error('清理测试数据失败:', error);
+    }
+  }
+
+  /**
+   * 刷新并等待页面稳定
+   */
+  async refreshAndWait(): Promise<void> {
+    await this.refresh();
+    await this.page.waitForTimeout(1000);
   }
 }
