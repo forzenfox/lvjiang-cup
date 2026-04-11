@@ -11,18 +11,6 @@ const styles = `
   }
 `;
 
-// 扩展Window接口，添加APP_CONFIG类型
-declare global {
-  interface Window {
-    APP_CONFIG: {
-      API_BASE_URL: string;
-      APP_NAME: string;
-      VERSION: string;
-      STREAMERS: Streamer[];
-    };
-  }
-}
-
 // 主播类型定义
 interface Streamer {
   id: string;
@@ -40,9 +28,9 @@ interface Streamer {
 
 // 从配置文件获取主播数据
 const getStreamersFromConfig = (): Streamer[] => {
-  // 检查window.APP_CONFIG是否存在
-  if (typeof window !== 'undefined' && window.APP_CONFIG && window.APP_CONFIG.STREAMERS) {
-    return window.APP_CONFIG.STREAMERS;
+  // 检查 window.APP_CONFIG 是否存在
+  if (typeof window !== 'undefined' && window.APP_CONFIG && (window.APP_CONFIG as { STREAMERS?: Streamer[] }).STREAMERS) {
+    return (window.APP_CONFIG as { STREAMERS?: Streamer[] }).STREAMERS!;
   }
   //  fallback 数据
   return [];
