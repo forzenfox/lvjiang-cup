@@ -45,7 +45,7 @@ const BracketTeamLogo: React.FC<{ team?: Team; size?: number }> = ({ team, size 
   );
 };
 
-// 单行队伍组件 - 紧凑设计
+// 单行队伍组件 - 参考官方设计
 const TeamRow: React.FC<{
   team?: Team;
   score: number;
@@ -57,7 +57,7 @@ const TeamRow: React.FC<{
     <div
       className="flex items-center justify-between px-3"
       style={{
-        backgroundColor: isWinner ? 'rgba(200, 170, 110, 0.2)' : 'transparent',
+        backgroundColor: isWinner ? ELIMINATION_THEME.winnerBg : (isLoser ? ELIMINATION_THEME.loserBg : 'transparent'),
         height: '36px', // 固定行高，更紧凑
       }}
       data-testid={testId}
