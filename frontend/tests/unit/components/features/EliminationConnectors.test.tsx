@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { render } from '@testing-library/react';
 import EliminationConnectors from '@/components/features/EliminationConnectors';
-import { ELIMINATION_CONNECTORS } from '@/components/features/eliminationConstants';
+import { ELIMINATION_CONNECTORS, calculateEliminationPositions } from '@/components/features/eliminationConstants';
 
 describe('EliminationConnectors 组件', () => {
   it('应该渲染所有连接线', () => {
@@ -47,5 +47,34 @@ describe('EliminationConnectors 组件', () => {
 
     const lines = container.querySelectorAll('.absolute');
     expect(lines.length).toBeGreaterThan(0);
+  });
+
+  it('应该接受自定义位置参数', () => {
+    const positions = calculateEliminationPositions(900);
+    const { container } = render(
+      <EliminationConnectors positions={positions} containerWidth={900} />
+    );
+
+    const connectors = container.querySelectorAll('.elimination-connector');
+    expect(connectors.length).toBe(ELIMINATION_CONNECTORS.length);
+  });
+
+  it('应该在传入positions时使用传入的位置', () => {
+    const customPositions = {
+      qf1: { x: 10, y: 10 },
+      qf2: { x: 10, y: 100 },
+      qf3: { x: 10, y: 200 },
+      qf4: { x: 10, y: 300 },
+      sf1: { x: 300, y: 55 },
+      sf2: { x: 300, y: 255 },
+      f: { x: 600, y: 155 },
+    };
+
+    const { container } = render(
+      <EliminationConnectors positions={customPositions} containerWidth={900} />
+    );
+
+    const connectors = container.querySelectorAll('.elimination-connector');
+    expect(connectors.length).toBe(ELIMINATION_CONNECTORS.length);
   });
 });

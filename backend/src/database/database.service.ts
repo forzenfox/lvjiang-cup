@@ -196,7 +196,6 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
         start_time TEXT,
         stage TEXT CHECK(stage IN ('swiss', 'elimination')),
         swiss_record TEXT,
-        swiss_day INTEGER,
         swiss_round INTEGER,
         bo_format TEXT,
         elimination_bracket TEXT CHECK(elimination_bracket IN ('winners', 'losers', 'grand_finals', 'quarterfinals', 'semifinals', 'finals')),

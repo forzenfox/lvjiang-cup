@@ -19,7 +19,6 @@ export interface Match {
   stage: 'swiss' | 'elimination';
   swissRecord?: string;
   swissRound?: number;
-  swissDay?: number;
   boFormat?: 'BO1' | 'BO3' | 'BO5';
   eliminationBracket?: 'quarterfinals' | 'semifinals' | 'finals';
   eliminationGameNumber?: number;
@@ -76,7 +75,6 @@ export class MatchesService {
       startTime: match.start_time,
       stage: match.stage,
       swissRecord: match.swiss_record,
-      swissDay: match.swiss_day,
       swissRound: match.swiss_round,
       boFormat: match.bo_format,
       eliminationBracket: match.elimination_bracket,
@@ -132,7 +130,6 @@ export class MatchesService {
       startTime: match.start_time,
       stage: match.stage,
       swissRecord: match.swiss_record,
-      swissDay: match.swiss_day,
       swissRound: match.swiss_round,
       boFormat: match.bo_format,
       eliminationBracket: match.elimination_bracket,
@@ -249,55 +246,50 @@ export class MatchesService {
       return;
     }
 
-    // 瑞士轮槽位（36场）- 16队5轮赛制
+    // 瑞士轮槽位（36场）- 16队5轮赛制，参照LOL S赛规则
     const swissSlots = [
       // 第一轮：0-0，8场 BO1
-      { id: 'swiss-r1-1', round: 'Round 1', stage: 'swiss', swissRecord: '0-0', swissDay: 1, swissRound: 1, boFormat: 'BO1' },
-      { id: 'swiss-r1-2', round: 'Round 1', stage: 'swiss', swissRecord: '0-0', swissDay: 1, swissRound: 1, boFormat: 'BO1' },
-      { id: 'swiss-r1-3', round: 'Round 1', stage: 'swiss', swissRecord: '0-0', swissDay: 1, swissRound: 1, boFormat: 'BO1' },
-      { id: 'swiss-r1-4', round: 'Round 1', stage: 'swiss', swissRecord: '0-0', swissDay: 1, swissRound: 1, boFormat: 'BO1' },
-      { id: 'swiss-r1-5', round: 'Round 1', stage: 'swiss', swissRecord: '0-0', swissDay: 1, swissRound: 1, boFormat: 'BO1' },
-      { id: 'swiss-r1-6', round: 'Round 1', stage: 'swiss', swissRecord: '0-0', swissDay: 1, swissRound: 1, boFormat: 'BO1' },
-      { id: 'swiss-r1-7', round: 'Round 1', stage: 'swiss', swissRecord: '0-0', swissDay: 1, swissRound: 1, boFormat: 'BO1' },
-      { id: 'swiss-r1-8', round: 'Round 1', stage: 'swiss', swissRecord: '0-0', swissDay: 1, swissRound: 1, boFormat: 'BO1' },
-      // 第二轮：1-0，4场 BO3
-      { id: 'swiss-r2-h1', round: 'Round 2 High', stage: 'swiss', swissRecord: '1-0', swissDay: 2, swissRound: 2, boFormat: 'BO3' },
-      { id: 'swiss-r2-h2', round: 'Round 2 High', stage: 'swiss', swissRecord: '1-0', swissDay: 2, swissRound: 2, boFormat: 'BO3' },
-      { id: 'swiss-r2-h3', round: 'Round 2 High', stage: 'swiss', swissRecord: '1-0', swissDay: 2, swissRound: 2, boFormat: 'BO3' },
-      { id: 'swiss-r2-h4', round: 'Round 2 High', stage: 'swiss', swissRecord: '1-0', swissDay: 2, swissRound: 2, boFormat: 'BO3' },
-      // 第二轮：0-1，4场 BO3
-      { id: 'swiss-r2-l1', round: 'Round 2 Low', stage: 'swiss', swissRecord: '0-1', swissDay: 2, swissRound: 2, boFormat: 'BO3' },
-      { id: 'swiss-r2-l2', round: 'Round 2 Low', stage: 'swiss', swissRecord: '0-1', swissDay: 2, swissRound: 2, boFormat: 'BO3' },
-      { id: 'swiss-r2-l3', round: 'Round 2 Low', stage: 'swiss', swissRecord: '0-1', swissDay: 2, swissRound: 2, boFormat: 'BO3' },
-      { id: 'swiss-r2-l4', round: 'Round 2 Low', stage: 'swiss', swissRecord: '0-1', swissDay: 2, swissRound: 2, boFormat: 'BO3' },
+      { id: 'swiss-r1-1', round: 'Round 1', stage: 'swiss', swissRecord: '0-0', swissRound: 1, boFormat: 'BO1' },
+      { id: 'swiss-r1-2', round: 'Round 1', stage: 'swiss', swissRecord: '0-0', swissRound: 1, boFormat: 'BO1' },
+      { id: 'swiss-r1-3', round: 'Round 1', stage: 'swiss', swissRecord: '0-0', swissRound: 1, boFormat: 'BO1' },
+      { id: 'swiss-r1-4', round: 'Round 1', stage: 'swiss', swissRecord: '0-0', swissRound: 1, boFormat: 'BO1' },
+      { id: 'swiss-r1-5', round: 'Round 1', stage: 'swiss', swissRecord: '0-0', swissRound: 1, boFormat: 'BO1' },
+      { id: 'swiss-r1-6', round: 'Round 1', stage: 'swiss', swissRecord: '0-0', swissRound: 1, boFormat: 'BO1' },
+      { id: 'swiss-r1-7', round: 'Round 1', stage: 'swiss', swissRecord: '0-0', swissRound: 1, boFormat: 'BO1' },
+      { id: 'swiss-r1-8', round: 'Round 1', stage: 'swiss', swissRecord: '0-0', swissRound: 1, boFormat: 'BO1' },
+      // 第二轮：1-0，4场 BO1（胜者组）
+      { id: 'swiss-r2-h1', round: 'Round 2 High', stage: 'swiss', swissRecord: '1-0', swissRound: 2, boFormat: 'BO1' },
+      { id: 'swiss-r2-h2', round: 'Round 2 High', stage: 'swiss', swissRecord: '1-0', swissRound: 2, boFormat: 'BO1' },
+      { id: 'swiss-r2-h3', round: 'Round 2 High', stage: 'swiss', swissRecord: '1-0', swissRound: 2, boFormat: 'BO1' },
+      { id: 'swiss-r2-h4', round: 'Round 2 High', stage: 'swiss', swissRecord: '1-0', swissRound: 2, boFormat: 'BO1' },
+      // 第二轮：0-1，4场 BO1（败者组）
+      { id: 'swiss-r2-l1', round: 'Round 2 Low', stage: 'swiss', swissRecord: '0-1', swissRound: 2, boFormat: 'BO1' },
+      { id: 'swiss-r2-l2', round: 'Round 2 Low', stage: 'swiss', swissRecord: '0-1', swissRound: 2, boFormat: 'BO1' },
+      { id: 'swiss-r2-l3', round: 'Round 2 Low', stage: 'swiss', swissRecord: '0-1', swissRound: 2, boFormat: 'BO1' },
+      { id: 'swiss-r2-l4', round: 'Round 2 Low', stage: 'swiss', swissRecord: '0-1', swissRound: 2, boFormat: 'BO1' },
       // 第三轮：2-0，2场 BO3
-      { id: 'swiss-r3-h1', round: 'Round 3 High', stage: 'swiss', swissRecord: '2-0', swissDay: 3, swissRound: 3, boFormat: 'BO3' },
-      { id: 'swiss-r3-h2', round: 'Round 3 High', stage: 'swiss', swissRecord: '2-0', swissDay: 3, swissRound: 3, boFormat: 'BO3' },
-      // 第三轮：1-1，4场 BO3
-      { id: 'swiss-r3-m1', round: 'Round 3 Mid', stage: 'swiss', swissRecord: '1-1', swissDay: 3, swissRound: 3, boFormat: 'BO3' },
-      { id: 'swiss-r3-m2', round: 'Round 3 Mid', stage: 'swiss', swissRecord: '1-1', swissDay: 3, swissRound: 3, boFormat: 'BO3' },
-      { id: 'swiss-r3-m3', round: 'Round 3 Mid', stage: 'swiss', swissRecord: '1-1', swissDay: 3, swissRound: 3, boFormat: 'BO3' },
-      { id: 'swiss-r3-m4', round: 'Round 3 Mid', stage: 'swiss', swissRecord: '1-1', swissDay: 3, swissRound: 3, boFormat: 'BO3' },
+      { id: 'swiss-r3-h1', round: 'Round 3 High', stage: 'swiss', swissRecord: '2-0', swissRound: 3, boFormat: 'BO3' },
+      { id: 'swiss-r3-h2', round: 'Round 3 High', stage: 'swiss', swissRecord: '2-0', swissRound: 3, boFormat: 'BO3' },
+      // 第三轮：1-1，4场 BO1（混合组）
+      { id: 'swiss-r3-m1', round: 'Round 3 Mid', stage: 'swiss', swissRecord: '1-1', swissRound: 3, boFormat: 'BO1' },
+      { id: 'swiss-r3-m2', round: 'Round 3 Mid', stage: 'swiss', swissRecord: '1-1', swissRound: 3, boFormat: 'BO1' },
+      { id: 'swiss-r3-m3', round: 'Round 3 Mid', stage: 'swiss', swissRecord: '1-1', swissRound: 3, boFormat: 'BO1' },
+      { id: 'swiss-r3-m4', round: 'Round 3 Mid', stage: 'swiss', swissRecord: '1-1', swissRound: 3, boFormat: 'BO1' },
       // 第三轮：0-2，2场 BO3
-      { id: 'swiss-r3-l1', round: 'Round 3 Low', stage: 'swiss', swissRecord: '0-2', swissDay: 3, swissRound: 3, boFormat: 'BO3' },
-      { id: 'swiss-r3-l2', round: 'Round 3 Low', stage: 'swiss', swissRecord: '0-2', swissDay: 3, swissRound: 3, boFormat: 'BO3' },
-      // 第四轮：3-0，1场 BO3
-      { id: 'swiss-r4-h1', round: 'Round 4 High', stage: 'swiss', swissRecord: '3-0', swissDay: 4, swissRound: 4, boFormat: 'BO3' },
+      { id: 'swiss-r3-l1', round: 'Round 3 Low', stage: 'swiss', swissRecord: '0-2', swissRound: 3, boFormat: 'BO3' },
+      { id: 'swiss-r3-l2', round: 'Round 3 Low', stage: 'swiss', swissRecord: '0-2', swissRound: 3, boFormat: 'BO3' },
       // 第四轮：2-1，3场 BO3
-      { id: 'swiss-r4-mh1', round: 'Round 4 Mid-High', stage: 'swiss', swissRecord: '2-1', swissDay: 4, swissRound: 4, boFormat: 'BO3' },
-      { id: 'swiss-r4-mh2', round: 'Round 4 Mid-High', stage: 'swiss', swissRecord: '2-1', swissDay: 4, swissRound: 4, boFormat: 'BO3' },
-      { id: 'swiss-r4-mh3', round: 'Round 4 Mid-High', stage: 'swiss', swissRecord: '2-1', swissDay: 4, swissRound: 4, boFormat: 'BO3' },
+      { id: 'swiss-r4-mh1', round: 'Round 4 Mid-High', stage: 'swiss', swissRecord: '2-1', swissRound: 4, boFormat: 'BO3' },
+      { id: 'swiss-r4-mh2', round: 'Round 4 Mid-High', stage: 'swiss', swissRecord: '2-1', swissRound: 4, boFormat: 'BO3' },
+      { id: 'swiss-r4-mh3', round: 'Round 4 Mid-High', stage: 'swiss', swissRecord: '2-1', swissRound: 4, boFormat: 'BO3' },
       // 第四轮：1-2，3场 BO3
-      { id: 'swiss-r4-ml1', round: 'Round 4 Mid-Low', stage: 'swiss', swissRecord: '1-2', swissDay: 4, swissRound: 4, boFormat: 'BO3' },
-      { id: 'swiss-r4-ml2', round: 'Round 4 Mid-Low', stage: 'swiss', swissRecord: '1-2', swissDay: 4, swissRound: 4, boFormat: 'BO3' },
-      { id: 'swiss-r4-ml3', round: 'Round 4 Mid-Low', stage: 'swiss', swissRecord: '1-2', swissDay: 4, swissRound: 4, boFormat: 'BO3' },
-      // 第四轮：0-3，1场 BO3
-      { id: 'swiss-r4-l1', round: 'Round 4 Low', stage: 'swiss', swissRecord: '0-3', swissDay: 4, swissRound: 4, boFormat: 'BO3' },
-      // 第五轮：2-2，4场 BO3（决出最后晋级名额）
-      { id: 'swiss-r5-1', round: 'Round 5', stage: 'swiss', swissRecord: '2-2', swissDay: 5, swissRound: 5, boFormat: 'BO3' },
-      { id: 'swiss-r5-2', round: 'Round 5', stage: 'swiss', swissRecord: '2-2', swissDay: 5, swissRound: 5, boFormat: 'BO3' },
-      { id: 'swiss-r5-3', round: 'Round 5', stage: 'swiss', swissRecord: '2-2', swissDay: 5, swissRound: 5, boFormat: 'BO3' },
-      { id: 'swiss-r5-4', round: 'Round 5', stage: 'swiss', swissRecord: '2-2', swissDay: 5, swissRound: 5, boFormat: 'BO3' },
+      { id: 'swiss-r4-ml1', round: 'Round 4 Mid-Low', stage: 'swiss', swissRecord: '1-2', swissRound: 4, boFormat: 'BO3' },
+      { id: 'swiss-r4-ml2', round: 'Round 4 Mid-Low', stage: 'swiss', swissRecord: '1-2', swissRound: 4, boFormat: 'BO3' },
+      { id: 'swiss-r4-ml3', round: 'Round 4 Mid-Low', stage: 'swiss', swissRecord: '1-2', swissRound: 4, boFormat: 'BO3' },
+      // 第五轮：2-2，3场 BO3（决出最后晋级名额）
+      { id: 'swiss-r5-1', round: 'Round 5', stage: 'swiss', swissRecord: '2-2', swissRound: 5, boFormat: 'BO3' },
+      { id: 'swiss-r5-2', round: 'Round 5', stage: 'swiss', swissRecord: '2-2', swissRound: 5, boFormat: 'BO3' },
+      { id: 'swiss-r5-3', round: 'Round 5', stage: 'swiss', swissRecord: '2-2', swissRound: 5, boFormat: 'BO3' },
     ];
 
     // 淘汰赛槽位（7场）- 8队单败赛制
@@ -317,13 +309,12 @@ export class MatchesService {
     // 插入瑞士轮槽位
     for (const slot of swissSlots) {
       await this.databaseService.run(
-        `INSERT INTO matches (id, round, stage, status, swiss_record, swiss_day, swiss_round, bo_format, elimination_bracket, elimination_game_number) VALUES (?, ?, ?, 'upcoming', ?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO matches (id, round, stage, status, swiss_record, swiss_round, bo_format, elimination_bracket, elimination_game_number) VALUES (?, ?, ?, 'upcoming', ?, ?, ?, ?, ?)`,
         [
           slot.id,
           slot.round,
           slot.stage,
           slot.swissRecord,
-          slot.swissDay,
           slot.swissRound,
           slot.boFormat,
           null,
@@ -335,12 +326,11 @@ export class MatchesService {
     // 插入淘汰赛槽位
     for (const slot of eliminationSlots) {
       await this.databaseService.run(
-        `INSERT INTO matches (id, round, stage, status, swiss_record, swiss_day, swiss_round, bo_format, elimination_bracket, elimination_game_number) VALUES (?, ?, ?, 'upcoming', ?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO matches (id, round, stage, status, swiss_record, swiss_round, bo_format, elimination_bracket, elimination_game_number) VALUES (?, ?, ?, 'upcoming', ?, ?, ?, ?, ?)`,
         [
           slot.id,
           slot.round,
           slot.stage,
-          null,
           null,
           null,
           slot.boFormat,

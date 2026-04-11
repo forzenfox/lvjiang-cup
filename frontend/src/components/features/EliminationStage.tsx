@@ -1,18 +1,18 @@
-import React from 'react';
+import React, { useRef, useState, useEffect, useMemo } from 'react';
 import { Match, Team } from '@/types';
 import BracketMatchCard from './BracketMatchCard';
 import EditableBracketMatchCard from './EditableBracketMatchCard';
 import EliminationConnectors from './EliminationConnectors';
 import {
-  BOARD_WIDTH,
   BOARD_HEIGHT,
-  ELIMINATION_POSITIONS,
+  BOARD_MIN_WIDTH,
+  CARD_WIDTH,
+  calculateEliminationPositions,
   ELIMINATION_STAGES,
   createPlaceholderMatch,
-  ELIMINATION_BO_FORMAT,
+  GAME_NUMBER_TO_STAGE,
 } from './eliminationConstants';
 import { ELIMINATION_THEME } from '@/constants/eliminationTheme';
-import { format } from 'date-fns';
 
 interface EliminationStageProps {
   matches: Match[];
@@ -32,37 +32,44 @@ const GAME_NUMBER_TO_ID: Record<number, string> = {
   7: 'elim-f-1',
 };
 
-// 淘汰赛比赛编号到 bracket 和 index 的映射（8队单败：4QF + 2SF + 1F）
-const GAME_NUMBER_TO_BRACKET_INDEX: Record<number, { bracket: string; index: number }> = {
-  1: { bracket: 'quarterfinals', index: 1 },
-  2: { bracket: 'quarterfinals', index: 2 },
-  3: { bracket: 'quarterfinals', index: 3 },
-  4: { bracket: 'quarterfinals', index: 4 },
-  5: { bracket: 'semifinals', index: 1 },
-  6: { bracket: 'semifinals', index: 2 },
-  7: { bracket: 'finals', index: 1 },
-};
-
 const EliminationStage: React.FC<EliminationStageProps> = ({
   matches,
   teams,
   editable = false,
   onMatchUpdate,
 }) => {
-  const getMatch = (gameNum: number) => matches.find(m => m.eliminationGameNumber === gameNum);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [containerWidth, setContainerWidth] = useState(1200);
 
-  const formatMatchTime = (startTime: string | undefined): string => {
-    if (!startTime) return '待定';
-    try {
-      return format(new Date(startTime), 'MM月dd日 HH:mm');
-    } catch {
-      return '待定';
-    }
+  // 监听容器宽度变化，实现响应式布局
+  useEffect(() => {
+    const updateWidth = () => {
+      if (containerRef.current) {
+        const width = Math.max(containerRef.current.clientWidth, BOARD_MIN_WIDTH);
+        setContainerWidth(width);
+      }
+    };
+
+    updateWidth();
+    window.addEventListener('resize', updateWidth);
+    return () => window.removeEventListener('resize', updateWidth);
+  }, []);
+
+  // 根据容器宽度计算位置
+  const positions = useMemo(() => {
+    return calculateEliminationPositions(containerWidth);
+  }, [containerWidth]);
+
+  // 计算阶段标签的位置（与卡片左对齐）
+  const getStageLabelX = (colIndex: number) => {
+    const colWidth = containerWidth / 3;
+    return colIndex * colWidth + (colWidth - CARD_WIDTH) / 2;
   };
+
+  const getMatch = (gameNum: number) => matches.find(m => m.eliminationGameNumber === gameNum);
 
   const renderMatch = (
     match: Match | undefined,
-    pos: { x: number; y: number },
     gameNum?: number
   ) => {
     let displayMatch: Match;
@@ -77,20 +84,31 @@ const EliminationStage: React.FC<EliminationStageProps> = ({
       displayMatch = createPlaceholderMatch(gameNum);
     }
 
-    const bracketInfo = gameNum ? GAME_NUMBER_TO_BRACKET_INDEX[gameNum] : null;
-    const testId = bracketInfo
-      ? `elim-match-card-${bracketInfo.bracket}-${bracketInfo.index}`
+    const stageInfo = gameNum ? GAME_NUMBER_TO_STAGE[gameNum] : null;
+    const testId = stageInfo
+      ? `elim-match-card-${stageInfo.stage}-${stageInfo.index}`
       : 'bracket-match';
 
+    // 根据游戏编号获取正确的位置
+    let gameKey: string;
+    if (gameNum && gameNum <= 4) {
+      gameKey = `qf${gameNum}`;
+    } else if (gameNum && gameNum <= 6) {
+      gameKey = `sf${gameNum - 4}`;
+    } else {
+      gameKey = 'f';
+    }
+    const gamePos = positions[gameKey as keyof typeof positions] || positions['qf1'];
+
     return (
-      <div className="absolute" style={{ left: pos.x, top: pos.y }}>
-        {/* 时间显示在卡片上方 */}
-        <div
-          className="text-xs text-center mb-1 whitespace-nowrap"
-          style={{ color: ELIMINATION_THEME.loserText, width: ELIMINATION_THEME.cardWidth }}
-        >
-          {formatMatchTime(displayMatch.startTime)}
-        </div>
+      <div
+        className="absolute"
+        style={{
+          left: gamePos.x,
+          top: gamePos.y,
+          width: ELIMINATION_THEME.cardWidth,
+        }}
+      >
         {editable && onMatchUpdate ? (
           <EditableBracketMatchCard match={displayMatch} teams={teams} onUpdate={onMatchUpdate} />
         ) : (
@@ -102,75 +120,67 @@ const EliminationStage: React.FC<EliminationStageProps> = ({
 
   return (
     <div
+      ref={containerRef}
       className="relative w-full overflow-x-auto"
-      style={{ minHeight: `${BOARD_HEIGHT + 100}px` }}
+      style={{ minHeight: `${BOARD_HEIGHT + 60}px` }}
       data-testid="elimination-stage"
     >
       <div
         className="relative"
-        style={{ width: BOARD_WIDTH, height: BOARD_HEIGHT, minWidth: BOARD_WIDTH }}
+        style={{
+          width: containerWidth,
+          height: BOARD_HEIGHT,
+          minWidth: BOARD_MIN_WIDTH,
+        }}
         data-testid="elimination-bracket"
       >
         {/* 连接线层 */}
-        <EliminationConnectors />
+        <EliminationConnectors positions={positions} containerWidth={containerWidth} />
 
-        {/* 阶段标签 - 官方UI风格 */}
+        {/* 阶段标签 - 官方UI风格：宽度与卡片一致，顶部对齐 */}
         {ELIMINATION_STAGES.map((stage) => (
           <div
             key={stage.key}
-            className="absolute text-sm font-medium text-center"
+            className="absolute text-sm font-medium text-center flex items-center justify-center"
             style={{
-              left: stage.x,
-              top: -35,
-              width: ELIMINATION_THEME.cardWidth,
+              left: getStageLabelX(stage.colIndex),
+              top: 10,
+              width: CARD_WIDTH,
+              height: '40px',
               color: ELIMINATION_THEME.stageLabelText,
               backgroundColor: ELIMINATION_THEME.stageLabelBg,
-              padding: '6px 0',
-              borderBottom: `2px solid ${ELIMINATION_THEME.stageLabelBorder}`,
+              borderRadius: '4px',
             }}
           >
             {stage.name}
           </div>
         ))}
 
-        {/* BO5 标识 */}
-        <div
-          className="absolute top-0 right-0 text-xs px-2 py-1 rounded"
-          style={{
-            color: ELIMINATION_THEME.winner,
-            backgroundColor: 'rgba(200, 170, 110, 0.1)',
-            border: `1px solid ${ELIMINATION_THEME.winner}`,
-          }}
-          data-testid="elimination-bo-format"
-        >
-          {ELIMINATION_BO_FORMAT}
-        </div>
-
         {/* 四分之一决赛 */}
         <div data-testid="elimination-match-qf1">
-          {renderMatch(getMatch(1), ELIMINATION_POSITIONS.qf1, 1)}
+          {renderMatch(getMatch(1), 1)}
         </div>
         <div data-testid="elimination-match-qf2">
-          {renderMatch(getMatch(2), ELIMINATION_POSITIONS.qf2, 2)}
+          {renderMatch(getMatch(2), 2)}
         </div>
         <div data-testid="elimination-match-qf3">
-          {renderMatch(getMatch(3), ELIMINATION_POSITIONS.qf3, 3)}
+          {renderMatch(getMatch(3), 3)}
         </div>
         <div data-testid="elimination-match-qf4">
-          {renderMatch(getMatch(4), ELIMINATION_POSITIONS.qf4, 4)}
+          {renderMatch(getMatch(4), 4)}
         </div>
 
         {/* 半决赛 */}
         <div data-testid="elimination-match-sf1">
-          {renderMatch(getMatch(5), ELIMINATION_POSITIONS.sf1, 5)}
+          {renderMatch(getMatch(5), 5)}
         </div>
         <div data-testid="elimination-match-sf2">
-          {renderMatch(getMatch(6), ELIMINATION_POSITIONS.sf2, 6)}
+          {renderMatch(getMatch(6), 6)}
         </div>
 
         {/* 决赛 */}
         <div data-testid="elimination-match-f">
-          {renderMatch(getMatch(7), ELIMINATION_POSITIONS.f, 7)}
+          {renderMatch(getMatch(7), 7)}
         </div>
       </div>
     </div>

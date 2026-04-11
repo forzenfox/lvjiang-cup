@@ -18,6 +18,7 @@ interface SwissRecordSectionProps {
   _baseY?: number;
   className?: string;
   'data-testid'?: string;
+  isHighlighted?: boolean;
 }
 
 const SwissRecordSection: React.FC<SwissRecordSectionProps> = ({
@@ -33,6 +34,7 @@ const SwissRecordSection: React.FC<SwissRecordSectionProps> = ({
   _baseY = 0,
   className = '',
   'data-testid': testId = 'swiss-record-section',
+  isHighlighted = true,
 }) => {
   const { record, label, type } = config;
 
@@ -52,7 +54,7 @@ const SwissRecordSection: React.FC<SwissRecordSectionProps> = ({
         <div
           className="flex items-center justify-center px-3"
           style={{
-            backgroundColor: SWISS_THEME.qualified.bg,
+            background: SWISS_THEME.qualified.bg,
             height: `${SWISS_THEME.headerHeight}px`,
             borderBottom: '2px solid rgb(131, 133, 139)',
           }}
@@ -95,15 +97,15 @@ const SwissRecordSection: React.FC<SwissRecordSectionProps> = ({
             <div
               className="flex flex-col items-center justify-center gap-2 w-full py-4"
               style={{
-                border: '2px dashed #3d8fe8',
+                border: '2px dashed #3d8f5e',
                 borderRadius: '8px',
-                backgroundColor: 'rgba(30, 93, 200, 0.08)',
+                backgroundColor: 'rgba(45, 46, 48, 0.5)',
               }}
             >
-              <span style={{ color: '#8ba4c7', fontSize: '13px' }}>
+              <span style={{ color: '#8ba48f', fontSize: '13px' }}>
                 暂无可展示的队伍
               </span>
-              <span style={{ color: '#6b7a8f', fontSize: '11px' }}>
+              <span style={{ color: '#7a8a7f', fontSize: '11px' }}>
                 当前轮次暂无晋级队伍
               </span>
             </div>
@@ -129,7 +131,7 @@ const SwissRecordSection: React.FC<SwissRecordSectionProps> = ({
         <div
           className="flex items-center justify-center px-3"
           style={{
-            backgroundColor: SWISS_THEME.eliminated.bg,
+            background: SWISS_THEME.eliminated.bg,
             height: `${SWISS_THEME.headerHeight}px`,
             borderBottom: '2px solid rgb(18, 19, 18)',
           }}
@@ -174,13 +176,13 @@ const SwissRecordSection: React.FC<SwissRecordSectionProps> = ({
               style={{
                 border: '2px dashed #a05050',
                 borderRadius: '8px',
-                backgroundColor: 'rgba(139, 69, 69, 0.08)',
+                backgroundColor: 'rgba(45, 46, 48, 0.5)',
               }}
             >
-              <span style={{ color: '#8ba4c7', fontSize: '13px' }}>
+              <span style={{ color: '#b08080', fontSize: '13px' }}>
                 暂无可展示的队伍
               </span>
-              <span style={{ color: '#6b7a8f', fontSize: '11px' }}>
+              <span style={{ color: '#8a7a7a', fontSize: '11px' }}>
                 当前轮次暂无淘汰队伍
               </span>
             </div>
@@ -197,6 +199,10 @@ const SwissRecordSection: React.FC<SwissRecordSectionProps> = ({
       data-testid={testId}
       data-record={record}
       data-type="matches"
+      style={{
+        opacity: isHighlighted ? 1 : 0.4,
+        transition: 'opacity 300ms ease',
+      }}
     >
       {/* 标题栏 */}
       <div

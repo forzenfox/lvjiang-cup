@@ -247,7 +247,7 @@ const AdminSchedule: React.FC = () => {
             </p>
           </div>
           <div className="flex gap-2">
-            {(matches.length === 0 || swissMatches.length === 0 || eliminationMatches.length === 0) && (
+            {teams.length > 0 && (matches.length === 0 || swissMatches.length === 0 || eliminationMatches.length === 0) && (
               <Button
                 data-testid="init-slots-button"
                 variant="default"

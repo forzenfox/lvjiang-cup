@@ -6,16 +6,16 @@ export const SWISS_THEME = {
   cardBackground: 'rgb(45, 46, 48)',
   border: 'rgb(100, 100, 100)',
 
-  // 晋级区域 - 使用渐变蓝色
+  // 晋级区域 - 标题栏暗绿色，内容区统一背景色
   qualified: {
-    bg: 'linear-gradient(135deg, #1e5dc8, #2d7dd2)',
-    contentBg: 'rgb(35, 36, 38)',
-    border: '#3d8fe8',
+    bg: 'linear-gradient(135deg, #2d5a3d, #1e3d2a)',
+    contentBg: 'rgb(45, 46, 48)',
+    border: '#3d8f5e',
   },
 
-  // 淘汰区域 - 使用暗红色调
+  // 淘汰区域 - 标题栏暗红色，内容区统一背景色
   eliminated: {
-    bg: 'linear-gradient(135deg, #8b4545, #6b3535)',
+    bg: 'linear-gradient(135deg, #6b3535, #4a2525)',
     contentBg: 'rgb(45, 46, 48)',
     border: '#a05050',
   },

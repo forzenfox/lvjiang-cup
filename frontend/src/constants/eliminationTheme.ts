@@ -31,13 +31,13 @@ export const ELIMINATION_THEME = {
   statusOngoing: 'bg-green-500 text-white animate-pulse',
   statusFinished: 'bg-gray-500 text-white',
 
-  // 尺寸 - 参考官方设计
-  cardWidth: 180,
-  matchCardHeight: 73,  // 36px * 2 + 1px分隔线
-  teamLogoSize: 20,
-  scoreFontSize: 16,
-  teamNameFontSize: 12,
-  stageLabelHeight: 32,
+  // 尺寸 - 进一步增大的尺寸
+  cardWidth: 320,  // 与 CARD_WIDTH 常量保持一致
+  matchCardHeight: 110,  // 55px * 2
+  teamLogoSize: 32,
+  scoreFontSize: 20,
+  teamNameFontSize: 16,
+  stageLabelHeight: 40,
   gap: 120,
 
   // 动画

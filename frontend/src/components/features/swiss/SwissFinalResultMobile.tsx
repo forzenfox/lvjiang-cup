@@ -25,14 +25,14 @@ const SwissFinalResultMobile: React.FC<SwissFinalResultMobileProps> = ({
   'data-testid': testId = 'swiss-final-result-mobile',
 }) => {
   // 固定8个晋级槽位
-  const qualifiedSlots = [0, 1, 2, 3];
+  const qualifiedSlots = [0, 1, 2, 3, 4, 5, 6, 7];
   // 固定8个淘汰槽位
   const eliminatedSlots = [0, 1, 2, 3, 4, 5, 6, 7];
 
-  // 晋级记录：3-0, 3-1, 3-2 各晋级1队
-  const qualifiedRecords = ['3-0', '3-1', '3-2', '3-0'];
-  // 淘汰记录：0-3, 1-3, 2-3 各淘汰若干队
-  const eliminatedRecords = ['0-3', '0-3', '1-3', '1-3', '2-3', '2-3', '0-3', '1-3'];
+  // 晋级记录：2支3-0, 3支3-1, 3支3-2
+  const qualifiedRecords = ['3-0', '3-0', '3-1', '3-1', '3-1', '3-2', '3-2', '3-2'];
+  // 淘汰记录：2支0-3, 3支1-3, 3支2-3
+  const eliminatedRecords = ['0-3', '0-3', '1-3', '1-3', '1-3', '2-3', '2-3', '2-3'];
 
   return (
     <div className={`space-y-6 ${className}`} data-testid={testId}>

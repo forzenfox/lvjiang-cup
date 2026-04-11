@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { createPortal } from 'react-dom';
 import { cn } from '../../lib/utils';
 
 export interface ModalProps {
@@ -33,8 +34,18 @@ const Modal: React.FC<ModalProps> = ({ visible, onClose, title, children, classN
 
   if (!visible) return null;
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+  const modalContent = (
+    <div
+      className="fixed z-[100] flex items-center justify-center"
+      style={{
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        width: '100vw',
+        height: '100vh',
+      }}
+    >
       {/* 黑色遮罩背景 */}
       <div
         className="absolute inset-0 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200"
@@ -45,10 +56,14 @@ const Modal: React.FC<ModalProps> = ({ visible, onClose, title, children, classN
       {/* 弹框内容 */}
       <div
         className={cn(
-          'relative z-50 w-full max-w-lg mx-4 bg-gray-900 border border-gray-700 rounded-xl shadow-2xl',
+          'relative z-[101] bg-gray-900 border border-gray-700 rounded-xl shadow-2xl',
           'animate-in zoom-in-95 fade-in duration-200',
+          'w-full max-w-lg mx-4',
           className
         )}
+        style={{
+          maxHeight: '90vh',
+        }}
         role="dialog"
         aria-modal="true"
         aria-labelledby={title ? 'modal-title' : undefined}
@@ -76,6 +91,9 @@ const Modal: React.FC<ModalProps> = ({ visible, onClose, title, children, classN
       </div>
     </div>
   );
+
+  // 使用 Portal 将弹框渲染到 body 下，避免受父元素 transform 影响
+  return createPortal(modalContent, document.body);
 };
 
 export default Modal;

@@ -355,52 +355,54 @@ describe('Matches Integration Tests', () => {
     it('should track swiss round records correctly', async () => {
       // Round 1: 0-0
       await databaseService.run(
-        `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status, swiss_record, swiss_day) 
+        `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status, swiss_record, swiss_round)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
         ['swiss-r1', 'team-1', 'team-2', 'swiss', 'Round 1', 'finished', '0-0', 1],
       );
 
       let match = await service.findOne('swiss-r1');
       expect(match.swissRecord).toBe('0-0');
-      expect(match.swissDay).toBe(1);
+      expect(match.swissRound).toBe(1);
 
       await databaseService.run(
-        `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status, swiss_record, swiss_day) 
+        `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status, swiss_record, swiss_round)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-        ['swiss-r2h', 'team-1', 'team-3', 'swiss', 'Round 2 High', 'finished', '1-0', 1],
+        ['swiss-r2h', 'team-1', 'team-3', 'swiss', 'Round 2 High', 'finished', '1-0', 2],
       );
 
       match = await service.findOne('swiss-r2h');
       expect(match.swissRecord).toBe('1-0');
+      expect(match.swissRound).toBe(2);
 
       await databaseService.run(
-        `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status, swiss_record, swiss_day) 
+        `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status, swiss_record, swiss_round)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-        ['swiss-r2l', 'team-2', 'team-4', 'swiss', 'Round 2 Low', 'finished', '0-1', 1],
+        ['swiss-r2l', 'team-2', 'team-4', 'swiss', 'Round 2 Low', 'finished', '0-1', 2],
       );
 
       match = await service.findOne('swiss-r2l');
       expect(match.swissRecord).toBe('0-1');
+      expect(match.swissRound).toBe(2);
     });
 
-    it('should filter matches by swiss day', async () => {
+    it('should filter matches by swiss round', async () => {
       await databaseService.run(
-        `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status, swiss_record, swiss_day) 
+        `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status, swiss_record, swiss_round)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-        ['day1-1', 'team-1', 'team-2', 'swiss', 'Round 1', 'upcoming', '0-0', 1],
+        ['round1-1', 'team-1', 'team-2', 'swiss', 'Round 1', 'upcoming', '0-0', 1],
       );
       await databaseService.run(
-        `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status, swiss_record, swiss_day) 
+        `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status, swiss_record, swiss_round)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-        ['day2-1', 'team-3', 'team-4', 'swiss', 'Round 3', 'upcoming', '1-1', 2],
+        ['round3-1', 'team-3', 'team-4', 'swiss', 'Round 3', 'upcoming', '1-1', 3],
       );
 
-      const day1Matches = await databaseService.all<{ id: string; swiss_day: number }>(
-        'SELECT * FROM matches WHERE swiss_day = ?',
+      const round1Matches = await databaseService.all<{ id: string; swiss_round: number }>(
+        'SELECT * FROM matches WHERE swiss_round = ?',
         [1],
       );
-      expect(day1Matches).toHaveLength(1);
-      expect(day1Matches[0].id).toBe('day1-1');
+      expect(round1Matches).toHaveLength(1);
+      expect(round1Matches[0].id).toBe('round1-1');
     });
   });
 

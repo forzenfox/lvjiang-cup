@@ -40,11 +40,12 @@ const SwissRoundTree: React.FC<SwissRoundTreeProps> = ({
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Hover 状态 - 用于预览相邻列
-  const [hoveredColumnId, setHoveredColumnId] = useState<number | null>(null);
-
   // 滚动容器引用 - 用于计算卡片的相对位置
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  // BO1/BO3 战绩分组定义
+  const bo1Records = ['0-0', '1-0', '0-1', '1-1'];
+  const bo3Records = ['2-0', '0-2', '2-1', '1-2', '2-2'];
 
   // 按战绩分组比赛
   const matchesByRecord = useMemo(() => {
@@ -95,17 +96,12 @@ const SwissRoundTree: React.FC<SwissRoundTreeProps> = ({
     ? 0
     : -2 * (columnWidth + columnGap);
 
-  // 计算列透明度 - hover预览效果
-  const getColumnOpacity = (columnId: number): number => {
-    if (hoveredColumnId === null) return 0.9;
-    if (columnId === hoveredColumnId) return 1;
-    if (Math.abs(columnId - hoveredColumnId) === 1) return 0.4;
-    return 0.9;
-  };
-
-  // 处理列hover事件
-  const handleColumnHover = (columnId: number | null) => {
-    setHoveredColumnId(columnId);
+  // 判断战绩分组是否应该高亮
+  const shouldHighlightRecord = (record: string): boolean => {
+    if (activeTab === 'bo1') {
+      return bo1Records.includes(record);
+    }
+    return bo3Records.includes(record);
   };
 
   // 处理比赛卡片位置变化（静态连线不再需要动态位置计算）
@@ -123,13 +119,10 @@ const SwissRoundTree: React.FC<SwissRoundTreeProps> = ({
     return (
       <div
         key={column.id}
-        className="flex flex-col gap-2 flex-shrink-0 transition-all duration-300 cursor-pointer"
+        className="flex flex-col gap-2 flex-shrink-0 transition-all duration-300"
         style={{
           width: `${columnWidth}px`,
-          opacity: getColumnOpacity(column.id),
         }}
-        onMouseEnter={() => handleColumnHover(column.id)}
-        onMouseLeave={() => handleColumnHover(null)}
         data-testid={`${testId}-column-${column.id}`}
       >
         {/* 列标题 */}
@@ -154,19 +147,23 @@ const SwissRoundTree: React.FC<SwissRoundTreeProps> = ({
 
         {/* 战绩分组 */}
         <div className="flex flex-col gap-2">
-          {column.records.map((recordConfig) => (
-            <SwissRecordSection
-              key={recordConfig.record}
-              config={recordConfig}
-              matches={matchesByRecord[recordConfig.record] || []}
-              teams={teams}
-              promotionTeams={recordConfig.type === 'promotion' ? promotionTeams : undefined}
-              eliminationTeams={recordConfig.type === 'elimination' ? eliminationTeams : undefined}
-              onMatchClick={onMatchClick}
-              onPositionChange={_handleMatchCardPositionChange}
-              containerRef={scrollContainerRef}
-            />
-          ))}
+          {column.records.map((recordConfig) => {
+            const isHighlighted = shouldHighlightRecord(recordConfig.record);
+            return (
+              <SwissRecordSection
+                key={recordConfig.record}
+                config={recordConfig}
+                matches={matchesByRecord[recordConfig.record] || []}
+                teams={teams}
+                promotionTeams={recordConfig.type === 'promotion' ? promotionTeams : undefined}
+                eliminationTeams={recordConfig.type === 'elimination' ? eliminationTeams : undefined}
+                onMatchClick={onMatchClick}
+                onPositionChange={_handleMatchCardPositionChange}
+                containerRef={scrollContainerRef}
+                isHighlighted={isHighlighted}
+              />
+            );
+          })}
         </div>
       </div>
     );

@@ -7,10 +7,6 @@ export const SWISS_STAGE_CONFIG = {
     { round: 5, records: ['2-2'], boFormat: 'BO3', label: '第五轮' },
   ],
 
-  bo1Rounds: [1, 2, 3],
-
-  bo3Rounds: [4, 5],
-
   qualifiedRecords: {
     3: ['3-0'],
     4: ['3-1'],

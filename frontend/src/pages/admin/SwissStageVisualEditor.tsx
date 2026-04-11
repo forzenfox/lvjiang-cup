@@ -282,9 +282,19 @@ const SwissStageVisualEditor: React.FC<SwissStageVisualEditorProps> = ({
                   const slotMatches = matchesByRecord[record] || [];
                   return (
                     <div key={record} className="space-y-2">
-                      {/* 战绩标签 */}
-                      <div className="text-xs text-gray-400 uppercase tracking-wider text-center font-medium bg-gray-800/50 py-1 rounded">
-                        {record}
+                      {/* 战绩标签 - 显示 BO1/BO3 标识 */}
+                      <div className="text-xs text-gray-400 uppercase tracking-wider text-center font-medium bg-gray-800/50 py-1 rounded flex items-center justify-center gap-2">
+                        <span>{record}</span>
+                        {['2-0', '0-2'].includes(record) && (
+                          <span className="px-1.5 py-0.5 bg-blue-600/30 text-blue-400 text-[10px] rounded border border-blue-500/50">
+                            BO3
+                          </span>
+                        )}
+                        {record === '1-1' && (
+                          <span className="px-1.5 py-0.5 bg-green-600/30 text-green-400 text-[10px] rounded border border-green-500/50">
+                            BO1
+                          </span>
+                        )}
                       </div>
                       {/* 该战绩的比赛槽位 */}
                       <div className="space-y-2">

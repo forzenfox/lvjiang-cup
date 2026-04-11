@@ -20,12 +20,6 @@ export const swissRoundSlots: SwissRoundSlot[] = [
   { swissRecord: '1-3', roundName: 'Round 5 Low', maxMatches: 2 },
 ];
 
-export const getRoundFormat = (swissRecord: string): 'BO1' | 'BO3' | 'BO5' => {
-  if (swissRecord === '0-0') return 'BO1';
-  if (['3-0', '0-3'].includes(swissRecord)) return 'BO5';
-  return 'BO3';
-};
-
 export const getSlotByRecord = (swissRecord: string): SwissRoundSlot | undefined => {
   return swissRoundSlots.find(slot => slot.swissRecord === swissRecord);
 };

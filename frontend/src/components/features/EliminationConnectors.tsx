@@ -1,30 +1,38 @@
 import React from 'react';
-import { ELIMINATION_POSITIONS, ELIMINATION_CONNECTORS } from './eliminationConstants';
+import { ELIMINATION_CONNECTORS, CARD_WIDTH, CARD_HEIGHT, CARD_TIME_HEIGHT } from './eliminationConstants';
 import { ELIMINATION_THEME } from '@/constants/eliminationTheme';
 
 interface EliminationConnectorsProps {
   cardWidth?: number;
   cardHeight?: number;
+  positions?: Record<string, { x: number; y: number }>;
+  containerWidth?: number;
 }
 
 const EliminationConnectors: React.FC<EliminationConnectorsProps> = ({
-  cardWidth = 180,
-  cardHeight = 73,
+  cardWidth = CARD_WIDTH,
+  cardHeight = CARD_HEIGHT,
+  positions,
+  containerWidth = 900,
 }) => {
+  // 如果没有传入positions，使用默认计算
+  const effectivePositions = positions;
+
   return (
     <>
       {ELIMINATION_CONNECTORS.map((conn, index) => {
-        const fromPos = ELIMINATION_POSITIONS[conn.from];
-        const toPos = ELIMINATION_POSITIONS[conn.to];
+        // 从传入的positions获取位置，如果没有则使用计算后的位置
+        const fromPos = effectivePositions?.[conn.from] || { x: 0, y: 0 };
+        const toPos = effectivePositions?.[conn.to] || { x: 0, y: 0 };
 
         // 官方UI连线设计：
-        // 从源卡片右侧中间出发
+        // 从源卡片右侧中间出发（考虑时间标签的高度偏移）
         const startX = fromPos.x + cardWidth;
-        const startY = fromPos.y + cardHeight / 2;
-        
-        // 到目标卡片左侧中间
+        const startY = fromPos.y + CARD_TIME_HEIGHT + cardHeight / 2;
+
+        // 到目标卡片左侧中间（考虑时间标签的高度偏移）
         const endX = toPos.x;
-        const endY = toPos.y + cardHeight / 2;
+        const endY = toPos.y + CARD_TIME_HEIGHT + cardHeight / 2;
 
         // 计算中间点（水平方向的中点）
         const midX = startX + (endX - startX) / 2;

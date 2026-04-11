@@ -54,12 +54,19 @@ const convertApiMatchToLocal = (apiMatch: ApiMatch, teams: Team[]): Match => {
 // 将 API Team 转换为本地 Team 格式
 const convertApiTeamToLocal = (apiTeam: ApiTeam): Team => {
   const positions: PositionType[] = ['TOP', 'JUNGLE', 'MID', 'ADC', 'SUPPORT'];
+  const positionNames: Record<PositionType, string> = {
+    TOP: '上单',
+    JUNGLE: '打野',
+    MID: '中单',
+    ADC: 'ADC',
+    SUPPORT: '辅助',
+  };
   const players: Player[] = positions.map((position, index) => ({
     id: `${apiTeam.id}-player-${index}`,
-    name: `${apiTeam.name} - ${position}`,
-    avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${apiTeam.id}-${index}`,
+    nickname: `${apiTeam.name} - ${positionNames[position]}`,
+    avatarUrl: `https://api.dicebear.com/7.x/avataaars/svg?seed=${apiTeam.id}-${index}`,
     position,
-    description: `${position}选手`,
+    bio: `${positionNames[position]}选手`,
   }));
 
   return {

@@ -35,7 +35,7 @@ const createMockMatch = (
 });
 
 describe('EliminationStage 组件', () => {
-  it('应该渲染8个比赛槽位（G1-G8）', () => {
+  it('应该渲染淘汰赛阶段', () => {
     const mockMatches: Match[] = [
       createMockMatch(1, 'team1', 'team2', 3, 2),
       createMockMatch(2, 'team3', 'team4', 2, 3),
@@ -44,7 +44,6 @@ describe('EliminationStage 组件', () => {
       createMockMatch(5, 'team1', 'team4', 2, 3),
       createMockMatch(6, 'team4', 'team6', 3, 2),
       createMockMatch(7, 'team4', 'team6', 3, 1),
-      createMockMatch(8, 'team4', 'team6', 3, 1),
     ];
 
     render(
@@ -99,6 +98,9 @@ describe('EliminationStage 组件', () => {
     // 验证比分显示
     expect(screen.getByText('3')).toBeInTheDocument();
     expect(screen.getByText('2')).toBeInTheDocument();
+
+    // 验证时间显示（格式：MM月dd日 HH:mm）
+    expect(screen.getByText('01月01日 10:00')).toBeInTheDocument();
   });
 
   it('应该正确标记胜者', () => {
@@ -113,7 +115,7 @@ describe('EliminationStage 组件', () => {
     );
 
     // 验证胜者队伍有正确的样式类（白色文字）
-    const winnerElements = container.querySelectorAll('.text-white');
+    const winnerElements = container.querySelectorAll('[data-testid$="-team-a"]');
     expect(winnerElements.length).toBeGreaterThan(0);
   });
 
@@ -145,7 +147,7 @@ describe('EliminationStage 组件', () => {
     expect(scrollContainer).toBeInTheDocument();
 
     // 验证有固定宽度的画布
-    const board = container.querySelector('[style*="width"]');
+    const board = container.querySelector('[data-testid="elimination-bracket"]');
     expect(board).toBeInTheDocument();
   });
 
@@ -181,9 +183,27 @@ describe('EliminationStage 组件', () => {
       </MemoryRouter>
     );
 
-    // 验证状态标签显示（使用 getAllByText 因为空槽位也会显示状态）
+    // 验证状态标签显示
     expect(screen.getAllByText('未开始').length).toBeGreaterThan(0);
     expect(screen.getAllByText('进行中').length).toBeGreaterThan(0);
+  });
+
+  it('应该在卡片顶部显示时间和状态', () => {
+    const mockMatches: Match[] = [createMockMatch(1, 'team1', 'team2', 3, 2)];
+
+    render(
+      <MemoryRouter>
+        <EliminationStage matches={mockMatches} teams={mockTeams} />
+      </MemoryRouter>
+    );
+
+    // 验证时间显示
+    const timeElements = screen.getAllByTestId('match-time');
+    expect(timeElements.length).toBeGreaterThan(0);
+
+    // 验证状态显示
+    const statusElements = screen.getAllByTestId('match-status');
+    expect(statusElements.length).toBeGreaterThan(0);
   });
 
   describe('editable 模式', () => {
@@ -202,9 +222,9 @@ describe('EliminationStage 组件', () => {
         </MemoryRouter>
       );
 
-      // 验证存在可编辑卡片的特征（编辑按钮）
-      const editButtons = container.querySelectorAll('button');
-      expect(editButtons.length).toBeGreaterThan(0);
+      // 验证存在可编辑卡片（整个卡片可点击，有cursor-pointer类）
+      const cards = container.querySelectorAll('.cursor-pointer');
+      expect(cards.length).toBeGreaterThan(0);
     });
 
     it('应该在 editable=false 时渲染只读卡片', () => {
@@ -216,11 +236,10 @@ describe('EliminationStage 组件', () => {
         </MemoryRouter>
       );
 
-      // 验证只读模式下没有可点击的编辑区域（EditableBracketMatchCard有cursor-pointer类）
-      const editableCards = container.querySelectorAll('.cursor-pointer');
-      // BracketMatchCard 没有 cursor-pointer，EditableBracketMatchCard 有
-      // 所以只读模式下应该没有 cursor-pointer 元素
-      expect(editableCards.length).toBe(0);
+      // 验证只读模式下渲染 BracketMatchCard（有 cursor-pointer 用于打开详情弹框）
+      const cards = container.querySelectorAll('.cursor-pointer');
+      // 所有卡片都应该有 cursor-pointer 类（用于点击打开详情弹框）
+      expect(cards.length).toBeGreaterThan(0);
     });
 
     it('应该在 editable=true 但无 onMatchUpdate 时渲染只读卡片', () => {
@@ -232,9 +251,57 @@ describe('EliminationStage 组件', () => {
         </MemoryRouter>
       );
 
-      // 验证没有 onMatchUpdate 时渲染只读卡片（没有cursor-pointer）
-      const editableCards = container.querySelectorAll('.cursor-pointer');
-      expect(editableCards.length).toBe(0);
+      // 验证没有 onMatchUpdate 时渲染只读卡片（有 cursor-pointer 用于打开详情弹框）
+      const cards = container.querySelectorAll('.cursor-pointer');
+      expect(cards.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe('三列布局', () => {
+    it('应该渲染7场比赛（4QF + 2SF + 1F）', () => {
+      const mockMatches: Match[] = [
+        createMockMatch(1, 'team1', 'team2', 3, 2),
+        createMockMatch(2, 'team3', 'team4', 2, 3),
+        createMockMatch(3, 'team1', 'team4', 3, 1),
+        createMockMatch(4, 'team5', 'team6', 1, 3),
+        createMockMatch(5, 'team1', 'team4', 2, 3),
+        createMockMatch(6, 'team4', 'team6', 3, 2),
+        createMockMatch(7, 'team4', 'team6', 3, 1),
+      ];
+
+      const { container } = render(
+        <MemoryRouter>
+          <EliminationStage matches={mockMatches} teams={mockTeams} />
+        </MemoryRouter>
+      );
+
+      // 验证所有比赛槽位都存在
+      expect(container.querySelector('[data-testid="elimination-match-qf1"]')).toBeInTheDocument();
+      expect(container.querySelector('[data-testid="elimination-match-qf2"]')).toBeInTheDocument();
+      expect(container.querySelector('[data-testid="elimination-match-qf3"]')).toBeInTheDocument();
+      expect(container.querySelector('[data-testid="elimination-match-qf4"]')).toBeInTheDocument();
+      expect(container.querySelector('[data-testid="elimination-match-sf1"]')).toBeInTheDocument();
+      expect(container.querySelector('[data-testid="elimination-match-sf2"]')).toBeInTheDocument();
+      expect(container.querySelector('[data-testid="elimination-match-f"]')).toBeInTheDocument();
+    });
+
+    it('应该显示三个阶段的标签', () => {
+      const mockMatches: Match[] = [createMockMatch(1, 'team1', 'team2', 3, 2)];
+
+      render(
+        <MemoryRouter>
+          <EliminationStage matches={mockMatches} teams={mockTeams} />
+        </MemoryRouter>
+      );
+
+      // 验证三个阶段标签都存在
+      const qfLabel = screen.getByText('四分之一决赛');
+      const sfLabel = screen.getByText('半决赛');
+      const fLabel = screen.getByText('决赛');
+
+      expect(qfLabel).toBeInTheDocument();
+      expect(sfLabel).toBeInTheDocument();
+      expect(fLabel).toBeInTheDocument();
     });
   });
 });

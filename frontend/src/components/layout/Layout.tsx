@@ -22,10 +22,20 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const location = useLocation();
   const [activeSection, setActiveSection] = useState('hero');
 
+  // 导航栏高度（与 h-24 = 6rem = 96px 对应）
+  const NAVBAR_HEIGHT = 96;
+
   const scrollToSection = (id: string) => {
     const element = document.getElementById(id);
     if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
+      // 计算元素位置并减去导航栏高度，确保内容不被遮挡
+      const elementPosition = element.getBoundingClientRect().top + window.scrollY;
+      const offsetPosition = elementPosition - NAVBAR_HEIGHT;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
       setActiveSection(id);
     }
   };
@@ -69,7 +79,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   useEffect(() => {
     const handleScroll = () => {
       const sections = ['hero', 'streamers', 'teams', 'schedule'];
-      const scrollPosition = window.scrollY + 100;
+      // 使用导航栏高度作为偏移量，确保判断更准确
+      const scrollPosition = window.scrollY + NAVBAR_HEIGHT + 20;
 
       for (const section of sections) {
         const element = document.getElementById(section);

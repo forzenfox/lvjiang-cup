@@ -193,8 +193,7 @@ export interface Match {
   status: 'upcoming' | 'ongoing' | 'finished';
   startTime?: string;
   swissRecord?: string;
-  swissDay?: number;
-  swissRound?: number; // 瑞士轮第几轮 (1-4)
+  swissRound?: number; // 瑞士轮第几轮 (1-5)
   boFormat?: 'BO1' | 'BO3' | 'BO5'; // 比赛赛制
   eliminationBracket?: 'winners' | 'losers' | 'grand_finals';
   eliminationGameNumber?: number;

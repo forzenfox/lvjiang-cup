@@ -32,15 +32,6 @@ describe('SwissMatchCard', () => {
     expect(screen.getByText('雨酱')).toBeInTheDocument();
   });
 
-  it('应该显示比赛状态', () => {
-    const match = createMockMatch({ status: 'upcoming' });
-    render(<SwissMatchCard match={match} teams={mockTeams} />);
-
-    // upcoming 状态显示队伍名称
-    expect(screen.getByText('驴酱')).toBeInTheDocument();
-    expect(screen.getByText('雨酱')).toBeInTheDocument();
-  });
-
   it('应该高亮显示胜者', () => {
     const match = createMockMatch({ winnerId: 'team1' });
     render(<SwissMatchCard match={match} teams={mockTeams} />);
@@ -73,14 +64,6 @@ describe('SwissMatchCard', () => {
     expect(screen.getByText('2')).toBeInTheDocument();
   });
 
-  it('当没有startTime时不应该显示时间', () => {
-    const match = createMockMatch({ startTime: '' });
-    const { container } = render(<SwissMatchCard match={match} teams={mockTeams} />);
-
-    const timeElement = container.querySelector('.rounded-br');
-    expect(timeElement).not.toBeInTheDocument();
-  });
-
   it('应该显示正确的比分', () => {
     const match = createMockMatch({ scoreA: 3, scoreB: 2 });
     render(<SwissMatchCard match={match} teams={mockTeams} />);
@@ -97,5 +80,41 @@ describe('SwissMatchCard', () => {
 
     const card = container.querySelector('.custom-class');
     expect(card).toBeInTheDocument();
+  });
+
+  it('点击卡片应该打开对战详情弹框', () => {
+    const match = createMockMatch();
+    const { container } = render(<SwissMatchCard match={match} teams={mockTeams} />);
+
+    const card = container.querySelector('.cursor-pointer');
+    expect(card).toBeInTheDocument();
+
+    // 点击卡片
+    fireEvent.click(card!);
+
+    // 验证弹框标题显示
+    expect(screen.getByText('对战详情')).toBeInTheDocument();
+  });
+
+  it('弹框应该显示对战时间', () => {
+    const match = createMockMatch({ startTime: '2026-01-01T14:30:00' });
+    const { container } = render(<SwissMatchCard match={match} teams={mockTeams} />);
+
+    const card = container.querySelector('.cursor-pointer');
+    fireEvent.click(card!);
+
+    // 验证时间显示
+    expect(screen.getByText('2026年01月01日 14:30')).toBeInTheDocument();
+  });
+
+  it('弹框应该显示对战状态', () => {
+    const match = createMockMatch({ status: 'ongoing' });
+    const { container } = render(<SwissMatchCard match={match} teams={mockTeams} />);
+
+    const card = container.querySelector('.cursor-pointer');
+    fireEvent.click(card!);
+
+    // 验证状态显示
+    expect(screen.getByText('进行中')).toBeInTheDocument();
   });
 });
