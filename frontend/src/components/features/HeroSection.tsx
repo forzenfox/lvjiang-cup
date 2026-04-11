@@ -4,12 +4,7 @@ import { Button } from '../ui/button';
 import { streamService } from '../../services';
 import type { Stream } from '../../api/types';
 
-interface HeroSectionProps {
-  /** 自动刷新间隔（毫秒），默认 30000ms (30秒) */
-  refreshInterval?: number;
-}
-
-const HeroSection: React.FC<HeroSectionProps> = ({ refreshInterval = 30000 }) => {
+const HeroSection: React.FC = () => {
   const [streamInfo, setStreamInfo] = useState<Stream | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -31,28 +26,8 @@ const HeroSection: React.FC<HeroSectionProps> = ({ refreshInterval = 30000 }) =>
   };
 
   useEffect(() => {
-    // 初始加载
     fetchStreamInfo();
-
-    // 设置自动刷新
-    const interval = setInterval(() => {
-      fetchStreamInfo();
-    }, refreshInterval);
-
-    // 页面可见性检测：切换回页面时立即刷新
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        fetchStreamInfo();
-      }
-    };
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
-    // 清理函数
-    return () => {
-      clearInterval(interval);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, [refreshInterval]);
+  }, []);
 
   const handleWatchLive = () => {
     if (streamInfo?.url) {

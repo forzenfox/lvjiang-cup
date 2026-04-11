@@ -11,7 +11,7 @@ import { useAdvancementStore } from '@/store/advancementStore';
 import { PositionType } from '@/types/position';
 import { getUploadUrl } from '@/utils/upload';
 import SwissEmptyState from './swiss/SwissEmptyState';
-import type { Match, Team, MatchStatus, EliminationBracket, Player } from '@/types';
+import type { Match, Team, EliminationBracket, Player } from '@/types';
 
 // 将 API Match 转换为本地 Match 格式
 const convertApiMatchToLocal = (apiMatch: ApiMatch, teams: Team[]): Match => {
@@ -104,12 +104,7 @@ const ErrorState: React.FC<{ message: string; onRetry: () => void }> = ({ messag
   </div>
 );
 
-interface ScheduleSectionProps {
-  /** 自动刷新间隔（毫秒），默认 30000ms (30秒) */
-  refreshInterval?: number;
-}
-
-const ScheduleSection: React.FC<ScheduleSectionProps> = ({ refreshInterval = 30000 }) => {
+const ScheduleSection: React.FC = () => {
   const [matches, setMatches] = useState<Match[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -171,28 +166,8 @@ const ScheduleSection: React.FC<ScheduleSectionProps> = ({ refreshInterval = 300
   };
 
   useEffect(() => {
-    // 初始加载
     loadData();
-
-    // 设置自动刷新
-    const interval = setInterval(() => {
-      loadData(true);
-    }, refreshInterval);
-
-    // 页面可见性检测：切换回页面时立即刷新
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        loadData(true);
-      }
-    };
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
-    // 清理函数
-    return () => {
-      clearInterval(interval);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, [loadData, refreshInterval]);
+  }, [loadData]);
 
   return (
     <section

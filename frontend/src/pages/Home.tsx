@@ -1,10 +1,9 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { Loader2, AlertCircle, RefreshCw } from 'lucide-react';
+import { Loader2, AlertCircle } from 'lucide-react';
 import Layout from '../components/layout/Layout';
 import HeroSection from '../components/features/HeroSection';
 import ScheduleSection from '../components/features/ScheduleSection';
 import TeamSection from '../components/features/TeamSection';
-import { Button } from '../components/ui/button';
 import { streamService, teamService, matchService, advancementService } from '../services';
 
 /**
@@ -53,38 +52,13 @@ const GlobalLoadingIndicator: React.FC<{ visible: boolean }> = ({ visible }) => 
 };
 
 /**
- * 手动刷新按钮
- */
-const RefreshButton: React.FC<{ onRefresh: () => void; loading: boolean }> = ({
-  onRefresh,
-  loading,
-}) => (
-  <Button
-    variant="outline"
-    size="sm"
-    onClick={onRefresh}
-    disabled={loading}
-    className="fixed bottom-4 left-4 z-50 bg-black/80 border-white/20 text-white hover:bg-white/10"
-  >
-    <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-    {loading ? '刷新中...' : '刷新数据'}
-  </Button>
-);
-
-/**
  * 首页组件
  *
  * 功能：
  * 1. 整合 HeroSection、TeamSection、ScheduleSection 三大模块
- * 2. 统一管理数据自动刷新（默认 30 秒）
- * 3. 全局加载状态和错误处理
- * 4. 页面可见性检测，切换回页面时自动刷新
- * 5. 提供手动刷新功能
+ * 2. 全局加载状态和错误处理
  */
 const Home: React.FC = () => {
-  // 数据刷新间隔（30秒）
-  const REFRESH_INTERVAL = 30000;
-
   const [state, setState] = useState<HomeDataState>({
     loading: true,
     error: null,
@@ -176,35 +150,8 @@ const Home: React.FC = () => {
     [updateLoadingState]
   );
 
-  /**
-   * 手动刷新
-   */
-  const handleManualRefresh = useCallback(() => {
-    loadAllData(false);
-  }, [loadAllData]);
-
   useEffect(() => {
-    // 初始加载
     loadAllData(false);
-
-    // 设置自动刷新
-    const interval = setInterval(() => {
-      loadAllData(true);
-    }, REFRESH_INTERVAL);
-
-    // 页面可见性检测：切换回页面时立即刷新
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        loadAllData(true);
-      }
-    };
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
-    // 清理函数
-    return () => {
-      clearInterval(interval);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
   }, [loadAllData]);
 
   // 自动隐藏错误提示
@@ -227,13 +174,10 @@ const Home: React.FC = () => {
       {/* 全局加载指示器 */}
       <GlobalLoadingIndicator visible={state.loading} />
 
-      {/* 手动刷新按钮 */}
-      <RefreshButton onRefresh={handleManualRefresh} loading={state.loading} />
-
       {/* 页面内容 */}
-      <HeroSection refreshInterval={REFRESH_INTERVAL} />
-      <TeamSection refreshInterval={REFRESH_INTERVAL} />
-      <ScheduleSection refreshInterval={REFRESH_INTERVAL} />
+      <HeroSection />
+      <TeamSection />
+      <ScheduleSection />
     </Layout>
   );
 };
