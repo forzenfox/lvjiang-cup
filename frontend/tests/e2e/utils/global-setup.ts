@@ -1,22 +1,21 @@
 import { chromium, FullConfig } from '@playwright/test';
 import * as path from 'path';
-import { fileURLToPath } from 'url';
-
-// ES 模块中获取 __dirname 的替代方案
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+import { getTestConfig } from '../config/TestConfig';
 
 // 认证状态存储路径
-const authStatePath = path.resolve(__dirname, '../.auth/auth.json');
+const authStatePath = path.resolve(process.cwd(), 'tests', 'e2e', '.auth', 'auth.json');
 
 async function globalSetup(config: FullConfig) {
   console.log('🚀 开始全局设置...');
 
+  // 加载测试配置
+  const testConfig = getTestConfig();
+
   try {
-    const enableDataCleanup = process.env.ENABLE_DATA_CLEANUP !== 'false';
+    const enableDataCleanup = testConfig.testOptions.enableDataCleanup;
 
     if (enableDataCleanup) {
-      await clearBackendData();
+      await clearBackendData(testConfig);
     } else {
       console.log('ℹ️ 数据清理已禁用');
     }
@@ -26,7 +25,7 @@ async function globalSetup(config: FullConfig) {
     const context = await browser.newContext();
     const page = await context.newPage();
 
-    const baseURL = (process.env.FRONTEND_URL || config.webServer?.url)!;
+    const baseURL = testConfig.urls.frontend;
 
     // 先清空本地存储
     await page.goto(baseURL, { waitUntil: 'domcontentloaded' });
@@ -64,9 +63,9 @@ async function globalSetup(config: FullConfig) {
     console.log('🔐 正在执行登录...');
     await page.goto(`${baseURL}/admin/login`, { waitUntil: 'domcontentloaded' });
 
-    // 填写登录表单
-    const adminUsername = process.env.ADMIN_USERNAME!;
-    const adminPassword = process.env.ADMIN_PASSWORD!;
+    // 填写登录表单 - 从配置中读取
+    const adminUsername = testConfig.admin.username;
+    const adminPassword = testConfig.admin.password;
 
     // 输入用户名
     const usernameInput = page
@@ -100,13 +99,14 @@ async function globalSetup(config: FullConfig) {
     console.log('✅ 全局设置完成');
   } catch (error) {
     console.error('❌ 全局设置失败:', error);
+    throw error;
   }
 }
 
-async function clearBackendData() {
-  const backendUrl = process.env.BACKEND_URL!;
-  const adminUsername = process.env.ADMIN_USERNAME!;
-  const adminPassword = process.env.ADMIN_PASSWORD!;
+async function clearBackendData(testConfig: ReturnType<typeof getTestConfig>) {
+  const backendUrl = testConfig.urls.backend;
+  const adminUsername = testConfig.admin.username;
+  const adminPassword = testConfig.admin.password;
 
   try {
     const loginResponse = await fetch(`${backendUrl}/api/admin/auth/login`, {

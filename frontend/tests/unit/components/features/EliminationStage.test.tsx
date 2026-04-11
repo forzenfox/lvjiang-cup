@@ -112,8 +112,8 @@ describe('EliminationStage 组件', () => {
       </MemoryRouter>
     );
 
-    // 验证胜者队伍有正确的样式类
-    const winnerElements = container.querySelectorAll('.text-yellow-400');
+    // 验证胜者队伍有正确的样式类（白色文字）
+    const winnerElements = container.querySelectorAll('.text-white');
     expect(winnerElements.length).toBeGreaterThan(0);
   });
 
@@ -147,6 +147,21 @@ describe('EliminationStage 组件', () => {
     // 验证有固定宽度的画布
     const board = container.querySelector('[style*="width"]');
     expect(board).toBeInTheDocument();
+  });
+
+  it('应该显示中文阶段标签', () => {
+    const mockMatches: Match[] = [createMockMatch(1, 'team1', 'team2', 3, 2)];
+
+    render(
+      <MemoryRouter>
+        <EliminationStage matches={mockMatches} teams={mockTeams} />
+      </MemoryRouter>
+    );
+
+    // 验证中文阶段标签显示
+    expect(screen.getByText('四分之一决赛')).toBeInTheDocument();
+    expect(screen.getByText('半决赛')).toBeInTheDocument();
+    expect(screen.getByText('决赛')).toBeInTheDocument();
   });
 
   it('应该正确处理未开始和进行中的比赛', () => {

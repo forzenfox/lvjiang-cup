@@ -1,13 +1,17 @@
 import { chromium, FullConfig } from '@playwright/test';
+import { getTestConfig } from '../config/TestConfig';
 
 async function globalTeardown(config: FullConfig) {
   console.log('🧹 开始全局清理...');
 
+  // 加载测试配置
+  const testConfig = getTestConfig();
+
   try {
-    const enableDataCleanup = process.env.ENABLE_DATA_CLEANUP !== 'false';
+    const enableDataCleanup = testConfig.testOptions.enableDataCleanup;
 
     if (enableDataCleanup) {
-      await clearBackendData();
+      await clearBackendData(testConfig);
     } else {
       console.log('ℹ️ 数据清理已禁用');
     }
@@ -16,8 +20,8 @@ async function globalTeardown(config: FullConfig) {
     const context = await browser.newContext();
     const page = await context.newPage();
 
-    const baseURL = process.env.FRONTEND_URL! || config.webServer?.url;
-    await page.goto(baseURL!, { waitUntil: 'domcontentloaded' });
+    const baseURL = testConfig.urls.frontend;
+    await page.goto(baseURL, { waitUntil: 'domcontentloaded' });
 
     await page.evaluate(() => {
       const keysToClear = [
@@ -68,10 +72,10 @@ async function globalTeardown(config: FullConfig) {
   }
 }
 
-async function clearBackendData() {
-  const backendUrl = process.env.BACKEND_URL!;
-  const adminUsername = process.env.ADMIN_USERNAME!;
-  const adminPassword = process.env.ADMIN_PASSWORD!;
+async function clearBackendData(testConfig: ReturnType<typeof getTestConfig>) {
+  const backendUrl = testConfig.urls.backend;
+  const adminUsername = testConfig.admin.username;
+  const adminPassword = testConfig.admin.password;
 
   try {
     const loginResponse = await fetch(`${backendUrl}/api/admin/auth/login`, {

@@ -14,8 +14,8 @@ interface SwissRecordSectionProps {
   onMatchClick?: (match: Match) => void;
   onPositionChange?: (slotId: string, x: number, y: number) => void;
   containerRef?: React.RefObject<HTMLElement | null>;
-  baseX?: number;
-  baseY?: number;
+  _baseX?: number;
+  _baseY?: number;
   className?: string;
   'data-testid'?: string;
 }
@@ -29,8 +29,8 @@ const SwissRecordSection: React.FC<SwissRecordSectionProps> = ({
   onMatchClick,
   onPositionChange,
   containerRef,
-  baseX = 0,
-  baseY = 0,
+  _baseX = 0,
+  _baseY = 0,
   className = '',
   'data-testid': testId = 'swiss-record-section',
 }) => {
@@ -76,7 +76,7 @@ const SwissRecordSection: React.FC<SwissRecordSectionProps> = ({
             minHeight: '60px',
           }}
         >
-          {promotionTeams?.map((team, index) => (
+          {promotionTeams?.map((team, _index) => (
             <div
               key={team.id}
               className="flex flex-col items-center gap-1"
@@ -153,7 +153,7 @@ const SwissRecordSection: React.FC<SwissRecordSectionProps> = ({
             minHeight: '60px',
           }}
         >
-          {eliminationTeams?.map((team, index) => (
+          {eliminationTeams?.map((team, _index) => (
             <div
               key={team.id}
               className="flex flex-col items-center gap-1"

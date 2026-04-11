@@ -54,14 +54,14 @@ export const SWISS_THEME = {
   textSecondary: 'rgb(140, 140, 140)',
 
   // 尺寸 - 优化后的尺寸
-  columnWidth: 230,         // 从280缩小到230
-  teamLogoSize: 32,         // 从36缩小到32
-  scoreFontSize: 22,        // 从24缩小到22
-  titleFontSize: 14,         // 从16缩小到14
-  teamNameFontSize: 13,     // 从14缩小到13
-  matchCardHeight: 50,      // 从60缩小到50
-  headerHeight: 36,          // 从40缩小到36
-  gap: 12,                  // 间距从16缩小到12
+  columnWidth: 220,         // 列宽度
+  teamLogoSize: 32,         // 队伍Logo大小
+  scoreFontSize: 22,        // 比分字体大小
+  titleFontSize: 14,        // 标题字体大小
+  teamNameFontSize: 13,     // 队伍名字体大小
+  matchCardHeight: 50,      // 比赛卡片高度
+  headerHeight: 36,         // 标题栏高度
+  gap: 60,                  // 列间距 - 增大到60px，为SVG连线留出空间
 
   // 动画配置
   transitionDuration: '400ms',

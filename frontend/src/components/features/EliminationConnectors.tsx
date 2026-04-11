@@ -1,5 +1,6 @@
 import React from 'react';
 import { ELIMINATION_POSITIONS, ELIMINATION_CONNECTORS } from './eliminationConstants';
+import { ELIMINATION_THEME } from '@/constants/eliminationTheme';
 
 interface EliminationConnectorsProps {
   cardWidth?: number;
@@ -7,8 +8,8 @@ interface EliminationConnectorsProps {
 }
 
 const EliminationConnectors: React.FC<EliminationConnectorsProps> = ({
-  cardWidth = 192, // w-48 = 12rem = 192px
-  cardHeight = 100, // 估算卡片高度
+  cardWidth = 180,
+  cardHeight = 73,
 }) => {
   return (
     <>
@@ -16,43 +17,51 @@ const EliminationConnectors: React.FC<EliminationConnectorsProps> = ({
         const fromPos = ELIMINATION_POSITIONS[conn.from];
         const toPos = ELIMINATION_POSITIONS[conn.to];
 
+        // 官方UI连线设计：
+        // 从源卡片右侧中间出发
         const startX = fromPos.x + cardWidth;
         const startY = fromPos.y + cardHeight / 2;
+        
+        // 到目标卡片左侧中间
         const endX = toPos.x;
         const endY = toPos.y + cardHeight / 2;
 
+        // 计算中间点（水平方向的中点）
         const midX = startX + (endX - startX) / 2;
 
         return (
           <div key={`connector-${index}`} className="elimination-connector">
-            {/* 水平线段：从起点到中间 */}
+            {/* 第一段：从源卡片右侧水平延伸到中间点 */}
             <div
-              className="absolute bg-gray-600"
+              className="absolute"
               style={{
                 left: startX,
-                top: startY - 1,
+                top: startY,
                 width: midX - startX,
-                height: 2,
+                height: 1,
+                backgroundColor: ELIMINATION_THEME.connector,
               }}
             />
-            {/* 垂直线段：连接两个y坐标 */}
+            {/* 第二段：垂直连接（从startY到endY） */}
             <div
-              className="absolute bg-gray-600"
-              style={{
-                left: midX - 1,
-                top: Math.min(startY, endY),
-                width: 2,
-                height: Math.abs(endY - startY),
-              }}
-            />
-            {/* 水平线段：从中间到终点 */}
-            <div
-              className="absolute bg-gray-600"
+              className="absolute"
               style={{
                 left: midX,
-                top: endY - 1,
+                top: Math.min(startY, endY),
+                width: 1,
+                height: Math.abs(endY - startY),
+                backgroundColor: ELIMINATION_THEME.connector,
+              }}
+            />
+            {/* 第三段：从中间点水平延伸到目标卡片左侧 */}
+            <div
+              className="absolute"
+              style={{
+                left: midX,
+                top: endY,
                 width: endX - midX,
-                height: 2,
+                height: 1,
+                backgroundColor: ELIMINATION_THEME.connector,
               }}
             />
           </div>

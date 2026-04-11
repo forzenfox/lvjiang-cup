@@ -177,10 +177,10 @@ const Home: React.FC = () => {
       <GlobalLoadingIndicator visible={state.loading} />
 
       {/* 页面内容 */}
-      <HeroSection refreshInterval={REFRESH_INTERVAL} />
-      <StreamerSection refreshInterval={REFRESH_INTERVAL} />
-      <TeamSection refreshInterval={REFRESH_INTERVAL} />
-      <ScheduleSection refreshInterval={REFRESH_INTERVAL} />
+      <HeroSection />
+      <StreamerSection />
+      <TeamSection />
+      <ScheduleSection />
     </Layout>
   );
 };

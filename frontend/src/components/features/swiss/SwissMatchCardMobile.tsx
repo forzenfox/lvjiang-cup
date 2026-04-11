@@ -19,7 +19,7 @@ const SwissMatchCardMobile: React.FC<SwissMatchCardMobileProps> = ({
 }) => {
   const teamA = teams.find(t => t.id === match.teamAId);
   const teamB = teams.find(t => t.id === match.teamBId);
-  const isFinished = match.status === 'finished';
+  const _isFinished = match.status === 'finished';
 
   return (
     <div

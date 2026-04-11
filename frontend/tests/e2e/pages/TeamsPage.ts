@@ -1,4 +1,5 @@
 import { Page, Locator, expect } from '@playwright/test';
+import { getTestConfig } from '../config/TestConfig';
 
 /**
  * 战队管理页面 Page Object
@@ -408,18 +409,23 @@ export class TeamsPage {
    * 通过 API 直接删除后端数据
    */
   async cleanupTestData(): Promise<void> {
+    const config = getTestConfig();
     const baseURL = this.url.replace('/admin/teams', '');
     const cleanupUrl = `${baseURL}/api/admin/data`;
 
     try {
-      const response = await this.page.evaluate(async (url) => {
+      interface CleanupResponse {
+        success: boolean;
+      }
+
+      const response = await this.page.evaluate<CleanupResponse, [string, typeof config.admin]>(async ([url, adminConfig]) => {
         const token = localStorage.getItem('token') || localStorage.getItem('auth-token');
         const loginResponse = await fetch(`${url.replace('/api/admin/data', '/api/admin/auth/login')}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            username: 'admin',
-            password: 'admin123'
+            username: adminConfig.username,
+            password: adminConfig.password
           }),
         });
 
@@ -436,7 +442,7 @@ export class TeamsPage {
           },
         });
         return { success: clearResponse.ok };
-      }, cleanupUrl);
+      }, [cleanupUrl, config.admin]);
 
       if (response.success) {
         await this.page.reload();

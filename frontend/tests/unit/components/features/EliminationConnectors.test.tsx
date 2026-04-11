@@ -18,8 +18,8 @@ describe('EliminationConnectors 组件', () => {
     const dashedPaths = container.querySelectorAll('path[stroke-dasharray]');
     expect(dashedPaths.length).toBe(0);
 
-    // 验证使用CSS div实现的实线
-    const lines = container.querySelectorAll('.bg-gray-600');
+    // 验证使用内联样式实现的实线（金色连接线）
+    const lines = container.querySelectorAll('.elimination-connector');
     expect(lines.length).toBeGreaterThan(0);
   });
 
@@ -29,16 +29,15 @@ describe('EliminationConnectors 组件', () => {
     const connectors = container.querySelectorAll('.elimination-connector');
 
     connectors.forEach(connector => {
-      const lines = connector.querySelectorAll('.bg-gray-600');
       // 每个连接器应该包含3个div线段（水平-垂直-水平）
-      expect(lines.length).toBe(3);
+      const divs = connector.querySelectorAll(':scope > div');
+      expect(divs.length).toBe(3);
     });
   });
 
   it('应该接受自定义卡片尺寸', () => {
     const { container } = render(<EliminationConnectors cardWidth={200} cardHeight={120} />);
 
-    // 验证组件正确渲染，没有报错
     const connectors = container.querySelectorAll('.elimination-connector');
     expect(connectors.length).toBe(ELIMINATION_CONNECTORS.length);
   });

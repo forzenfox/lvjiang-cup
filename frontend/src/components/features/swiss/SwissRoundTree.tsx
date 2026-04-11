@@ -4,16 +4,8 @@ import SwissRecordSection from './SwissRecordSection';
 import { SWISS_THEME } from '@/constants/swissTheme';
 import {
   SWISS_COLUMNS,
-  PROMOTION_PATHS,
   type SwissColumnConfig,
 } from '@/constants/swissTreeConfig';
-
-export interface SwissMatchCardPosition {
-  slotId: string;
-  columnId: number;
-  x: number;
-  y: number;
-}
 
 interface SwissRoundTreeProps {
   matches: Match[];
@@ -53,64 +45,6 @@ const SwissRoundTree: React.FC<SwissRoundTreeProps> = ({
 
   // 滚动容器引用 - 用于计算卡片的相对位置
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-
-  // 强制重新渲染计数器 - 用于在位置更新后重新渲染SVG连接线
-  const [lineRenderKey, setLineRenderKey] = useState(0);
-
-  // 比赛卡片位置注册表 - 用于绘制晋级路径连接线
-  const cardPositionRegistry = useRef<Map<string, SwissMatchCardPosition>>(new Map());
-
-  // 清除位置注册表
-  const clearCardPositions = useCallback(() => {
-    cardPositionRegistry.current.clear();
-  }, []);
-
-  // 当activeTab切换时，清除位置注册表
-  useEffect(() => {
-    clearCardPositions();
-  }, [activeTab, clearCardPositions]);
-
-  // 注册比赛卡片位置
-  const registerCardPosition = useCallback((
-    slotId: string,
-    columnId: number,
-    x: number,
-    y: number
-  ) => {
-    cardPositionRegistry.current.set(slotId, { slotId, columnId, x, y });
-  }, []);
-
-  // 获取目标卡槽位置
-  const getTargetPosition = useCallback((targetSlotId: string): SwissMatchCardPosition | null => {
-    return cardPositionRegistry.current.get(targetSlotId) || null;
-  }, []);
-
-  // 计算晋级路径连接线
-  const promotionLines = useMemo(() => {
-    const lines: Array<{
-      fromSlotId: string;
-      toSlotId: string;
-      isWinPath: boolean;
-      key: string;
-    }> = [];
-
-    // 遍历所有槽位的晋级路径
-    Object.entries(PROMOTION_PATHS).forEach(([fromSlotId, targetSlotIds]) => {
-      // 只处理胜场路径（不以-loser结尾的）
-      const isWinPath = !fromSlotId.includes('-loser');
-
-      targetSlotIds.forEach((targetSlotId) => {
-        lines.push({
-          fromSlotId,
-          toSlotId: targetSlotId,
-          isWinPath,
-          key: `${fromSlotId}-${targetSlotId}`,
-        });
-      });
-    });
-
-    return lines;
-  }, [lineRenderKey]);
 
   // 按战绩分组比赛
   const matchesByRecord = useMemo(() => {
@@ -174,25 +108,14 @@ const SwissRoundTree: React.FC<SwissRoundTreeProps> = ({
     setHoveredColumnId(columnId);
   };
 
-  // 处理比赛卡片位置变化
-  const handleMatchCardPositionChange = useCallback((
-    slotId: string,
-    x: number,
-    y: number
+  // 处理比赛卡片位置变化（静态连线不再需要动态位置计算）
+  const _handleMatchCardPositionChange = useCallback((
+    _slotId: string,
+    _x: number,
+    _y: number
   ) => {
-    // slotId的格式是 "r1-0-0-1"，columnId需要从slotId中提取
-    // 例如：r1 -> 1, r2 -> 2, 等
-    const match = slotId.match(/^r(\d+)-/);
-    if (match) {
-      const columnId = parseInt(match[1], 10);
-      const prevPosition = cardPositionRegistry.current.get(slotId);
-      
-      // 只有位置变化时才更新并触发重新渲染
-      if (!prevPosition || prevPosition.x !== x || prevPosition.y !== y) {
-        cardPositionRegistry.current.set(slotId, { slotId, columnId, x, y });
-        setLineRenderKey(k => k + 1);
-      }
-    }
+    // 静态连线使用固定配置，不需要动态计算位置
+    // 保留此函数供未来可能的扩展使用
   }, []);
 
   // 渲染单列
@@ -240,7 +163,7 @@ const SwissRoundTree: React.FC<SwissRoundTreeProps> = ({
               promotionTeams={recordConfig.type === 'promotion' ? promotionTeams : undefined}
               eliminationTeams={recordConfig.type === 'elimination' ? eliminationTeams : undefined}
               onMatchClick={onMatchClick}
-              onPositionChange={handleMatchCardPositionChange}
+              onPositionChange={_handleMatchCardPositionChange}
               containerRef={scrollContainerRef}
             />
           ))}
@@ -253,11 +176,9 @@ const SwissRoundTree: React.FC<SwissRoundTreeProps> = ({
     <div className={className} data-testid={testId}>
       {/* BO1/BO3 切换标签 - 方案C：模拟官方3:1宽度比例设计 + 下划线效果 */}
       <div
-        className="relative mb-4"
+        className="relative mb-4 mx-auto"
         style={{
-          maxWidth: '1920px',
-          marginLeft: 'auto',
-          marginRight: 'auto',
+          width: `${visibleWidth}px`,
         }}
       >
         {/* 标签容器 */}
@@ -335,51 +256,17 @@ const SwissRoundTree: React.FC<SwissRoundTreeProps> = ({
         }}
         data-testid={`${testId}-content`}
       >
-        {/* SVG连接线层 */}
-        <svg
-          className="absolute top-0 left-0 pointer-events-none"
-          style={{
-            width: '100%',
-            height: '100%',
-            overflow: 'visible',
-          }}
-        >
-          {promotionLines.map((line) => {
-            const fromPos = cardPositionRegistry.current.get(line.fromSlotId);
-            const toPos = cardPositionRegistry.current.get(line.toSlotId);
 
-            if (!fromPos || !toPos) return null;
-
-            const fromX = fromPos.x + columnWidth / 2;
-            const fromY = fromPos.y + (line.isWinPath ? 0 : SWISS_THEME.matchCardHeight);
-            const toX = toPos.x + columnWidth / 2;
-            const toY = toPos.y + (line.isWinPath ? SWISS_THEME.matchCardHeight : 0);
-
-            const midY = (fromY + toY) / 2;
-            const path = `M ${fromX} ${fromY} L ${fromX} ${midY} L ${toX} ${midY} L ${toX} ${toY}`;
-
-            return (
-              <path
-                key={line.key}
-                d={path}
-                fill="none"
-                stroke={line.isWinPath ? SWISS_THEME.connector : SWISS_THEME.matchBorder}
-                strokeWidth="2"
-                strokeDasharray={line.isWinPath ? 'none' : '5,5'}
-                opacity="0.5"
-              />
-            );
-          })}
-        </svg>
 
         {/* 6列容器，通过transform实现滑动 */}
         <div
-          className="flex transition-transform"
+          className="flex transition-transform relative"
           style={{
             transform: `translateX(${slideOffset}px)`,
             width: `${6 * columnWidth + 5 * columnGap}px`,
             gap: `${columnGap}px`,
             transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
+            zIndex: 2,
           }}
         >
           {SWISS_COLUMNS.map(renderColumn)}

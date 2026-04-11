@@ -31,10 +31,11 @@ coverage/
 **/tests/e2e/report/
 **/tests/e2e/screenshots/
 **/tests/e2e/videos/
+**/tests/e2e/.auth/
 *.test-results.json
 *.test-report.html
 
-# Environment variables
+# Environment variables (contain sensitive data)
 **/.env
 **/.env.local
 **/.env.*.local
