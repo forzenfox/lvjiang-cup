@@ -24,7 +24,7 @@ import { getUploadBaseDir } from './common/utils/path.util';
     }),
     ServeStaticModule.forRoot({
       rootPath: getUploadBaseDir(),
-      serveRoot: '/uploads',
+      serveRoot: '/api/uploads',
     }),
     DatabaseModule,
     CacheModule,

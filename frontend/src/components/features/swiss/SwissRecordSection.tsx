@@ -92,7 +92,6 @@ const SwissRecordSection: React.FC<SwissRecordSectionProps> = ({
                 backgroundColor: 'rgba(30, 93, 200, 0.08)',
               }}
             >
-              <span style={{ fontSize: '24px' }}>🏆</span>
               <span style={{ color: '#8ba4c7', fontSize: '13px' }}>
                 暂无可展示的队伍
               </span>
@@ -170,7 +169,6 @@ const SwissRecordSection: React.FC<SwissRecordSectionProps> = ({
                 backgroundColor: 'rgba(139, 69, 69, 0.08)',
               }}
             >
-              <span style={{ fontSize: '24px' }}>❌</span>
               <span style={{ color: '#8ba4c7', fontSize: '13px' }}>
                 暂无可展示的队伍
               </span>

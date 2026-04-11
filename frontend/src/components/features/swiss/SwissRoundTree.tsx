@@ -193,10 +193,11 @@ const SwissRoundTree: React.FC<SwissRoundTreeProps> = ({
       >
         {/* 6列容器，通过transform实现滑动 */}
         <div
-          className="flex gap-4 transition-transform"
+          className="flex transition-transform"
           style={{
             transform: `translateX(${slideOffset}px)`,
             width: `${6 * SWISS_THEME.columnWidth + 5 * SWISS_THEME.gap}px`,
+            gap: `${SWISS_THEME.gap}px`,
             transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
           }}
         >

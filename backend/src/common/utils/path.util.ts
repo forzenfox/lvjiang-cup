@@ -52,7 +52,7 @@ export function getMemberAvatarPath(filename: string): string {
  * @param filename UUID 文件名 (含扩展名)
  */
 export function getTeamLogoUrl(filename: string): string {
-  return `/uploads/${uploadConfig.teamLogoDir}/${filename}`;
+  return `/api/uploads/${uploadConfig.teamLogoDir}/${filename}`;
 }
 
 /**
@@ -62,7 +62,7 @@ export function getTeamLogoUrl(filename: string): string {
 export function getTeamLogoThumbnailUrl(filename: string): string {
   const basename = filename.replace(/\.[^.]+$/, '');
   const ext = path.extname(filename) || '.png';
-  return `/uploads/${uploadConfig.teamLogoDir}/${basename}_thumb${ext}`;
+  return `/api/uploads/${uploadConfig.teamLogoDir}/${basename}_thumb${ext}`;
 }
 
 /**
@@ -70,7 +70,7 @@ export function getTeamLogoThumbnailUrl(filename: string): string {
  * @param filename UUID 文件名 (含扩展名)
  */
 export function getMemberAvatarUrl(filename: string): string {
-  return `/uploads/${uploadConfig.memberAvatarDir}/${filename}`;
+  return `/api/uploads/${uploadConfig.memberAvatarDir}/${filename}`;
 }
 
 /**
