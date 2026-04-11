@@ -12,8 +12,8 @@ import {
 describe('eliminationConstants', () => {
   describe('BOARD_WIDTH 和 BOARD_HEIGHT', () => {
     it('应该定义正确的画布尺寸', () => {
-      expect(BOARD_WIDTH).toBe(800);
-      expect(BOARD_HEIGHT).toBe(650);
+      expect(BOARD_WIDTH).toBe(900);
+      expect(BOARD_HEIGHT).toBe(450);
     });
   });
 

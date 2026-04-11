@@ -1,24 +1,25 @@
-// 淘汰赛UI主题配置 - 与瑞士轮风格保持一致
+// 淘汰赛UI主题配置 - 参考官方UI
 export const ELIMINATION_THEME = {
   // 背景色
   background: 'transparent',
 
-  // 卡片背景 - 与瑞士轮一致
+  // 卡片背景 - 与官方一致
   cardBackground: 'rgb(45, 46, 48)',
   cardBorder: 'rgb(80, 80, 80)',
 
-  // 获胜方高亮 - 使用金色（与瑞士轮一致）
-  winner: 'rgb(200, 170, 110)',
+  // 获胜方高亮 - 使用蓝色（与官方一致）
+  winner: 'rgb(0, 86, 179)',
   winnerText: 'rgb(255, 255, 255)',
-  winnerBg: 'rgb(200, 170, 110)',
+  winnerBg: 'rgb(0, 86, 179)',
   loserText: 'rgb(150, 150, 150)',
+  loserBg: 'rgb(60, 60, 60)',
 
   // 比分颜色
   scoreDefault: 'rgb(120, 120, 120)',
-  scoreActive: 'rgb(200, 170, 110)',
+  scoreActive: 'rgb(255, 255, 255)',
 
   // 连接线
-  connector: 'rgb(200, 170, 110)',
+  connector: 'rgb(80, 80, 80)',
 
   // 阶段标签
   stageLabelBg: 'rgb(55, 56, 58)',
@@ -30,7 +31,7 @@ export const ELIMINATION_THEME = {
   statusOngoing: 'bg-green-500 text-white animate-pulse',
   statusFinished: 'bg-gray-500 text-white',
 
-  // 尺寸 - 紧凑设计
+  // 尺寸 - 参考官方设计
   cardWidth: 180,
   matchCardHeight: 73,  // 36px * 2 + 1px分隔线
   teamLogoSize: 20,
