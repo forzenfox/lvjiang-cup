@@ -356,19 +356,31 @@ export class TeamsPage {
 
   /**
    * 加载模拟数据（用于测试）
-   * 通过 API 逐个创建团队
+   * 通过 API 逐个创建团队 - 使用 mockTeams 中的全部16支真实战队数据
    */
   async loadMockData(): Promise<void> {
-    // 模拟战队数据
-    const mockTeams = [
+    // 使用 mockTeams 的全部16支真实战队数据
+    const mockTeamData = [
       { name: '驴酱', logo: 'https://picsum.photos/seed/donkey/200/200', battleCry: '驴酱战队' },
       { name: 'IC', logo: 'https://picsum.photos/seed/icstar/200/200', battleCry: 'IC战队' },
       { name: 'PLG', logo: 'https://picsum.photos/seed/plgwater/200/200', battleCry: 'PLG战队' },
       { name: '小熊', logo: 'https://picsum.photos/seed/xiaoxiong/200/200', battleCry: '小熊战队' },
+      { name: '搓搓鸟', logo: 'https://picsum.photos/seed/cuocuoniao/200/200', battleCry: '搓搓鸟战队' },
+      { name: '100J', logo: 'https://picsum.photos/seed/100j/200/200', battleCry: '100J战队' },
+      { name: '69', logo: 'https://picsum.photos/seed/69team/200/200', battleCry: '69战队' },
+      { name: '雨酱', logo: 'https://picsum.photos/seed/yujiang/200/200', battleCry: '雨酱战队' },
+      { name: '星辰', logo: 'https://picsum.photos/seed/star/200/200', battleCry: '星辰战队' },
+      { name: '烈焰', logo: 'https://picsum.photos/seed/fire/200/200', battleCry: '烈焰战队' },
+      { name: '寒冰', logo: 'https://picsum.photos/seed/ice/200/200', battleCry: '寒冰战队' },
+      { name: '雷霆', logo: 'https://picsum.photos/seed/thunder/200/200', battleCry: '雷霆战队' },
+      { name: '暗影', logo: 'https://picsum.photos/seed/shadow/200/200', battleCry: '暗影战队' },
+      { name: '疾风', logo: 'https://picsum.photos/seed/wind/200/200', battleCry: '疾风战队' },
+      { name: '巨石', logo: 'https://picsum.photos/seed/rock/200/200', battleCry: '巨石战队' },
+      { name: '深海', logo: 'https://picsum.photos/seed/ocean/200/200', battleCry: '深海战队' },
     ];
 
     // 逐个创建团队
-    for (const team of mockTeams) {
+    for (const team of mockTeamData) {
       try {
         await this.page.evaluate(
           async (teamData) => {
