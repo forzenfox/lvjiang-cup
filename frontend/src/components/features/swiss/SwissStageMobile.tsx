@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Match, Team } from '@/types';
 import SwissRoundTabs from './SwissRoundTabs';
 import SwissMatchCardMobile from './SwissMatchCardMobile';
-import SwissRecordGroup from './SwissRecordGroup';
+import SwissFinalResultMobile from './SwissFinalResultMobile';
 import { SWISS_STAGE_CONFIG } from '@/constants/swissStageConfig';
 
 interface SwissStageMobileProps {
@@ -25,6 +25,7 @@ const SwissStageMobile: React.FC<SwissStageMobileProps> = ({
   className = '',
   'data-testid': testId = 'swiss-stage-mobile',
 }) => {
+  // 移动端使用6个标签：1-5轮 + 最终结果
   const [selectedRound, setSelectedRound] = useState<number>(1);
 
   const matchesByRecord = useMemo(() => {
@@ -41,109 +42,151 @@ const SwissStageMobile: React.FC<SwissStageMobileProps> = ({
 
   const currentRoundConfig = SWISS_STAGE_CONFIG.rounds.find(r => r.round === selectedRound);
 
-  const qualifiedTeams = useMemo(() => {
+  // 获取所有晋级队伍（3-0, 3-1, 3-2）
+  const allQualifiedTeams = useMemo(() => {
     if (!advancement?.top8) return [];
     return teams.filter(t => advancement.top8.includes(t.id));
   }, [teams, advancement]);
 
-  const eliminatedTeams = useMemo(() => {
+  // 获取所有淘汰队伍（0-3, 1-3, 2-3）
+  const allEliminatedTeams = useMemo(() => {
     if (!advancement?.eliminated) return [];
     return teams.filter(t => advancement.eliminated.includes(t.id));
   }, [teams, advancement]);
 
-  return (
-    <div className={className} data-testid={testId}>
-      <SwissRoundTabs
-        selectedRound={selectedRound}
-        onRoundChange={setSelectedRound}
-        className="mb-4"
+  // 渲染最终结果视图 - 使用固定槽位布局
+  const renderFinalResult = () => {
+    return (
+      <SwissFinalResultMobile
+        qualifiedTeams={allQualifiedTeams}
+        eliminatedTeams={allEliminatedTeams}
+        data-testid={`${testId}-final-result`}
       />
+    );
+  };
 
+  // 渲染前5轮的对战信息
+  const renderRoundContent = () => {
+    if (!currentRoundConfig) return null;
+
+    return (
       <div data-testid={`${testId}-content`}>
-        {currentRoundConfig?.records.map((record) => {
+        {currentRoundConfig.records.map((record) => {
           const recordMatches = matchesByRecord[record] || [];
 
+          // 第三轮特殊处理：显示2-0晋级和0-2淘汰
           if (selectedRound === 3) {
             if (record === '2-0') {
               return (
-                <SwissRecordGroup
-                  key={record}
-                  type="qualified"
-                  title="2-0 晋级"
-                  teams={qualifiedTeams}
-                  className="mb-4"
-                  data-testid={`${testId}-qualified-2-0`}
-                />
+                <div key={record} className="mb-4">
+                  <h4 className="text-sm text-gray-400 mb-2 uppercase tracking-wider">
+                    第三轮 2-0
+                  </h4>
+                  <div className="space-y-2">
+                    {recordMatches.map((match, index) => (
+                      <SwissMatchCardMobile
+                        key={match.id}
+                        match={match}
+                        teams={teams}
+                        onClick={onMatchClick ? () => onMatchClick(match) : undefined}
+                        data-testid={`${testId}-match-${index}`}
+                      />
+                    ))}
+                  </div>
+                </div>
               );
             }
             if (record === '0-2') {
               return (
-                <SwissRecordGroup
-                  key={record}
-                  type="eliminated"
-                  title="0-2 淘汰"
-                  teams={eliminatedTeams}
-                  className="mb-4"
-                  data-testid={`${testId}-eliminated-0-2`}
-                />
+                <div key={record} className="mb-4">
+                  <h4 className="text-sm text-gray-400 mb-2 uppercase tracking-wider">
+                    第三轮 0-2
+                  </h4>
+                  <div className="space-y-2">
+                    {recordMatches.map((match, index) => (
+                      <SwissMatchCardMobile
+                        key={match.id}
+                        match={match}
+                        teams={teams}
+                        onClick={onMatchClick ? () => onMatchClick(match) : undefined}
+                        data-testid={`${testId}-match-${index}`}
+                      />
+                    ))}
+                  </div>
+                </div>
               );
             }
           }
 
+          // 第四轮特殊处理：显示3-1晋级和1-3淘汰
           if (selectedRound === 4) {
-            if (record === '3-1') {
+            if (record === '2-1') {
               return (
-                <SwissRecordGroup
-                  key={record}
-                  type="qualified"
-                  title="3-1 晋级"
-                  teams={qualifiedTeams}
-                  className="mb-4"
-                  data-testid={`${testId}-qualified-3-1`}
-                />
+                <div key={record} className="mb-4">
+                  <h4 className="text-sm text-gray-400 mb-2 uppercase tracking-wider">
+                    第四轮 2-1
+                  </h4>
+                  <div className="space-y-2">
+                    {recordMatches.map((match, index) => (
+                      <SwissMatchCardMobile
+                        key={match.id}
+                        match={match}
+                        teams={teams}
+                        onClick={onMatchClick ? () => onMatchClick(match) : undefined}
+                        data-testid={`${testId}-match-${index}`}
+                      />
+                    ))}
+                  </div>
+                </div>
               );
             }
-            if (record === '1-3') {
+            if (record === '1-2') {
               return (
-                <SwissRecordGroup
-                  key={record}
-                  type="eliminated"
-                  title="1-3 淘汰"
-                  teams={eliminatedTeams}
-                  className="mb-4"
-                  data-testid={`${testId}-eliminated-1-3`}
-                />
+                <div key={record} className="mb-4">
+                  <h4 className="text-sm text-gray-400 mb-2 uppercase tracking-wider">
+                    第四轮 1-2
+                  </h4>
+                  <div className="space-y-2">
+                    {recordMatches.map((match, index) => (
+                      <SwissMatchCardMobile
+                        key={match.id}
+                        match={match}
+                        teams={teams}
+                        onClick={onMatchClick ? () => onMatchClick(match) : undefined}
+                        data-testid={`${testId}-match-${index}`}
+                      />
+                    ))}
+                  </div>
+                </div>
               );
             }
           }
 
+          // 第五轮特殊处理：显示3-2晋级和2-3淘汰
           if (selectedRound === 5) {
-            if (record === '3-2') {
+            if (record === '2-2') {
               return (
-                <SwissRecordGroup
-                  key={record}
-                  type="qualified"
-                  title="3-2 晋级"
-                  teams={qualifiedTeams}
-                  className="mb-4"
-                  data-testid={`${testId}-qualified-3-2`}
-                />
-              );
-            }
-            if (record === '2-3') {
-              return (
-                <SwissRecordGroup
-                  key={record}
-                  type="eliminated"
-                  title="2-3 淘汰"
-                  teams={eliminatedTeams}
-                  className="mb-4"
-                  data-testid={`${testId}-eliminated-2-3`}
-                />
+                <div key={record} className="mb-4">
+                  <h4 className="text-sm text-gray-400 mb-2 uppercase tracking-wider">
+                    第五轮 2-2
+                  </h4>
+                  <div className="space-y-2">
+                    {recordMatches.map((match, index) => (
+                      <SwissMatchCardMobile
+                        key={match.id}
+                        match={match}
+                        teams={teams}
+                        onClick={onMatchClick ? () => onMatchClick(match) : undefined}
+                        data-testid={`${testId}-match-${index}`}
+                      />
+                    ))}
+                  </div>
+                </div>
               );
             }
           }
 
+          // 默认显示对战信息
           return (
             <div key={record} className="mb-4" data-testid={`${testId}-round-${record}`}>
               <h4 className="text-sm text-gray-400 mb-2 uppercase tracking-wider">
@@ -164,6 +207,19 @@ const SwissStageMobile: React.FC<SwissStageMobileProps> = ({
           );
         })}
       </div>
+    );
+  };
+
+  return (
+    <div className={className} data-testid={testId}>
+      <SwissRoundTabs
+        selectedRound={selectedRound}
+        onRoundChange={setSelectedRound}
+        showFinalResult={true}
+        className="mb-4"
+      />
+
+      {selectedRound === 6 ? renderFinalResult() : renderRoundContent()}
     </div>
   );
 };
