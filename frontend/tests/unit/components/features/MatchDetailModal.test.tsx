@@ -51,12 +51,7 @@ describe('MatchDetailModal', () => {
   it('当visible为false时不应该渲染', () => {
     const match = createMockMatch();
     const { container } = render(
-      <MatchDetailModal
-        visible={false}
-        onClose={vi.fn()}
-        match={match}
-        teams={mockTeams}
-      />
+      <MatchDetailModal visible={false} onClose={vi.fn()} match={match} teams={mockTeams} />
     );
 
     // 弹框内容不应该在文档中
@@ -65,12 +60,7 @@ describe('MatchDetailModal', () => {
 
   it('当match为null时不应该渲染', () => {
     const { container } = render(
-      <MatchDetailModal
-        visible={true}
-        onClose={vi.fn()}
-        match={null}
-        teams={mockTeams}
-      />
+      <MatchDetailModal visible={true} onClose={vi.fn()} match={null} teams={mockTeams} />
     );
 
     // 弹框内容不应该在文档中
@@ -79,56 +69,28 @@ describe('MatchDetailModal', () => {
 
   it('应该显示弹框标题', () => {
     const match = createMockMatch();
-    render(
-      <MatchDetailModal
-        visible={true}
-        onClose={vi.fn()}
-        match={match}
-        teams={mockTeams}
-      />
-    );
+    render(<MatchDetailModal visible={true} onClose={vi.fn()} match={match} teams={mockTeams} />);
 
     expect(screen.getByText('对战详情')).toBeInTheDocument();
   });
 
   it('应该显示对战时间', () => {
     const match = createMockMatch({ startTime: '2026-01-01T14:30:00' });
-    render(
-      <MatchDetailModal
-        visible={true}
-        onClose={vi.fn()}
-        match={match}
-        teams={mockTeams}
-      />
-    );
+    render(<MatchDetailModal visible={true} onClose={vi.fn()} match={match} teams={mockTeams} />);
 
     expect(screen.getByText('2026年01月01日 14:30')).toBeInTheDocument();
   });
 
   it('当没有startTime时应该显示待定', () => {
     const match = createMockMatch({ startTime: '' });
-    render(
-      <MatchDetailModal
-        visible={true}
-        onClose={vi.fn()}
-        match={match}
-        teams={mockTeams}
-      />
-    );
+    render(<MatchDetailModal visible={true} onClose={vi.fn()} match={match} teams={mockTeams} />);
 
     expect(screen.getByText('待定')).toBeInTheDocument();
   });
 
   it('应该显示对战状态', () => {
     const match = createMockMatch({ status: 'ongoing' });
-    render(
-      <MatchDetailModal
-        visible={true}
-        onClose={vi.fn()}
-        match={match}
-        teams={mockTeams}
-      />
-    );
+    render(<MatchDetailModal visible={true} onClose={vi.fn()} match={match} teams={mockTeams} />);
 
     expect(screen.getByText('进行中')).toBeInTheDocument();
   });
@@ -137,38 +99,21 @@ describe('MatchDetailModal', () => {
     // 测试未开始状态
     const upcomingMatch = createMockMatch({ status: 'upcoming' });
     const { rerender } = render(
-      <MatchDetailModal
-        visible={true}
-        onClose={vi.fn()}
-        match={upcomingMatch}
-        teams={mockTeams}
-      />
+      <MatchDetailModal visible={true} onClose={vi.fn()} match={upcomingMatch} teams={mockTeams} />
     );
     expect(screen.getByText('未开始')).toBeInTheDocument();
 
     // 测试已结束状态
     const finishedMatch = createMockMatch({ status: 'finished' });
     rerender(
-      <MatchDetailModal
-        visible={true}
-        onClose={vi.fn()}
-        match={finishedMatch}
-        teams={mockTeams}
-      />
+      <MatchDetailModal visible={true} onClose={vi.fn()} match={finishedMatch} teams={mockTeams} />
     );
     expect(screen.getByText('已结束')).toBeInTheDocument();
   });
 
   it('应该显示双方队伍名称', () => {
     const match = createMockMatch();
-    render(
-      <MatchDetailModal
-        visible={true}
-        onClose={vi.fn()}
-        match={match}
-        teams={mockTeams}
-      />
-    );
+    render(<MatchDetailModal visible={true} onClose={vi.fn()} match={match} teams={mockTeams} />);
 
     expect(screen.getByText('驴酱')).toBeInTheDocument();
     expect(screen.getByText('雨酱')).toBeInTheDocument();
@@ -176,14 +121,7 @@ describe('MatchDetailModal', () => {
 
   it('应该显示比分', () => {
     const match = createMockMatch({ scoreA: 3, scoreB: 2 });
-    render(
-      <MatchDetailModal
-        visible={true}
-        onClose={vi.fn()}
-        match={match}
-        teams={mockTeams}
-      />
-    );
+    render(<MatchDetailModal visible={true} onClose={vi.fn()} match={match} teams={mockTeams} />);
 
     // 比分应该在弹框中显示
     const scores = screen.getAllByText('3');
@@ -194,14 +132,7 @@ describe('MatchDetailModal', () => {
 
   it('应该显示胜者标签', () => {
     const match = createMockMatch({ winnerId: 'team1', status: 'finished' });
-    render(
-      <MatchDetailModal
-        visible={true}
-        onClose={vi.fn()}
-        match={match}
-        teams={mockTeams}
-      />
-    );
+    render(<MatchDetailModal visible={true} onClose={vi.fn()} match={match} teams={mockTeams} />);
 
     // 应该显示"胜者"标签
     const winnerLabels = screen.getAllByText('胜者');
@@ -210,14 +141,7 @@ describe('MatchDetailModal', () => {
 
   it('应该显示队员对阵信息', () => {
     const match = createMockMatch();
-    render(
-      <MatchDetailModal
-        visible={true}
-        onClose={vi.fn()}
-        match={match}
-        teams={mockTeams}
-      />
-    );
+    render(<MatchDetailModal visible={true} onClose={vi.fn()} match={match} teams={mockTeams} />);
 
     // 验证队员对阵标题
     expect(screen.getByText('队员对阵')).toBeInTheDocument();
@@ -229,14 +153,7 @@ describe('MatchDetailModal', () => {
 
   it('应该显示队员昵称', () => {
     const match = createMockMatch();
-    render(
-      <MatchDetailModal
-        visible={true}
-        onClose={vi.fn()}
-        match={match}
-        teams={mockTeams}
-      />
-    );
+    render(<MatchDetailModal visible={true} onClose={vi.fn()} match={match} teams={mockTeams} />);
 
     // 验证队员昵称显示
     expect(screen.getByText('小明')).toBeInTheDocument();
@@ -245,14 +162,7 @@ describe('MatchDetailModal', () => {
 
   it('应该显示位置信息', () => {
     const match = createMockMatch();
-    render(
-      <MatchDetailModal
-        visible={true}
-        onClose={vi.fn()}
-        match={match}
-        teams={mockTeams}
-      />
-    );
+    render(<MatchDetailModal visible={true} onClose={vi.fn()} match={match} teams={mockTeams} />);
 
     // 验证位置显示（使用 getAllByText 因为有多个相同位置）
     const topLabels = screen.getAllByText('上单');
@@ -273,14 +183,7 @@ describe('MatchDetailModal', () => {
 
   it('应该显示赛制信息', () => {
     const match = createMockMatch({ boFormat: 'BO5' });
-    render(
-      <MatchDetailModal
-        visible={true}
-        onClose={vi.fn()}
-        match={match}
-        teams={mockTeams}
-      />
-    );
+    render(<MatchDetailModal visible={true} onClose={vi.fn()} match={match} teams={mockTeams} />);
 
     expect(screen.getByText('BO5')).toBeInTheDocument();
   });
@@ -289,12 +192,7 @@ describe('MatchDetailModal', () => {
     const match = createMockMatch();
     const handleClose = vi.fn();
     render(
-      <MatchDetailModal
-        visible={true}
-        onClose={handleClose}
-        match={match}
-        teams={mockTeams}
-      />
+      <MatchDetailModal visible={true} onClose={handleClose} match={match} teams={mockTeams} />
     );
 
     // 点击关闭按钮（X按钮）
@@ -308,12 +206,7 @@ describe('MatchDetailModal', () => {
     const match = createMockMatch();
     const handleClose = vi.fn();
     const { container } = render(
-      <MatchDetailModal
-        visible={true}
-        onClose={handleClose}
-        match={match}
-        teams={mockTeams}
-      />
+      <MatchDetailModal visible={true} onClose={handleClose} match={match} teams={mockTeams} />
     );
 
     // 点击遮罩层（黑色背景）

@@ -120,7 +120,11 @@ describe('useAuth Hook', () => {
 
     it('过期 Token 应该清除 Token 并保持未认证', async () => {
       localStorage.setItem('token', 'expired-token');
-      vi.mocked(authApi.getCurrentUser).mockResolvedValue({ id: '1', username: 'admin', role: 'admin' });
+      vi.mocked(authApi.getCurrentUser).mockResolvedValue({
+        id: '1',
+        username: 'admin',
+        role: 'admin',
+      });
       vi.mocked(isTokenValid).mockReturnValue(false);
 
       const wrapper = ({ children }: { children: React.ReactNode }) => (
@@ -140,7 +144,11 @@ describe('useAuth Hook', () => {
 
     it('格式错误的 Token 应该清除 Token 并保持未认证', async () => {
       localStorage.setItem('token', 'invalid-format-token');
-      vi.mocked(authApi.getCurrentUser).mockResolvedValue({ id: '1', username: 'admin', role: 'admin' });
+      vi.mocked(authApi.getCurrentUser).mockResolvedValue({
+        id: '1',
+        username: 'admin',
+        role: 'admin',
+      });
       vi.mocked(isTokenValid).mockReturnValue(false);
 
       const wrapper = ({ children }: { children: React.ReactNode }) => (

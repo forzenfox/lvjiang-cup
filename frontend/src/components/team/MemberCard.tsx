@@ -81,11 +81,7 @@ const ChampionHover: React.FC<{ championName: string }> = ({ championName }) => 
   const iconUrl = getChampionIconUrl(championName);
 
   return (
-    <span
-      className="relative inline-block"
-      onMouseEnter={showTooltip}
-      onMouseLeave={hideTooltip}
-    >
+    <span className="relative inline-block" onMouseEnter={showTooltip} onMouseLeave={hideTooltip}>
       <span className="text-slate-400 text-xs hover:text-amber-500 transition-colors cursor-default">
         {championName}
       </span>
@@ -108,7 +104,7 @@ const ChampionHover: React.FC<{ championName: string }> = ({ championName }) => 
               src={iconUrl}
               alt={championName}
               className="w-full h-full object-cover"
-              onError={(e) => {
+              onError={e => {
                 (e.target as HTMLImageElement).style.display = 'none';
               }}
             />
@@ -159,21 +155,13 @@ const MemberCard: React.FC<MemberCardProps> = ({ member }) => {
         <div className="flex-1 min-w-0">
           {/* Nickname & Captain Badge */}
           <div className="flex items-center gap-2 mb-1">
-            <h4 className="text-base font-semibold text-slate-100 truncate">
-              {member.nickname}
-            </h4>
+            <h4 className="text-base font-semibold text-slate-100 truncate">{member.nickname}</h4>
             {member.level && (
-              <span className={getLevelBadgeClasses(member.level)}>
-                {member.level}
-              </span>
+              <span className={getLevelBadgeClasses(member.level)}>{member.level}</span>
             )}
             {member.isCaptain && (
               <span className={getCaptainBadgeClasses('flex items-center gap-1')}>
-                <svg
-                  className="w-3 h-3"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
+                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                 </svg>
                 队长
@@ -182,18 +170,12 @@ const MemberCard: React.FC<MemberCardProps> = ({ member }) => {
           </div>
 
           {/* Game ID */}
-          {member.gameId && (
-            <p className="text-sm text-slate-500 mb-2">{member.gameId}</p>
-          )}
+          {member.gameId && <p className="text-sm text-slate-500 mb-2">{member.gameId}</p>}
 
           {/* Position */}
           <div className="flex items-center gap-1.5 mb-2">
             {positionConfig && (
-              <img
-                src={positionConfig.icon}
-                alt={positionConfig.label}
-                className="w-4 h-4"
-              />
+              <img src={positionConfig.icon} alt={positionConfig.label} className="w-4 h-4" />
             )}
             <span className="text-sm text-slate-400">{positionConfig?.label}</span>
           </div>
@@ -215,12 +197,7 @@ const MemberCard: React.FC<MemberCardProps> = ({ member }) => {
                 className="inline-flex items-center gap-1 text-sm text-blue-500 hover:underline"
               >
                 <span>直播间</span>
-                <svg
-                  className="w-3 h-3"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -235,9 +212,7 @@ const MemberCard: React.FC<MemberCardProps> = ({ member }) => {
       </div>
 
       {/* Divider */}
-      {(member.bio || member.championPool) && (
-        <div className="border-t border-white/10 my-3" />
-      )}
+      {(member.bio || member.championPool) && <div className="border-t border-white/10 my-3" />}
 
       {/* Bio */}
       {member.bio && (
@@ -259,7 +234,7 @@ const MemberCard: React.FC<MemberCardProps> = ({ member }) => {
         <div>
           <span className="text-xs text-slate-500">常用英雄：</span>
           <div className="inline-flex flex-wrap gap-2 mt-1">
-            {member.championPool.map((champion) => (
+            {member.championPool.map(champion => (
               <ChampionHover key={champion} championName={champion} />
             ))}
           </div>

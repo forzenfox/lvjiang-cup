@@ -1,7 +1,10 @@
 import { describe, it, expect } from 'vitest';
 import { render } from '@testing-library/react';
 import EliminationConnectors from '@/components/features/EliminationConnectors';
-import { ELIMINATION_CONNECTORS, calculateEliminationPositions } from '@/components/features/eliminationConstants';
+import {
+  ELIMINATION_CONNECTORS,
+  calculateEliminationPositions,
+} from '@/components/features/eliminationConstants';
 
 describe('EliminationConnectors 组件', () => {
   it('应该渲染所有连接线', () => {

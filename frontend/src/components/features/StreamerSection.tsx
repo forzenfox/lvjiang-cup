@@ -1,8 +1,8 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { Loader2, AlertCircle, X } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui/card';
+import { Loader2, AlertCircle } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
+import { Tabs, TabsList, TabsTrigger } from '../ui/tabs';
 
 // 隐藏滚动条的样式
 const styles = `
@@ -29,7 +29,11 @@ interface Streamer {
 // 从配置文件获取主播数据
 const getStreamersFromConfig = (): Streamer[] => {
   // 检查 window.APP_CONFIG 是否存在
-  if (typeof window !== 'undefined' && window.APP_CONFIG && (window.APP_CONFIG as { STREAMERS?: Streamer[] }).STREAMERS) {
+  if (
+    typeof window !== 'undefined' &&
+    window.APP_CONFIG &&
+    (window.APP_CONFIG as { STREAMERS?: Streamer[] }).STREAMERS
+  ) {
     return (window.APP_CONFIG as { STREAMERS?: Streamer[] }).STREAMERS!;
   }
   //  fallback 数据
@@ -60,7 +64,17 @@ const StreamerCardSkeleton: React.FC = () => (
 const EmptyState: React.FC<{ onRetry: () => void }> = ({ onRetry }) => (
   <div className="col-span-full flex flex-col items-center justify-center py-20">
     <div className="w-16 h-16 text-gray-500 mb-4 flex items-center justify-center">
-      <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="64"
+        height="64"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
         <path d="M20 7h-4V4c0-1.1-.9-2-2-2h-4a2 2 0 0 0-2 2v3H4c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V9c0-1.1-.9-2-2-2z" />
         <path d="M12 11v6" />
         <path d="M9 14h6" />
@@ -95,23 +109,29 @@ const ErrorState: React.FC<{ message: string; onRetry: () => void }> = ({ messag
 );
 
 // 主播卡片组件
-const StreamerCard: React.FC<{ streamer: Streamer; onClick: () => void }> = ({ streamer, onClick }) => {
+const StreamerCard: React.FC<{ streamer: Streamer; onClick: () => void }> = ({
+  streamer,
+  onClick,
+}) => {
   return (
-    <Card className="bg-white/5 border-white/10 hover:border-secondary/50 transition-all duration-300 hover:transform hover:-translate-y-2 group overflow-hidden cursor-pointer" onClick={onClick}>
+    <Card
+      className="bg-white/5 border-white/10 hover:border-secondary/50 transition-all duration-300 hover:transform hover:-translate-y-2 group overflow-hidden cursor-pointer"
+      onClick={onClick}
+    >
       {/* 海报区域 */}
       <div className="relative h-64 overflow-hidden">
-        <img 
-          src={streamer.posterUrl} 
-          alt={streamer.nickname} 
+        <img
+          src={streamer.posterUrl}
+          alt={streamer.nickname}
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
         />
         {/* 标签 */}
         <div className="absolute top-4 left-4 flex space-x-2">
           {streamer.isStar && (
-                <span className="bg-yellow-500 text-black px-2 py-1 rounded-full text-xs font-bold">
-                  驴酱
-                </span>
-              )}
+            <span className="bg-yellow-500 text-black px-2 py-1 rounded-full text-xs font-bold">
+              驴酱
+            </span>
+          )}
           {streamer.isGuest && (
             <span className="bg-purple-500 text-white px-2 py-1 rounded-full text-xs font-bold">
               嘉宾
@@ -119,21 +139,19 @@ const StreamerCard: React.FC<{ streamer: Streamer; onClick: () => void }> = ({ s
           )}
         </div>
       </div>
-      
+
       {/* 信息区域 */}
       <CardHeader>
         <CardTitle className="text-xl text-center text-secondary group-hover:text-white transition-colors">
           {streamer.nickname}
         </CardTitle>
       </CardHeader>
-      
+
       <CardContent>
-        <p className="text-sm text-gray-400 mb-4 line-clamp-2">
-          {streamer.bio}
-        </p>
-        <Button 
+        <p className="text-sm text-gray-400 mb-4 line-clamp-2">{streamer.bio}</p>
+        <Button
           className="w-full bg-secondary hover:bg-secondary/80"
-          onClick={(e) => {
+          onClick={e => {
             e.stopPropagation();
             window.open(streamer.liveUrl, '_blank');
           }}
@@ -144,8 +162,6 @@ const StreamerCard: React.FC<{ streamer: Streamer; onClick: () => void }> = ({ s
     </Card>
   );
 };
-
-
 
 interface StreamerSectionProps {
   /** 自动刷新间隔（毫秒），默认 30000ms (30秒) */
@@ -162,7 +178,6 @@ const StreamerSection: React.FC<StreamerSectionProps> = ({ refreshInterval = 300
       document.head.removeChild(styleElement);
     };
   }, []);
-
 
   const [streamers, setStreamers] = useState<Streamer[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -239,10 +254,10 @@ const StreamerSection: React.FC<StreamerSectionProps> = ({ refreshInterval = 300
 
         {/* 标签切换 */}
         <div className="flex justify-center mb-12">
-          <Tabs 
-            defaultValue="all" 
-            value={activeTab} 
-            onValueChange={(value) => setActiveTab(value as 'all' | 'star' | 'guest')}
+          <Tabs
+            defaultValue="all"
+            value={activeTab}
+            onValueChange={value => setActiveTab(value as 'all' | 'star' | 'guest')}
           >
             <TabsList className="bg-gray-800/50">
               <TabsTrigger value="all">全部主播</TabsTrigger>
@@ -274,28 +289,56 @@ const StreamerSection: React.FC<StreamerSectionProps> = ({ refreshInterval = 300
           <div className="relative">
             {/* 滚动指示器 */}
             <div className="absolute left-0 top-1/2 -translate-y-1/2 z-10 hidden md:block">
-              <button 
+              <button
                 className="bg-black/50 hover:bg-black/80 text-white p-2 rounded-full"
-                onClick={() => document.getElementById('streamers-scroll')?.scrollBy({ left: -300, behavior: 'smooth' })}
+                onClick={() =>
+                  document
+                    .getElementById('streamers-scroll')
+                    ?.scrollBy({ left: -300, behavior: 'smooth' })
+                }
               >
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
                   <path d="m15 18-6-6 6-6" />
                 </svg>
               </button>
             </div>
             <div className="absolute right-0 top-1/2 -translate-y-1/2 z-10 hidden md:block">
-              <button 
+              <button
                 className="bg-black/50 hover:bg-black/80 text-white p-2 rounded-full"
-                onClick={() => document.getElementById('streamers-scroll')?.scrollBy({ left: 300, behavior: 'smooth' })}
+                onClick={() =>
+                  document
+                    .getElementById('streamers-scroll')
+                    ?.scrollBy({ left: 300, behavior: 'smooth' })
+                }
               >
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
                   <path d="m9 18 6-6-6-6" />
                 </svg>
               </button>
             </div>
-            
+
             {/* 水平滚动卡片 */}
-            <div 
+            <div
               id="streamers-scroll"
               className="flex space-x-6 overflow-x-auto pb-8 snap-x snap-mandatory"
               style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', minHeight: '400px' }}
@@ -320,8 +363,6 @@ const StreamerSection: React.FC<StreamerSectionProps> = ({ refreshInterval = 300
             <span className="text-sm">更新中...</span>
           </div>
         )}
-
-
       </div>
     </section>
   );

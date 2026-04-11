@@ -68,10 +68,7 @@ const EliminationStage: React.FC<EliminationStageProps> = ({
 
   const getMatch = (gameNum: number) => matches.find(m => m.eliminationGameNumber === gameNum);
 
-  const renderMatch = (
-    match: Match | undefined,
-    gameNum?: number
-  ) => {
+  const renderMatch = (match: Match | undefined, gameNum?: number) => {
     let displayMatch: Match;
     if (match) {
       displayMatch = match;
@@ -138,7 +135,7 @@ const EliminationStage: React.FC<EliminationStageProps> = ({
         <EliminationConnectors positions={positions} containerWidth={containerWidth} />
 
         {/* 阶段标签 - 官方UI风格：宽度与卡片一致，顶部对齐 */}
-        {ELIMINATION_STAGES.map((stage) => (
+        {ELIMINATION_STAGES.map(stage => (
           <div
             key={stage.key}
             className="absolute text-sm font-medium text-center flex items-center justify-center"
@@ -157,31 +154,17 @@ const EliminationStage: React.FC<EliminationStageProps> = ({
         ))}
 
         {/* 四分之一决赛 */}
-        <div data-testid="elimination-match-qf1">
-          {renderMatch(getMatch(1), 1)}
-        </div>
-        <div data-testid="elimination-match-qf2">
-          {renderMatch(getMatch(2), 2)}
-        </div>
-        <div data-testid="elimination-match-qf3">
-          {renderMatch(getMatch(3), 3)}
-        </div>
-        <div data-testid="elimination-match-qf4">
-          {renderMatch(getMatch(4), 4)}
-        </div>
+        <div data-testid="elimination-match-qf1">{renderMatch(getMatch(1), 1)}</div>
+        <div data-testid="elimination-match-qf2">{renderMatch(getMatch(2), 2)}</div>
+        <div data-testid="elimination-match-qf3">{renderMatch(getMatch(3), 3)}</div>
+        <div data-testid="elimination-match-qf4">{renderMatch(getMatch(4), 4)}</div>
 
         {/* 半决赛 */}
-        <div data-testid="elimination-match-sf1">
-          {renderMatch(getMatch(5), 5)}
-        </div>
-        <div data-testid="elimination-match-sf2">
-          {renderMatch(getMatch(6), 6)}
-        </div>
+        <div data-testid="elimination-match-sf1">{renderMatch(getMatch(5), 5)}</div>
+        <div data-testid="elimination-match-sf2">{renderMatch(getMatch(6), 6)}</div>
 
         {/* 决赛 */}
-        <div data-testid="elimination-match-f">
-          {renderMatch(getMatch(7), 7)}
-        </div>
+        <div data-testid="elimination-match-f">{renderMatch(getMatch(7), 7)}</div>
       </div>
     </div>
   );

@@ -15,10 +15,7 @@ const TextArea = React.forwardRef<HTMLTextAreaElement, TextAreaProps>(
     return (
       <div className="w-full">
         {label && (
-          <label
-            htmlFor={textareaId}
-            className="block mb-2 text-sm font-medium text-gray-200"
-          >
+          <label htmlFor={textareaId} className="block mb-2 text-sm font-medium text-gray-200">
             {label}
           </label>
         )}
@@ -39,10 +36,12 @@ const TextArea = React.forwardRef<HTMLTextAreaElement, TextAreaProps>(
           {...props}
         />
         {showCount && maxLength && (
-          <p className={cn(
-            'mt-1.5 text-sm text-right',
-            charCount >= maxLength ? 'text-red-400' : 'text-gray-400'
-          )}>
+          <p
+            className={cn(
+              'mt-1.5 text-sm text-right',
+              charCount >= maxLength ? 'text-red-400' : 'text-gray-400'
+            )}
+          >
             {charCount}/{maxLength}
           </p>
         )}

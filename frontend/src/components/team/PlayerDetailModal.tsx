@@ -61,7 +61,7 @@ const ChampionIcon: React.FC<{ championName: string; index: number }> = ({
             src={iconUrl}
             alt={championName}
             className="w-full h-full object-cover"
-            onError={(e) => {
+            onError={e => {
               (e.target as HTMLImageElement).style.display = 'none';
             }}
           />
@@ -143,10 +143,7 @@ export const PlayerDetailModal: React.FC<PlayerDetailModalProps> = ({
             background: 'linear-gradient(90deg, rgba(220, 38, 38, 0.2) 0%, transparent 50%)',
           }}
         >
-          <h2
-            id="player-modal-title"
-            className="text-lg font-semibold text-slate-100"
-          >
+          <h2 id="player-modal-title" className="text-lg font-semibold text-slate-100">
             选手详情
           </h2>
           <button
@@ -164,7 +161,9 @@ export const PlayerDetailModal: React.FC<PlayerDetailModalProps> = ({
             <div
               className="w-28 h-28 rounded-full border-4 overflow-hidden mb-4"
               style={{
-                borderColor: player.isCaptain ? 'rgba(251, 191, 36, 0.5)' : 'rgba(255, 255, 255, 0.1)',
+                borderColor: player.isCaptain
+                  ? 'rgba(251, 191, 36, 0.5)'
+                  : 'rgba(255, 255, 255, 0.1)',
                 boxShadow: player.isCaptain
                   ? '0 0 20px rgba(251, 191, 36, 0.3)'
                   : '0 4px 12px rgba(0, 0, 0, 0.3)',
@@ -193,9 +192,7 @@ export const PlayerDetailModal: React.FC<PlayerDetailModalProps> = ({
               <div className="flex items-center justify-center gap-2 mb-1">
                 <h3 className="text-xl font-bold text-slate-100">{player.nickname}</h3>
                 {player.isCaptain && (
-                  <span className={getCaptainBadgeClasses('rounded-full')}>
-                    队长
-                  </span>
+                  <span className={getCaptainBadgeClasses('rounded-full')}>队长</span>
                 )}
               </div>
 
@@ -203,9 +200,7 @@ export const PlayerDetailModal: React.FC<PlayerDetailModalProps> = ({
                 {POSITION_LABELS[player.position] || player.position}
               </p>
 
-              {player.gameId && (
-                <p className="text-xs text-slate-500">游戏ID: {player.gameId}</p>
-              )}
+              {player.gameId && <p className="text-xs text-slate-500">游戏ID: {player.gameId}</p>}
             </div>
           </div>
 
@@ -216,9 +211,7 @@ export const PlayerDetailModal: React.FC<PlayerDetailModalProps> = ({
             }}
           >
             <h4 className="text-sm font-medium text-slate-300 mb-2">个人简介</h4>
-            <p className="text-sm text-slate-400 italic">
-              {player.bio || '暂无简介'}
-            </p>
+            <p className="text-sm text-slate-400 italic">{player.bio || '暂无简介'}</p>
           </div>
 
           <div
@@ -231,11 +224,7 @@ export const PlayerDetailModal: React.FC<PlayerDetailModalProps> = ({
             {player.championPool && player.championPool.length > 0 ? (
               <div className="flex flex-wrap justify-center gap-4">
                 {player.championPool.map((champion, index) => (
-                  <ChampionIcon
-                    key={champion}
-                    championName={champion}
-                    index={index}
-                  />
+                  <ChampionIcon key={champion} championName={champion} index={index} />
                 ))}
               </div>
             ) : (

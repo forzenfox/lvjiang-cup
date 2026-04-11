@@ -60,8 +60,8 @@ export interface StreamInfo {
 
 // 瑞士轮晋级结果
 export interface SwissAdvancementResult {
-  top8: string[];        // 前8名晋级淘汰赛
-  eliminated: string[];  // 被淘汰队伍
+  top8: string[]; // 前8名晋级淘汰赛
+  eliminated: string[]; // 被淘汰队伍
   rankings?: { teamId: string; record: string; rank: number }[];
 }
 

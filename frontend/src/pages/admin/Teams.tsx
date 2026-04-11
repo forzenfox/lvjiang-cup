@@ -36,9 +36,7 @@ const ensureAllPositions = (players: any[] = [], teamId: string): any[] => {
   const result: any[] = [];
 
   LOL_POSITIONS.forEach((position, index) => {
-    const existingPlayer = existingPlayers.find(
-      p => p.position === position
-    );
+    const existingPlayer = existingPlayers.find(p => p.position === position);
     if (existingPlayer) {
       result.push(existingPlayer);
     } else {
@@ -99,13 +97,13 @@ const AdminTeams: React.FC = () => {
   // ==================== 垂直列表展开方案：新增状态 ====================
   // 展开的战队ID（同时只能展开一个）
   const [expandedTeamId, setExpandedTeamId] = useState<string | null>(null);
-  
+
   // 正在编辑的战队ID
   const [editingTeamId, setEditingTeamId] = useState<string | null>(null);
 
   // 是否正在编辑战队信息（true=编辑战队，false=编辑队员）
   const [isEditingTeam, setIsEditingTeam] = useState(false);
-  
+
   // 战队编辑表单数据
   const [editingTeamData, setEditingTeamData] = useState<{
     id?: string;
@@ -171,9 +169,9 @@ const AdminTeams: React.FC = () => {
       toast.error('请先保存或取消当前编辑');
       return;
     }
-    
+
     setExpandedTeamId(expandedTeamId === teamId ? null : teamId);
-    
+
     // 收起时清空队员编辑状态
     if (expandedTeamId === teamId) {
       setExpandedPlayerIndex(null);
@@ -430,7 +428,7 @@ const AdminTeams: React.FC = () => {
       newPlayers[editingPlayerIndex] = updatedPlayer;
 
       // 更新teams数组
-      const updatedTeams = teams.map(t => 
+      const updatedTeams = teams.map(t =>
         t.id === editingTeamId ? { ...t, players: newPlayers } : t
       );
       setTeams(updatedTeams);
@@ -450,7 +448,10 @@ const AdminTeams: React.FC = () => {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-white">战队管理</h1>
         {teams.length >= MAX_TEAMS && (
-          <div data-testid="team-limit-warning" className="text-sm text-amber-400 bg-amber-400/10 px-3 py-1 rounded">
+          <div
+            data-testid="team-limit-warning"
+            className="text-sm text-amber-400 bg-amber-400/10 px-3 py-1 rounded"
+          >
             已达到战队数量上限 ({teams.length}/{MAX_TEAMS})
           </div>
         )}
@@ -464,7 +465,11 @@ const AdminTeams: React.FC = () => {
             <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
             刷新
           </Button>
-          <Button onClick={handleCreateNew} disabled={loading || teams.length >= MAX_TEAMS} data-testid="add-team-button">
+          <Button
+            onClick={handleCreateNew}
+            disabled={loading || teams.length >= MAX_TEAMS}
+            data-testid="add-team-button"
+          >
             <Plus className="w-4 h-4 mr-2" /> 添加战队
           </Button>
         </div>
@@ -518,9 +523,12 @@ const AdminTeams: React.FC = () => {
                       </div>
                     )}
                     <div>
-                      <h3 className="text-white text-lg font-semibold">{team.name || '未命名战队'}</h3>
+                      <h3 className="text-white text-lg font-semibold">
+                        {team.name || '未命名战队'}
+                      </h3>
                       <p className="text-[#64748B] text-sm">
-                        {team.players.filter(p => p.nickname).length} / {LOL_POSITIONS.length} 名队员
+                        {team.players.filter(p => p.nickname).length} / {LOL_POSITIONS.length}{' '}
+                        名队员
                       </p>
                     </div>
                   </div>
@@ -530,7 +538,7 @@ const AdminTeams: React.FC = () => {
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={(e) => {
+                          onClick={e => {
                             e.stopPropagation();
                             handleStartEditTeam(team);
                           }}
@@ -542,7 +550,7 @@ const AdminTeams: React.FC = () => {
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={(e) => {
+                          onClick={e => {
                             e.stopPropagation();
                             handleDeleteClick(team.id);
                           }}
@@ -553,9 +561,21 @@ const AdminTeams: React.FC = () => {
                         </Button>
                       </>
                     )}
-                    <div className={`transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}>
-                      <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    <div
+                      className={`transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}
+                    >
+                      <svg
+                        className="w-5 h-5 text-gray-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 9l-7 7-7-7"
+                        />
                       </svg>
                     </div>
                   </div>
@@ -563,10 +583,7 @@ const AdminTeams: React.FC = () => {
 
                 {/* 展开区域 */}
                 {isExpanded && (
-                  <div
-                    data-testid={`team-detail-${team.id}`}
-                    className="border-t border-white/10"
-                  >
+                  <div data-testid={`team-detail-${team.id}`} className="border-t border-white/10">
                     {/* 编辑模式 */}
                     {isTeamBeingEdited && editingTeamData ? (
                       <div className="p-4 space-y-4">
@@ -579,7 +596,9 @@ const AdminTeams: React.FC = () => {
                               data-testid="team-name-input"
                               type="text"
                               value={editingTeamData.name}
-                              onChange={e => setEditingTeamData({ ...editingTeamData, name: e.target.value })}
+                              onChange={e =>
+                                setEditingTeamData({ ...editingTeamData, name: e.target.value })
+                              }
                               placeholder="请输入战队名称"
                               className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-[#475569] focus:outline-none focus:border-blue-500"
                             />
@@ -597,19 +616,24 @@ const AdminTeams: React.FC = () => {
                                   const input = document.createElement('input');
                                   input.type = 'file';
                                   input.accept = 'image/png,image/jpeg,image/jpg';
-                                  input.onchange = async (e) => {
+                                  input.onchange = async e => {
                                     const file = (e.target as HTMLInputElement).files?.[0];
                                     if (!file) return;
                                     if (file.size > 2 * 1024 * 1024) {
                                       toast.error('图片大小不能超过 2MB');
                                       return;
                                     }
-                                    if (!['image/png', 'image/jpeg', 'image/jpg'].includes(file.type)) {
+                                    if (
+                                      !['image/png', 'image/jpeg', 'image/jpg'].includes(file.type)
+                                    ) {
                                       toast.error('仅支持 JPG/PNG 格式图片');
                                       return;
                                     }
                                     try {
-                                      const result = await uploadTeamLogo(editingTeamData.id || 'new', file);
+                                      const result = await uploadTeamLogo(
+                                        editingTeamData.id || 'new',
+                                        file
+                                      );
                                       setEditingTeamData({ ...editingTeamData, logo: result.url });
                                       toast.success('队标上传成功');
                                     } catch (_error) {
@@ -626,8 +650,10 @@ const AdminTeams: React.FC = () => {
                                       alt="队标预览"
                                       className="w-full h-full object-contain rounded"
                                     />
-                                    <div className="absolute inset-0 bg-black/60 rounded-lg opacity-0 group-hover:opacity-100
-                                                    flex items-center justify-center transition-opacity">
+                                    <div
+                                      className="absolute inset-0 bg-black/60 rounded-lg opacity-0 group-hover:opacity-100
+                                                    flex items-center justify-center transition-opacity"
+                                    >
                                       <UploadIcon className="w-6 h-6 text-white" />
                                     </div>
                                   </>
@@ -642,12 +668,16 @@ const AdminTeams: React.FC = () => {
                                 <input
                                   type="text"
                                   value={editingTeamData.logo}
-                                  onChange={e => setEditingTeamData({ ...editingTeamData, logo: e.target.value })}
+                                  onChange={e =>
+                                    setEditingTeamData({ ...editingTeamData, logo: e.target.value })
+                                  }
                                   placeholder="或输入图标 URL"
                                   className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white
                                              placeholder-[#475569] focus:outline-none focus:border-blue-500 mb-1.5"
                                 />
-                                <p className="text-xs text-gray-500">支持 JPG/PNG 格式，不超过 2MB</p>
+                                <p className="text-xs text-gray-500">
+                                  支持 JPG/PNG 格式，不超过 2MB
+                                </p>
                               </div>
                             </div>
                           </div>
@@ -658,7 +688,12 @@ const AdminTeams: React.FC = () => {
                             <div className="relative">
                               <textarea
                                 value={editingTeamData.battleCry}
-                                onChange={e => setEditingTeamData({ ...editingTeamData, battleCry: e.target.value })}
+                                onChange={e =>
+                                  setEditingTeamData({
+                                    ...editingTeamData,
+                                    battleCry: e.target.value,
+                                  })
+                                }
                                 placeholder="请输入参赛宣言"
                                 rows={3}
                                 maxLength={100}
@@ -702,7 +737,11 @@ const AdminTeams: React.FC = () => {
                           <div>
                             <label className="block text-xs text-[#64748B] mb-1">队标</label>
                             {team.logo ? (
-                              <img src={team.logo} alt="队标" className="w-16 h-16 rounded object-contain bg-black/20" />
+                              <img
+                                src={team.logo}
+                                alt="队标"
+                                className="w-16 h-16 rounded object-contain bg-black/20"
+                              />
                             ) : (
                               <span className="text-gray-500">未上传</span>
                             )}
@@ -722,13 +761,16 @@ const AdminTeams: React.FC = () => {
                           <div className="space-y-2">
                             {team.players.map((player, idx) => {
                               const isPlayerExpanded = expandedPlayerIndex === idx;
-                              const isPlayerEditing = editingPlayerIndex === idx && editingTeamId === team.id;
+                              const isPlayerEditing =
+                                editingPlayerIndex === idx && editingTeamId === team.id;
 
                               return (
                                 <div
                                   key={player.id}
                                   className={`bg-white/5 rounded-lg border transition-all duration-300 ${
-                                    isPlayerExpanded || isPlayerEditing ? 'border-blue-500/50' : 'border-white/10'
+                                    isPlayerExpanded || isPlayerEditing
+                                      ? 'border-blue-500/50'
+                                      : 'border-white/10'
                                   }`}
                                 >
                                   <div
@@ -760,9 +802,7 @@ const AdminTeams: React.FC = () => {
                                             {player.nickname || '未填写'}
                                           </span>
                                           {player.isCaptain && (
-                                            <span className={getCaptainBadgeClasses()}>
-                                              队长
-                                            </span>
+                                            <span className={getCaptainBadgeClasses()}>队长</span>
                                           )}
                                         </div>
                                       </div>
@@ -772,7 +812,7 @@ const AdminTeams: React.FC = () => {
                                         <Button
                                           variant="ghost"
                                           size="icon"
-                                          onClick={(e) => {
+                                          onClick={e => {
                                             e.stopPropagation();
                                             handleEditMember(player, idx, team.id);
                                           }}
@@ -781,9 +821,21 @@ const AdminTeams: React.FC = () => {
                                           <Edit2 className="w-4 h-4 text-blue-400" />
                                         </Button>
                                       )}
-                                      <div className={`transition-transform duration-300 ${isPlayerExpanded || isPlayerEditing ? 'rotate-180' : ''}`}>
-                                        <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                      <div
+                                        className={`transition-transform duration-300 ${isPlayerExpanded || isPlayerEditing ? 'rotate-180' : ''}`}
+                                      >
+                                        <svg
+                                          className="w-5 h-5 text-gray-400"
+                                          fill="none"
+                                          stroke="currentColor"
+                                          viewBox="0 0 24 24"
+                                        >
+                                          <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M19 9l-7 7-7-7"
+                                          />
                                         </svg>
                                       </div>
                                     </div>
@@ -795,22 +847,36 @@ const AdminTeams: React.FC = () => {
                                           {/* 第1行：基础信息 - 昵称 + 游戏ID */}
                                           <div className="grid grid-cols-2 gap-3">
                                             <div>
-                                              <label className="block text-xs text-gray-400 mb-1">昵称 <span className="text-red-500">*</span></label>
+                                              <label className="block text-xs text-gray-400 mb-1">
+                                                昵称 <span className="text-red-500">*</span>
+                                              </label>
                                               <input
                                                 data-testid="player-nickname-input"
                                                 type="text"
                                                 value={editingPlayerData.nickname}
-                                                onChange={(e) => setEditingPlayerData({ ...editingPlayerData, nickname: e.target.value })}
+                                                onChange={e =>
+                                                  setEditingPlayerData({
+                                                    ...editingPlayerData,
+                                                    nickname: e.target.value,
+                                                  })
+                                                }
                                                 className="w-full px-2 py-1.5 bg-white/5 border border-white/10 rounded text-white text-sm focus:outline-none focus:border-blue-500"
                                                 placeholder="请输入昵称"
                                               />
                                             </div>
                                             <div>
-                                              <label className="block text-xs text-gray-400 mb-1">游戏ID</label>
+                                              <label className="block text-xs text-gray-400 mb-1">
+                                                游戏ID
+                                              </label>
                                               <input
                                                 type="text"
                                                 value={editingPlayerData.gameId}
-                                                onChange={(e) => setEditingPlayerData({ ...editingPlayerData, gameId: e.target.value })}
+                                                onChange={e =>
+                                                  setEditingPlayerData({
+                                                    ...editingPlayerData,
+                                                    gameId: e.target.value,
+                                                  })
+                                                }
                                                 className="w-full px-2 py-1.5 bg-white/5 border border-white/10 rounded text-white text-sm focus:outline-none focus:border-blue-500"
                                                 placeholder="请输入游戏ID"
                                               />
@@ -820,48 +886,128 @@ const AdminTeams: React.FC = () => {
                                           {/* 第2行：游戏属性 - 位置 + 评分 + 队长 */}
                                           <div className="grid grid-cols-3 gap-3">
                                             <div>
-                                              <label className="block text-xs text-gray-400 mb-1">位置</label>
+                                              <label className="block text-xs text-gray-400 mb-1">
+                                                位置
+                                              </label>
                                               <select
                                                 value={editingPlayerData.position}
-                                                onChange={(e) => setEditingPlayerData({ ...editingPlayerData, position: e.target.value as PositionType })}
+                                                onChange={e =>
+                                                  setEditingPlayerData({
+                                                    ...editingPlayerData,
+                                                    position: e.target.value as PositionType,
+                                                  })
+                                                }
                                                 className="w-full px-2 py-1.5 bg-white/5 border border-white/10 rounded text-white text-sm focus:outline-none focus:border-blue-500 dark:bg-gray-800"
                                               >
-                                                <option value="TOP" className="bg-gray-800 text-white">上单</option>
-                                                <option value="JUNGLE" className="bg-gray-800 text-white">打野</option>
-                                                <option value="MID" className="bg-gray-800 text-white">中单</option>
-                                                <option value="ADC" className="bg-gray-800 text-white">ADC</option>
-                                                <option value="SUPPORT" className="bg-gray-800 text-white">辅助</option>
+                                                <option
+                                                  value="TOP"
+                                                  className="bg-gray-800 text-white"
+                                                >
+                                                  上单
+                                                </option>
+                                                <option
+                                                  value="JUNGLE"
+                                                  className="bg-gray-800 text-white"
+                                                >
+                                                  打野
+                                                </option>
+                                                <option
+                                                  value="MID"
+                                                  className="bg-gray-800 text-white"
+                                                >
+                                                  中单
+                                                </option>
+                                                <option
+                                                  value="ADC"
+                                                  className="bg-gray-800 text-white"
+                                                >
+                                                  ADC
+                                                </option>
+                                                <option
+                                                  value="SUPPORT"
+                                                  className="bg-gray-800 text-white"
+                                                >
+                                                  辅助
+                                                </option>
                                               </select>
                                             </div>
                                             <div>
-                                              <label className="block text-xs text-gray-400 mb-1">评分 (0-100)</label>
+                                              <label className="block text-xs text-gray-400 mb-1">
+                                                评分 (0-100)
+                                              </label>
                                               <input
                                                 type="number"
                                                 min={0}
                                                 max={100}
                                                 value={editingPlayerData.rating}
-                                                onChange={(e) => {
-                                                  const value = e.target.value === '' ? '' : Number(e.target.value);
-                                                  if (value === '' || (Number.isInteger(value) && value >= 0 && value <= 100)) {
-                                                    setEditingPlayerData({ ...editingPlayerData, rating: value as number });
+                                                onChange={e => {
+                                                  const value =
+                                                    e.target.value === ''
+                                                      ? ''
+                                                      : Number(e.target.value);
+                                                  if (
+                                                    value === '' ||
+                                                    (Number.isInteger(value) &&
+                                                      value >= 0 &&
+                                                      value <= 100)
+                                                  ) {
+                                                    setEditingPlayerData({
+                                                      ...editingPlayerData,
+                                                      rating: value as number,
+                                                    });
                                                   }
                                                 }}
                                                 className="w-full px-2 py-1.5 bg-white/5 border border-white/10 rounded text-white text-sm focus:outline-none focus:border-blue-500"
                                               />
                                             </div>
                                             <div>
-                                              <label className="block text-xs text-gray-400 mb-1">实力等级</label>
+                                              <label className="block text-xs text-gray-400 mb-1">
+                                                实力等级
+                                              </label>
                                               <select
                                                 value={editingPlayerData.level || ''}
-                                                onChange={(e) => setEditingPlayerData({ ...editingPlayerData, level: e.target.value as PlayerLevel || undefined })}
+                                                onChange={e =>
+                                                  setEditingPlayerData({
+                                                    ...editingPlayerData,
+                                                    level:
+                                                      (e.target.value as PlayerLevel) || undefined,
+                                                  })
+                                                }
                                                 className="w-full px-2 py-1.5 bg-white/5 border border-white/10 rounded text-white text-sm focus:outline-none focus:border-blue-500 dark:bg-gray-800"
                                               >
-                                                <option value="" className="bg-gray-800 text-white">未设置</option>
-                                                <option value="S" className="bg-gray-800 text-white">S</option>
-                                                <option value="A" className="bg-gray-800 text-white">A</option>
-                                                <option value="B" className="bg-gray-800 text-white">B</option>
-                                                <option value="C" className="bg-gray-800 text-white">C</option>
-                                                <option value="D" className="bg-gray-800 text-white">D</option>
+                                                <option value="" className="bg-gray-800 text-white">
+                                                  未设置
+                                                </option>
+                                                <option
+                                                  value="S"
+                                                  className="bg-gray-800 text-white"
+                                                >
+                                                  S
+                                                </option>
+                                                <option
+                                                  value="A"
+                                                  className="bg-gray-800 text-white"
+                                                >
+                                                  A
+                                                </option>
+                                                <option
+                                                  value="B"
+                                                  className="bg-gray-800 text-white"
+                                                >
+                                                  B
+                                                </option>
+                                                <option
+                                                  value="C"
+                                                  className="bg-gray-800 text-white"
+                                                >
+                                                  C
+                                                </option>
+                                                <option
+                                                  value="D"
+                                                  className="bg-gray-800 text-white"
+                                                >
+                                                  D
+                                                </option>
                                               </select>
                                             </div>
                                             <div className="flex items-end">
@@ -869,36 +1015,54 @@ const AdminTeams: React.FC = () => {
                                                 <input
                                                   type="checkbox"
                                                   checked={editingPlayerData.isCaptain}
-                                                  onChange={(e) => setEditingPlayerData({ ...editingPlayerData, isCaptain: e.target.checked })}
+                                                  onChange={e =>
+                                                    setEditingPlayerData({
+                                                      ...editingPlayerData,
+                                                      isCaptain: e.target.checked,
+                                                    })
+                                                  }
                                                   className="w-4 h-4 rounded border-white/20 bg-white/5 text-blue-500 focus:ring-blue-500"
                                                 />
-                                                <span className="text-sm text-gray-300">设为队长</span>
+                                                <span className="text-sm text-gray-300">
+                                                  设为队长
+                                                </span>
                                               </label>
                                             </div>
                                           </div>
 
                                           {/* 第3行：常用英雄 */}
                                           <div className="relative">
-                                            <label className="block text-xs text-gray-400 mb-1">常用英雄</label>
+                                            <label className="block text-xs text-gray-400 mb-1">
+                                              常用英雄
+                                            </label>
                                             <div className="flex flex-wrap items-center gap-2 min-h-[32px] p-1.5 bg-white/5 border border-white/10 rounded">
-                                              {editingPlayerData.championPool?.map((champion, championIdx) => (
-                                                <span
-                                                  key={champion}
-                                                  className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-500/20 text-blue-400 text-xs rounded"
-                                                >
-                                                  {champion}
-                                                  <button
-                                                    onClick={() => {
-                                                      const newChampionPool = editingPlayerData.championPool.filter((_, i) => i !== championIdx);
-                                                      setEditingPlayerData({ ...editingPlayerData, championPool: newChampionPool });
-                                                    }}
-                                                    className="hover:text-blue-300"
+                                              {editingPlayerData.championPool?.map(
+                                                (champion, championIdx) => (
+                                                  <span
+                                                    key={champion}
+                                                    className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-500/20 text-blue-400 text-xs rounded"
                                                   >
-                                                    <X className="w-3 h-3" />
-                                                  </button>
-                                                </span>
-                                              ))}
-                                              {(editingPlayerData.championPool?.length || 0) < 5 && (
+                                                    {champion}
+                                                    <button
+                                                      onClick={() => {
+                                                        const newChampionPool =
+                                                          editingPlayerData.championPool.filter(
+                                                            (_, i) => i !== championIdx
+                                                          );
+                                                        setEditingPlayerData({
+                                                          ...editingPlayerData,
+                                                          championPool: newChampionPool,
+                                                        });
+                                                      }}
+                                                      className="hover:text-blue-300"
+                                                    >
+                                                      <X className="w-3 h-3" />
+                                                    </button>
+                                                  </span>
+                                                )
+                                              )}
+                                              {(editingPlayerData.championPool?.length || 0) <
+                                                5 && (
                                                 <button
                                                   onClick={() => setIsHeroSelectorOpen(true)}
                                                   className="inline-flex items-center gap-1 px-2 py-0.5 text-xs text-gray-400 hover:text-white border border-dashed border-white/20 rounded hover:border-white/40 transition-colors"
@@ -913,8 +1077,11 @@ const AdminTeams: React.FC = () => {
                                               visible={isHeroSelectorOpen}
                                               onClose={() => setIsHeroSelectorOpen(false)}
                                               selectedHeroes={editingPlayerData.championPool || []}
-                                              onConfirm={(heroes) => {
-                                                setEditingPlayerData({ ...editingPlayerData, championPool: heroes });
+                                              onConfirm={heroes => {
+                                                setEditingPlayerData({
+                                                  ...editingPlayerData,
+                                                  championPool: heroes,
+                                                });
                                               }}
                                               maxSelect={5}
                                             />
@@ -923,30 +1090,53 @@ const AdminTeams: React.FC = () => {
                                           {/* 第4行：头像 + 直播间 */}
                                           <div className="grid grid-cols-2 gap-3">
                                             <div>
-                                              <label className="block text-xs text-gray-400 mb-1">头像URL</label>
+                                              <label className="block text-xs text-gray-400 mb-1">
+                                                头像URL
+                                              </label>
                                               <input
                                                 type="text"
                                                 value={editingPlayerData.avatarUrl}
-                                                onChange={(e) => setEditingPlayerData({ ...editingPlayerData, avatarUrl: e.target.value })}
+                                                onChange={e =>
+                                                  setEditingPlayerData({
+                                                    ...editingPlayerData,
+                                                    avatarUrl: e.target.value,
+                                                  })
+                                                }
                                                 className="w-full px-2 py-1.5 bg-white/5 border border-white/10 rounded text-white text-sm focus:outline-none focus:border-blue-500"
                                                 placeholder="https://example.com/avatar.png"
                                               />
                                             </div>
                                             <div>
-                                              <label className="block text-xs text-gray-400 mb-1">直播间</label>
+                                              <label className="block text-xs text-gray-400 mb-1">
+                                                直播间
+                                              </label>
                                               <input
                                                 type="text"
                                                 value={editingPlayerData.liveUrl}
-                                                onChange={(e) => setEditingPlayerData({ ...editingPlayerData, liveUrl: e.target.value })}
-                                                onFocus={(e) => {
+                                                onChange={e =>
+                                                  setEditingPlayerData({
+                                                    ...editingPlayerData,
+                                                    liveUrl: e.target.value,
+                                                  })
+                                                }
+                                                onFocus={e => {
                                                   // 只有当输入框为空时，才动态填入默认前缀
                                                   const defaultUrl = 'https://www.douyu.com/';
-                                                  if (!e.target.value || e.target.value.trim() === '') {
+                                                  if (
+                                                    !e.target.value ||
+                                                    e.target.value.trim() === ''
+                                                  ) {
                                                     e.target.value = defaultUrl;
-                                                    setEditingPlayerData({ ...editingPlayerData, liveUrl: defaultUrl });
+                                                    setEditingPlayerData({
+                                                      ...editingPlayerData,
+                                                      liveUrl: defaultUrl,
+                                                    });
                                                     // 将光标移动到最后
                                                     setTimeout(() => {
-                                                      e.target.setSelectionRange(e.target.value.length, e.target.value.length);
+                                                      e.target.setSelectionRange(
+                                                        e.target.value.length,
+                                                        e.target.value.length
+                                                      );
                                                     }, 0);
                                                   }
                                                 }}
@@ -958,10 +1148,17 @@ const AdminTeams: React.FC = () => {
 
                                           {/* 第5行：简介 */}
                                           <div>
-                                            <label className="block text-xs text-gray-400 mb-1">简介</label>
+                                            <label className="block text-xs text-gray-400 mb-1">
+                                              简介
+                                            </label>
                                             <textarea
                                               value={editingPlayerData.bio}
-                                              onChange={(e) => setEditingPlayerData({ ...editingPlayerData, bio: e.target.value })}
+                                              onChange={e =>
+                                                setEditingPlayerData({
+                                                  ...editingPlayerData,
+                                                  bio: e.target.value,
+                                                })
+                                              }
                                               className="w-full px-2 py-1.5 bg-white/5 border border-white/10 rounded text-white text-sm focus:outline-none focus:border-blue-500 resize-none"
                                               rows={2}
                                               placeholder="请输入简介"
@@ -987,28 +1184,35 @@ const AdminTeams: React.FC = () => {
                                               保存
                                             </Button>
                                           </div>
-
                                         </div>
                                       ) : (
                                         <div className="space-y-2 text-sm">
                                           <div>
                                             <span className="text-gray-500">昵称:</span>
-                                            <span className="text-white ml-2">{player.nickname || '未填写'}</span>
+                                            <span className="text-white ml-2">
+                                              {player.nickname || '未填写'}
+                                            </span>
                                           </div>
 
                                           <div className="grid grid-cols-3 gap-3">
                                             <div>
                                               <span className="text-gray-500">游戏ID:</span>
-                                              <span className="text-white ml-2">{player.gameId || '未填写'}</span>
+                                              <span className="text-white ml-2">
+                                                {player.gameId || '未填写'}
+                                              </span>
                                             </div>
                                             <div>
                                               <span className="text-gray-500">评分:</span>
-                                              <span className="text-white ml-2">{player.rating ?? 60}</span>
+                                              <span className="text-white ml-2">
+                                                {player.rating ?? 60}
+                                              </span>
                                             </div>
                                             <div>
                                               <span className="text-gray-500">实力等级:</span>
                                               {player.level ? (
-                                                <span className={`ml-2 ${getLevelBadgeClasses(player.level)}`}>
+                                                <span
+                                                  className={`ml-2 ${getLevelBadgeClasses(player.level)}`}
+                                                >
                                                   {player.level}
                                                 </span>
                                               ) : (
@@ -1019,36 +1223,48 @@ const AdminTeams: React.FC = () => {
 
                                           <div>
                                             <span className="text-gray-500">简介:</span>
-                                            <span className="text-white ml-2">{player.bio || '暂无简介'}</span>
+                                            <span className="text-white ml-2">
+                                              {player.bio || '暂无简介'}
+                                            </span>
                                           </div>
 
-                                          {player.championPool && player.championPool.length > 0 && (
-                                            <div className="flex items-center gap-2">
-                                              <span className="text-gray-500">常用英雄:</span>
-                                              <div className="flex flex-wrap gap-1">
-                                                {player.championPool.map((champion) => (
-                                                  <span
-                                                    key={champion}
-                                                    className="px-2 py-0.5 bg-blue-500/10 text-blue-400 text-xs rounded"
-                                                  >
-                                                    {champion}
-                                                  </span>
-                                                ))}
+                                          {player.championPool &&
+                                            player.championPool.length > 0 && (
+                                              <div className="flex items-center gap-2">
+                                                <span className="text-gray-500">常用英雄:</span>
+                                                <div className="flex flex-wrap gap-1">
+                                                  {player.championPool.map(champion => (
+                                                    <span
+                                                      key={champion}
+                                                      className="px-2 py-0.5 bg-blue-500/10 text-blue-400 text-xs rounded"
+                                                    >
+                                                      {champion}
+                                                    </span>
+                                                  ))}
+                                                </div>
                                               </div>
-                                            </div>
-                                          )}
+                                            )}
 
                                           {player.liveUrl && (
                                             <div>
                                               <span className="text-gray-500">直播间:</span>
-                                              <a href={player.liveUrl} target="_blank" rel="noopener noreferrer" className="text-blue-400 ml-2 hover:underline">
+                                              <a
+                                                href={player.liveUrl}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="text-blue-400 ml-2 hover:underline"
+                                              >
                                                 {player.liveUrl}
                                               </a>
                                             </div>
                                           )}
 
                                           {player.isCaptain && (
-                                            <div className={getCaptainBadgeClasses('inline-flex items-center')}>
+                                            <div
+                                              className={getCaptainBadgeClasses(
+                                                'inline-flex items-center'
+                                              )}
+                                            >
                                               队长
                                             </div>
                                           )}
@@ -1084,7 +1300,6 @@ const AdminTeams: React.FC = () => {
           setTeamToDelete(null);
         }}
       />
-
     </AdminLayout>
   );
 };

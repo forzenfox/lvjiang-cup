@@ -25,7 +25,7 @@ export const testTeam: Team = {
   name: mockTeams[0].name, // 驴酱
   logo: mockTeams[0].logo,
   battleCry: mockTeams[0].battleCry,
-  players: mockTeams[0].players!.map((p) => ({
+  players: mockTeams[0].players!.map(p => ({
     name: p.nickname,
     position: p.position,
   })),
@@ -36,7 +36,7 @@ export const testTeamBeta: Team = {
   name: mockTeams[1].name, // IC
   logo: mockTeams[1].logo,
   battleCry: mockTeams[1].battleCry,
-  players: mockTeams[1].players!.map((p) => ({
+  players: mockTeams[1].players!.map(p => ({
     name: p.nickname,
     position: p.position,
   })),
@@ -47,7 +47,7 @@ export const testTeamGamma: Team = {
   name: mockTeams[8].name, // 星辰
   logo: mockTeams[8].logo,
   battleCry: mockTeams[8].battleCry,
-  players: mockTeams[8].players!.map((p) => ({
+  players: mockTeams[8].players!.map(p => ({
     name: p.nickname,
     position: p.position,
   })),
@@ -58,7 +58,7 @@ export const testTeamDelta: Team = {
   name: mockTeams[9].name, // 烈焰
   logo: mockTeams[9].logo,
   battleCry: mockTeams[9].battleCry,
-  players: mockTeams[9].players!.map((p) => ({
+  players: mockTeams[9].players!.map(p => ({
     name: p.nickname,
     position: p.position,
   })),
@@ -103,7 +103,7 @@ export const getTestTeamForMatch = (index: number = 2): Team => {
     name: team.name,
     logo: team.logo,
     battleCry: team.battleCry,
-    players: team.players!.map((p) => ({
+    players: team.players!.map(p => ({
       name: p.nickname,
       position: p.position,
     })),
@@ -116,11 +116,18 @@ export const getAll16TeamsForSwiss = (): Team[] => {
     name: team.name,
     logo: team.logo,
     battleCry: team.battleCry,
-    players: team.players!.map((p) => ({
+    players: team.players!.map(p => ({
       name: p.nickname,
       position: p.position,
     })),
   }));
 };
 
-export { mockTeams, mockTeamNames, mockSwissMatches, mockEliminationMatches, getTeamById, getTeamByName };
+export {
+  mockTeams,
+  mockTeamNames,
+  mockSwissMatches,
+  mockEliminationMatches,
+  getTeamById,
+  getTeamByName,
+};

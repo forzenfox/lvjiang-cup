@@ -31,10 +31,7 @@ describe('teams API', () => {
 
       const result = await uploadTeamLogo(teamId, mockFile);
 
-      expect(apiClient.post).toHaveBeenCalledWith(
-        '/admin/upload/image',
-        expect.any(FormData),
-      );
+      expect(apiClient.post).toHaveBeenCalledWith('/admin/upload/image', expect.any(FormData));
       expect(result.url).toBe('/uploads/teams/team1/logo.png');
       expect(result.thumbnailUrl).toBe('/uploads/teams/team1/logo_thumbnail.png');
     });

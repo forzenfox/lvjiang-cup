@@ -26,7 +26,7 @@ const SwissRoundColumn: React.FC<SwissRoundColumnProps> = ({
   return (
     <div
       className={`flex flex-col flex-shrink-0 ${className}`}
-      style={{ 
+      style={{
         width: `${SWISS_THEME.columnWidth}px`,
         minWidth: `${SWISS_THEME.columnWidth}px`,
       }}
@@ -72,10 +72,7 @@ const SwissRoundColumn: React.FC<SwissRoundColumnProps> = ({
       </div>
 
       {/* 比赛列表 */}
-      <div
-        className="flex flex-col"
-        data-testid={`${testId}-matches`}
-      >
+      <div className="flex flex-col" data-testid={`${testId}-matches`}>
         {matches.map((match, index) => (
           <SwissMatchCard
             key={match.id}

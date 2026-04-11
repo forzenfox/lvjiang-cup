@@ -142,5 +142,4 @@ describe('AdminController', () => {
       await expect(controller.clearAllData()).rejects.toThrow('Clear failed');
     });
   });
-
 });

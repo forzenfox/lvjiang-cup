@@ -11,11 +11,7 @@ interface MemberDetailModalProps {
   };
 }
 
-const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
-  visible,
-  onClose,
-  team,
-}) => {
+const MemberDetailModal: React.FC<MemberDetailModalProps> = ({ visible, onClose, team }) => {
   // Handle escape key
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -73,10 +69,7 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
             height: '64px',
           }}
         >
-          <h2
-            id="member-modal-title"
-            className="text-xl font-semibold text-slate-100"
-          >
+          <h2 id="member-modal-title" className="text-xl font-semibold text-slate-100">
             {team.name} 战队成员详情
           </h2>
           <button
@@ -84,12 +77,7 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
             className="p-1.5 text-slate-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
             aria-label="关闭"
           >
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -114,7 +102,7 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
               gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
             }}
           >
-            {team.members.map((member) => (
+            {team.members.map(member => (
               <MemberCard key={member.id} member={member} />
             ))}
           </div>

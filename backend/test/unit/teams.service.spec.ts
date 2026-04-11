@@ -135,7 +135,9 @@ describe('TeamsService', () => {
         battleCry: 'Test',
       });
 
-      expect(result.id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i);
+      expect(result.id).toMatch(
+        /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
+      );
       expect(result.name).toBe('Test Team');
     });
 
@@ -477,9 +479,7 @@ describe('TeamsService', () => {
     it('should throw NotFoundException for non-existent team', async () => {
       mockDatabaseService.get.mockResolvedValue(null);
 
-      await expect(service.updateCaptain('non-existent', 'm1')).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(service.updateCaptain('non-existent', 'm1')).rejects.toThrow(NotFoundException);
     });
 
     it('should throw NotFoundException for non-existent member in team', async () => {

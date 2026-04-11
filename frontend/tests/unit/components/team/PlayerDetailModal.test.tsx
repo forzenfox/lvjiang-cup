@@ -92,7 +92,7 @@ describe('PlayerDetailModal 组件', () => {
     it('每个英雄头像容器应该存在', () => {
       render(<PlayerDetailModal player={mockPlayer} isOpen={true} onClose={vi.fn()} />);
       const championIcons = screen.getAllByTestId(/^champion-icon-/);
-      championIcons.forEach((icon) => {
+      championIcons.forEach(icon => {
         expect(icon).toBeInTheDocument();
       });
     });
@@ -222,7 +222,9 @@ describe('PlayerDetailModal 组件', () => {
 
   describe('数据完整性', () => {
     it('应该处理只有必需字段的选手数据', () => {
-      render(<PlayerDetailModal player={mockPlayerWithoutOptional} isOpen={true} onClose={vi.fn()} />);
+      render(
+        <PlayerDetailModal player={mockPlayerWithoutOptional} isOpen={true} onClose={vi.fn()} />
+      );
       expect(screen.getByText('简单选手')).toBeInTheDocument();
     });
   });

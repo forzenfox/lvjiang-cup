@@ -259,19 +259,16 @@ const SwissStageVisualEditor: React.FC<SwissStageVisualEditorProps> = ({
         {/* 5轮比赛列 - 均匀分布 */}
         <div className="flex gap-4" style={{ width: totalWidth }}>
           {allRounds.map(round => (
-            <div
-              key={round.round}
-              className="flex-shrink-0"
-              style={{ width: COL_WIDTH }}
-            >
+            <div key={round.round} className="flex-shrink-0" style={{ width: COL_WIDTH }}>
               {/* 轮次标题 */}
-              <div className="text-center pb-2 mb-3" style={{ borderBottom: '1px solid rgb(55 65 81)' }}>
+              <div
+                className="text-center pb-2 mb-3"
+                style={{ borderBottom: '1px solid rgb(55 65 81)' }}
+              >
                 <h3 className="text-sm font-bold text-white uppercase tracking-wider">
                   {round.label}
                 </h3>
-                <span className="text-xs text-gray-500">
-                  ({round.records.length} 组)
-                </span>
+                <span className="text-xs text-gray-500">({round.records.length} 组)</span>
               </div>
 
               {/* 该轮的所有战绩分组 */}
@@ -309,7 +306,9 @@ const SwissStageVisualEditor: React.FC<SwissStageVisualEditorProps> = ({
                             onCreate={onMatchCreate}
                           />
                         ))}
-                        {Array.from({ length: Math.max(0, slot.maxMatches - slotMatches.length) }).map((_, idx) => (
+                        {Array.from({
+                          length: Math.max(0, slot.maxMatches - slotMatches.length),
+                        }).map((_, idx) => (
                           <FixedSlotMatchCard
                             key={`empty-${record}-${idx}`}
                             match={null}

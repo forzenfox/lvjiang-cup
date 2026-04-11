@@ -16,8 +16,26 @@ describe('advancementStore', () => {
     it('应该有正确的初始 advancement 数据', () => {
       const state = useAdvancementStore.getState();
 
-      expect(state.advancement.top8).toEqual(['team1', 'team2', 'team3', 'team4', 'team5', 'team6', 'team7', 'team8']);
-      expect(state.advancement.eliminated).toEqual(['team9', 'team10', 'team11', 'team12', 'team13', 'team14', 'team15', 'team16']);
+      expect(state.advancement.top8).toEqual([
+        'team1',
+        'team2',
+        'team3',
+        'team4',
+        'team5',
+        'team6',
+        'team7',
+        'team8',
+      ]);
+      expect(state.advancement.eliminated).toEqual([
+        'team9',
+        'team10',
+        'team11',
+        'team12',
+        'team13',
+        'team14',
+        'team15',
+        'team16',
+      ]);
       expect(state.advancement.rankings).toHaveLength(16);
     });
 
@@ -78,28 +96,101 @@ describe('advancementStore', () => {
       store.restoreDefault();
 
       const state = useAdvancementStore.getState();
-      expect(state.advancement.top8).toEqual(['team1', 'team2', 'team3', 'team4', 'team5', 'team6', 'team7', 'team8']);
-      expect(state.advancement.eliminated).toEqual(['team9', 'team10', 'team11', 'team12', 'team13', 'team14', 'team15', 'team16']);
+      expect(state.advancement.top8).toEqual([
+        'team1',
+        'team2',
+        'team3',
+        'team4',
+        'team5',
+        'team6',
+        'team7',
+        'team8',
+      ]);
+      expect(state.advancement.eliminated).toEqual([
+        'team9',
+        'team10',
+        'team11',
+        'team12',
+        'team13',
+        'team14',
+        'team15',
+        'team16',
+      ]);
     });
   });
 
   describe('calculateAdvancement', () => {
     it('应该根据比赛结果正确计算晋级名单', () => {
       const matches = [
-        { stage: 'swiss', status: 'finished', winnerId: 'team1', teamAId: 'team1', teamBId: 'team2' },
-        { stage: 'swiss', status: 'finished', winnerId: 'team2', teamAId: 'team3', teamBId: 'team2' },
-        { stage: 'swiss', status: 'finished', winnerId: 'team3', teamAId: 'team3', teamBId: 'team4' },
-        { stage: 'swiss', status: 'finished', winnerId: 'team4', teamAId: 'team5', teamBId: 'team4' },
-        { stage: 'swiss', status: 'finished', winnerId: 'team5', teamAId: 'team6', teamBId: 'team5' },
-        { stage: 'swiss', status: 'finished', winnerId: 'team6', teamAId: 'team7', teamBId: 'team6' },
-        { stage: 'swiss', status: 'finished', winnerId: 'team7', teamAId: 'team8', teamBId: 'team7' },
-        { stage: 'swiss', status: 'finished', winnerId: 'team8', teamAId: 'team9', teamBId: 'team8' },
+        {
+          stage: 'swiss',
+          status: 'finished',
+          winnerId: 'team1',
+          teamAId: 'team1',
+          teamBId: 'team2',
+        },
+        {
+          stage: 'swiss',
+          status: 'finished',
+          winnerId: 'team2',
+          teamAId: 'team3',
+          teamBId: 'team2',
+        },
+        {
+          stage: 'swiss',
+          status: 'finished',
+          winnerId: 'team3',
+          teamAId: 'team3',
+          teamBId: 'team4',
+        },
+        {
+          stage: 'swiss',
+          status: 'finished',
+          winnerId: 'team4',
+          teamAId: 'team5',
+          teamBId: 'team4',
+        },
+        {
+          stage: 'swiss',
+          status: 'finished',
+          winnerId: 'team5',
+          teamAId: 'team6',
+          teamBId: 'team5',
+        },
+        {
+          stage: 'swiss',
+          status: 'finished',
+          winnerId: 'team6',
+          teamAId: 'team7',
+          teamBId: 'team6',
+        },
+        {
+          stage: 'swiss',
+          status: 'finished',
+          winnerId: 'team7',
+          teamAId: 'team8',
+          teamBId: 'team7',
+        },
+        {
+          stage: 'swiss',
+          status: 'finished',
+          winnerId: 'team8',
+          teamAId: 'team9',
+          teamBId: 'team8',
+        },
       ];
 
       const teams = [
-        { id: 'team1' }, { id: 'team2' }, { id: 'team3' }, { id: 'team4' },
-        { id: 'team5' }, { id: 'team6' }, { id: 'team7' }, { id: 'team8' },
-        { id: 'team9' }, { id: 'team10' },
+        { id: 'team1' },
+        { id: 'team2' },
+        { id: 'team3' },
+        { id: 'team4' },
+        { id: 'team5' },
+        { id: 'team6' },
+        { id: 'team7' },
+        { id: 'team8' },
+        { id: 'team9' },
+        { id: 'team10' },
       ];
 
       const result = calculateAdvancement(matches, teams);
@@ -112,14 +203,30 @@ describe('advancementStore', () => {
 
     it('应该正确排序：胜场多的在前，负场少的在前', () => {
       const matches = [
-        { stage: 'swiss', status: 'finished', winnerId: 'team1', teamAId: 'team1', teamBId: 'team2' },
-        { stage: 'swiss', status: 'finished', winnerId: 'team1', teamAId: 'team1', teamBId: 'team3' },
-        { stage: 'swiss', status: 'finished', winnerId: 'team1', teamAId: 'team1', teamBId: 'team4' },
+        {
+          stage: 'swiss',
+          status: 'finished',
+          winnerId: 'team1',
+          teamAId: 'team1',
+          teamBId: 'team2',
+        },
+        {
+          stage: 'swiss',
+          status: 'finished',
+          winnerId: 'team1',
+          teamAId: 'team1',
+          teamBId: 'team3',
+        },
+        {
+          stage: 'swiss',
+          status: 'finished',
+          winnerId: 'team1',
+          teamAId: 'team1',
+          teamBId: 'team4',
+        },
       ];
 
-      const teams = [
-        { id: 'team1' }, { id: 'team2' }, { id: 'team3' }, { id: 'team4' },
-      ];
+      const teams = [{ id: 'team1' }, { id: 'team2' }, { id: 'team3' }, { id: 'team4' }];
 
       const result = calculateAdvancement(matches, teams);
 
@@ -129,21 +236,82 @@ describe('advancementStore', () => {
 
     it('应该忽略非瑞士轮比赛', () => {
       const matches = [
-        { stage: 'elimination', status: 'finished', winnerId: 'team1', teamAId: 'team1', teamBId: 'team2' },
-        { stage: 'swiss', status: 'finished', winnerId: 'team1', teamAId: 'team1', teamBId: 'team2' },
-        { stage: 'swiss', status: 'finished', winnerId: 'team2', teamAId: 'team3', teamBId: 'team2' },
-        { stage: 'swiss', status: 'finished', winnerId: 'team3', teamAId: 'team3', teamBId: 'team4' },
-        { stage: 'swiss', status: 'finished', winnerId: 'team4', teamAId: 'team5', teamBId: 'team4' },
-        { stage: 'swiss', status: 'finished', winnerId: 'team5', teamAId: 'team6', teamBId: 'team5' },
-        { stage: 'swiss', status: 'finished', winnerId: 'team6', teamAId: 'team7', teamBId: 'team6' },
-        { stage: 'swiss', status: 'finished', winnerId: 'team7', teamAId: 'team8', teamBId: 'team7' },
-        { stage: 'swiss', status: 'finished', winnerId: 'team8', teamAId: 'team9', teamBId: 'team8' },
+        {
+          stage: 'elimination',
+          status: 'finished',
+          winnerId: 'team1',
+          teamAId: 'team1',
+          teamBId: 'team2',
+        },
+        {
+          stage: 'swiss',
+          status: 'finished',
+          winnerId: 'team1',
+          teamAId: 'team1',
+          teamBId: 'team2',
+        },
+        {
+          stage: 'swiss',
+          status: 'finished',
+          winnerId: 'team2',
+          teamAId: 'team3',
+          teamBId: 'team2',
+        },
+        {
+          stage: 'swiss',
+          status: 'finished',
+          winnerId: 'team3',
+          teamAId: 'team3',
+          teamBId: 'team4',
+        },
+        {
+          stage: 'swiss',
+          status: 'finished',
+          winnerId: 'team4',
+          teamAId: 'team5',
+          teamBId: 'team4',
+        },
+        {
+          stage: 'swiss',
+          status: 'finished',
+          winnerId: 'team5',
+          teamAId: 'team6',
+          teamBId: 'team5',
+        },
+        {
+          stage: 'swiss',
+          status: 'finished',
+          winnerId: 'team6',
+          teamAId: 'team7',
+          teamBId: 'team6',
+        },
+        {
+          stage: 'swiss',
+          status: 'finished',
+          winnerId: 'team7',
+          teamAId: 'team8',
+          teamBId: 'team7',
+        },
+        {
+          stage: 'swiss',
+          status: 'finished',
+          winnerId: 'team8',
+          teamAId: 'team9',
+          teamBId: 'team8',
+        },
       ];
 
       const teams = [
-        { id: 'team1' }, { id: 'team2' }, { id: 'team3' }, { id: 'team4' },
-        { id: 'team5' }, { id: 'team6' }, { id: 'team7' }, { id: 'team8' },
-        { id: 'team9' }, { id: 'team10' },
+        { id: 'team1' },
+        { id: 'team2' },
+        { id: 'team3' },
+        { id: 'team4' },
+        { id: 'team5' },
+        { id: 'team6' },
+        { id: 'team7' },
+        { id: 'team8' },
+        { id: 'team9' },
+        { id: 'team10' },
       ];
 
       const result = calculateAdvancement(matches, teams);
@@ -155,20 +323,75 @@ describe('advancementStore', () => {
     it('应该忽略未结束的比赛', () => {
       const matches = [
         { stage: 'swiss', status: 'ongoing', winnerId: null, teamAId: 'team1', teamBId: 'team2' },
-        { stage: 'swiss', status: 'finished', winnerId: 'team1', teamAId: 'team1', teamBId: 'team2' },
-        { stage: 'swiss', status: 'finished', winnerId: 'team2', teamAId: 'team3', teamBId: 'team2' },
-        { stage: 'swiss', status: 'finished', winnerId: 'team3', teamAId: 'team3', teamBId: 'team4' },
-        { stage: 'swiss', status: 'finished', winnerId: 'team4', teamAId: 'team5', teamBId: 'team4' },
-        { stage: 'swiss', status: 'finished', winnerId: 'team5', teamAId: 'team6', teamBId: 'team5' },
-        { stage: 'swiss', status: 'finished', winnerId: 'team6', teamAId: 'team7', teamBId: 'team6' },
-        { stage: 'swiss', status: 'finished', winnerId: 'team7', teamAId: 'team8', teamBId: 'team7' },
-        { stage: 'swiss', status: 'finished', winnerId: 'team8', teamAId: 'team9', teamBId: 'team8' },
+        {
+          stage: 'swiss',
+          status: 'finished',
+          winnerId: 'team1',
+          teamAId: 'team1',
+          teamBId: 'team2',
+        },
+        {
+          stage: 'swiss',
+          status: 'finished',
+          winnerId: 'team2',
+          teamAId: 'team3',
+          teamBId: 'team2',
+        },
+        {
+          stage: 'swiss',
+          status: 'finished',
+          winnerId: 'team3',
+          teamAId: 'team3',
+          teamBId: 'team4',
+        },
+        {
+          stage: 'swiss',
+          status: 'finished',
+          winnerId: 'team4',
+          teamAId: 'team5',
+          teamBId: 'team4',
+        },
+        {
+          stage: 'swiss',
+          status: 'finished',
+          winnerId: 'team5',
+          teamAId: 'team6',
+          teamBId: 'team5',
+        },
+        {
+          stage: 'swiss',
+          status: 'finished',
+          winnerId: 'team6',
+          teamAId: 'team7',
+          teamBId: 'team6',
+        },
+        {
+          stage: 'swiss',
+          status: 'finished',
+          winnerId: 'team7',
+          teamAId: 'team8',
+          teamBId: 'team7',
+        },
+        {
+          stage: 'swiss',
+          status: 'finished',
+          winnerId: 'team8',
+          teamAId: 'team9',
+          teamBId: 'team8',
+        },
       ];
 
       const teams = [
-        { id: 'team1' }, { id: 'team2' }, { id: 'team3' }, { id: 'team4' },
-        { id: 'team5' }, { id: 'team6' }, { id: 'team7' }, { id: 'team8' },
-        { id: 'team9' }, { id: 'team10' },
+        { id: 'team1' },
+        { id: 'team2' },
+        { id: 'team3' },
+        { id: 'team4' },
+        { id: 'team5' },
+        { id: 'team6' },
+        { id: 'team7' },
+        { id: 'team8' },
+        { id: 'team9' },
+        { id: 'team10' },
       ];
 
       const result = calculateAdvancement(matches, teams);

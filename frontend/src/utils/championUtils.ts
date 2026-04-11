@@ -13,7 +13,10 @@ interface ChampionCache {
   champions: Record<string, Champion>;
 }
 
-const staticChampionMapTyped: Record<string, Champion> = staticChampionMap as Record<string, Champion>;
+const staticChampionMapTyped: Record<string, Champion> = staticChampionMap as Record<
+  string,
+  Champion
+>;
 const staticCnToEnMap: Record<string, string> = Object.entries(staticChampionMapTyped).reduce(
   (acc, [id, champion]) => {
     acc[champion.name] = id;
@@ -35,7 +38,10 @@ function getCache(): ChampionCache | null {
   }
 }
 
-async function fetchFromRiot(): Promise<{ version: string; champions: Record<string, Champion> } | null> {
+async function fetchFromRiot(): Promise<{
+  version: string;
+  champions: Record<string, Champion>;
+} | null> {
   try {
     const versionRes = await fetch('https://ddragon.leagueoflegends.com/api/versions.json');
     if (!versionRes.ok) throw new Error('Failed to fetch versions');

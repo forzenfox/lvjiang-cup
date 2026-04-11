@@ -60,17 +60,19 @@ export class AdvancementService {
 
   async calculateFromMatches(matches: Match[]): Promise<Advancement> {
     const teamRecords = new Map<string, { wins: number; losses: number }>();
-    matches.filter(m => m.stage === 'swiss' && m.status === 'finished').forEach(match => {
-      if (match.winnerId) {
-        const winnerRecord = teamRecords.get(match.winnerId) || { wins: 0, losses: 0 };
-        winnerRecord.wins++;
-        teamRecords.set(match.winnerId, winnerRecord);
-        const loserId = match.teamAId === match.winnerId ? match.teamBId : match.teamAId;
-        const loserRecord = teamRecords.get(loserId) || { wins: 0, losses: 0 };
-        loserRecord.losses++;
-        teamRecords.set(loserId, loserRecord);
-      }
-    });
+    matches
+      .filter((m) => m.stage === 'swiss' && m.status === 'finished')
+      .forEach((match) => {
+        if (match.winnerId) {
+          const winnerRecord = teamRecords.get(match.winnerId) || { wins: 0, losses: 0 };
+          winnerRecord.wins++;
+          teamRecords.set(match.winnerId, winnerRecord);
+          const loserId = match.teamAId === match.winnerId ? match.teamBId : match.teamAId;
+          const loserRecord = teamRecords.get(loserId) || { wins: 0, losses: 0 };
+          loserRecord.losses++;
+          teamRecords.set(loserId, loserRecord);
+        }
+      });
     const sortedTeams = [...teamRecords.entries()]
       .map(([teamId, record]) => ({ teamId, record: `${record.wins}-${record.losses}` }))
       .sort((a, b) => {
@@ -80,8 +82,8 @@ export class AdvancementService {
         return bLosses - aLosses;
       });
     return {
-      top8: sortedTeams.slice(0, 8).map(t => t.teamId),
-      eliminated: sortedTeams.slice(8).map(t => t.teamId),
+      top8: sortedTeams.slice(0, 8).map((t) => t.teamId),
+      eliminated: sortedTeams.slice(8).map((t) => t.teamId),
       winners2_0: [],
       winners2_1: [],
       losersBracket: [],

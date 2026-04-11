@@ -1,7 +1,7 @@
 export const SWISS_THEME = {
   // 背景色
   background: 'transparent',
-  
+
   // 卡片背景 - 使用更协调的深灰色
   cardBackground: 'rgb(45, 46, 48)',
   border: 'rgb(100, 100, 100)',
@@ -42,9 +42,9 @@ export const SWISS_THEME = {
   matchBorder: 'rgb(80, 80, 80)',
 
   // Tab切换 - 使用更协调的颜色
-  tabActive: 'rgb(200, 170, 110)',     // 金色
-  tabInactive: 'rgb(150, 150, 150)',   // 灰色
-  tabBorder: 'rgb(60, 60, 60)',       // 深灰
+  tabActive: 'rgb(200, 170, 110)', // 金色
+  tabInactive: 'rgb(150, 150, 150)', // 灰色
+  tabBorder: 'rgb(60, 60, 60)', // 深灰
   tabIndicator: 'rgb(200, 170, 110)', // 金色
   tabGlow: '0 0 8px rgba(200, 170, 110, 0.5)', // 下划线发光效果
 
@@ -54,14 +54,14 @@ export const SWISS_THEME = {
   textSecondary: 'rgb(140, 140, 140)',
 
   // 尺寸 - 优化后的尺寸
-  columnWidth: 220,         // 列宽度
-  teamLogoSize: 32,         // 队伍Logo大小
-  scoreFontSize: 22,        // 比分字体大小
-  titleFontSize: 14,        // 标题字体大小
-  teamNameFontSize: 13,     // 队伍名字体大小
-  matchCardHeight: 50,      // 比赛卡片高度
-  headerHeight: 36,         // 标题栏高度
-  gap: 60,                  // 列间距 - 增大到60px，为SVG连线留出空间
+  columnWidth: 220, // 列宽度
+  teamLogoSize: 32, // 队伍Logo大小
+  scoreFontSize: 22, // 比分字体大小
+  titleFontSize: 14, // 标题字体大小
+  teamNameFontSize: 13, // 队伍名字体大小
+  matchCardHeight: 50, // 比赛卡片高度
+  headerHeight: 36, // 标题栏高度
+  gap: 60, // 列间距 - 增大到60px，为SVG连线留出空间
 
   // 动画配置
   transitionDuration: '400ms',

@@ -131,7 +131,9 @@ test.describe('【战队限制测试】16队战队限制功能', () => {
 
     // 如果当前不足16支，先添加战队到16支
     if (currentCount < MAX_TEAMS) {
-      console.log(`当前只有 ${currentCount} 支战队，需要添加 ${MAX_TEAMS - currentCount} 支来达到上限`);
+      console.log(
+        `当前只有 ${currentCount} 支战队，需要添加 ${MAX_TEAMS - currentCount} 支来达到上限`
+      );
 
       const teamsToAdd = MAX_TEAMS - currentCount;
       for (let i = 0; i < teamsToAdd; i++) {
@@ -273,7 +275,9 @@ test.describe('【战队限制测试】战队数量边界验证', () => {
     if (teamCards.length > 0) {
       // 获取第一个战队的名称
       const firstCard = teamCards[0];
-      const teamNameElement = firstCard.locator('[data-testid*="team-name"], h3, .text-white').first();
+      const teamNameElement = firstCard
+        .locator('[data-testid*="team-name"], h3, .text-white')
+        .first();
       const teamName = await teamNameElement.textContent().catch(() => '未知战队');
 
       console.log(`尝试删除战队: ${teamName}`);

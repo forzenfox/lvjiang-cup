@@ -7,7 +7,10 @@ export interface SelectOption {
   disabled?: boolean;
 }
 
-export interface SelectProps extends Omit<React.SelectHTMLAttributes<HTMLSelectElement>, 'onChange'> {
+export interface SelectProps extends Omit<
+  React.SelectHTMLAttributes<HTMLSelectElement>,
+  'onChange'
+> {
   label?: string;
   options: SelectOption[];
   error?: string;
@@ -26,10 +29,7 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
     return (
       <div className="w-full">
         {label && (
-          <label
-            htmlFor={selectId}
-            className="block mb-2 text-sm font-medium text-gray-200"
-          >
+          <label htmlFor={selectId} className="block mb-2 text-sm font-medium text-gray-200">
             {label}
           </label>
         )}
@@ -56,7 +56,7 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
                 {placeholder}
               </option>
             )}
-            {options.map((option) => (
+            {options.map(option => (
               <option
                 key={option.value}
                 value={option.value}
@@ -84,9 +84,7 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
             </svg>
           </div>
         </div>
-        {error && (
-          <p className="mt-1.5 text-sm text-red-400">{error}</p>
-        )}
+        {error && <p className="mt-1.5 text-sm text-red-400">{error}</p>}
       </div>
     );
   }

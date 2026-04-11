@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Trophy } from 'lucide-react';
 
 // 隐藏滚动条的样式
@@ -19,7 +19,6 @@ interface LayoutProps {
 }
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
-  const location = useLocation();
   const [activeSection, setActiveSection] = useState('hero');
 
   // 导航栏高度（与 h-24 = 6rem = 96px 对应）
@@ -34,7 +33,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
       window.scrollTo({
         top: offsetPosition,
-        behavior: 'smooth'
+        behavior: 'smooth',
       });
       setActiveSection(id);
     }
@@ -122,14 +121,18 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               <div className="absolute inset-0 bg-secondary/20 blur-xl rounded-full" />
             </div>
             <div className="flex flex-col">
-              <span className="text-3xl font-black text-white tracking-wider bg-gradient-to-r from-white via-secondary to-white bg-clip-text">驴酱杯</span>
-              <span className="text-sm text-secondary font-bold tracking-[0.3em] uppercase">2026 Championship</span>
+              <span className="text-3xl font-black text-white tracking-wider bg-gradient-to-r from-white via-secondary to-white bg-clip-text">
+                驴酱杯
+              </span>
+              <span className="text-sm text-secondary font-bold tracking-[0.3em] uppercase">
+                2026 Championship
+              </span>
             </div>
           </div>
 
           {/* 中间导航菜单 */}
           <nav className="flex items-center bg-black/30 rounded-lg p-1.5 border border-white/10">
-            {navItems.map((item) => {
+            {navItems.map(item => {
               const isActive = activeSection === item.id;
               return (
                 <button
@@ -137,9 +140,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   onClick={() => scrollToSection(item.id)}
                   className={`
                     relative px-10 py-4 mx-1 text-lg font-bold transition-all duration-300 rounded-md
-                    ${isActive
-                      ? 'bg-gradient-to-b from-primary to-primary/80 text-white shadow-lg shadow-primary/30 border border-primary/50'
-                      : 'text-gray-300 hover:text-white hover:bg-white/10'
+                    ${
+                      isActive
+                        ? 'bg-gradient-to-b from-primary to-primary/80 text-white shadow-lg shadow-primary/30 border border-primary/50'
+                        : 'text-gray-300 hover:text-white hover:bg-white/10'
                     }
                   `}
                 >
@@ -179,7 +183,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       {/* 移动端底部导航栏 - 参考官方设计 */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#1a1a1a] border-t border-white/10">
         <div className="flex items-center justify-around">
-          {navItems.map((item) => {
+          {navItems.map(item => {
             const isActive = activeSection === item.id;
             return (
               <button
@@ -187,9 +191,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 onClick={() => scrollToSection(item.id)}
                 className={`
                   flex-1 py-3 text-sm font-medium transition-all duration-200
-                  ${isActive
-                    ? 'bg-primary text-white'
-                    : 'text-gray-400 hover:text-white hover:bg-white/5'
+                  ${
+                    isActive
+                      ? 'bg-primary text-white'
+                      : 'text-gray-400 hover:text-white hover:bg-white/5'
                   }
                 `}
               >

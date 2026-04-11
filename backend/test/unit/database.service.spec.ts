@@ -16,7 +16,7 @@ const resetMocks = () => {
   mockGet.mockReset();
   mockAll.mockReset();
   mockClose.mockReset();
-  
+
   mockRun.mockImplementation(function (this: any, sql: string, params: any[], callback: any) {
     callback.call({ lastID: 1, changes: 1 }, null);
   });
@@ -63,7 +63,7 @@ describe('DatabaseService', () => {
   beforeEach(async () => {
     resetMocks();
     jest.clearAllMocks();
-    
+
     (fs.existsSync as jest.Mock).mockReturnValue(true);
 
     const module: TestingModule = await Test.createTestingModule({
@@ -239,11 +239,21 @@ describe('DatabaseService', () => {
 
       await service.onModuleInit();
 
-      expect(executedQueries.some((q) => q.includes('CREATE TABLE IF NOT EXISTS teams'))).toBe(true);
-      expect(executedQueries.some((q) => q.includes('CREATE TABLE IF NOT EXISTS team_members'))).toBe(true);
-      expect(executedQueries.some((q) => q.includes('CREATE TABLE IF NOT EXISTS matches'))).toBe(true);
-      expect(executedQueries.some((q) => q.includes('CREATE TABLE IF NOT EXISTS stream_info'))).toBe(true);
-      expect(executedQueries.some((q) => q.includes('CREATE TABLE IF NOT EXISTS advancement'))).toBe(true);
+      expect(executedQueries.some((q) => q.includes('CREATE TABLE IF NOT EXISTS teams'))).toBe(
+        true,
+      );
+      expect(
+        executedQueries.some((q) => q.includes('CREATE TABLE IF NOT EXISTS team_members')),
+      ).toBe(true);
+      expect(executedQueries.some((q) => q.includes('CREATE TABLE IF NOT EXISTS matches'))).toBe(
+        true,
+      );
+      expect(
+        executedQueries.some((q) => q.includes('CREATE TABLE IF NOT EXISTS stream_info')),
+      ).toBe(true);
+      expect(
+        executedQueries.some((q) => q.includes('CREATE TABLE IF NOT EXISTS advancement')),
+      ).toBe(true);
     });
 
     it('应该启用WAL模式', async () => {
@@ -269,8 +279,12 @@ describe('DatabaseService', () => {
 
       await service.onModuleInit();
 
-      expect(executedQueries.some((q) => q.includes('INSERT OR IGNORE INTO stream_info'))).toBe(true);
-      expect(executedQueries.some((q) => q.includes('INSERT OR IGNORE INTO advancement'))).toBe(true);
+      expect(executedQueries.some((q) => q.includes('INSERT OR IGNORE INTO stream_info'))).toBe(
+        true,
+      );
+      expect(executedQueries.some((q) => q.includes('INSERT OR IGNORE INTO advancement'))).toBe(
+        true,
+      );
     });
   });
 

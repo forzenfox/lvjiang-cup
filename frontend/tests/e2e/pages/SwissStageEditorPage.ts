@@ -158,7 +158,9 @@ export class SwissStageEditorPage extends BasePage {
    * @param matchId 比赛ID
    */
   getMatchCardById(matchId: string): Locator {
-    return this.page.locator(`[data-testid="swiss-match-card-${matchId}"], [data-match-id="${matchId}"]`);
+    return this.page.locator(
+      `[data-testid="swiss-match-card-${matchId}"], [data-match-id="${matchId}"]`
+    );
   }
 
   /**

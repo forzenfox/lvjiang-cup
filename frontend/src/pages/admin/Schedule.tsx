@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import AdminLayout from '../../components/layout/AdminLayout';
 import { teamService } from '@/services/teamService';
 import { matchService } from '@/services/matchService';
-import { advancementService } from '@/services/advancementService';
 import type { Match, MatchStatus, Team } from '@/types';
 import type { UpdateMatchRequest } from '@/api/types';
 import { Toaster, toast } from 'sonner';
@@ -178,20 +177,6 @@ const AdminSchedule: React.FC = () => {
     }
   };
 
-  const handleAdvancementUpdate = async (newAdvancement: typeof advancement) => {
-    try {
-      await advancementService.update({
-        top8: newAdvancement.top8,
-        eliminated: newAdvancement.eliminated,
-      });
-      setAdvancement(newAdvancement);
-      toast.success('晋级名单已保存');
-    } catch (error) {
-      console.error('Failed to save advancement:', error);
-      toast.error(error instanceof Error ? error.message : '保存晋级名单失败');
-    }
-  };
-
   // 自动计算晋级名单
   const handleAutoCalculateAdvancement = async () => {
     const swissMatches = matches.filter(m => m.stage === 'swiss');
@@ -247,18 +232,21 @@ const AdminSchedule: React.FC = () => {
             </p>
           </div>
           <div className="flex gap-2">
-            {teams.length > 0 && (matches.length === 0 || swissMatches.length === 0 || eliminationMatches.length === 0) && (
-              <Button
-                data-testid="init-slots-button"
-                variant="default"
-                onClick={handleInitSlots}
-                disabled={initSlotsLoading}
-                className="bg-green-600 hover:bg-green-700 text-white"
-              >
-                <Plus className={`w-4 h-4 mr-2 ${initSlotsLoading ? 'animate-spin' : ''}`} />
-                {initSlotsLoading ? '初始化中...' : '初始化比赛槽位'}
-              </Button>
-            )}
+            {teams.length > 0 &&
+              (matches.length === 0 ||
+                swissMatches.length === 0 ||
+                eliminationMatches.length === 0) && (
+                <Button
+                  data-testid="init-slots-button"
+                  variant="default"
+                  onClick={handleInitSlots}
+                  disabled={initSlotsLoading}
+                  className="bg-green-600 hover:bg-green-700 text-white"
+                >
+                  <Plus className={`w-4 h-4 mr-2 ${initSlotsLoading ? 'animate-spin' : ''}`} />
+                  {initSlotsLoading ? '初始化中...' : '初始化比赛槽位'}
+                </Button>
+              )}
             <Button
               data-testid="refresh-schedule-button"
               variant="outline"
@@ -314,14 +302,17 @@ const AdminSchedule: React.FC = () => {
                     <div className="text-gray-400">
                       <Calendar className="w-16 h-16 mx-auto mb-4 opacity-50" />
                       <p className="text-lg">比赛槽位未初始化</p>
-                      <p className="text-sm mt-2 text-gray-500">请先点击右上角"初始化比赛槽位"按钮创建比赛槽位</p>
+                      <p className="text-sm mt-2 text-gray-500">
+                        请先点击右上角"初始化比赛槽位"按钮创建比赛槽位
+                      </p>
                     </div>
                   </div>
                 ) : (
                   <>
                     <div className="mb-4 flex justify-between items-center">
                       <div data-testid="advancement-status" className="text-sm text-gray-400">
-                        晋级状态：前8名晋级淘汰赛 · {advancement.top8.length} 队已晋级 · {advancement.eliminated.length} 队已淘汰
+                        晋级状态：前8名晋级淘汰赛 · {advancement.top8.length} 队已晋级 ·{' '}
+                        {advancement.eliminated.length} 队已淘汰
                       </div>
                       <Button
                         data-testid="auto-calculate-advancement-button"
@@ -354,7 +345,9 @@ const AdminSchedule: React.FC = () => {
                     <div className="text-gray-400">
                       <Trophy className="w-16 h-16 mx-auto mb-4 opacity-50" />
                       <p className="text-lg">比赛槽位未初始化</p>
-                      <p className="text-sm mt-2 text-gray-500">请先点击右上角"初始化比赛槽位"按钮创建比赛槽位</p>
+                      <p className="text-sm mt-2 text-gray-500">
+                        请先点击右上角"初始化比赛槽位"按钮创建比赛槽位
+                      </p>
                     </div>
                   </div>
                 ) : (

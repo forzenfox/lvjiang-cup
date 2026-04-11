@@ -102,12 +102,8 @@ const SwissRecordSection: React.FC<SwissRecordSectionProps> = ({
                 backgroundColor: 'rgba(45, 46, 48, 0.5)',
               }}
             >
-              <span style={{ color: '#8ba48f', fontSize: '13px' }}>
-                暂无可展示的队伍
-              </span>
-              <span style={{ color: '#7a8a7f', fontSize: '11px' }}>
-                当前轮次暂无晋级队伍
-              </span>
+              <span style={{ color: '#8ba48f', fontSize: '13px' }}>暂无可展示的队伍</span>
+              <span style={{ color: '#7a8a7f', fontSize: '11px' }}>当前轮次暂无晋级队伍</span>
             </div>
           )}
         </div>
@@ -179,12 +175,8 @@ const SwissRecordSection: React.FC<SwissRecordSectionProps> = ({
                 backgroundColor: 'rgba(45, 46, 48, 0.5)',
               }}
             >
-              <span style={{ color: '#b08080', fontSize: '13px' }}>
-                暂无可展示的队伍
-              </span>
-              <span style={{ color: '#8a7a7a', fontSize: '11px' }}>
-                当前轮次暂无淘汰队伍
-              </span>
+              <span style={{ color: '#b08080', fontSize: '13px' }}>暂无可展示的队伍</span>
+              <span style={{ color: '#8a7a7a', fontSize: '11px' }}>当前轮次暂无淘汰队伍</span>
             </div>
           )}
         </div>

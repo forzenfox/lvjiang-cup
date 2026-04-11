@@ -61,7 +61,7 @@ export class ConfigLoader {
     if (!config.admin.password) {
       throw new Error(
         '管理员密码未配置。请设置环境变量 ADMIN_PASSWORD\n' +
-        '例如：ADMIN_PASSWORD=your_password npx playwright test'
+          '例如：ADMIN_PASSWORD=your_password npx playwright test'
       );
     }
 

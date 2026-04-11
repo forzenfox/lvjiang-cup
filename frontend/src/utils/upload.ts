@@ -10,9 +10,10 @@ export function getUploadUrl(url: string | undefined | null): string {
     return url;
   }
 
-  const baseUrl = typeof window !== 'undefined' && window.APP_CONFIG?.API_BASE_URL
-    ? window.APP_CONFIG.API_BASE_URL
-    : 'http://localhost:3000';
+  const baseUrl =
+    typeof window !== 'undefined' && window.APP_CONFIG?.API_BASE_URL
+      ? window.APP_CONFIG.API_BASE_URL
+      : 'http://localhost:3000';
 
   // 移除 URL 开头的 /api 前缀，避免与 baseUrl 重复拼接
   const normalizedUrl = url.startsWith('/api/') ? url.slice(4) : url;

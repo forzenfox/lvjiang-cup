@@ -277,10 +277,7 @@ export class TeamsPage {
    */
   async findTeamCardByName(name: string): Promise<Locator | null> {
     // 使用 data-testid 定位战队卡片
-    const card = this.page
-      .locator('[data-testid^="team-card-"]')
-      .filter({ hasText: name })
-      .first();
+    const card = this.page.locator('[data-testid^="team-card-"]').filter({ hasText: name }).first();
     if (await card.isVisible().catch(() => false)) {
       return card;
     }
@@ -366,7 +363,11 @@ export class TeamsPage {
       { name: 'IC', logo: 'https://picsum.photos/seed/icstar/200/200', battleCry: 'IC战队' },
       { name: 'PLG', logo: 'https://picsum.photos/seed/plgwater/200/200', battleCry: 'PLG战队' },
       { name: '小熊', logo: 'https://picsum.photos/seed/xiaoxiong/200/200', battleCry: '小熊战队' },
-      { name: '搓搓鸟', logo: 'https://picsum.photos/seed/cuocuoniao/200/200', battleCry: '搓搓鸟战队' },
+      {
+        name: '搓搓鸟',
+        logo: 'https://picsum.photos/seed/cuocuoniao/200/200',
+        battleCry: '搓搓鸟战队',
+      },
       { name: '100J', logo: 'https://picsum.photos/seed/100j/200/200', battleCry: '100J战队' },
       { name: '69', logo: 'https://picsum.photos/seed/69team/200/200', battleCry: '69战队' },
       { name: '雨酱', logo: 'https://picsum.photos/seed/yujiang/200/200', battleCry: '雨酱战队' },
@@ -383,17 +384,14 @@ export class TeamsPage {
     // 逐个创建团队
     for (const team of mockTeamData) {
       try {
-        await this.page.evaluate(
-          async (teamData) => {
-            const response = await fetch('/api/admin/teams', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(teamData),
-            });
-            return response.ok;
-          },
-          team
-        );
+        await this.page.evaluate(async teamData => {
+          const response = await fetch('/api/admin/teams', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(teamData),
+          });
+          return response.ok;
+        }, team);
       } catch (error) {
         console.error(`创建团队 ${team.name} 失败:`, error);
       }
@@ -418,31 +416,37 @@ export class TeamsPage {
         success: boolean;
       }
 
-      const response = await this.page.evaluate<CleanupResponse, [string, typeof config.admin]>(async ([url, adminConfig]) => {
-        const token = localStorage.getItem('token') || localStorage.getItem('auth-token');
-        const loginResponse = await fetch(`${url.replace('/api/admin/data', '/api/admin/auth/login')}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            username: adminConfig.username,
-            password: adminConfig.password
-          }),
-        });
+      const response = await this.page.evaluate<CleanupResponse, [string, typeof config.admin]>(
+        async ([url, adminConfig]) => {
+          const token = localStorage.getItem('token') || localStorage.getItem('auth-token');
+          const loginResponse = await fetch(
+            `${url.replace('/api/admin/data', '/api/admin/auth/login')}`,
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                username: adminConfig.username,
+                password: adminConfig.password,
+              }),
+            }
+          );
 
-        if (!loginResponse.ok) return { success: false };
+          if (!loginResponse.ok) return { success: false };
 
-        const loginData = await loginResponse.json();
-        const adminToken = loginData.data?.access_token || token;
+          const loginData = await loginResponse.json();
+          const adminToken = loginData.data?.access_token || token;
 
-        const clearResponse = await fetch(url, {
-          method: 'DELETE',
-          headers: {
-            'Authorization': `Bearer ${adminToken}`,
-            'Content-Type': 'application/json'
-          },
-        });
-        return { success: clearResponse.ok };
-      }, [cleanupUrl, config.admin]);
+          const clearResponse = await fetch(url, {
+            method: 'DELETE',
+            headers: {
+              Authorization: `Bearer ${adminToken}`,
+              'Content-Type': 'application/json',
+            },
+          });
+          return { success: clearResponse.ok };
+        },
+        [cleanupUrl, config.admin]
+      );
 
       if (response.success) {
         await this.page.reload();

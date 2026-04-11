@@ -182,7 +182,10 @@ test.describe('【第四阶段-1】瑞士轮晋级名单管理测试', () => {
     const swissEditor = page.getByTestId('swiss-stage');
     await expect(swissEditor).toBeVisible();
 
-    const backendHasAdvancement = await page.getByTestId('advancement-status').isVisible().catch(() => false);
+    const backendHasAdvancement = await page
+      .getByTestId('advancement-status')
+      .isVisible()
+      .catch(() => false);
     console.log(`✅ 后台晋级状态可见: ${backendHasAdvancement}`);
 
     await homePage.goto();
@@ -293,12 +296,7 @@ test.describe('【边界测试】晋级名单边界测试', () => {
     const swissEditor = page.getByTestId('swiss-stage');
     await expect(swissEditor).toBeVisible();
 
-    const recordGroups = [
-      'swiss-round-1',
-      'swiss-round-2',
-      'swiss-round-3',
-      'swiss-round-4',
-    ];
+    const recordGroups = ['swiss-round-1', 'swiss-round-2', 'swiss-round-3', 'swiss-round-4'];
 
     let visibleGroups = 0;
     for (const group of recordGroups) {

@@ -88,10 +88,7 @@ const SwissMatchCard: React.FC<SwissMatchCardProps> = ({
         />
 
         {/* 左侧队伍 - 靠左对齐 */}
-        <div
-          className="flex items-center gap-1"
-          style={{ justifyContent: 'flex-start', flex: 1 }}
-        >
+        <div className="flex items-center gap-1" style={{ justifyContent: 'flex-start', flex: 1 }}>
           <SwissTeamLogo team={teamA} size={SWISS_THEME.teamLogoSize} />
           <span
             className="font-medium truncate"
@@ -146,10 +143,7 @@ const SwissMatchCard: React.FC<SwissMatchCardProps> = ({
         </div>
 
         {/* 右侧队伍 - 靠右对齐 */}
-        <div
-          className="flex items-center gap-1"
-          style={{ justifyContent: 'flex-end', flex: 1 }}
-        >
+        <div className="flex items-center gap-1" style={{ justifyContent: 'flex-end', flex: 1 }}>
           <span
             className="font-medium truncate text-right"
             style={{

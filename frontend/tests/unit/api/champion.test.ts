@@ -21,7 +21,12 @@ describe('champion API', () => {
       const mockChampions = {
         data: {
           Yasuo: { id: 'Yasuo', name: '亚索', title: '疾风剑豪', tags: ['Fighter'] },
-          Ahri: { id: 'Ahri', name: '九尾妖狐·阿狸', title: '九尾妖狐', tags: ['Mage', 'Assassin'] },
+          Ahri: {
+            id: 'Ahri',
+            name: '九尾妖狐·阿狸',
+            title: '九尾妖狐',
+            tags: ['Mage', 'Assassin'],
+          },
         },
       };
 

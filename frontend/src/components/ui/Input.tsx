@@ -13,10 +13,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
     return (
       <div className="w-full">
         {label && (
-          <label
-            htmlFor={inputId}
-            className="block mb-2 text-sm font-medium text-gray-200"
-          >
+          <label htmlFor={inputId} className="block mb-2 text-sm font-medium text-gray-200">
             {label}
           </label>
         )}
@@ -35,9 +32,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           ref={ref}
           {...props}
         />
-        {error && (
-          <p className="mt-1.5 text-sm text-red-400">{error}</p>
-        )}
+        {error && <p className="mt-1.5 text-sm text-red-400">{error}</p>}
       </div>
     );
   }

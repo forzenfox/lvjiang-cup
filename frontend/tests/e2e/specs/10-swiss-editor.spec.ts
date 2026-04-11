@@ -250,7 +250,13 @@ test.describe('【P1】瑞士轮编辑器 - 战绩分组测试', () => {
    * 验证瑞士轮5轮的战绩分组正确显示
    */
   test('TEST-SWISS-06: 战绩分组显示验证 @P1', async ({ page }) => {
-    const roundGroups = ['swiss-round-1', 'swiss-round-2', 'swiss-round-3', 'swiss-round-4', 'swiss-round-5'];
+    const roundGroups = [
+      'swiss-round-1',
+      'swiss-round-2',
+      'swiss-round-3',
+      'swiss-round-4',
+      'swiss-round-5',
+    ];
     let foundRounds = 0;
 
     for (const roundId of roundGroups) {

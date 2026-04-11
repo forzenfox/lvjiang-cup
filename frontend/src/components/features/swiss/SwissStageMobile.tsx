@@ -71,7 +71,7 @@ const SwissStageMobile: React.FC<SwissStageMobileProps> = ({
 
     return (
       <div data-testid={`${testId}-content`}>
-        {currentRoundConfig.records.map((record) => {
+        {currentRoundConfig.records.map(record => {
           const recordMatches = matchesByRecord[record] || [];
 
           // 第三轮特殊处理：显示2-0晋级和0-2淘汰

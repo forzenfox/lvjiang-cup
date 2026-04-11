@@ -2,10 +2,7 @@ import React, { useMemo, useState, useEffect, useRef, useCallback } from 'react'
 import { Match, Team } from '@/types';
 import SwissRecordSection from './SwissRecordSection';
 import { SWISS_THEME } from '@/constants/swissTheme';
-import {
-  SWISS_COLUMNS,
-  type SwissColumnConfig,
-} from '@/constants/swissTreeConfig';
+import { SWISS_COLUMNS, type SwissColumnConfig } from '@/constants/swissTreeConfig';
 
 interface SwissRoundTreeProps {
   matches: Match[];
@@ -32,7 +29,9 @@ const SwissRoundTree: React.FC<SwissRoundTreeProps> = ({
   'data-testid': testId = 'swiss-round-tree',
 }) => {
   // 屏幕宽度状态，用于响应式计算
-  const [screenWidth, setScreenWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1280);
+  const [screenWidth, setScreenWidth] = useState(
+    typeof window !== 'undefined' ? window.innerWidth : 1280
+  );
 
   useEffect(() => {
     const handleResize = () => setScreenWidth(window.innerWidth);
@@ -92,9 +91,7 @@ const SwissRoundTree: React.FC<SwissRoundTreeProps> = ({
   // 计算滑动偏移量
   // BO1: 显示第1-4列 (索引0-3)，偏移0
   // BO3: 显示第3-6列 (索引2-5)，需要向左滑动2列的宽度
-  const slideOffset = activeTab === 'bo1'
-    ? 0
-    : -2 * (columnWidth + columnGap);
+  const slideOffset = activeTab === 'bo1' ? 0 : -2 * (columnWidth + columnGap);
 
   // 判断战绩分组是否应该高亮
   const shouldHighlightRecord = (record: string): boolean => {
@@ -105,11 +102,7 @@ const SwissRoundTree: React.FC<SwissRoundTreeProps> = ({
   };
 
   // 处理比赛卡片位置变化（静态连线不再需要动态位置计算）
-  const _handleMatchCardPositionChange = useCallback((
-    _slotId: string,
-    _x: number,
-    _y: number
-  ) => {
+  const _handleMatchCardPositionChange = useCallback((_slotId: string, _x: number, _y: number) => {
     // 静态连线使用固定配置，不需要动态计算位置
     // 保留此函数供未来可能的扩展使用
   }, []);
@@ -147,7 +140,7 @@ const SwissRoundTree: React.FC<SwissRoundTreeProps> = ({
 
         {/* 战绩分组 */}
         <div className="flex flex-col gap-2">
-          {column.records.map((recordConfig) => {
+          {column.records.map(recordConfig => {
             const isHighlighted = shouldHighlightRecord(recordConfig.record);
             return (
               <SwissRecordSection
@@ -156,7 +149,9 @@ const SwissRoundTree: React.FC<SwissRoundTreeProps> = ({
                 matches={matchesByRecord[recordConfig.record] || []}
                 teams={teams}
                 promotionTeams={recordConfig.type === 'promotion' ? promotionTeams : undefined}
-                eliminationTeams={recordConfig.type === 'elimination' ? eliminationTeams : undefined}
+                eliminationTeams={
+                  recordConfig.type === 'elimination' ? eliminationTeams : undefined
+                }
                 onMatchClick={onMatchClick}
                 onPositionChange={_handleMatchCardPositionChange}
                 containerRef={scrollContainerRef}
@@ -183,7 +178,7 @@ const SwissRoundTree: React.FC<SwissRoundTreeProps> = ({
           className="flex w-full"
           style={{
             position: 'relative',
-            borderBottom: '2px solid rgb(28, 30, 29)',  // 官方深色底边
+            borderBottom: '2px solid rgb(28, 30, 29)', // 官方深色底边
           }}
         >
           <button
@@ -194,9 +189,10 @@ const SwissRoundTree: React.FC<SwissRoundTreeProps> = ({
               padding: '0px',
               fontSize: '36px',
               fontWeight: 700,
-              color: activeTab === 'bo1'
-                ? 'rgb(169, 144, 120)'  // 官方金色（激活）
-                : 'rgb(221, 221, 221)',  // 官方灰色（非激活）
+              color:
+                activeTab === 'bo1'
+                  ? 'rgb(169, 144, 120)' // 官方金色（激活）
+                  : 'rgb(221, 221, 221)', // 官方灰色（非激活）
               backgroundColor: 'transparent',
               border: 'none',
               cursor: 'pointer',
@@ -214,9 +210,10 @@ const SwissRoundTree: React.FC<SwissRoundTreeProps> = ({
               padding: '0px',
               fontSize: '36px',
               fontWeight: 700,
-              color: activeTab === 'bo3'
-                ? 'rgb(169, 144, 120)'  // 官方金色（激活）
-                : 'rgb(221, 221, 221)',  // 官方灰色（非激活）
+              color:
+                activeTab === 'bo3'
+                  ? 'rgb(169, 144, 120)' // 官方金色（激活）
+                  : 'rgb(221, 221, 221)', // 官方灰色（非激活）
               backgroundColor: 'transparent',
               border: 'none',
               cursor: 'pointer',
@@ -234,10 +231,10 @@ const SwissRoundTree: React.FC<SwissRoundTreeProps> = ({
           className="absolute transition-all duration-300"
           style={{
             height: '2px',
-            backgroundColor: 'rgb(169, 144, 120)',  // 官方金色下划线
-            bottom: '-2px',  // 与容器的 borderBottom 重合
-            left: activeTab === 'bo1' ? '0%' : '25%',  // 激活标签的起始位置
-            width: activeTab === 'bo1' ? '75%' : '75%',  // 与激活标签同宽
+            backgroundColor: 'rgb(169, 144, 120)', // 官方金色下划线
+            bottom: '-2px', // 与容器的 borderBottom 重合
+            left: activeTab === 'bo1' ? '0%' : '25%', // 激活标签的起始位置
+            width: activeTab === 'bo1' ? '75%' : '75%', // 与激活标签同宽
             transitionTimingFunction: 'ease-out',
           }}
         />
@@ -253,8 +250,6 @@ const SwissRoundTree: React.FC<SwissRoundTreeProps> = ({
         }}
         data-testid={`${testId}-content`}
       >
-
-
         {/* 6列容器，通过transform实现滑动 */}
         <div
           className="flex transition-transform relative"

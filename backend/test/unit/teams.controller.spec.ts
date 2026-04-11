@@ -316,7 +316,7 @@ describe('TeamsController', () => {
         battleCry: 'A new team',
         // 注意：没有 id 字段
       };
-      
+
       const createdTeam: Team = {
         id: '550e8400-e29b-41d4-a716-446655440000', // UUID v4 格式
         name: 'New Team',
@@ -332,7 +332,9 @@ describe('TeamsController', () => {
       // Assert
       expect(result).toEqual(createdTeam);
       expect(result.id).toBeDefined();
-      expect(result.id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i);
+      expect(result.id).toMatch(
+        /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
+      );
       expect(mockTeamsService.create).toHaveBeenCalledWith(createTeamDto);
     });
 
@@ -357,7 +359,9 @@ describe('TeamsController', () => {
       // Assert
       expect(result).toEqual(createdMember);
       expect(result.id).toBeDefined();
-      expect(result.id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i);
+      expect(result.id).toMatch(
+        /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
+      );
     });
 
     it('should reject invalid UUID format in update request', async () => {
@@ -365,8 +369,9 @@ describe('TeamsController', () => {
       mockTeamsService.update.mockRejectedValue(new NotFoundException('Team not found'));
 
       // Act & Assert
-      await expect(controller.update('invalid-uuid', { name: 'Test' }))
-        .rejects.toThrow(NotFoundException);
+      await expect(controller.update('invalid-uuid', { name: 'Test' })).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 

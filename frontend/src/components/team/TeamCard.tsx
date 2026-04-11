@@ -27,10 +27,10 @@ const TeamCard: React.FC<TeamCardProps> = ({ team, onMembersClick }) => {
   const { id, name, logoUrl, logoThumbnailUrl, battleCry, members } = team;
 
   // 获取队长信息
-  const captain = members.find((member) => member.isCaptain);
+  const captain = members.find(member => member.isCaptain);
 
   // 获取已拥有的位置
-  const positions = members.map((member) => member.position);
+  const positions = members.map(member => member.position);
 
   // 位置顺序
   const positionOrder: Array<'TOP' | 'JUNGLE' | 'MID' | 'ADC' | 'SUPPORT'> = [
@@ -88,7 +88,7 @@ const TeamCard: React.FC<TeamCardProps> = ({ team, onMembersClick }) => {
 
         {/* 位置图标 */}
         <div className="flex items-center justify-center gap-[8px]" data-testid="team-positions">
-          {positionOrder.map((position) => {
+          {positionOrder.map(position => {
             if (!positions.includes(position)) return null;
             return (
               <div key={position} className="w-[24px] h-[24px]" title={position}>

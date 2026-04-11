@@ -46,10 +46,10 @@ export const getSwissRound = (swissRecord: string): number => {
 export const getRoundFormat = (swissRecord: string): 'BO1' | 'BO3' | 'BO5' => {
   switch (swissRecord) {
     // BO1: 第一轮和第二轮
-    case '0-0':      // 第一轮
-    case '1-0':      // 第二轮高组
-    case '0-1':      // 第二轮低组
-    case '1-1':      // 第三轮中游组
+    case '0-0': // 第一轮
+    case '1-0': // 第二轮高组
+    case '0-1': // 第二轮低组
+    case '1-1': // 第三轮中游组
       return 'BO1';
     // BO5: 晋级/淘汰决胜轮
     case '3-0':

@@ -32,8 +32,8 @@ export const ELIMINATION_THEME = {
   statusFinished: 'bg-gray-500 text-white',
 
   // 尺寸 - 进一步增大的尺寸
-  cardWidth: 320,  // 与 CARD_WIDTH 常量保持一致
-  matchCardHeight: 110,  // 55px * 2
+  cardWidth: 320, // 与 CARD_WIDTH 常量保持一致
+  matchCardHeight: 110, // 55px * 2
   teamLogoSize: 32,
   scoreFontSize: 20,
   teamNameFontSize: 16,

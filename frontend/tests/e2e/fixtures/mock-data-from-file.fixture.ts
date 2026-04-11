@@ -1,5 +1,10 @@
 import { test as base, Page } from '@playwright/test';
-import { initialTeams, swissMatches, eliminationMatches, swissAdvancement } from '../../src/mock/data';
+import {
+  initialTeams,
+  swissMatches,
+  eliminationMatches,
+  swissAdvancement,
+} from '../../src/mock/data';
 
 /**
  * 模拟数据 fixture
@@ -22,15 +27,13 @@ export const mockDataFixtures = base.extend<MockDataFixtures>({
     eliminationMatches,
     swissAdvancement,
   },
-
-  loadMockData: async ({ page }, use) => {
+  // eslint-disable-next-line @typescript-eslint/no-empty-function, react-hooks/rules-of-hooks
+  loadMockData: async ({}, use) => {
     const loadFn = async (page: Page) => {
-      // 尝试通过 API 加载模拟数据
-      // 注意：这里需要后端支持批量创建或重置数据
       // 如果后端不支持，可以使用 localStorage 模拟数据
       const baseURL = process.env.BASE_URL || 'http://localhost:5173';
 
-      // 方案1：通过 localStorage 注入数据
+      // 方案 1：通过 localStorage 注入数据
       await page.goto(baseURL);
 
       // 注入模拟数据到 localStorage
@@ -39,14 +42,8 @@ export const mockDataFixtures = base.extend<MockDataFixtures>({
           // 存储到 localStorage
           localStorage.setItem('mock-teams', JSON.stringify(teams));
           localStorage.setItem('mock-swiss-matches', JSON.stringify(swissMatches));
-          localStorage.setItem(
-            'mock-elimination-matches',
-            JSON.stringify(eliminationMatches)
-          );
-          localStorage.setItem(
-            'mock-swiss-advancement',
-            JSON.stringify(swissAdvancement)
-          );
+          localStorage.setItem('mock-elimination-matches', JSON.stringify(eliminationMatches));
+          localStorage.setItem('mock-swiss-advancement', JSON.stringify(swissAdvancement));
           localStorage.setItem('use-mock-data', 'true');
         },
         {
@@ -68,7 +65,7 @@ export const mockDataFixtures = base.extend<MockDataFixtures>({
  * 获取模拟战队数据的辅助函数
  */
 export function getMockTeamById(teamId: string) {
-  return initialTeams.find((t) => t.id === teamId);
+  return initialTeams.find(t => t.id === teamId);
 }
 
 /**
@@ -83,13 +80,13 @@ export function getMockTeamName(teamId: string): string {
  * 获取所有模拟战队 ID
  */
 export function getAllMockTeamIds(): string[] {
-  return initialTeams.map((t) => t.id);
+  return initialTeams.map(t => t.id);
 }
 
 /**
  * 获取指定战绩的战队
  */
 export function getTeamsByRecord(record: string): string[] {
-  const rankings = swissAdvancement.rankings.filter((r) => r.record === record);
-  return rankings.map((r) => r.teamId);
+  const rankings = swissAdvancement.rankings.filter(r => r.record === record);
+  return rankings.map(r => r.teamId);
 }

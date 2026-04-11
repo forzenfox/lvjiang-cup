@@ -14,18 +14,16 @@ const POSITION_CONFIG = {
   SUPPORT: { label: '辅助', icon: '/assets/positions/support.png' },
 };
 
-export const PositionIcon: React.FC<PositionIconProps> = ({ position, size = 24, className = '' }) => {
+export const PositionIcon: React.FC<PositionIconProps> = ({
+  position,
+  size = 24,
+  className = '',
+}) => {
   const config = POSITION_CONFIG[position];
   if (!config) return null;
 
   return (
-    <img
-      src={config.icon}
-      alt={config.label}
-      width={size}
-      height={size}
-      className={className}
-    />
+    <img src={config.icon} alt={config.label} width={size} height={size} className={className} />
   );
 };
 

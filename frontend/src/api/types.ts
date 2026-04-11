@@ -164,7 +164,7 @@ export interface CreateMemberRequest {
 }
 
 export interface CreateTeamRequest {
-  id?: string;  // 改为可选，不传则由后端生成UUID
+  id?: string; // 改为可选，不传则由后端生成UUID
   name: string;
   logo?: string;
   battleCry?: string;

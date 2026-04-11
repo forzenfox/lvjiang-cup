@@ -2,11 +2,6 @@ import React from 'react';
 import { Team } from '@/types';
 import SwissTeamLogo from './SwissTeamLogo';
 
-interface TeamResult {
-  team: Team;
-  record: string;
-}
-
 interface SwissFinalResultMobileProps {
   qualifiedTeams: Team[];
   eliminatedTeams: Team[];
@@ -42,13 +37,13 @@ const SwissFinalResultMobile: React.FC<SwissFinalResultMobileProps> = ({
         <div className="bg-blue-600/80 py-2.5 px-4">
           <h3 className="text-white font-bold text-center">晋级队伍</h3>
         </div>
-        
+
         {/* 垂直列表 */}
         <div className="divide-y divide-gray-700/50">
-          {qualifiedSlots.map((slotIndex) => {
+          {qualifiedSlots.map(slotIndex => {
             const team = qualifiedTeams[slotIndex];
             const record = qualifiedRecords[slotIndex];
-            
+
             return (
               <div
                 key={`qualified-${slotIndex}`}
@@ -60,9 +55,7 @@ const SwissFinalResultMobile: React.FC<SwissFinalResultMobileProps> = ({
                   {team ? (
                     <>
                       <SwissTeamLogo team={team} size={36} />
-                      <span className="text-white font-medium text-sm truncate">
-                        {team.name}
-                      </span>
+                      <span className="text-white font-medium text-sm truncate">{team.name}</span>
                     </>
                   ) : (
                     <>
@@ -76,9 +69,7 @@ const SwissFinalResultMobile: React.FC<SwissFinalResultMobileProps> = ({
 
                 {/* 右侧：积分 */}
                 <div className="flex-shrink-0 ml-4">
-                  <span className="text-blue-400 font-bold text-lg">
-                    {team ? record : '?'}
-                  </span>
+                  <span className="text-blue-400 font-bold text-lg">{team ? record : '?'}</span>
                 </div>
               </div>
             );
@@ -92,13 +83,13 @@ const SwissFinalResultMobile: React.FC<SwissFinalResultMobileProps> = ({
         <div className="bg-red-600/80 py-2.5 px-4">
           <h3 className="text-white font-bold text-center">淘汰队伍</h3>
         </div>
-        
+
         {/* 垂直列表 */}
         <div className="divide-y divide-gray-700/50">
-          {eliminatedSlots.map((slotIndex) => {
+          {eliminatedSlots.map(slotIndex => {
             const team = eliminatedTeams[slotIndex];
             const record = eliminatedRecords[slotIndex];
-            
+
             return (
               <div
                 key={`eliminated-${slotIndex}`}
@@ -110,9 +101,7 @@ const SwissFinalResultMobile: React.FC<SwissFinalResultMobileProps> = ({
                   {team ? (
                     <>
                       <SwissTeamLogo team={team} size={36} />
-                      <span className="text-white font-medium text-sm truncate">
-                        {team.name}
-                      </span>
+                      <span className="text-white font-medium text-sm truncate">{team.name}</span>
                     </>
                   ) : (
                     <>
@@ -126,9 +115,7 @@ const SwissFinalResultMobile: React.FC<SwissFinalResultMobileProps> = ({
 
                 {/* 右侧：积分 */}
                 <div className="flex-shrink-0 ml-4">
-                  <span className="text-red-400 font-bold text-lg">
-                    {team ? record : '?'}
-                  </span>
+                  <span className="text-red-400 font-bold text-lg">{team ? record : '?'}</span>
                 </div>
               </div>
             );

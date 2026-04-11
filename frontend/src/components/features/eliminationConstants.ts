@@ -57,14 +57,50 @@ export const calculateEliminationPositions = (containerWidth: number = 1200) => 
   // 计算每个阶段的位置
   const positions: Record<GameKey, { x: number; y: number }> = {
     // 四分之一决赛 - 4场比赛，垂直平均分布
-    qf1: { x: getColX(0), y: topOffset + (availableHeight / 4) * 0 + (availableHeight / 4 - CARD_HEIGHT - CARD_TIME_HEIGHT) / 2 },
-    qf2: { x: getColX(0), y: topOffset + (availableHeight / 4) * 1 + (availableHeight / 4 - CARD_HEIGHT - CARD_TIME_HEIGHT) / 2 },
-    qf3: { x: getColX(0), y: topOffset + (availableHeight / 4) * 2 + (availableHeight / 4 - CARD_HEIGHT - CARD_TIME_HEIGHT) / 2 },
-    qf4: { x: getColX(0), y: topOffset + (availableHeight / 4) * 3 + (availableHeight / 4 - CARD_HEIGHT - CARD_TIME_HEIGHT) / 2 },
+    qf1: {
+      x: getColX(0),
+      y:
+        topOffset +
+        (availableHeight / 4) * 0 +
+        (availableHeight / 4 - CARD_HEIGHT - CARD_TIME_HEIGHT) / 2,
+    },
+    qf2: {
+      x: getColX(0),
+      y:
+        topOffset +
+        (availableHeight / 4) * 1 +
+        (availableHeight / 4 - CARD_HEIGHT - CARD_TIME_HEIGHT) / 2,
+    },
+    qf3: {
+      x: getColX(0),
+      y:
+        topOffset +
+        (availableHeight / 4) * 2 +
+        (availableHeight / 4 - CARD_HEIGHT - CARD_TIME_HEIGHT) / 2,
+    },
+    qf4: {
+      x: getColX(0),
+      y:
+        topOffset +
+        (availableHeight / 4) * 3 +
+        (availableHeight / 4 - CARD_HEIGHT - CARD_TIME_HEIGHT) / 2,
+    },
 
     // 半决赛 - 2场比赛，垂直平均分布
-    sf1: { x: getColX(1), y: topOffset + (availableHeight / 2) * 0 + (availableHeight / 2 - CARD_HEIGHT - CARD_TIME_HEIGHT) / 2 },
-    sf2: { x: getColX(1), y: topOffset + (availableHeight / 2) * 1 + (availableHeight / 2 - CARD_HEIGHT - CARD_TIME_HEIGHT) / 2 },
+    sf1: {
+      x: getColX(1),
+      y:
+        topOffset +
+        (availableHeight / 2) * 0 +
+        (availableHeight / 2 - CARD_HEIGHT - CARD_TIME_HEIGHT) / 2,
+    },
+    sf2: {
+      x: getColX(1),
+      y:
+        topOffset +
+        (availableHeight / 2) * 1 +
+        (availableHeight / 2 - CARD_HEIGHT - CARD_TIME_HEIGHT) / 2,
+    },
 
     // 决赛 - 1场比赛，垂直居中
     f: { x: getColX(2), y: topOffset + (availableHeight - CARD_HEIGHT - CARD_TIME_HEIGHT) / 2 },
@@ -110,7 +146,9 @@ export const createPlaceholderMatch = (gameNum?: number): Match => ({
 
 // 根据比赛编号获取位置
 export const getPositionByGameKey = (key: GameKey, containerWidth?: number) => {
-  const positions = containerWidth ? calculateEliminationPositions(containerWidth) : ELIMINATION_POSITIONS;
+  const positions = containerWidth
+    ? calculateEliminationPositions(containerWidth)
+    : ELIMINATION_POSITIONS;
   return positions[key];
 };
 

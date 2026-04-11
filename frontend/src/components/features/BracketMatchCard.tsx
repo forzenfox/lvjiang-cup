@@ -65,12 +65,7 @@ const BracketTeamLogo: React.FC<{ team?: Team; size?: number }> = ({ team, size 
       />
     );
   }
-  return (
-    <div
-      className="rounded-full bg-gray-600"
-      style={{ width: size, height: size }}
-    />
-  );
+  return <div className="rounded-full bg-gray-600" style={{ width: size, height: size }} />;
 };
 
 // 单行队伍组件 - 参考官方设计
@@ -85,7 +80,11 @@ const TeamRow: React.FC<{
     <div
       className="flex items-center justify-between px-5"
       style={{
-        backgroundColor: isWinner ? ELIMINATION_THEME.winnerBg : (isLoser ? ELIMINATION_THEME.loserBg : 'transparent'),
+        backgroundColor: isWinner
+          ? ELIMINATION_THEME.winnerBg
+          : isLoser
+            ? ELIMINATION_THEME.loserBg
+            : 'transparent',
         height: '55px', // 增大的行高
       }}
       data-testid={testId}
@@ -146,67 +145,61 @@ const BracketMatchCard = React.forwardRef<HTMLDivElement, BracketMatchCardProps>
           data-testid={testId || 'bracket-match'}
           onClick={handleCardClick}
         >
-        {/* 顶部信息栏：时间（左）+ 状态（右） */}
-        <div
-          className="flex items-center justify-between mb-1"
-          style={{ height: '28px' }}
-        >
-          {/* 左侧：时间显示 */}
-          <span
-            className="text-base whitespace-nowrap"
-            style={{ color: ELIMINATION_THEME.loserText }}
-            data-testid="match-time"
-          >
-            {match.startTime ? formatMatchTime(match.startTime) : '待定'}
-          </span>
+          {/* 顶部信息栏：时间（左）+ 状态（右） */}
+          <div className="flex items-center justify-between mb-1" style={{ height: '28px' }}>
+            {/* 左侧：时间显示 */}
+            <span
+              className="text-base whitespace-nowrap"
+              style={{ color: ELIMINATION_THEME.loserText }}
+              data-testid="match-time"
+            >
+              {match.startTime ? formatMatchTime(match.startTime) : '待定'}
+            </span>
 
-          {/* 右侧：状态徽章 */}
-          <BracketStatusBadge status={match.status} />
-        </div>
+            {/* 右侧：状态徽章 */}
+            <BracketStatusBadge status={match.status} />
+          </div>
 
-        {/* 比赛卡片主体 */}
-        <div
-          style={{
-            backgroundColor: ELIMINATION_THEME.cardBackground,
-            height: ELIMINATION_THEME.matchCardHeight,
-          }}
-        >
-          {/* 战队1 - 上方 */}
-          <TeamRow
-            team={teamA}
-            score={match.scoreA}
-            isWinner={isTeamAWinner}
-            isLoser={hasWinner && !isTeamAWinner}
-            testId={`${testId}-team-a`}
-          />
-
-          {/* 分隔线 */}
+          {/* 比赛卡片主体 */}
           <div
-            className="mx-5 h-px"
-            style={{ backgroundColor: ELIMINATION_THEME.cardBorder }}
-          />
+            style={{
+              backgroundColor: ELIMINATION_THEME.cardBackground,
+              height: ELIMINATION_THEME.matchCardHeight,
+            }}
+          >
+            {/* 战队1 - 上方 */}
+            <TeamRow
+              team={teamA}
+              score={match.scoreA}
+              isWinner={isTeamAWinner}
+              isLoser={hasWinner && !isTeamAWinner}
+              testId={`${testId}-team-a`}
+            />
 
-          {/* 战队2 - 下方 */}
-          <TeamRow
-            team={teamB}
-            score={match.scoreB}
-            isWinner={isTeamBWinner}
-            isLoser={hasWinner && !isTeamBWinner}
-            testId={`${testId}-team-b`}
-          />
+            {/* 分隔线 */}
+            <div className="mx-5 h-px" style={{ backgroundColor: ELIMINATION_THEME.cardBorder }} />
+
+            {/* 战队2 - 下方 */}
+            <TeamRow
+              team={teamB}
+              score={match.scoreB}
+              isWinner={isTeamBWinner}
+              isLoser={hasWinner && !isTeamBWinner}
+              testId={`${testId}-team-b`}
+            />
+          </div>
         </div>
-      </div>
 
-      {/* 对战详情弹框 */}
-      <MatchDetailModal
-        visible={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        match={match}
-        teams={teams}
-      />
-    </>
-  );
-}
+        {/* 对战详情弹框 */}
+        <MatchDetailModal
+          visible={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          match={match}
+          teams={teams}
+        />
+      </>
+    );
+  }
 );
 
 // 格式化比赛时间

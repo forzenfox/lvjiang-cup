@@ -37,9 +37,8 @@ const SwissRecordGroup: React.FC<SwissRecordGroupProps> = ({
         style={{
           backgroundColor: config.bg,
           height: `${SWISS_THEME.headerHeight}px`,
-          borderBottom: type === 'qualified'
-            ? '2px solid rgb(131, 133, 139)'
-            : '2px solid rgb(18, 19, 18)',
+          borderBottom:
+            type === 'qualified' ? '2px solid rgb(131, 133, 139)' : '2px solid rgb(18, 19, 18)',
         }}
         data-testid={`${testId}-title`}
       >

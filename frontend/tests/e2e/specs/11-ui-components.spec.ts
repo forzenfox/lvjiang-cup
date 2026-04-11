@@ -69,7 +69,9 @@ test.describe('【P1】Toast 通知测试', () => {
 
     await page.waitForTimeout(2000);
 
-    const errorToast = page.locator('[data-sonner-toast][data-type="error"], .toast-error, text=网络错误');
+    const errorToast = page.locator(
+      '[data-sonner-toast][data-type="error"], .toast-error, text=网络错误'
+    );
     const hasError = await errorToast.isVisible().catch(() => false);
 
     if (hasError) {
@@ -194,7 +196,9 @@ test.describe('【P1】ErrorBoundary 错误边界测试', () => {
     await homePage.goto();
     await homePage.expectPageLoaded();
 
-    const errorComponent = page.locator('[data-testid="error-boundary"], .error-boundary, text=出错了');
+    const errorComponent = page.locator(
+      '[data-testid="error-boundary"], .error-boundary, text=出错了'
+    );
     const hasError = await errorComponent.isVisible().catch(() => false);
 
     if (hasError) {

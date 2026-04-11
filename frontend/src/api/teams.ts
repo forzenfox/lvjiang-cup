@@ -109,7 +109,7 @@ export async function uploadTeamLogo(
 
   const response = await apiClient.post<ApiResponse<{ url: string; thumbnailUrl?: string }>>(
     '/admin/upload/image',
-    formData,
+    formData
   );
 
   if (!response.data.success || !response.data.data) {

@@ -58,7 +58,9 @@ export class UploadController {
     const ext = file.originalname ? file.originalname.split('.').pop() : 'png';
     const filename = `${uuid}.${ext}`;
 
-    this.logger.log(`File uploaded: ${file.originalname}, type: ${type}, generated filename: ${filename}`);
+    this.logger.log(
+      `File uploaded: ${file.originalname}, type: ${type}, generated filename: ${filename}`,
+    );
 
     return this.uploadService.uploadImage(type as 'avatar' | 'logo', filename, file.buffer);
   }

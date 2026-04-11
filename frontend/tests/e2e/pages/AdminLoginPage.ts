@@ -26,10 +26,14 @@ export class AdminLoginPage extends BasePage {
 
     this.loginForm = page.locator('form');
     this.usernameInput = page
-      .locator('input#username, input[name="username"], input[placeholder*="用户名"], input[type="text"]')
+      .locator(
+        'input#username, input[name="username"], input[placeholder*="用户名"], input[type="text"]'
+      )
       .first();
     this.passwordInput = page
-      .locator('input#password, input[name="password"], input[placeholder*="密码"], input[type="password"]')
+      .locator(
+        'input#password, input[name="password"], input[placeholder*="密码"], input[type="password"]'
+      )
       .first();
     this.loginButton = page.locator('button[type="submit"], button:has-text("登录")');
     this.title = page.locator('h3:has-text("管理员登录"), h1:has-text("管理员登录")');
@@ -50,7 +54,9 @@ export class AdminLoginPage extends BasePage {
    */
   async expectPageLoaded() {
     // 等待表单元素可见（使用更宽松的定位器）
-    await expect(this.page.locator('input#username, input[name="username"], input[type="text"]')).toBeVisible({
+    await expect(
+      this.page.locator('input#username, input[name="username"], input[type="text"]')
+    ).toBeVisible({
       timeout: 10000,
     });
     await expect(this.usernameInput).toBeVisible({ timeout: 10000 });

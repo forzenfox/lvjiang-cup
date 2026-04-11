@@ -23,9 +23,9 @@ const convertApiMatchToLocal = (apiMatch: ApiMatch, teams: Team[]): Match => {
 
   // 将 API eliminationBracket 映射到本地格式
   const bracketMap: Record<string, EliminationBracket> = {
-    'winners': 'quarterfinals',
-    'losers': 'semifinals',
-    'grand_finals': 'finals',
+    winners: 'quarterfinals',
+    losers: 'semifinals',
+    grand_finals: 'finals',
   };
   const eliminationBracket = apiMatch.eliminationBracket
     ? bracketMap[apiMatch.eliminationBracket] || undefined
@@ -72,7 +72,9 @@ const convertApiTeamToLocal = (apiTeam: ApiTeam): Team => {
   return {
     id: apiTeam.id,
     name: apiTeam.name,
-    logo: getUploadUrl(apiTeam.logo || apiTeam.logoUrl) || `https://api.dicebear.com/7.x/identicon/svg?seed=${apiTeam.id}`,
+    logo:
+      getUploadUrl(apiTeam.logo || apiTeam.logoUrl) ||
+      `https://api.dicebear.com/7.x/identicon/svg?seed=${apiTeam.id}`,
     players,
     battleCry: apiTeam.battleCry || '暂无参赛宣言',
   };
@@ -177,10 +179,7 @@ const ScheduleSection: React.FC = () => {
   }, [loadData]);
 
   return (
-    <section
-      id="schedule"
-      className="py-20 px-4 bg-black"
-    >
+    <section id="schedule" className="py-20 px-4 bg-black">
       <div className="max-w-7xl mx-auto">
         <motion.h2
           initial={{ opacity: 0, y: 20 }}
@@ -208,7 +207,11 @@ const ScheduleSection: React.FC = () => {
               <TabsTrigger value="swiss" className="flex-1" data-testid="home-swiss-tab">
                 瑞士轮
               </TabsTrigger>
-              <TabsTrigger value="elimination" className="flex-1" data-testid="home-elimination-tab">
+              <TabsTrigger
+                value="elimination"
+                className="flex-1"
+                data-testid="home-elimination-tab"
+              >
                 淘汰赛
               </TabsTrigger>
             </TabsList>

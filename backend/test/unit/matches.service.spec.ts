@@ -90,10 +90,15 @@ describe('MatchesService', () => {
 
     it('should cache results after database query', async () => {
       mockCacheService.get.mockReturnValue(undefined);
-      const mockMatch = { id: '1', round: 'Round 1', stage: 'swiss', score_a: 0, score_b: 0, status: 'upcoming' };
-      mockDatabaseService.all
-        .mockResolvedValueOnce([mockMatch])
-        .mockResolvedValueOnce([]);
+      const mockMatch = {
+        id: '1',
+        round: 'Round 1',
+        stage: 'swiss',
+        score_a: 0,
+        score_b: 0,
+        status: 'upcoming',
+      };
+      mockDatabaseService.all.mockResolvedValueOnce([mockMatch]).mockResolvedValueOnce([]);
 
       await service.findAll();
 
@@ -173,7 +178,11 @@ describe('MatchesService', () => {
           status: 'finished',
         }); // for returning updated match
 
-      const result = await service.update('1', { scoreA: 2, scoreB: 1, status: MatchStatus.FINISHED });
+      const result = await service.update('1', {
+        scoreA: 2,
+        scoreB: 1,
+        status: MatchStatus.FINISHED,
+      });
 
       expect(mockDatabaseService.run).toHaveBeenCalled();
       expect(mockCacheService.del).toHaveBeenCalledWith('matches:all');
@@ -181,13 +190,11 @@ describe('MatchesService', () => {
     });
 
     it('should update match teams successfully', async () => {
-      mockDatabaseService.get
-        .mockResolvedValueOnce({ id: '1' })
-        .mockResolvedValueOnce({
-          id: '1',
-          team_a_id: 'team-a',
-          team_b_id: 'team-b',
-        });
+      mockDatabaseService.get.mockResolvedValueOnce({ id: '1' }).mockResolvedValueOnce({
+        id: '1',
+        team_a_id: 'team-a',
+        team_b_id: 'team-b',
+      });
 
       await service.update('1', { teamAId: 'team-a', teamBId: 'team-b' });
 
@@ -226,10 +233,9 @@ describe('MatchesService', () => {
 
       const result = await service.clearScores('1');
 
-      expect(mockDatabaseService.run).toHaveBeenCalledWith(
-        expect.stringContaining('score_a = 0'),
-        ['1'],
-      );
+      expect(mockDatabaseService.run).toHaveBeenCalledWith(expect.stringContaining('score_a = 0'), [
+        '1',
+      ]);
       expect(mockCacheService.del).toHaveBeenCalledWith('matches:all');
       expect(mockCacheService.del).toHaveBeenCalledWith('match:1');
     });
@@ -268,8 +274,8 @@ describe('MatchesService', () => {
 
       // 验证第5轮的槽位被创建
       const calls = mockDatabaseService.run.mock.calls;
-      const round5Calls = calls.filter((call) =>
-        call[1] && call[1][0] && call[1][0].startsWith('swiss-r5'),
+      const round5Calls = calls.filter(
+        (call) => call[1] && call[1][0] && call[1][0].startsWith('swiss-r5'),
       );
       expect(round5Calls.length).toBe(4);
     });
@@ -286,13 +292,11 @@ describe('MatchesService', () => {
 
   describe('边界值测试', () => {
     it('should handle negative score in update', async () => {
-      mockDatabaseService.get
-        .mockResolvedValueOnce({ id: '1' })
-        .mockResolvedValueOnce({
-          id: '1',
-          score_a: -1,
-          score_b: 0,
-        });
+      mockDatabaseService.get.mockResolvedValueOnce({ id: '1' }).mockResolvedValueOnce({
+        id: '1',
+        score_a: -1,
+        score_b: 0,
+      });
 
       const result = await service.update('1', { scoreA: -1 });
 
@@ -300,13 +304,11 @@ describe('MatchesService', () => {
     });
 
     it('should handle very large score', async () => {
-      mockDatabaseService.get
-        .mockResolvedValueOnce({ id: '1' })
-        .mockResolvedValueOnce({
-          id: '1',
-          score_a: 999999,
-          score_b: 0,
-        });
+      mockDatabaseService.get.mockResolvedValueOnce({ id: '1' }).mockResolvedValueOnce({
+        id: '1',
+        score_a: 999999,
+        score_b: 0,
+      });
 
       const result = await service.update('1', { scoreA: 999999 });
 
@@ -330,13 +332,11 @@ describe('MatchesService', () => {
     });
 
     it('should handle score with decimal values', async () => {
-      mockDatabaseService.get
-        .mockResolvedValueOnce({ id: '1' })
-        .mockResolvedValueOnce({
-          id: '1',
-          score_a: 1.5,
-          score_b: 0,
-        });
+      mockDatabaseService.get.mockResolvedValueOnce({ id: '1' }).mockResolvedValueOnce({
+        id: '1',
+        score_a: 1.5,
+        score_b: 0,
+      });
 
       const result = await service.update('1', { scoreA: 1.5 } as any);
 

@@ -29,14 +29,7 @@ const createMockMatch = (overrides: Partial<Match> = {}): Match => ({
 describe('SwissRoundColumn', () => {
   it('应该正确显示标题和战绩', () => {
     const matches = [createMockMatch()];
-    render(
-      <SwissRoundColumn
-        title="Round 1"
-        record="0-0"
-        matches={matches}
-        teams={mockTeams}
-      />
-    );
+    render(<SwissRoundColumn title="Round 1" record="0-0" matches={matches} teams={mockTeams} />);
 
     expect(screen.getByText('Round 1')).toBeInTheDocument();
     expect(screen.getByText('0-0')).toBeInTheDocument();
@@ -80,14 +73,7 @@ describe('SwissRoundColumn', () => {
   });
 
   it('当没有比赛时应该渲染空状态', () => {
-    render(
-      <SwissRoundColumn
-        title="Round 1"
-        record="0-0"
-        matches={[]}
-        teams={mockTeams}
-      />
-    );
+    render(<SwissRoundColumn title="Round 1" record="0-0" matches={[]} teams={mockTeams} />);
 
     const matchesContainer = screen.getByTestId('swiss-round-column-matches');
     expect(matchesContainer.children).toHaveLength(0);

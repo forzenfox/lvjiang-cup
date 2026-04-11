@@ -64,12 +64,7 @@ const EditableTeamLogo: React.FC<{ team?: Team; size?: number }> = ({ team, size
       />
     );
   }
-  return (
-    <div
-      className="rounded-full bg-gray-600"
-      style={{ width: size, height: size }}
-    />
-  );
+  return <div className="rounded-full bg-gray-600" style={{ width: size, height: size }} />;
 };
 
 // 单行队伍组件 - 与BracketMatchCard保持一致
@@ -83,7 +78,11 @@ const EditableTeamRow: React.FC<{
     <div
       className="flex items-center justify-between px-5 cursor-pointer hover:opacity-90 transition-opacity"
       style={{
-        backgroundColor: isWinner ? ELIMINATION_THEME.winnerBg : (isLoser ? ELIMINATION_THEME.loserBg : 'transparent'),
+        backgroundColor: isWinner
+          ? ELIMINATION_THEME.winnerBg
+          : isLoser
+            ? ELIMINATION_THEME.loserBg
+            : 'transparent',
         height: '55px',
       }}
     >
@@ -162,10 +161,7 @@ const EditableBracketMatchCard = forwardRef<HTMLDivElement, EditableBracketMatch
           onClick={handleCardClick}
         >
           {/* 顶部信息栏：时间（左）+ 状态（右） */}
-          <div
-            className="flex items-center justify-between mb-1"
-            style={{ height: '28px' }}
-          >
+          <div className="flex items-center justify-between mb-1" style={{ height: '28px' }}>
             {/* 左侧：时间显示 */}
             <span
               className="text-base whitespace-nowrap"
@@ -198,10 +194,7 @@ const EditableBracketMatchCard = forwardRef<HTMLDivElement, EditableBracketMatch
             />
 
             {/* 分隔线 */}
-            <div
-              className="mx-5 h-px"
-              style={{ backgroundColor: ELIMINATION_THEME.cardBorder }}
-            />
+            <div className="mx-5 h-px" style={{ backgroundColor: ELIMINATION_THEME.cardBorder }} />
 
             {/* 战队2 - 下方 */}
             <EditableTeamRow

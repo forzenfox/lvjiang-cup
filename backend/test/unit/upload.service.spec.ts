@@ -117,7 +117,11 @@ describe('UploadService', () => {
     });
 
     it('avatar 类型应该调用 uploadMemberAvatar', async () => {
-      const result = await service.uploadImage('avatar', 'member-avatar.png', Buffer.from('content'));
+      const result = await service.uploadImage(
+        'avatar',
+        'member-avatar.png',
+        Buffer.from('content'),
+      );
 
       expect(result.url).toContain('/uploads/members/');
     });
@@ -187,9 +191,9 @@ describe('UploadService', () => {
     it('应该处理 writeFile 失败', async () => {
       mockFs.promises.writeFile.mockRejectedValue(new Error('Disk full'));
 
-      await expect(
-        service.uploadTeamLogo('test.png', Buffer.from('content')),
-      ).rejects.toThrow('Disk full');
+      await expect(service.uploadTeamLogo('test.png', Buffer.from('content'))).rejects.toThrow(
+        'Disk full',
+      );
     });
 
     it('应该处理 mkdirSync 失败', async () => {
@@ -198,9 +202,9 @@ describe('UploadService', () => {
         throw new Error('Permission denied');
       });
 
-      await expect(
-        service.uploadTeamLogo('test.png', Buffer.from('content')),
-      ).rejects.toThrow('Permission denied');
+      await expect(service.uploadTeamLogo('test.png', Buffer.from('content'))).rejects.toThrow(
+        'Permission denied',
+      );
     });
   });
 });

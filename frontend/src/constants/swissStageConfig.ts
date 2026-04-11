@@ -39,7 +39,22 @@ export const SWISS_STAGE_CONFIG = {
 } as const;
 
 export type SwissRound = 1 | 2 | 3 | 4 | 5;
-export type RecordKey = '0-0' | '1-0' | '0-1' | '2-0' | '1-1' | '0-2' | '3-0' | '2-1' | '1-2' | '0-3' | '3-1' | '2-2' | '1-3' | '3-2' | '2-3';
+export type RecordKey =
+  | '0-0'
+  | '1-0'
+  | '0-1'
+  | '2-0'
+  | '1-1'
+  | '0-2'
+  | '3-0'
+  | '2-1'
+  | '1-2'
+  | '0-3'
+  | '3-1'
+  | '2-2'
+  | '1-3'
+  | '3-2'
+  | '2-3';
 export type BoFormat = 'BO1' | 'BO3';
 
 export interface RoundConfig {

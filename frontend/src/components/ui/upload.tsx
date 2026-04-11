@@ -26,7 +26,7 @@ const Upload: React.FC<UploadProps> = ({
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onload = (event) => {
+      reader.onload = event => {
         const result = event.target?.result as string;
         onChange?.(result);
       };
@@ -50,7 +50,7 @@ const Upload: React.FC<UploadProps> = ({
     const file = e.dataTransfer.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onload = (event) => {
+      reader.onload = event => {
         const result = event.target?.result as string;
         onChange?.(result);
       };
@@ -95,8 +95,9 @@ const Upload: React.FC<UploadProps> = ({
             src={value}
             alt="上传预览"
             className="w-full h-full object-cover"
-            onError={(e) => {
-              (e.target as HTMLImageElement).src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64"><rect width="64" height="64" fill="%23333"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%23666" font-size="24">?</text></svg>';
+            onError={e => {
+              (e.target as HTMLImageElement).src =
+                'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64"><rect width="64" height="64" fill="%23333"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%23666" font-size="24">?</text></svg>';
             }}
           />
           <button
@@ -109,7 +110,9 @@ const Upload: React.FC<UploadProps> = ({
           </button>
         </div>
       ) : (
-        <div className={cn('flex flex-col items-center justify-center gap-2 p-4', sizeClasses[type])}>
+        <div
+          className={cn('flex flex-col items-center justify-center gap-2 p-4', sizeClasses[type])}
+        >
           <UploadIcon className="w-8 h-8 text-gray-500" />
           <span className="text-sm text-gray-500">{placeholder}</span>
         </div>

@@ -1,5 +1,10 @@
 import React from 'react';
-import { ELIMINATION_CONNECTORS, CARD_WIDTH, CARD_HEIGHT, CARD_TIME_HEIGHT } from './eliminationConstants';
+import {
+  ELIMINATION_CONNECTORS,
+  CARD_WIDTH,
+  CARD_HEIGHT,
+  CARD_TIME_HEIGHT,
+} from './eliminationConstants';
 import { ELIMINATION_THEME } from '@/constants/eliminationTheme';
 
 interface EliminationConnectorsProps {
@@ -13,7 +18,7 @@ const EliminationConnectors: React.FC<EliminationConnectorsProps> = ({
   cardWidth = CARD_WIDTH,
   cardHeight = CARD_HEIGHT,
   positions,
-  containerWidth = 900,
+  containerWidth: _containerWidth = 900,
 }) => {
   // 如果没有传入positions，使用默认计算
   const effectivePositions = positions;

@@ -47,7 +47,7 @@ export const useAdvancementStore = create<AdvancementStore>()(
       lastUpdated: new Date().toISOString(),
 
       // 设置完整的晋级名单
-      setAdvancement: (data) =>
+      setAdvancement: data =>
         set({
           advancement: data,
           lastUpdated: new Date().toISOString(),
@@ -101,7 +101,13 @@ export const useAdvancementStore = create<AdvancementStore>()(
  * @returns 晋级结果（top8和eliminated）
  */
 export function calculateAdvancement(
-  matches: { stage: string; status: string; winnerId: string | null; teamAId: string; teamBId: string }[],
+  matches: {
+    stage: string;
+    status: string;
+    winnerId: string | null;
+    teamAId: string;
+    teamBId: string;
+  }[],
   teams: { id: string }[]
 ): SwissAdvancementResult {
   const teamRecords = new Map<string, { wins: number; losses: number }>();

@@ -126,7 +126,8 @@ const TeamSection: React.FC = () => {
       players = members.map(apiPlayer => ({
         id: apiPlayer.id,
         nickname: apiPlayer.nickname,
-        avatarUrl: apiPlayer.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${apiPlayer.id}`,
+        avatarUrl:
+          apiPlayer.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${apiPlayer.id}`,
         position: apiPlayer.position,
         teamId: apiTeam.id,
         gameId: apiPlayer.gameId,
@@ -152,7 +153,9 @@ const TeamSection: React.FC = () => {
     return {
       id: apiTeam.id,
       name: apiTeam.name,
-      logo: getUploadUrl(apiTeam.logo || apiTeam.logoUrl) || `https://api.dicebear.com/7.x/identicon/svg?seed=${apiTeam.id}`,
+      logo:
+        getUploadUrl(apiTeam.logo || apiTeam.logoUrl) ||
+        `https://api.dicebear.com/7.x/identicon/svg?seed=${apiTeam.id}`,
       players,
       battleCry: apiTeam.battleCry || '暂无参赛宣言',
     };
@@ -180,10 +183,7 @@ const TeamSection: React.FC = () => {
   }, [fetchTeams]);
 
   return (
-    <section
-      id="teams"
-      className="min-h-screen py-20 bg-black relative"
-    >
+    <section id="teams" className="min-h-screen py-20 bg-black relative">
       <div className="container mx-auto px-4">
         <h2 className="text-4xl md:text-5xl font-bold text-center mb-16 text-white uppercase tracking-wider">
           参赛战队
@@ -239,7 +239,7 @@ const TeamSection: React.FC = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    {team.players.map((player) => (
+                    {team.players.map(player => (
                       <div
                         key={player.id}
                         className="flex items-center justify-between p-2 rounded bg-gray-200/90 hover:bg-gray-100/95 transition-colors shadow-sm cursor-pointer"
@@ -247,17 +247,21 @@ const TeamSection: React.FC = () => {
                         data-testid="player-row"
                       >
                         <div className="flex items-center space-x-2">
-                          <img src={player.avatarUrl} alt={player.nickname} className="w-8 h-8 rounded-full bg-gray-300 object-cover ring-2 ring-white/50" />
-                          <span className="text-sm font-semibold text-gray-700">{player.nickname}</span>
+                          <img
+                            src={player.avatarUrl}
+                            alt={player.nickname}
+                            className="w-8 h-8 rounded-full bg-gray-300 object-cover ring-2 ring-white/50"
+                          />
+                          <span className="text-sm font-semibold text-gray-700">
+                            {player.nickname}
+                          </span>
                           {player.level && (
                             <span className={getLevelBadgeClasses(player.level)}>
                               {player.level}
                             </span>
                           )}
                           {player.isCaptain && (
-                            <span className={getCaptainBadgeClasses()}>
-                              队长
-                            </span>
+                            <span className={getCaptainBadgeClasses()}>队长</span>
                           )}
                         </div>
                         <div

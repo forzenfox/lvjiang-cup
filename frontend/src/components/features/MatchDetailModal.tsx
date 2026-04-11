@@ -1,6 +1,5 @@
 import React from 'react';
 import { Match, Team, MatchStatus } from '@/types';
-import { PositionType } from '@/types/position';
 import Modal from '@/components/ui/Modal';
 import { SWISS_THEME } from '@/constants/swissTheme';
 
@@ -90,12 +89,7 @@ const TeamLogo: React.FC<{ team?: Team; size?: number }> = ({ team, size = 48 })
   );
 };
 
-const MatchDetailModal: React.FC<MatchDetailModalProps> = ({
-  visible,
-  onClose,
-  match,
-  teams,
-}) => {
+const MatchDetailModal: React.FC<MatchDetailModalProps> = ({ visible, onClose, match, teams }) => {
   if (!match) return null;
 
   const teamA = teams.find(t => t.id === match.teamAId);
@@ -135,27 +129,17 @@ const MatchDetailModal: React.FC<MatchDetailModalProps> = ({
   });
 
   return (
-    <Modal
-      visible={visible}
-      onClose={onClose}
-      title="对战详情"
-      className="max-w-lg w-full"
-    >
+    <Modal visible={visible} onClose={onClose} title="对战详情" className="max-w-lg w-full">
       <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-1">
         {/* 对战时间和状态 */}
         <div className="flex items-center justify-between px-4 py-3 bg-gray-800 rounded-lg">
           <div className="flex flex-col">
             <span className="text-gray-400 text-sm">对战时间</span>
-            <span className="text-white font-medium">
-              {formatMatchDateTime(match.startTime)}
-            </span>
+            <span className="text-white font-medium">{formatMatchDateTime(match.startTime)}</span>
           </div>
           <div className="flex flex-col items-end">
             <span className="text-gray-400 text-sm">对战状态</span>
-            <span
-              className="font-medium"
-              style={{ color: getStatusColor(match.status) }}
-            >
+            <span className="font-medium" style={{ color: getStatusColor(match.status) }}>
               {getStatusText(match.status)}
             </span>
           </div>
@@ -247,7 +231,7 @@ const MatchDetailModal: React.FC<MatchDetailModalProps> = ({
             </div>
           ) : (
             <div className="space-y-2">
-              {positionOrder.map((position) => {
+              {positionOrder.map(position => {
                 const playerA = sortedTeamAPlayers.find(p => p.position.toUpperCase() === position);
                 const playerB = sortedTeamBPlayers.find(p => p.position.toUpperCase() === position);
 
@@ -276,17 +260,13 @@ const MatchDetailModal: React.FC<MatchDetailModalProps> = ({
                         <span className="text-white text-sm font-medium">
                           {playerA?.nickname || '-'}
                         </span>
-                        <span className="text-gray-500 text-xs">
-                          {getPositionText(position)}
-                        </span>
+                        <span className="text-gray-500 text-xs">{getPositionText(position)}</span>
                       </div>
                     </div>
 
                     {/* 位置标签（中间） */}
                     <div className="px-4">
-                      <span className="text-gray-500 text-xs font-medium">
-                        VS
-                      </span>
+                      <span className="text-gray-500 text-xs font-medium">VS</span>
                     </div>
 
                     {/* 右侧队员 */}
@@ -295,9 +275,7 @@ const MatchDetailModal: React.FC<MatchDetailModalProps> = ({
                         <span className="text-white text-sm font-medium">
                           {playerB?.nickname || '-'}
                         </span>
-                        <span className="text-gray-500 text-xs">
-                          {getPositionText(position)}
-                        </span>
+                        <span className="text-gray-500 text-xs">{getPositionText(position)}</span>
                       </div>
                       {playerB?.avatarUrl ? (
                         <img

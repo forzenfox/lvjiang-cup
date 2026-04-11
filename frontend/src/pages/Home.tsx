@@ -5,7 +5,6 @@ import HeroSection from '../components/features/HeroSection';
 import ScheduleSection from '../components/features/ScheduleSection';
 import TeamSection from '../components/features/TeamSection';
 import StreamerSection from '../components/features/StreamerSection';
-import { Button } from '../components/ui/button';
 import { streamService, teamService, matchService, advancementService } from '../services';
 
 /**
