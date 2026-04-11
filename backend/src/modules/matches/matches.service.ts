@@ -186,6 +186,14 @@ export class MatchesService {
       updates.push('start_time = ?');
       values.push(updateMatchDto.startTime);
     }
+    if (updateMatchDto.swissRound !== undefined) {
+      updates.push('swiss_round = ?');
+      values.push(updateMatchDto.swissRound);
+    }
+    if (updateMatchDto.boFormat !== undefined) {
+      updates.push('bo_format = ?');
+      values.push(updateMatchDto.boFormat);
+    }
 
     if (updates.length > 0) {
       updates.push('updated_at = CURRENT_TIMESTAMP');

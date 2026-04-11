@@ -39,14 +39,12 @@ const mapStatusToApi = (status: MatchStatus): 'upcoming' | 'ongoing' | 'finished
 // 将 API 状态映射到前端状态
 const mapStatusToFrontend = (status: string): MatchStatus => {
   switch (status) {
-    case 'scheduled':
+    case 'upcoming':
       return 'upcoming';
-    case 'live':
+    case 'ongoing':
       return 'ongoing';
-    case 'completed':
+    case 'finished':
       return 'finished';
-    case 'cancelled':
-      return 'upcoming';
     default:
       return 'upcoming';
   }

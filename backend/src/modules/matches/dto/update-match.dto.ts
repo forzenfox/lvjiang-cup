@@ -42,4 +42,14 @@ export class UpdateMatchDto {
   @IsString()
   @IsOptional()
   startTime?: string;
+
+  @ApiPropertyOptional({ description: '瑞士轮第几轮 (1-5)', minimum: 1, maximum: 5 })
+  @IsNumber()
+  @IsOptional()
+  swissRound?: number;
+
+  @ApiPropertyOptional({ description: '比赛赛制', enum: ['BO1', 'BO3', 'BO5'] })
+  @IsString()
+  @IsOptional()
+  boFormat?: string;
 }
