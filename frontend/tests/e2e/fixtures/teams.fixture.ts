@@ -1,7 +1,5 @@
 import {
   mockTeams,
-  mockSwissMatches,
-  mockEliminationMatches,
   mockTeamNames,
   getTeamById,
   getTeamByName,
@@ -126,8 +124,6 @@ export const getAll16TeamsForSwiss = (): Team[] => {
 export {
   mockTeams,
   mockTeamNames,
-  mockSwissMatches,
-  mockEliminationMatches,
   getTeamById,
   getTeamByName,
 };

@@ -13,7 +13,7 @@ import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { StreamersService, CreateStreamerDto, UpdateStreamerDto } from './streamers.service';
 
 @ApiTags('streamers')
-@Controller('api/streamers')
+@Controller('streamers')
 export class StreamersController {
   constructor(private readonly streamersService: StreamersService) {}
 

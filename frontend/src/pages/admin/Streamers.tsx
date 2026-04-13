@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import AdminLayout from '../../components/layout/AdminLayout';
 import { streamersApi } from '@/api/streamers';
-import type { Streamer, StreamerType } from '@/api/types';
+import apiClient from '@/api/axios';
+import type { Streamer } from '@/api/types';
+import { StreamerType } from '@/api/types';
 import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
 import { Plus, Trash2, Edit2, Save, RefreshCw, User, X } from 'lucide-react';
@@ -306,7 +308,10 @@ const AdminStreamers: React.FC = () => {
                 </div>
 
                 {isExpanded && (
-                  <div data-testid={`streamer-detail-${streamer.id}`} className="border-t border-white/10">
+                  <div
+                    data-testid={`streamer-detail-${streamer.id}`}
+                    className="border-t border-white/10"
+                  >
                     {isBeingEdited && editingStreamerData ? (
                       <div className="p-4 space-y-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -318,7 +323,10 @@ const AdminStreamers: React.FC = () => {
                               type="text"
                               value={editingStreamerData.nickname}
                               onChange={e =>
-                                setEditingStreamerData({ ...editingStreamerData, nickname: e.target.value })
+                                setEditingStreamerData({
+                                  ...editingStreamerData,
+                                  nickname: e.target.value,
+                                })
                               }
                               placeholder="请输入主播昵称"
                               className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-[#475569] focus:outline-none focus:border-blue-500"
@@ -384,14 +392,25 @@ const AdminStreamers: React.FC = () => {
                                     toast.error('图片大小不能超过 5MB');
                                     return;
                                   }
-                                  const reader = new FileReader();
-                                  reader.onload = () => {
-                                    setEditingStreamerData({
-                                      ...editingStreamerData,
-                                      posterUrl: reader.result as string,
-                                    });
-                                  };
-                                  reader.readAsDataURL(file);
+                                  try {
+                                    const formData = new FormData();
+                                    formData.append('file', file);
+                                    formData.append('type', 'poster');
+                                    const response = await apiClient.post('/admin/upload/image', formData);
+                                    // 后端返回格式: { success, code, data: { url }, message }
+                                    const url = response.data?.data?.url || response.data?.url;
+                                    if (url) {
+                                      setEditingStreamerData({
+                                        ...editingStreamerData,
+                                        posterUrl: url,
+                                      });
+                                      toast.success('海报上传成功');
+                                    } else {
+                                      toast.error('海报上传失败：无法获取图片地址');
+                                    }
+                                  } catch (error) {
+                                    toast.error('海报上传失败');
+                                  }
                                 };
                                 input.click();
                               }}
@@ -421,14 +440,15 @@ const AdminStreamers: React.FC = () => {
                                 type="text"
                                 value={editingStreamerData.posterUrl}
                                 onChange={e =>
-                                  setEditingStreamerData({ ...editingStreamerData, posterUrl: e.target.value })
+                                  setEditingStreamerData({
+                                    ...editingStreamerData,
+                                    posterUrl: e.target.value,
+                                  })
                                 }
                                 placeholder="或输入海报 URL"
                                 className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-[#475569] focus:outline-none focus:border-blue-500 mb-1.5"
                               />
-                              <p className="text-xs text-gray-500">
-                                支持 JPG/PNG 格式，不超过 5MB
-                              </p>
+                              <p className="text-xs text-gray-500">支持 JPG/PNG 格式，不超过 5MB</p>
                             </div>
                           </div>
                         </div>
@@ -441,7 +461,10 @@ const AdminStreamers: React.FC = () => {
                             type="text"
                             value={editingStreamerData.liveUrl}
                             onChange={e =>
-                              setEditingStreamerData({ ...editingStreamerData, liveUrl: e.target.value })
+                              setEditingStreamerData({
+                                ...editingStreamerData,
+                                liveUrl: e.target.value,
+                              })
                             }
                             placeholder="请输入直播间链接"
                             className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-[#475569] focus:outline-none focus:border-blue-500"
@@ -455,7 +478,10 @@ const AdminStreamers: React.FC = () => {
                           <textarea
                             value={editingStreamerData.bio}
                             onChange={e =>
-                              setEditingStreamerData({ ...editingStreamerData, bio: e.target.value })
+                              setEditingStreamerData({
+                                ...editingStreamerData,
+                                bio: e.target.value,
+                              })
                             }
                             placeholder="请输入个人简介"
                             rows={3}
@@ -468,11 +494,7 @@ const AdminStreamers: React.FC = () => {
                         </div>
 
                         <div className="flex justify-end gap-2">
-                          <Button
-                            variant="ghost"
-                            onClick={handleCancelEdit}
-                            disabled={loading}
-                          >
+                          <Button variant="ghost" onClick={handleCancelEdit} disabled={loading}>
                             取消
                           </Button>
                           <Button

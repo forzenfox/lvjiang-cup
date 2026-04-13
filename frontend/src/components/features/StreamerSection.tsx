@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Tabs, TabsList, TabsTrigger } from '../ui/tabs';
 import { streamersApi } from '@/api/streamers';
-import type { Streamer, StreamerType } from '@/api/types';
+import { type Streamer, StreamerType } from '@/api/types';
 
 const styles = `
   #streamers-scroll::-webkit-scrollbar {

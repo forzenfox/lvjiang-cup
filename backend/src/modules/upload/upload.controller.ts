@@ -50,8 +50,8 @@ export class UploadController {
       throw new BadRequestException('请选择要上传的文件');
     }
 
-    if (!type || !['avatar', 'logo'].includes(type)) {
-      throw new BadRequestException('上传类型错误，必须是 "avatar" 或 "logo"');
+    if (!type || !['avatar', 'logo', 'poster'].includes(type)) {
+      throw new BadRequestException('上传类型错误，必须是 "avatar"、"logo" 或 "poster"');
     }
 
     const uuid = uuidv4();

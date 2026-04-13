@@ -74,6 +74,22 @@ export function getMemberAvatarUrl(filename: string): string {
 }
 
 /**
+ * 获取主播海报存储路径 (磁盘)
+ * @param filename UUID 文件名 (含扩展名)
+ */
+export function getStreamerPosterPath(filename: string): string {
+  return path.join(getUploadDir(uploadConfig.streamerPosterDir), filename);
+}
+
+/**
+ * 获取主播海报访问 URL
+ * @param filename UUID 文件名 (含扩展名)
+ */
+export function getStreamerPosterUrl(filename: string): string {
+  return `/api/uploads/${uploadConfig.streamerPosterDir}/${filename}`;
+}
+
+/**
  * 获取战队 logo 缩略图存储路径 (磁盘)
  * @param filename UUID 文件名 (含扩展名)
  */

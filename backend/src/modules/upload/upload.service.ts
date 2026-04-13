@@ -11,6 +11,8 @@ import {
   getTeamLogoThumbnailUrl,
   getMemberAvatarPath,
   getMemberAvatarUrl,
+  getStreamerPosterPath,
+  getStreamerPosterUrl,
 } from '../../common/utils/path.util';
 
 export interface UploadResult {
@@ -63,18 +65,36 @@ export class UploadService {
   }
 
   /**
+   * 上传主播海报
+   * @param filename UUID 文件名 (含扩展名)
+   * @param buffer 文件内容
+   */
+  async uploadStreamerPoster(filename: string, buffer: Buffer): Promise<UploadResult> {
+    const posterPath = getStreamerPosterPath(filename);
+    await this.ensureDir(path.dirname(posterPath));
+    await fs.promises.writeFile(posterPath, buffer);
+
+    this.logger.log(`Streamer poster uploaded: ${filename}`);
+
+    return { url: getStreamerPosterUrl(filename) };
+  }
+
+  /**
    * 统一上传入口
-   * @param type 上传类型: avatar, logo
+   * @param type 上传类型: avatar, logo, poster
    * @param filename UUID 文件名 (含扩展名)
    * @param buffer 文件内容
    */
   async uploadImage(
-    type: 'avatar' | 'logo',
+    type: 'avatar' | 'logo' | 'poster',
     filename: string,
     buffer: Buffer,
   ): Promise<UploadResult> {
     if (type === 'logo') {
       return this.uploadTeamLogo(filename, buffer);
+    }
+    if (type === 'poster') {
+      return this.uploadStreamerPoster(filename, buffer);
     }
     return this.uploadMemberAvatar(filename, buffer);
   }
@@ -98,6 +118,7 @@ export class UploadService {
       const dirs = [
         getUploadDir(uploadConfig.teamLogoDir),
         getUploadDir(uploadConfig.memberAvatarDir),
+        getUploadDir(uploadConfig.streamerPosterDir),
       ];
 
       for (const dir of dirs) {
@@ -148,6 +169,11 @@ export class UploadService {
     const members = await this.databaseService.all<any>('SELECT avatar_url FROM team_members');
     members.forEach((m) => {
       if (m.avatar_url) urls.add(m.avatar_url);
+    });
+
+    const streamers = await this.databaseService.all<any>('SELECT poster_url FROM streamers');
+    streamers.forEach((s) => {
+      if (s.poster_url) urls.add(s.poster_url);
     });
 
     return urls;
