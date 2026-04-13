@@ -1,9 +1,4 @@
-import {
-  mockTeams,
-  mockTeamNames,
-  getTeamById,
-  getTeamByName,
-} from './mock-data.fixture';
+import { mockTeams, mockTeamNames, getTeamById, getTeamByName } from './mock-data.fixture';
 
 export interface Player {
   name: string;
@@ -121,9 +116,4 @@ export const getAll16TeamsForSwiss = (): Team[] => {
   }));
 };
 
-export {
-  mockTeams,
-  mockTeamNames,
-  getTeamById,
-  getTeamByName,
-};
+export { mockTeams, mockTeamNames, getTeamById, getTeamByName };

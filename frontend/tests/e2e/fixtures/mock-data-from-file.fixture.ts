@@ -27,7 +27,7 @@ export const mockDataFixtures = base.extend<MockDataFixtures>({
     eliminationMatches,
     swissAdvancement,
   },
-  // eslint-disable-next-line @typescript-eslint/no-empty-function, react-hooks/rules-of-hooks
+   
   loadMockData: async ({}, use) => {
     const loadFn = async (page: Page) => {
       // 如果后端不支持，可以使用 localStorage 模拟数据

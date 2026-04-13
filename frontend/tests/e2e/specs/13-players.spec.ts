@@ -1,6 +1,5 @@
 import { test, expect } from '@playwright/test';
 import { HomePage } from '../pages';
-import { mockTeams } from '../fixtures/mock-data.fixture';
 
 /**
  * 选手管理测试用例
@@ -175,7 +174,6 @@ test.describe('【P1】选手位置图标测试', () => {
     if (count > 0) {
       console.log(`✅ 找到 ${count} 个位置图标`);
 
-      const expectedPositions = ['TOP', 'JUNGLE', 'MID', 'ADC', 'SUPPORT'];
       const positionLabels = page.locator('[data-testid="position-label"]');
       const labelCount = await positionLabels.count();
 
@@ -204,7 +202,10 @@ test.describe('【P1】选手位置图标测试', () => {
 
       for (const pos of expectedPositions) {
         const positionLabel = page.locator(`text=${pos}`);
-        const isVisible = await positionLabel.first().isVisible().catch(() => false);
+        const isVisible = await positionLabel
+          .first()
+          .isVisible()
+          .catch(() => false);
         if (isVisible) {
           foundPositions++;
         }

@@ -396,7 +396,10 @@ const AdminStreamers: React.FC = () => {
                                     const formData = new FormData();
                                     formData.append('file', file);
                                     formData.append('type', 'poster');
-                                    const response = await apiClient.post('/admin/upload/image', formData);
+                                    const response = await apiClient.post(
+                                      '/admin/upload/image',
+                                      formData
+                                    );
                                     // 后端返回格式: { success, code, data: { url }, message }
                                     const url = response.data?.data?.url || response.data?.url;
                                     if (url) {

@@ -386,7 +386,9 @@ test.describe('【P1】图片上传测试', () => {
     await teamsPage.clickAddTeam();
     await page.waitForTimeout(500);
 
-    const clearButton = page.locator('button[aria-label="删除图片"], button[aria-label="清除"]').first();
+    const clearButton = page
+      .locator('button[aria-label="删除图片"], button[aria-label="清除"]')
+      .first();
     const hasClearButton = await clearButton.isVisible().catch(() => false);
 
     if (hasClearButton) {
@@ -408,7 +410,9 @@ test.describe('【P1】图片上传测试', () => {
     await teamsPage.clickAddTeam();
     await page.waitForTimeout(500);
 
-    const logoUrlInput = page.locator('input[placeholder*="URL"], input[placeholder*="图标"]').first();
+    const logoUrlInput = page
+      .locator('input[placeholder*="URL"], input[placeholder*="图标"]')
+      .first();
     const hasUrlInput = await logoUrlInput.isVisible().catch(() => false);
 
     if (hasUrlInput) {
