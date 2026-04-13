@@ -241,6 +241,24 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     `,
     );
 
+    // streamers 表
+    await run(
+      this.db,
+      `
+      CREATE TABLE IF NOT EXISTS streamers (
+        id TEXT PRIMARY KEY,
+        nickname TEXT NOT NULL,
+        poster_url TEXT,
+        bio TEXT,
+        live_url TEXT,
+        streamer_type TEXT CHECK(streamer_type IN ('internal', 'guest')),
+        is_star INTEGER DEFAULT 0,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `,
+    );
+
     // 初始化 stream_info 和 advancement 的默认数据
     await this.initDefaultData();
 
@@ -271,6 +289,7 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     await run(this.db, 'DELETE FROM team_members');
     await run(this.db, 'DELETE FROM teams');
     await run(this.db, 'DELETE FROM matches');
+    await run(this.db, 'DELETE FROM streamers');
     await run(
       this.db,
       `UPDATE stream_info SET title = '', url = '', is_live = 0, updated_at = CURRENT_TIMESTAMP WHERE id = 1`,

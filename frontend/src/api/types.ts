@@ -251,3 +251,41 @@ export interface UpdateAdvancementRequest {
   top8?: string[];
   eliminated?: string[];
 }
+
+/**
+ * 主播相关类型
+ */
+export enum StreamerType {
+  INTERNAL = 'internal',
+  GUEST = 'guest',
+}
+
+export interface Streamer {
+  id: string;
+  nickname: string;
+  posterUrl: string;
+  bio: string;
+  liveUrl: string;
+  streamerType: StreamerType;
+  isStar: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface CreateStreamerRequest {
+  nickname: string;
+  posterUrl: string;
+  bio: string;
+  liveUrl: string;
+  streamerType: StreamerType;
+  isStar: boolean;
+}
+
+export interface UpdateStreamerRequest {
+  nickname?: string;
+  posterUrl?: string;
+  bio?: string;
+  liveUrl?: string;
+  streamerType?: StreamerType;
+  isStar?: boolean;
+}

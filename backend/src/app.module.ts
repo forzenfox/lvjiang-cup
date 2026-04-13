@@ -7,6 +7,7 @@ import { CacheModule } from './cache/cache.module';
 import { TeamsModule } from './modules/teams/teams.module';
 import { MatchesModule } from './modules/matches/matches.module';
 import { StreamsModule } from './modules/streams/streams.module';
+import { StreamersModule } from './modules/streamers/streamers.module';
 import { AdvancementModule } from './modules/advancement/advancement.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { AdminModule } from './modules/admin/admin.module';
@@ -31,6 +32,7 @@ import { getUploadBaseDir } from './common/utils/path.util';
     TeamsModule,
     MatchesModule,
     StreamsModule,
+    StreamersModule,
     AdvancementModule,
     AuthModule,
     AdminModule,

@@ -3,44 +3,15 @@ import { Loader2, AlertCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Tabs, TabsList, TabsTrigger } from '../ui/tabs';
+import { streamersApi } from '@/api/streamers';
+import type { Streamer, StreamerType } from '@/api/types';
 
-// 隐藏滚动条的样式
 const styles = `
   #streamers-scroll::-webkit-scrollbar {
     display: none;
   }
 `;
 
-// 主播类型定义
-interface Streamer {
-  id: string;
-  nickname: string;
-  avatarUrl: string;
-  posterUrl: string;
-  bio: string;
-  liveUrl: string;
-  isStar: boolean;
-  isGuest: boolean;
-  teamId?: string;
-  gameId?: string;
-  level?: string;
-}
-
-// 从配置文件获取主播数据
-const getStreamersFromConfig = (): Streamer[] => {
-  // 检查 window.APP_CONFIG 是否存在
-  if (
-    typeof window !== 'undefined' &&
-    window.APP_CONFIG &&
-    (window.APP_CONFIG as { STREAMERS?: Streamer[] }).STREAMERS
-  ) {
-    return (window.APP_CONFIG as { STREAMERS?: Streamer[] }).STREAMERS!;
-  }
-  //  fallback 数据
-  return [];
-};
-
-// 骨架屏组件
 const StreamerCardSkeleton: React.FC = () => (
   <Card className="bg-white/5 border-white/10 overflow-hidden">
     <div className="h-64 bg-gradient-to-br from-blue-900/30 to-purple-900/30 relative">
@@ -60,7 +31,6 @@ const StreamerCardSkeleton: React.FC = () => (
   </Card>
 );
 
-// 空数据状态组件
 const EmptyState: React.FC<{ onRetry: () => void }> = ({ onRetry }) => (
   <div className="col-span-full flex flex-col items-center justify-center py-20">
     <div className="w-16 h-16 text-gray-500 mb-4 flex items-center justify-center">
@@ -92,7 +62,6 @@ const EmptyState: React.FC<{ onRetry: () => void }> = ({ onRetry }) => (
   </div>
 );
 
-// 错误状态组件
 const ErrorState: React.FC<{ message: string; onRetry: () => void }> = ({ message, onRetry }) => (
   <div className="col-span-full flex flex-col items-center justify-center py-20">
     <AlertCircle className="w-16 h-16 text-red-500 mb-4" />
@@ -108,7 +77,6 @@ const ErrorState: React.FC<{ message: string; onRetry: () => void }> = ({ messag
   </div>
 );
 
-// 主播卡片组件
 const StreamerCard: React.FC<{ streamer: Streamer; onClick: () => void }> = ({
   streamer,
   onClick,
@@ -118,29 +86,31 @@ const StreamerCard: React.FC<{ streamer: Streamer; onClick: () => void }> = ({
       className="bg-white/5 border-white/10 hover:border-secondary/50 transition-all duration-300 hover:transform hover:-translate-y-2 group overflow-hidden cursor-pointer"
       onClick={onClick}
     >
-      {/* 海报区域 */}
       <div className="relative h-64 overflow-hidden">
         <img
           src={streamer.posterUrl}
           alt={streamer.nickname}
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
         />
-        {/* 标签 */}
         <div className="absolute top-4 left-4 flex space-x-2">
-          {streamer.isStar && (
-            <span className="bg-yellow-500 text-black px-2 py-1 rounded-full text-xs font-bold">
+          {streamer.streamerType === StreamerType.INTERNAL && (
+            <span className="bg-blue-500 text-white px-2 py-1 rounded-full text-xs font-bold">
               驴酱
             </span>
           )}
-          {streamer.isGuest && (
+          {streamer.streamerType === StreamerType.GUEST && (
             <span className="bg-purple-500 text-white px-2 py-1 rounded-full text-xs font-bold">
               嘉宾
+            </span>
+          )}
+          {streamer.isStar && (
+            <span className="bg-yellow-500 text-black px-2 py-1 rounded-full text-xs font-bold">
+              明星
             </span>
           )}
         </div>
       </div>
 
-      {/* 信息区域 */}
       <CardHeader>
         <CardTitle className="text-xl text-center text-secondary group-hover:text-white transition-colors">
           {streamer.nickname}
@@ -164,12 +134,10 @@ const StreamerCard: React.FC<{ streamer: Streamer; onClick: () => void }> = ({
 };
 
 interface StreamerSectionProps {
-  /** 自动刷新间隔（毫秒），默认 30000ms (30秒) */
   refreshInterval?: number;
 }
 
 const StreamerSection: React.FC<StreamerSectionProps> = ({ refreshInterval = 30000 }) => {
-  // 注入隐藏滚动条的样式
   useEffect(() => {
     const styleElement = document.createElement('style');
     styleElement.textContent = styles;
@@ -182,22 +150,14 @@ const StreamerSection: React.FC<StreamerSectionProps> = ({ refreshInterval = 300
   const [streamers, setStreamers] = useState<Streamer[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'all' | 'star' | 'guest'>('all');
+  const [activeTab, setActiveTab] = useState<'internal' | 'star' | 'guest'>('star');
 
-  // 获取主播数据
   const fetchStreamers = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
-      // 模拟API请求延迟
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      // 从配置文件获取数据
-      const streamersFromConfig = getStreamersFromConfig();
-      if (streamersFromConfig.length > 0) {
-        setStreamers(streamersFromConfig);
-      } else {
-        setError('配置文件中没有主播数据');
-      }
+      const data = await streamersApi.getAll();
+      setStreamers(data);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : '获取主播数据失败';
       setError(errorMessage);
@@ -208,18 +168,14 @@ const StreamerSection: React.FC<StreamerSectionProps> = ({ refreshInterval = 300
   }, []);
 
   useEffect(() => {
-    // 初始加载
     fetchStreamers();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [fetchStreamers]);
 
   useEffect(() => {
-    // 设置自动刷新
     const interval = setInterval(() => {
       fetchStreamers();
     }, refreshInterval);
 
-    // 页面可见性检测：切换回页面时立即刷新
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
         fetchStreamers();
@@ -227,18 +183,32 @@ const StreamerSection: React.FC<StreamerSectionProps> = ({ refreshInterval = 300
     };
     document.addEventListener('visibilitychange', handleVisibilityChange);
 
-    // 清理函数
     return () => {
       clearInterval(interval);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, [refreshInterval, fetchStreamers]);
 
-  // 过滤主播列表
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const scrollContainer = document.getElementById('streamers-scroll');
+      if (!scrollContainer) return;
+
+      if (e.key === 'ArrowLeft') {
+        scrollContainer.scrollBy({ left: -300, behavior: 'smooth' });
+      } else if (e.key === 'ArrowRight') {
+        scrollContainer.scrollBy({ left: 300, behavior: 'smooth' });
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   const filteredStreamers = streamers.filter(streamer => {
-    if (activeTab === 'all') return true;
     if (activeTab === 'star') return streamer.isStar;
-    if (activeTab === 'guest') return streamer.isGuest;
+    if (activeTab === 'internal') return streamer.streamerType === StreamerType.INTERNAL;
+    if (activeTab === 'guest') return streamer.streamerType === StreamerType.GUEST;
     return true;
   });
 
@@ -252,42 +222,38 @@ const StreamerSection: React.FC<StreamerSectionProps> = ({ refreshInterval = 300
           主播阵容
         </h2>
 
-        {/* 标签切换 */}
         <div className="flex justify-center mb-12">
           <Tabs
-            defaultValue="all"
+            defaultValue="star"
             value={activeTab}
-            onValueChange={value => setActiveTab(value as 'all' | 'star' | 'guest')}
+            onValueChange={value => setActiveTab(value as 'internal' | 'star' | 'guest')}
           >
             <TabsList className="bg-gray-800/50">
-              <TabsTrigger value="all">全部主播</TabsTrigger>
-              <TabsTrigger value="star">驴酱主播</TabsTrigger>
+              <TabsTrigger value="internal">驴酱主播</TabsTrigger>
+              <TabsTrigger value="star">明星主播</TabsTrigger>
               <TabsTrigger value="guest">嘉宾主播</TabsTrigger>
             </TabsList>
           </Tabs>
         </div>
 
-        {/* 加载骨架屏 */}
         {loading && streamers.length === 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+          <div className="flex space-x-6 overflow-x-auto pb-8" style={{ scrollbarWidth: 'none' }}>
             {[1, 2, 3, 4, 5, 6].map(i => (
-              <StreamerCardSkeleton key={i} />
+              <div key={i} className="flex-shrink-0 w-80">
+                <StreamerCardSkeleton />
+              </div>
             ))}
           </div>
         ) : error && streamers.length === 0 ? (
-          /* 错误状态 */
           <div className="grid grid-cols-1">
             <ErrorState message={error} onRetry={fetchStreamers} />
           </div>
         ) : streamers.length === 0 ? (
-          /* 空数据状态 */
           <div className="grid grid-cols-1">
             <EmptyState onRetry={fetchStreamers} />
           </div>
         ) : (
-          /* 正常数据展示 */
           <div className="relative">
-            {/* 滚动指示器 */}
             <div className="absolute left-0 top-1/2 -translate-y-1/2 z-10 hidden md:block">
               <button
                 className="bg-black/50 hover:bg-black/80 text-white p-2 rounded-full"
@@ -337,11 +303,10 @@ const StreamerSection: React.FC<StreamerSectionProps> = ({ refreshInterval = 300
               </button>
             </div>
 
-            {/* 水平滚动卡片 */}
             <div
               id="streamers-scroll"
               className="flex space-x-6 overflow-x-auto pb-8 snap-x snap-mandatory"
-              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', minHeight: '400px' }}
+              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
               data-testid="streamers-grid"
             >
               {filteredStreamers.map(streamer => (
@@ -356,7 +321,6 @@ const StreamerSection: React.FC<StreamerSectionProps> = ({ refreshInterval = 300
           </div>
         )}
 
-        {/* 刷新指示器 */}
         {loading && streamers.length > 0 && (
           <div className="mt-8 flex items-center justify-center space-x-2 text-gray-400">
             <Loader2 className="w-4 h-4 animate-spin" />
