@@ -44,8 +44,8 @@ export class HomePage extends BasePage {
     // 赛程区域
     this.scheduleSection = page.locator('#schedule');
     this.scheduleTitle = page.getByRole('heading', { name: '赛程安排' });
-    this.swissTab = page.getByTestId('swiss-tab');
-    this.eliminationTab = page.getByTestId('elimination-tab');
+    this.swissTab = page.getByTestId('home-swiss-tab');
+    this.eliminationTab = page.getByTestId('home-elimination-tab');
     this.noScheduleMessage = page.getByText(/暂无.*赛程|还没有.*赛程/);
   }
 

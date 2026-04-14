@@ -43,11 +43,11 @@ export class VideosPage extends BasePage {
 
     // 视频表单 - data-testid="video-form"
     this.videoForm = page.getByTestId('video-form');
-    this.titleInput = page.locator('input[placeholder*="视频标题"], input[placeholder*="标题"]');
-    this.bvidInput = page.locator('input[placeholder*="BV号"], input[placeholder*="B站视频链接"], input[placeholder*="BV ID"]');
+    this.titleInput = page.locator('input[placeholder="留空则使用B站原始标题"]');
+    this.bvidInput = page.locator('input[placeholder="输入BV号或粘贴B站视频链接"]');
     this.pageInput = page.locator('input[type="number"]').first();
     this.coverUrlInput = page.locator('input[placeholder*="封面"]');
-    this.orderInput = page.locator('input[type="number"]').nth(1);
+    this.orderInput = page.locator('input[type="number"]').last();
     this.submitButton = page.getByTestId('submit-button');
     this.cancelButton = page.getByTestId('cancel-button');
 

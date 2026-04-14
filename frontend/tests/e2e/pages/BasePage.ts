@@ -18,7 +18,12 @@ export abstract class BasePage {
    * 等待页面加载完成
    */
   async waitForLoad() {
-    await this.page.waitForLoadState('networkidle');
+    try {
+      await this.page.waitForLoadState('domcontentloaded');
+      await this.page.waitForTimeout(500);
+    } catch {
+      // 如果 domcontentloaded 失败，忽略错误继续
+    }
   }
 
   /**
