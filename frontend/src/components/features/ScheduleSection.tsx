@@ -179,8 +179,8 @@ const ScheduleSection: React.FC = () => {
   }, [loadData]);
 
   return (
-    <section id="schedule" className="py-20 px-4 bg-black">
-      <div className="max-w-7xl mx-auto">
+    <section id="schedule" className="min-h-screen flex flex-col bg-black">
+      <div className="max-w-7xl mx-auto px-4 flex-1 flex flex-col justify-center min-h-0">
         <motion.h2
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}

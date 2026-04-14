@@ -183,9 +183,9 @@ const TeamSection: React.FC = () => {
   }, [fetchTeams]);
 
   return (
-    <section id="teams" className="min-h-screen py-20 bg-black relative">
-      <div className="container mx-auto px-4">
-        <h2 className="text-4xl md:text-5xl font-bold text-center mb-16 text-white uppercase tracking-wider">
+    <section id="teams" className="min-h-screen flex flex-col bg-black relative">
+      <div className="container mx-auto px-4 flex-1 flex flex-col justify-center min-h-0">
+        <h2 className="text-4xl md:text-5xl font-bold text-center mb-8 text-white uppercase tracking-wider">
           参赛战队
         </h2>
 

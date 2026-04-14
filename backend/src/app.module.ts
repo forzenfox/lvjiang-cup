@@ -9,6 +9,7 @@ import { MatchesModule } from './modules/matches/matches.module';
 import { StreamsModule } from './modules/streams/streams.module';
 import { StreamersModule } from './modules/streamers/streamers.module';
 import { AdvancementModule } from './modules/advancement/advancement.module';
+import { VideosModule } from './modules/videos/videos.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { AdminModule } from './modules/admin/admin.module';
 import { UploadModule } from './modules/upload/upload.module';
@@ -34,6 +35,7 @@ import { getUploadBaseDir } from './common/utils/path.util';
     StreamsModule,
     StreamersModule,
     AdvancementModule,
+    VideosModule,
     AuthModule,
     AdminModule,
     UploadModule,

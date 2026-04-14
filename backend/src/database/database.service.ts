@@ -259,6 +259,32 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     `,
     );
 
+    // videos 表
+    await run(
+      this.db,
+      `
+      CREATE TABLE IF NOT EXISTS videos (
+        id TEXT PRIMARY KEY,
+        bvid TEXT NOT NULL,
+        page INTEGER DEFAULT 1,
+        bilibili_title TEXT,
+        custom_title TEXT,
+        cover_url TEXT,
+        "order" INTEGER DEFAULT 0,
+        status TEXT CHECK(status IN ('enabled', 'disabled')) DEFAULT 'enabled',
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        created_by TEXT
+      )
+    `,
+    );
+
+    // videos表唯一索引(bvid + page组合)
+    await run(
+      this.db,
+      `CREATE UNIQUE INDEX IF NOT EXISTS idx_videos_bvid_page ON videos(bvid, page)`,
+    );
+
     // 初始化 stream_info 和 advancement 的默认数据
     await this.initDefaultData();
 

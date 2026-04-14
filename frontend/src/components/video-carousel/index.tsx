@@ -1,0 +1,120 @@
+import React, { useState, useCallback } from 'react';
+import { VideoPlayer, type VideoItem } from './VideoPlayer';
+import { VideoThumbnail } from './VideoThumbnail';
+import { ControlArrows } from './ControlArrows';
+import { Indicator } from './Indicator';
+import { useAutoplay } from './hooks/useAutoplay';
+import { useSwipe } from './hooks/useSwipe';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
+import './styles.css';
+
+export type { VideoItem } from './VideoPlayer';
+
+interface VideoCarouselProps {
+  videos: VideoItem[];
+}
+
+export const VideoCarousel: React.FC<VideoCarouselProps> = ({ videos }) => {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const isMobile = useMediaQuery('(max-width: 767px)');
+  const isPC = useMediaQuery('(min-width: 1024px)');
+
+  const goToNext = useCallback(() => {
+    setCurrentIndex((prev) => (prev + 1) % videos.length);
+  }, [videos.length]);
+
+  const goToPrev = useCallback(() => {
+    setCurrentIndex((prev) => (prev - 1 + videos.length) % videos.length);
+  }, [videos.length]);
+
+  const { pause: pauseAutoplay } = useAutoplay({
+    enabled: isPC && videos.length > 2,
+    onAutoplay: goToNext,
+    videoCount: videos.length,
+    isMobile,
+  });
+
+  const handleUserInteraction = useCallback(() => {
+    pauseAutoplay();
+  }, [pauseAutoplay]);
+
+  const { onTouchStart, onTouchEnd } = useSwipe({
+    onSwipeLeft: goToNext,
+    onSwipeRight: goToPrev,
+    threshold: 50,
+  });
+
+  if (videos.length === 0) {
+    return (
+      <div className="w-full h-full bg-gray-900 flex items-center justify-center">
+        <span className="text-gray-400">暂无视频</span>
+      </div>
+    );
+  }
+
+  const currentVideo = videos[currentIndex];
+  const showControls = videos.length > 2;
+
+  const getPrevIndex = () => (currentIndex - 1 + videos.length) % videos.length;
+  const getNextIndex = () => (currentIndex + 1) % videos.length;
+
+  return (
+    <div
+      className="video-carousel w-full h-full flex flex-col"
+      data-testid="video-carousel"
+      onMouseDown={handleUserInteraction}
+      onTouchStart={onTouchStart}
+      onTouchEnd={onTouchEnd}
+    >
+      {isMobile ? (
+        <div className="flex-1 flex flex-col">
+          <div className="flex-1 bg-gray-900 min-h-0">
+            <VideoPlayer video={currentVideo} />
+          </div>
+          {showControls && <Indicator videos={videos} currentIndex={currentIndex} onSelect={setCurrentIndex} />}
+        </div>
+      ) : (
+        <div className="flex-1 flex items-center gap-4 min-h-0">
+          {showControls && videos.length > 2 && (
+            <div className="w-[20%] h-full flex items-center">
+              <VideoThumbnail
+                video={videos[getPrevIndex()]}
+                isActive={false}
+                onClick={() => setCurrentIndex(getPrevIndex())}
+                index={getPrevIndex()}
+              />
+            </div>
+          )}
+
+          <div className="flex-1 relative max-w-[60%] h-full flex items-center">
+            <div className="w-full aspect-video bg-gray-900">
+              <VideoPlayer video={currentVideo} autoplay />
+            </div>
+            {showControls && (
+              <ControlArrows
+                onPrev={goToPrev}
+                onNext={goToNext}
+                canPrev={videos.length > 1}
+                canNext={videos.length > 1}
+              />
+            )}
+          </div>
+
+          {showControls && videos.length > 2 && (
+            <div className="w-[20%] h-full flex items-center">
+              <VideoThumbnail
+                video={videos[getNextIndex()]}
+                isActive={false}
+                onClick={() => setCurrentIndex(getNextIndex())}
+                index={getNextIndex()}
+              />
+            </div>
+          )}
+        </div>
+      )}
+      {showControls && !isMobile && (
+        <Indicator videos={videos} currentIndex={currentIndex} onSelect={setCurrentIndex} />
+      )}
+    </div>
+  );
+};

@@ -5,7 +5,9 @@ import HeroSection from '../components/features/HeroSection';
 import ScheduleSection from '../components/features/ScheduleSection';
 import TeamSection from '../components/features/TeamSection';
 import StreamerSection from '../components/features/StreamerSection';
+import { VideoCarousel, VideoItem } from '../components/video-carousel';
 import { streamService, teamService, matchService, advancementService } from '../services';
+import * as videoApi from '../api/videos';
 
 /**
  * 首页数据加载状态
@@ -20,6 +22,7 @@ interface HomeDataState {
     stream: boolean;
     teams: boolean;
     matches: boolean;
+    videos: boolean;
   };
 }
 
@@ -67,8 +70,11 @@ const Home: React.FC = () => {
       stream: true,
       teams: true,
       matches: true,
+      videos: true,
     },
   });
+
+  const [videos, setVideos] = useState<VideoItem[]>([]);
 
   const [showError, setShowError] = useState(false);
 
@@ -136,6 +142,18 @@ const Home: React.FC = () => {
             }
             await advancementService.get();
           })(),
+          // 视频数据
+          (async () => {
+            updateLoadingState('videos', true);
+            try {
+              const result = await videoApi.getVideos();
+              setVideos(result.list || []);
+            } catch (err) {
+              console.error('[Home] 视频数据加载失败:', err);
+            } finally {
+              updateLoadingState('videos', false);
+            }
+          })(),
         ]);
 
         setState(prev => ({ ...prev, error: null }));
@@ -177,6 +195,20 @@ const Home: React.FC = () => {
 
       {/* 页面内容 */}
       <HeroSection />
+      <section id="videos" className="min-h-screen bg-gradient-to-b from-[#0a0a0a] to-[#1a1a2e] flex items-center justify-center">
+        <div className="container mx-auto px-4 w-full h-full flex flex-col justify-center">
+          <h2 className="text-3xl font-bold text-white mb-8 text-center">赛事视频</h2>
+          {videos.length > 0 ? (
+            <div className="flex-1 flex items-center justify-center min-h-0">
+              <VideoCarousel videos={videos} />
+            </div>
+          ) : (
+            <div className="text-center text-gray-500 py-12">
+              <p className="text-lg">暂无视频</p>
+            </div>
+          )}
+        </div>
+      </section>
       <StreamerSection />
       <TeamSection />
       <ScheduleSection />

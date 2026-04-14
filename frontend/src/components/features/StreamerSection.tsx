@@ -215,14 +215,14 @@ const StreamerSection: React.FC<StreamerSectionProps> = ({ refreshInterval = 300
   return (
     <section
       id="streamers"
-      className="min-h-screen py-20 bg-gradient-to-b from-background to-black relative"
+      className="min-h-screen flex flex-col bg-gradient-to-b from-background to-black relative"
     >
-      <div className="container mx-auto px-4">
-        <h2 className="text-4xl md:text-5xl font-bold text-center mb-16 text-white uppercase tracking-wider">
+      <div className="container mx-auto px-4 flex-1 flex flex-col justify-center min-h-0">
+        <h2 className="text-4xl md:text-5xl font-bold text-center mb-8 text-white uppercase tracking-wider">
           主播阵容
         </h2>
 
-        <div className="flex justify-center mb-12">
+        <div className="flex justify-center mb-8">
           <Tabs
             defaultValue="star"
             value={activeTab}

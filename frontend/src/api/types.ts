@@ -289,3 +289,27 @@ export interface UpdateStreamerRequest {
   streamerType?: StreamerType;
   isStar?: boolean;
 }
+
+/**
+ * 视频相关类型
+ */
+export interface VideoItem {
+  id: string;
+  title: string;
+  bvid: string;
+  page: number;
+  coverUrl?: string;
+}
+
+export interface Video {
+  id: string;
+  title: string;
+  bvid: string;
+  page: number;
+  coverUrl?: string;
+  order: number;
+  status: 0 | 1;
+  createdAt: string;
+  updatedAt: string;
+  createdBy: string;
+}

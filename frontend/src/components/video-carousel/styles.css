@@ -1,0 +1,35 @@
+.video-carousel {
+  @apply relative w-full h-full overflow-hidden;
+}
+
+.video-carousel .video-player-container {
+  @apply w-full h-full bg-gray-900;
+}
+
+.video-carousel .skeleton-loader {
+  @apply animate-pulse bg-gray-700;
+}
+
+.video-carousel .thumbnail-container {
+  @apply transition-all duration-300 ease-in-out h-full;
+}
+
+.video-carousel .thumbnail-container:hover {
+  @apply scale-105;
+}
+
+.video-carousel .control-arrow {
+  @apply opacity-0 transition-opacity duration-200;
+}
+
+.video-carousel:hover .control-arrow {
+  @apply opacity-100;
+}
+
+.video-carousel .indicator-dot {
+  @apply transition-all duration-200;
+}
+
+.video-carousel .indicator-dot:hover {
+  @apply scale-125;
+}

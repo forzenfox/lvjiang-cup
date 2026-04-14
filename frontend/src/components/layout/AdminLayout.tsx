@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Radio, Users, Calendar, LogOut, Home, Loader2, User } from 'lucide-react';
+import { LayoutDashboard, Radio, Users, Calendar, LogOut, Home, Loader2, User, Video } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { Button } from '../ui/button';
 import { useAuth } from '../../hooks/useAuth';
@@ -46,6 +46,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
     { path: '/admin/dashboard', label: '仪表盘', icon: LayoutDashboard },
     { path: '/admin/stream', label: '直播配置', icon: Radio },
     { path: '/admin/streamers', label: '主播管理', icon: User },
+    { path: '/admin/videos', label: '视频管理', icon: Video },
     { path: '/admin/teams', label: '战队管理', icon: Users },
     { path: '/admin/schedule', label: '赛程管理', icon: Calendar },
   ];

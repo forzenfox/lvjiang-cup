@@ -10,5 +10,6 @@ export { DashboardPage } from './DashboardPage';
 export { TeamsPage } from './TeamsPage';
 export { SchedulePage } from './SchedulePage';
 export { StreamPage } from './StreamPage';
+export { VideosPage } from './VideosPage';
 export { AdvancementPage } from './AdvancementPage';
 export { SwissStageEditorPage } from './SwissStageEditorPage';

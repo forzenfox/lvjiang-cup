@@ -50,9 +50,8 @@ export default defineConfig({
 
   // 测试报告配置
   reporter: [
-    ['html', { outputFolder: './tests/e2e/report', open: 'never' }],
+    ['list'],
     ['junit', { outputFile: './tests/e2e/report/results.xml' }],
-    ['list']
   ],
 
   // 全局测试配置

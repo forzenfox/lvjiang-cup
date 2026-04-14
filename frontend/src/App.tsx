@@ -7,6 +7,7 @@ import AdminStream from './pages/admin/Stream';
 import AdminTeams from './pages/admin/Teams';
 import AdminSchedule from './pages/admin/Schedule';
 import AdminStreamers from './pages/admin/Streamers';
+import Videos from './pages/admin/Videos';
 // [REMOVE] 晋级名单管理页面已废弃
 // import AdvancementManager from './pages/admin/AdvancementManager';
 import ProtectedRoute from './components/layout/ProtectedRoute';
@@ -63,6 +64,14 @@ function App() {
           element={
             <ProtectedRoute>
               <AdminStreamers />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/videos"
+          element={
+            <ProtectedRoute>
+              <Videos />
             </ProtectedRoute>
           }
         />

@@ -217,9 +217,6 @@ const AdminStream: React.FC = () => {
                     placeholder="https://example.com/stream"
                     className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
-                  <p className="text-xs text-gray-500 mt-1">
-                    支持 Bilibili、YouTube、Twitch 等直播平台链接
-                  </p>
                 </div>
 
                 {/* 操作按钮 */}

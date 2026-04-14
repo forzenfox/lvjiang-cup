@@ -51,7 +51,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   // 添加键盘事件监听器，实现上下键切换模块
   useEffect(() => {
-    const sections = ['streamers', 'teams', 'schedule'];
+    const sections = ['streamers', 'teams', 'schedule', 'videos'];
     let currentIndex = 0;
 
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -77,7 +77,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   // 监听滚动，更新当前激活的section
   useEffect(() => {
     const handleScroll = () => {
-      const sections = ['hero', 'streamers', 'teams', 'schedule'];
+      const sections = ['hero', 'streamers', 'teams', 'schedule', 'videos'];
       // 使用导航栏高度作为偏移量，确保判断更准确
       const scrollPosition = window.scrollY + NAVBAR_HEIGHT + 20;
 
@@ -101,6 +101,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   // 导航项配置
   const navItems = [
     { id: 'hero', label: '直播' },
+    { id: 'videos', label: '视频' },
     { id: 'streamers', label: '主播' },
     { id: 'teams', label: '战队' },
     { id: 'schedule', label: '赛程' },
