@@ -28,7 +28,6 @@ describe('VideosController', () => {
     id: '1',
     title: 'Test Video',
     bvid: 'BV1234567890',
-    page: 1,
     coverUrl: 'http://example.com/cover.jpg',
     order: 0,
     status: 'enabled',
@@ -123,20 +122,20 @@ describe('VideosController', () => {
     });
 
     it('PUT /api/admin/videos/sort需要认证', async () => {
-      const sortItems: SortItem[] = [
-        { id: '1', order: 1 },
-        { id: '2', order: 2 },
-      ];
+      const sortDto = { orderedIds: ['1', '2'] };
       const sortedVideos: Video[] = [
-        { ...mockVideo, id: '1', order: 1 },
-        { ...mockVideo, id: '2', order: 2 },
+        { ...mockVideo, id: '1', order: 0 },
+        { ...mockVideo, id: '2', order: 1 },
       ];
       mockVideosService.sort.mockResolvedValue(sortedVideos);
 
-      const result = await controller.sort(sortItems);
+      const result = await controller.sort(sortDto);
 
       expect(result).toEqual(sortedVideos);
-      expect(mockVideosService.sort).toHaveBeenCalledWith(sortItems);
+      expect(mockVideosService.sort).toHaveBeenCalledWith([
+        { id: '1', order: 0 },
+        { id: '2', order: 1 },
+      ]);
     });
   });
 
@@ -239,20 +238,20 @@ describe('VideosController', () => {
 
   describe('PUT /api/admin/videos/sort - 批量排序视频', () => {
     it('应该批量排序视频并返回排序后的视频列表', async () => {
-      const sortItems: SortItem[] = [
-        { id: '1', order: 2 },
-        { id: '2', order: 1 },
-      ];
+      const sortDto = { orderedIds: ['2', '1'] };
       const sortedVideos: Video[] = [
-        { ...mockVideo, id: '1', order: 2 },
-        { ...mockVideo, id: '2', order: 1 },
+        { ...mockVideo, id: '2', order: 0 },
+        { ...mockVideo, id: '1', order: 1 },
       ];
       mockVideosService.sort.mockResolvedValue(sortedVideos);
 
-      const result = await controller.sort(sortItems);
+      const result = await controller.sort(sortDto);
 
       expect(result).toEqual(sortedVideos);
-      expect(mockVideosService.sort).toHaveBeenCalledWith(sortItems);
+      expect(mockVideosService.sort).toHaveBeenCalledWith([
+        { id: '2', order: 0 },
+        { id: '1', order: 1 },
+      ]);
     });
   });
 

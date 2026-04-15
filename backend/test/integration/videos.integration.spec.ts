@@ -104,7 +104,6 @@ describe('Videos API Integration Tests', () => {
       for (let i = 0; i < 5; i++) {
         await videosService.create({
           url: `https://www.bilibili.com/video/BV${String(i).padStart(10, '0')}`,
-          order: i,
           status: 'enabled',
         });
       }
@@ -115,24 +114,23 @@ describe('Videos API Integration Tests', () => {
     });
 
     it('应该按order字段正确排序', async () => {
+      // 创建3个视频，order会自动分配为0,1,2
       await videosService.create({
         url: 'https://www.bilibili.com/video/BV1111111111',
-        order: 2,
         status: 'enabled',
       });
       await videosService.create({
         url: 'https://www.bilibili.com/video/BV2222222222',
-        order: 0,
         status: 'enabled',
       });
       await videosService.create({
         url: 'https://www.bilibili.com/video/BV3333333333',
-        order: 1,
         status: 'enabled',
       });
 
       const response = await request(app.getHttpServer()).get('/api/videos').expect(200);
 
+      // 验证按order排序（创建顺序）
       expect(response.body[0].order).toBe(0);
       expect(response.body[1].order).toBe(1);
       expect(response.body[2].order).toBe(2);
@@ -341,16 +339,16 @@ describe('Videos API Integration Tests', () => {
       expect(response.body.bvid).toBe('BV1234567890');
     });
 
-    it('更新排序值', async () => {
+    it('更新自定义标题', async () => {
       const response = await request(app.getHttpServer())
         .put(`/api/admin/videos/${createdVideoId}`)
         .set('Authorization', `Bearer ${authToken}`)
         .send({
-          order: 5,
+          customTitle: 'Updated Custom Title',
         })
         .expect(200);
 
-      expect(response.body.order).toBe(5);
+      expect(response.body.customTitle).toBe('Updated Custom Title');
     });
   });
 
@@ -407,7 +405,6 @@ describe('Videos API Integration Tests', () => {
       for (let i = 0; i < 3; i++) {
         await videosService.create({
           url: `https://www.bilibili.com/video/BV${String(i).padStart(10, '0')}`,
-          order: i,
           status: 'enabled',
         });
       }

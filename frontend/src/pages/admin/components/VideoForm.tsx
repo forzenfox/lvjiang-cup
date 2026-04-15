@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Video, CreateVideoRequest } from '@/api/videos';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { X, Save, Link2, Type, GripVertical } from 'lucide-react';
+import { X, Save, Link2, Type } from 'lucide-react';
 import { toast } from 'sonner';
 import VideoPreview from './VideoPreview';
 
@@ -16,20 +16,16 @@ interface VideoFormProps {
 interface FormData {
   url: string;
   customTitle: string;
-  order: number;
 }
 
-const extractBvidAndPage = (input: string): { bvid: string; page: number } | null => {
+const extractBvidAndPage = (input: string): { bvid: string } | null => {
   const bilibiliVideoRegex = /(?:bilibili\.com\/video\/)([Bb][Vv][a-zA-Z0-9]+)/;
-  const pageRegex = /[?&]p=(\d+)/;
 
   const bvidMatch = input.match(bilibiliVideoRegex);
-  const pageMatch = input.match(pageRegex);
 
   if (bvidMatch) {
     return {
-      bvid: bvidMatch[1].toUpperCase(),
-      page: pageMatch ? parseInt(pageMatch[1], 10) : 1,
+      bvid: bvidMatch[1],
     };
   }
 
@@ -38,8 +34,7 @@ const extractBvidAndPage = (input: string): { bvid: string; page: number } | nul
 
   if (directMatch) {
     return {
-      bvid: directMatch[1].toUpperCase(),
-      page: 1,
+      bvid: directMatch[1],
     };
   }
 
@@ -54,7 +49,6 @@ const VideoForm: React.FC<VideoFormProps> = ({ video, isOpen, onClose, onSave })
   const [formData, setFormData] = useState<FormData>({
     url: '',
     customTitle: '',
-    order: 0,
   });
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>({});
@@ -66,13 +60,11 @@ const VideoForm: React.FC<VideoFormProps> = ({ video, isOpen, onClose, onSave })
       setFormData({
         url,
         customTitle: video.customTitle || '',
-        order: video.order || 0,
       });
     } else {
       setFormData({
         url: '',
         customTitle: '',
-        order: 0,
       });
     }
     setErrors({});
@@ -127,7 +119,6 @@ const VideoForm: React.FC<VideoFormProps> = ({ video, isOpen, onClose, onSave })
       await onSave({
         url: formData.url.trim(),
         customTitle: formData.customTitle.trim() || undefined,
-        order: formData.order,
       });
       toast.success(video ? '视频更新成功' : '视频创建成功');
       onClose();
@@ -144,8 +135,7 @@ const VideoForm: React.FC<VideoFormProps> = ({ video, isOpen, onClose, onSave })
         id: video?.id || '',
         bvid: extracted.bvid,
         title: formData.customTitle || '预览中...',
-        page: extracted.page,
-        order: formData.order,
+        order: 0,
         isEnabled: true,
       }
     : null;
@@ -218,20 +208,6 @@ const VideoForm: React.FC<VideoFormProps> = ({ video, isOpen, onClose, onSave })
                   </div>
                 </div>
 
-                <div>
-                  <label className="flex items-center gap-2 text-sm font-medium text-gray-300 mb-2">
-                    <GripVertical className="w-4 h-4" />
-                    排序
-                  </label>
-                  <input
-                    type="number"
-                    min="0"
-                    value={formData.order}
-                    onChange={e => handleChange('order', parseInt(e.target.value, 10) || 0)}
-                    className="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-md text-white text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">数字越小排序越靠前</p>
-                </div>
               </div>
 
               <div>

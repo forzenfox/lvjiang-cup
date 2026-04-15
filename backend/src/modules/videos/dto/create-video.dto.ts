@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsInt, Min, Max, MaxLength, IsIn, IsNotEmpty } from 'class-validator';
+import { IsString, IsOptional, MaxLength, IsIn, IsNotEmpty } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateVideoDto {
@@ -12,13 +12,6 @@ export class CreateVideoDto {
   @IsOptional()
   @MaxLength(50)
   customTitle?: string;
-
-  @ApiPropertyOptional({ description: '排序值', default: 0 })
-  @IsInt()
-  @Min(0)
-  @Max(9999)
-  @IsOptional()
-  order?: number = 0;
 
   @ApiPropertyOptional({ description: '状态', default: 'enabled' })
   @IsIn(['enabled', 'disabled'])

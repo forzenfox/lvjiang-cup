@@ -2,6 +2,7 @@
  * API 类型定义
  */
 import { PositionType } from '../types/position';
+import type { Match as DomainMatch } from '../types';
 
 // 队员实力等级
 export type PlayerLevel = 'S' | 'A' | 'B' | 'C' | 'D';
@@ -179,24 +180,7 @@ export interface UpdateTeamRequest extends Partial<CreateTeamRequest> {
 /**
  * 比赛相关类型
  */
-export interface Match {
-  id: string;
-  stage: 'swiss' | 'elimination';
-  round: string;
-  teamAId?: string;
-  teamBId?: string;
-  teamA?: Team;
-  teamB?: Team;
-  scoreA: number;
-  scoreB: number;
-  winnerId?: string;
-  status: 'upcoming' | 'ongoing' | 'finished';
-  startTime?: string;
-  swissRecord?: string;
-  swissRound?: number; // 瑞士轮第几轮 (1-5)
-  boFormat?: 'BO1' | 'BO3' | 'BO5'; // 比赛赛制
-  eliminationBracket?: 'winners' | 'losers' | 'grand_finals';
-  eliminationGameNumber?: number;
+export interface Match extends DomainMatch {
   createdAt?: string;
   updatedAt?: string;
 }

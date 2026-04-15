@@ -8,6 +8,10 @@ import { Video } from './entities/video.entity';
 import * as crypto from 'crypto';
 import * as https from 'https';
 import * as http from 'http';
+import * as fs from 'fs';
+import * as path from 'path';
+import { uploadConfig } from '../../config/upload.config';
+import { getVideoCoverPath, getVideoCoverUrl } from '../../common/utils/path.util';
 
 export interface SortItem {
   id: string;
@@ -94,7 +98,74 @@ export class VideosService {
     }
   }
 
-  extractBvidFromUrl(url: string): { bvid: string; page: number } {
+  private async downloadImage(url: string, destPath: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const protocol = url.startsWith('https') ? https : http;
+      const file = fs.createWriteStream(destPath);
+
+      protocol.get(url, {
+        headers: {
+          'Referer': 'https://www.bilibili.com/',
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        },
+      }, (response) => {
+        if (response.statusCode !== 200) {
+          file.close();
+          fs.unlink(destPath, () => {});
+          reject(new Error(`Failed to download image: ${response.statusCode}`));
+          return;
+        }
+        response.pipe(file);
+        file.on('finish', () => {
+          file.close();
+          resolve();
+        });
+      }).on('error', (err) => {
+        file.close();
+        fs.unlink(destPath, () => {});
+        reject(err);
+      });
+    });
+  }
+
+  private async ensureCoverDir(): Promise<string> {
+    const coverDir = path.dirname(getVideoCoverPath('placeholder'));
+    if (!fs.existsSync(coverDir)) {
+      fs.mkdirSync(coverDir, { recursive: true });
+    }
+    return coverDir;
+  }
+
+  async fetchAndSaveCover(bvid: string): Promise<string> {
+    const meta = await this.fetchBilibiliMeta(bvid);
+
+    await this.ensureCoverDir();
+
+    const filename = `${crypto.randomUUID()}.jpg`;
+    const coverPath = getVideoCoverPath(filename);
+
+    await this.downloadImage(meta.coverUrl, coverPath);
+
+    this.logger.log(`Cover downloaded for ${bvid}: ${filename}`);
+
+    return filename;
+  }
+
+  private async deleteCover(coverFilename: string): Promise<void> {
+    if (!coverFilename) return;
+
+    try {
+      const coverPath = getVideoCoverPath(coverFilename);
+      if (fs.existsSync(coverPath)) {
+        fs.unlinkSync(coverPath);
+        this.logger.log(`Cover deleted: ${coverFilename}`);
+      }
+    } catch (error) {
+      this.logger.error(`Failed to delete cover ${coverFilename}: ${error.message}`);
+    }
+  }
+
+  extractBvidFromUrl(url: string): { bvid: string } {
     const patterns = [
       /bilibili\.com\/video\/(BV[a-zA-Z0-9]+)/,
       /bilibili\.com\/video\/(BV[a-zA-Z0-9]+)\?p=(\d+)/,
@@ -104,14 +175,14 @@ export class VideosService {
     for (const pattern of patterns) {
       const match = url.match(pattern);
       if (match) {
-        return { bvid: match[1].toUpperCase(), page: match[2] ? parseInt(match[2]) : 1 };
+        return { bvid: match[1] };
       }
     }
 
     const directBvidRegex = /^([Bb][Vv][a-zA-Z0-9]{10})$/;
     const directMatch = url.trim().match(directBvidRegex);
     if (directMatch) {
-      return { bvid: directMatch[1].toUpperCase(), page: 1 };
+      return { bvid: directMatch[1] };
     }
 
     throw new BadRequestException('无效的B站视频链接或BV号');
@@ -125,15 +196,15 @@ export class VideosService {
     const bilibiliTitle = row.bilibili_title || '';
     const customTitle = row.custom_title || '';
     const displayTitle = customTitle || bilibiliTitle || '未命名视频';
+    const coverFilename = row.cover_url || '';
 
     return {
       id: String(row.id),
       bvid: row.bvid || '',
-      page: row.page || 1,
       bilibiliTitle: bilibiliTitle || undefined,
       customTitle: customTitle || undefined,
       title: displayTitle,
-      coverUrl: row.cover_url || '',
+      coverUrl: coverFilename ? getVideoCoverUrl(coverFilename) : '',
       order: row.order || 0,
       status: row.status || 'enabled',
       isEnabled: row.status === 'enabled',
@@ -151,8 +222,8 @@ export class VideosService {
     }
 
     const sql = includeDisabled
-      ? 'SELECT * FROM videos ORDER BY "order" ASC, page ASC'
-      : 'SELECT * FROM videos WHERE status = \'enabled\' ORDER BY "order" ASC, page ASC';
+      ? 'SELECT * FROM videos ORDER BY "order" ASC'
+      : 'SELECT * FROM videos WHERE status = \'enabled\' ORDER BY "order" ASC';
 
     const results = await this.databaseService.all<any>(sql);
     const videos = results.map((row) => this.rowToVideo(row));
@@ -192,7 +263,7 @@ export class VideosService {
     const order = sortOrder === 'desc' ? 'DESC' : 'ASC';
 
     const offset = (page - 1) * pageSize;
-    const dataSql = `SELECT * FROM videos ${whereClause} ORDER BY "${sortField}" ${order}, page ASC LIMIT ? OFFSET ?`;
+    const dataSql = `SELECT * FROM videos ${whereClause} ORDER BY "${sortField}" ${order} LIMIT ? OFFSET ?`;
     const dataParams = [...params, pageSize, offset];
 
     const results = await this.databaseService.all<any>(dataSql, dataParams);
@@ -217,9 +288,9 @@ export class VideosService {
   }
 
   async create(createVideoDto: CreateVideoDto, createdBy?: string): Promise<Video> {
-    const { url, customTitle, order, status } = createVideoDto;
+    const { url, customTitle, status } = createVideoDto;
 
-    const { bvid, page } = this.extractBvidFromUrl(url);
+    const { bvid } = this.extractBvidFromUrl(url);
 
     if (!this.validateBvid(bvid)) {
       throw new BadRequestException('无效的B站视频BV号');
@@ -233,33 +304,39 @@ export class VideosService {
     }
 
     const existing = await this.databaseService.get<any>(
-      'SELECT * FROM videos WHERE bvid = ? AND page = ?',
-      [bvid, page],
+      'SELECT * FROM videos WHERE bvid = ?',
+      [bvid],
     );
     if (existing) {
-      throw new BadRequestException(`B站视频 ${bvid} 第${page}页已存在`);
+      throw new BadRequestException(`B站视频 ${bvid} 已存在`);
     }
 
     const bilibiliMeta = await this.fetchBilibiliMeta(bvid);
+    const coverFilename = await this.fetchAndSaveCover(bvid);
+
+    // 自动计算 order 值：取当前最大 order + 1，如果没有则设为 0
+    const maxOrderResult = await this.databaseService.get<{ maxOrder: number }>(
+      'SELECT MAX("order") as maxOrder FROM videos',
+    );
+    const newOrder = (maxOrderResult?.maxOrder ?? -1) + 1;
 
     const id = crypto.randomUUID();
     await this.databaseService.run(
-      `INSERT INTO videos (id, bvid, page, bilibili_title, custom_title, cover_url, "order", status, created_at, updated_at, created_by)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, ?)`,
+      `INSERT INTO videos (id, bvid, bilibili_title, custom_title, cover_url, "order", status, created_at, updated_at, created_by)
+       VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, ?)`,
       [
         id,
         bvid,
-        page,
         bilibiliMeta.title,
         customTitle || null,
-        bilibiliMeta.coverUrl,
-        order || 0,
+        coverFilename,
+        newOrder,
         status || 'enabled',
         createdBy || '',
       ],
     );
 
-    this.logger.log(`Video created with id: ${id}, bvid: ${bvid}`);
+    this.logger.log(`Video created with id: ${id}, bvid: ${bvid}, order: ${newOrder}`);
 
     this.clearCache();
 
@@ -273,21 +350,19 @@ export class VideosService {
     }
 
     let bvid = existing.bvid;
-    let page = existing.page;
     let needRefetchMeta = false;
 
     if (updateVideoDto.url !== undefined) {
       const extracted = this.extractBvidFromUrl(updateVideoDto.url);
       bvid = extracted.bvid;
-      page = extracted.page;
 
-      if (bvid !== existing.bvid || page !== existing.page) {
+      if (bvid !== existing.bvid) {
         const existingVideo = await this.databaseService.get<any>(
-          'SELECT * FROM videos WHERE bvid = ? AND page = ? AND id != ?',
-          [bvid, page, id],
+          'SELECT * FROM videos WHERE bvid = ? AND id != ?',
+          [bvid, id],
         );
         if (existingVideo) {
-          throw new BadRequestException(`B站视频 ${bvid} 第${page}页已存在`);
+          throw new BadRequestException(`B站视频 ${bvid} 已存在`);
         }
         needRefetchMeta = true;
       }
@@ -301,20 +376,24 @@ export class VideosService {
 
     const updates: string[] = [];
     const values: any[] = [];
+    let newCoverFilename: string | null = null;
+    let oldCoverFilename: string | null = null;
 
     if (updateVideoDto.url !== undefined) {
-      updates.push('bvid = ?', 'page = ?');
-      values.push(bvid, page);
+      updates.push('bvid = ?');
+      values.push(bvid);
+
+      if (needRefetchMeta) {
+        oldCoverFilename = existing.coverUrl ? path.basename(existing.coverUrl) : null;
+        newCoverFilename = await this.fetchAndSaveCover(bvid);
+        updates.push('cover_url = ?');
+        values.push(newCoverFilename);
+      }
     }
 
     if (updateVideoDto.customTitle !== undefined) {
       updates.push('custom_title = ?');
       values.push(updateVideoDto.customTitle || null);
-    }
-
-    if (updateVideoDto.page !== undefined) {
-      updates.push('page = ?');
-      values.push(updateVideoDto.page);
     }
 
     if (updateVideoDto.order !== undefined) {
@@ -332,11 +411,6 @@ export class VideosService {
       values.push(updateVideoDto.isEnabled ? 'enabled' : 'disabled');
     }
 
-    if (needRefetchMeta) {
-      updates.push('bilibili_title = ?', 'cover_url = ?');
-      values.push(existing.bilibiliTitle || '', existing.coverUrl || '');
-    }
-
     if (updates.length > 0) {
       updates.push('updated_at = CURRENT_TIMESTAMP');
       values.push(id);
@@ -345,6 +419,10 @@ export class VideosService {
         `UPDATE videos SET ${updates.join(', ')} WHERE id = ?`,
         values,
       );
+
+      if (oldCoverFilename && newCoverFilename) {
+        this.deleteCover(oldCoverFilename);
+      }
 
       this.logger.log(`Video updated: ${id}`);
     }
@@ -360,7 +438,13 @@ export class VideosService {
       throw new NotFoundException(`视频不存在: ${id}`);
     }
 
+    const coverFilename = existing.coverUrl ? path.basename(existing.coverUrl) : null;
+
     await this.databaseService.run('DELETE FROM videos WHERE id = ?', [id]);
+
+    if (coverFilename) {
+      this.deleteCover(coverFilename);
+    }
 
     this.logger.log(`Video deleted: ${id}`);
 

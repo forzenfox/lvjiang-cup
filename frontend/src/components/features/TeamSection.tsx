@@ -185,10 +185,6 @@ const TeamSection: React.FC = () => {
   return (
     <section id="teams" className="min-h-screen flex flex-col bg-black relative">
       <div className="container mx-auto px-4 flex-1 flex flex-col justify-center min-h-0">
-        <h2 className="text-4xl md:text-5xl font-bold text-center mb-8 text-white uppercase tracking-wider">
-          参赛战队
-        </h2>
-
         {/* 加载骨架屏 */}
         {loading && teams.length === 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">

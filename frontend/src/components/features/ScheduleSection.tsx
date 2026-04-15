@@ -181,15 +181,6 @@ const ScheduleSection: React.FC = () => {
   return (
     <section id="schedule" className="min-h-screen flex flex-col bg-black">
       <div className="max-w-7xl mx-auto px-4 flex-1 flex flex-col justify-center min-h-0">
-        <motion.h2
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-4xl md:text-5xl font-bold text-center mb-16 text-white uppercase tracking-wider"
-        >
-          赛程安排
-        </motion.h2>
-
         {loading && matches.length === 0 ? (
           // 加载骨架屏
           <ScheduleSkeleton />

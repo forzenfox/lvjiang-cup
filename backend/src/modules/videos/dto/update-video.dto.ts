@@ -13,12 +13,6 @@ export class UpdateVideoDto {
   @MaxLength(50)
   customTitle?: string;
 
-  @ApiPropertyOptional({ description: '分页页码' })
-  @IsInt()
-  @Min(1)
-  @IsOptional()
-  page?: number;
-
   @ApiPropertyOptional({ description: '排序值' })
   @IsInt()
   @Min(0)

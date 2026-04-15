@@ -1,15 +1,16 @@
 # 驴酱杯赛事网站 - 部署文档
 
-## 📋 目录
+## 目录
 
 1. [架构概述](#架构概述)
 2. [快速部署](#快速部署)
 3. [Nginx Proxy Manager 配置](#nginx-proxy-manager-配置)
-4. [前端配置](#前端配置)
-5. [常用操作](#常用操作)
-6. [清理与重置](#清理与重置)
-7. [故障排查](#故障排查)
-8. [安全建议](#安全建议)
+4. [CDN 配置（腾讯云）](#cdn-配置腾讯云)
+5. [前端配置](#前端配置)
+6. [常用操作](#常用操作)
+7. [清理与重置](#清理与重置)
+8. [故障排查](#故障排查)
+9. [安全建议](#安全建议)
 
 ---
 
@@ -185,6 +186,121 @@ docker-compose up -d
 3. 点击 **Save**
 
 > **注意**：使用容器名称（如 `lvjiang-frontend`）而不是 `127.0.0.1`，因为服务运行在 Docker 网络中
+
+---
+
+## CDN 配置（腾讯云）
+
+本项目支持通过腾讯云 CDN 加速静态资源（如视频封面、用户上传的头像等），减轻服务器带宽压力。
+
+### 架构说明
+
+```
+用户浏览器 → CDN加速域名(cdn.yourdomain.com)
+                  ↓ 有缓存 → 直接返回
+                  ↓ 无缓存 → 回源到你的服务器 → CDN缓存 → 返回给用户
+```
+
+### 腾讯云 CDN 控制台配置
+
+登录 [腾讯云 CDN 控制台](https://console.cloud.tencent.com/cdn)，进行以下配置：
+
+#### 1. 添加加速域名
+
+| 配置项 | 值 | 说明 |
+|--------|-----|------|
+| 加速域名 | `cdn.yourdomain.com` | 自定义子域名 |
+| 业务类型 | 静态加速 | 适用于图片、文件等静态资源 |
+| 源站类型 | 自有源 | |
+| 回源协议 | HTTPS | 443 端口 |
+| 回源地址 | `your-server-ip` 或 `api.yourdomain.com` | 你的服务器地址 |
+
+#### 2. 配置缓存规则
+
+建议为静态资源目录设置较长的缓存时间：
+
+| 路径规则 | 缓存时间 | 说明 |
+|----------|----------|------|
+| `/api/uploads/*` | 30 天 | 上传的静态文件 |
+| `/*.jpg`, `/*.png`, `/*.webp` | 30 天 | 图片格式 |
+| `/*` | 7 天 | 其他静态资源 |
+
+#### 3. 配置 HTTPS 证书
+
+1. 在 **SSL 证书** 页面申请或上传证书
+2. 腾讯云提供免费 SSL 证书（TrustAsia）
+3. 开启 **HTTPS** 并绑定证书
+
+#### 4. 配置 DNS 解析
+
+在 DNS 服务商处添加 CNAME 记录：
+
+| 记录类型 | 主机记录 | 记录值 |
+|----------|----------|--------|
+| CNAME | cdn | `xxx.xxx.xxx.xxx.cdns.cn` |
+
+> **说明**：CNAME 值来自腾讯云 CDN 控制台提供的加速域名
+
+### 环境变量配置
+
+配置 CDN 基础 URL（可选，不配置则使用本地路径）：
+
+**文件**: `deploy/.env`
+
+```bash
+# CDN 配置（可选，不配置则使用本地路径）
+CDN_BASE_URL=https://cdn.yourdomain.com
+```
+
+### 目录结构要求
+
+CDN 加速的静态资源位于 `/api/uploads/` 目录：
+
+```
+uploads/
+├── teams/      # 战队 Logo
+├── members/    # 队员头像
+├── streamers/   # 主播海报
+└── covers/     # 视频封面
+```
+
+确保 Docker volumes 挂载正确：
+
+```yaml
+# docker-compose.yml
+volumes:
+  - ../uploads:/app/uploads  # 静态资源目录
+```
+
+### 验证 CDN 配置
+
+1. 上传一个测试图片到 `uploads/covers/`
+2. 访问 `https://cdn.yourdomain.com/covers/test.jpg`
+3. 确认能正常显示图片
+
+### CDN 刷新
+
+当静态资源更新时，需要刷新 CDN 缓存：
+
+#### 方式一：控制台刷新
+
+1. 进入腾讯云 CDN 控制台 → **缓存刷新**
+2. 选择 **URL 刷新** 或 **目录刷新**
+3. 提交需要刷新的资源
+
+#### 方式二：API 刷新
+
+```bash
+# 刷新单个 URL
+curl -X POST 'https://cdn.api.qcloud.com/v2/index.php' \
+  -d 'Action=RefreshCdnUrl' \
+  -d 'urls.0=https://cdn.yourdomain.com/covers/xxx.jpg'
+
+# 刷新目录
+curl -X POST 'https://cdn.api.qcloud.com/v2/index.php' \
+  -d 'Action=RefreshCdnDir' \
+  -d 'dirs.0=https://cdn.yourdomain.com/covers/'
+```
 
 ---
 

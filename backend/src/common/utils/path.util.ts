@@ -90,6 +90,22 @@ export function getStreamerPosterUrl(filename: string): string {
 }
 
 /**
+ * 获取视频封面存储路径 (磁盘)
+ * @param filename UUID 文件名 (含扩展名)
+ */
+export function getVideoCoverPath(filename: string): string {
+  return path.join(getUploadDir(uploadConfig.videoCoverDir), filename);
+}
+
+/**
+ * 获取视频封面临问 URL
+ * @param filename UUID 文件名 (含扩展名)
+ */
+export function getVideoCoverUrl(filename: string): string {
+  return `/api/uploads/${uploadConfig.videoCoverDir}/${filename}`;
+}
+
+/**
  * 获取战队 logo 缩略图存储路径 (磁盘)
  * @param filename UUID 文件名 (含扩展名)
  */

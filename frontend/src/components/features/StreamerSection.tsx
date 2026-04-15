@@ -218,10 +218,6 @@ const StreamerSection: React.FC<StreamerSectionProps> = ({ refreshInterval = 300
       className="min-h-screen flex flex-col bg-gradient-to-b from-background to-black relative"
     >
       <div className="container mx-auto px-4 flex-1 flex flex-col justify-center min-h-0">
-        <h2 className="text-4xl md:text-5xl font-bold text-center mb-8 text-white uppercase tracking-wider">
-          主播阵容
-        </h2>
-
         <div className="flex justify-center mb-8">
           <Tabs
             defaultValue="star"

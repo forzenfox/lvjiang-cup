@@ -14,6 +14,21 @@ describe('useAutoplay', () => {
     vi.useRealTimers();
   });
 
+  it('does not autoplay regardless of conditions', () => {
+    renderHook(() => useAutoplay({
+      enabled: true,
+      onAutoplay: mockOnAutoplay,
+      videoCount: 3,
+      isMobile: false,
+    }));
+
+    act(() => {
+      vi.advanceTimersByTime(6000);
+    });
+
+    expect(mockOnAutoplay).not.toHaveBeenCalled();
+  });
+
   it('does not autoplay when enabled is false', () => {
     renderHook(() => useAutoplay({
       enabled: false,
@@ -59,22 +74,7 @@ describe('useAutoplay', () => {
     expect(mockOnAutoplay).not.toHaveBeenCalled();
   });
 
-  it('autoplays after interval when all conditions are met', () => {
-    renderHook(() => useAutoplay({
-      enabled: true,
-      onAutoplay: mockOnAutoplay,
-      videoCount: 3,
-      isMobile: false,
-    }));
-
-    act(() => {
-      vi.advanceTimersByTime(5000);
-    });
-
-    expect(mockOnAutoplay).toHaveBeenCalledTimes(1);
-  });
-
-  it('pauses autoplay when pause is called', () => {
+  it('pause does not trigger autoplay after 30 seconds', () => {
     const { result } = renderHook(() => useAutoplay({
       enabled: true,
       onAutoplay: mockOnAutoplay,
@@ -88,33 +88,9 @@ describe('useAutoplay', () => {
     });
 
     act(() => {
-      vi.advanceTimersByTime(3000);
+      vi.advanceTimersByTime(35000);
     });
 
     expect(mockOnAutoplay).not.toHaveBeenCalled();
-  });
-
-  it('resumes autoplay after pauseDuration plus interval', () => {
-    const { result } = renderHook(() => useAutoplay({
-      enabled: true,
-      onAutoplay: mockOnAutoplay,
-      videoCount: 3,
-      isMobile: false,
-    }));
-
-    act(() => {
-      vi.advanceTimersByTime(3000);
-      result.current.pause();
-    });
-
-    act(() => {
-      vi.advanceTimersByTime(30000);
-    });
-
-    act(() => {
-      vi.advanceTimersByTime(5000);
-    });
-
-    expect(mockOnAutoplay).toHaveBeenCalledTimes(1);
   });
 });

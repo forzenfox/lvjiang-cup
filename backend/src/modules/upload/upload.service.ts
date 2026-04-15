@@ -119,6 +119,7 @@ export class UploadService {
         getUploadDir(uploadConfig.teamLogoDir),
         getUploadDir(uploadConfig.memberAvatarDir),
         getUploadDir(uploadConfig.streamerPosterDir),
+        getUploadDir(uploadConfig.videoCoverDir),
       ];
 
       for (const dir of dirs) {
@@ -174,6 +175,11 @@ export class UploadService {
     const streamers = await this.databaseService.all<any>('SELECT poster_url FROM streamers');
     streamers.forEach((s) => {
       if (s.poster_url) urls.add(s.poster_url);
+    });
+
+    const videos = await this.databaseService.all<any>('SELECT cover_url FROM videos');
+    videos.forEach((v) => {
+      if (v.cover_url) urls.add(v.cover_url);
     });
 
     return urls;

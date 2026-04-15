@@ -146,8 +146,14 @@ const Home: React.FC = () => {
           (async () => {
             updateLoadingState('videos', true);
             try {
-              const result = await videoApi.getVideos();
-              setVideos(result.list || []);
+              const result = await videoApi.getVideos({ isEnabled: true, pageSize: 100 });
+              const videoList = Array.isArray(result) ? result : (result.list || []);
+              const videoItems: VideoItem[] = videoList.map(video => ({
+                bvid: video.bvid,
+                title: video.title,
+                cover: video.coverUrl || undefined,
+              }));
+              setVideos(videoItems);
             } catch (err) {
               console.error('[Home] 视频数据加载失败:', err);
             } finally {
@@ -197,7 +203,6 @@ const Home: React.FC = () => {
       <HeroSection />
       <section id="videos" className="min-h-screen bg-gradient-to-b from-[#0a0a0a] to-[#1a1a2e] flex items-center justify-center">
         <div className="container mx-auto px-4 w-full h-full flex flex-col justify-center">
-          <h2 className="text-3xl font-bold text-white mb-8 text-center">赛事视频</h2>
           {videos.length > 0 ? (
             <div className="flex-1 flex items-center justify-center min-h-0">
               <VideoCarousel videos={videos} />

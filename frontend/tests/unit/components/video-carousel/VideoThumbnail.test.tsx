@@ -8,7 +8,6 @@ describe('VideoThumbnail', () => {
     bvid: 'BV1xx411c7XZ',
     title: 'Test Video',
     cover: 'https://example.com/cover.jpg',
-    page: 1,
   };
 
   it('renders thumbnail with cover image', () => {

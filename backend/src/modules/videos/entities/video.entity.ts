@@ -7,9 +7,6 @@ export class Video {
   @ApiPropertyOptional({ description: 'B站视频BV号' })
   bvid: string;
 
-  @ApiPropertyOptional({ description: '分页页码' })
-  page: number;
-
   @ApiPropertyOptional({ description: 'B站原始标题' })
   bilibiliTitle?: string;
 

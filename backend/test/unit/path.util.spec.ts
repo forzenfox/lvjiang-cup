@@ -7,6 +7,10 @@ import {
   getTeamLogoUrl,
   getTeamLogoThumbnailUrl,
   getMemberAvatarUrl,
+  getStreamerPosterPath,
+  getStreamerPosterUrl,
+  getVideoCoverPath,
+  getVideoCoverUrl,
 } from '../../src/common/utils/path.util';
 
 jest.mock('path', () => ({
@@ -64,7 +68,7 @@ describe('path.util - 路径工具函数', () => {
     it('应该返回正确的 logo URL', () => {
       const filename = 'test-uuid.png';
       const result = getTeamLogoUrl(filename);
-      expect(result).toBe(`/uploads/teams/${filename}`);
+      expect(result).toBe(`/api/uploads/teams/${filename}`);
     });
   });
 
@@ -81,7 +85,41 @@ describe('path.util - 路径工具函数', () => {
     it('应该返回正确的头像 URL', () => {
       const filename = 'test-uuid.png';
       const result = getMemberAvatarUrl(filename);
-      expect(result).toBe(`/uploads/members/${filename}`);
+      expect(result).toBe(`/api/uploads/members/${filename}`);
+    });
+  });
+
+  describe('getStreamerPosterPath - 获取主播海报路径', () => {
+    it('应该返回正确的主播海报路径', () => {
+      const filename = 'test-uuid.png';
+      const result = getStreamerPosterPath(filename);
+      expect(result).toContain('streamers');
+      expect(result).toContain(filename);
+    });
+  });
+
+  describe('getStreamerPosterUrl - 获取主播海报 URL', () => {
+    it('应该返回正确的主播海报 URL', () => {
+      const filename = 'test-uuid.png';
+      const result = getStreamerPosterUrl(filename);
+      expect(result).toBe(`/api/uploads/streamers/${filename}`);
+    });
+  });
+
+  describe('getVideoCoverPath - 获取视频封面路径', () => {
+    it('应该返回正确的视频封面路径', () => {
+      const filename = 'test-uuid.jpg';
+      const result = getVideoCoverPath(filename);
+      expect(result).toContain('covers');
+      expect(result).toContain(filename);
+    });
+  });
+
+  describe('getVideoCoverUrl - 获取视频封面 URL', () => {
+    it('应该返回正确的视频封面 URL', () => {
+      const filename = 'test-uuid.jpg';
+      const result = getVideoCoverUrl(filename);
+      expect(result).toBe(`/api/uploads/covers/${filename}`);
     });
   });
 });

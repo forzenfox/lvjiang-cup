@@ -4,6 +4,7 @@ import * as sqlite3 from 'sqlite3';
 import * as fs from 'fs';
 import * as path from 'path';
 
+// 生产部署时考虑数据库迁移问题，开发阶段直接删除数据库文件重建即可
 // 打开数据库
 function openDatabase(dbPath: string): Promise<sqlite3.Database> {
   return new Promise((resolve, reject) => {
@@ -198,7 +199,7 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
         swiss_record TEXT,
         swiss_round INTEGER,
         bo_format TEXT,
-        elimination_bracket TEXT CHECK(elimination_bracket IN ('winners', 'losers', 'grand_finals', 'quarterfinals', 'semifinals', 'finals')),
+        elimination_bracket TEXT CHECK(elimination_bracket IN ('quarterfinals', 'semifinals', 'finals')),
         elimination_game_number INTEGER,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -266,7 +267,6 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
       CREATE TABLE IF NOT EXISTS videos (
         id TEXT PRIMARY KEY,
         bvid TEXT NOT NULL,
-        page INTEGER DEFAULT 1,
         bilibili_title TEXT,
         custom_title TEXT,
         cover_url TEXT,
@@ -279,10 +279,10 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     `,
     );
 
-    // videos表唯一索引(bvid + page组合)
+    // videos表唯一索引(bvid)
     await run(
       this.db,
-      `CREATE UNIQUE INDEX IF NOT EXISTS idx_videos_bvid_page ON videos(bvid, page)`,
+      `CREATE UNIQUE INDEX IF NOT EXISTS idx_videos_bvid ON videos(bvid)`,
     );
 
     // 初始化 stream_info 和 advancement 的默认数据

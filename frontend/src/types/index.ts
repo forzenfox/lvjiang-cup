@@ -32,24 +32,22 @@ export type EliminationBracket = 'quarterfinals' | 'semifinals' | 'finals';
 
 export interface Match {
   id: string;
-  teamAId: string;
-  teamBId: string;
+  teamAId?: string;
+  teamBId?: string;
   teamA?: Team;
   teamB?: Team;
   scoreA: number;
   scoreB: number;
-  winnerId: string | null;
+  winnerId?: string | null;
   round: string;
   status: MatchStatus;
-  startTime: string;
-  // 瑞士轮字段
+  startTime?: string;
   stage: MatchStage;
-  swissRecord?: string; // 瑞士轮战绩，如 "0-0", "1-0", "0-1", "2-0", "1-1", "0-2", "3-0", "2-1", "1-2", "0-3"
-  swissRound?: number; // 瑞士轮第几轮 (1-5)
-  boFormat?: 'BO1' | 'BO3' | 'BO5'; // 比赛赛制
-  // 淘汰赛字段
-  eliminationBracket?: EliminationBracket; // 淘汰赛分组
-  eliminationGameNumber?: number; // 淘汰赛第几场比赛
+  swissRecord?: string;
+  swissRound?: number;
+  boFormat?: 'BO1' | 'BO3' | 'BO5';
+  eliminationBracket?: EliminationBracket;
+  eliminationGameNumber?: number;
 }
 
 export interface StreamInfo {

@@ -4,7 +4,6 @@ import type { ApiResponse } from './types';
 export interface Video {
   id: string;
   bvid: string;
-  page: number;
   bilibiliTitle?: string;
   customTitle?: string;
   title: string;
@@ -18,7 +17,6 @@ export interface Video {
 export interface CreateVideoRequest {
   url: string;
   customTitle?: string;
-  order?: number;
   isEnabled?: boolean;
 }
 

@@ -188,8 +188,6 @@ const VideoList: React.FC<VideoListProps> = ({ onEdit }) => {
                     <th className="px-4 py-3 text-left text-sm font-medium text-gray-400 w-16">序号</th>
                     <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">标题</th>
                     <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">BV号</th>
-                    <th className="px-4 py-3 text-center text-sm font-medium text-gray-400 w-20">分P</th>
-                    <th className="px-4 py-3 text-center text-sm font-medium text-gray-400 w-24">排序</th>
                     <th className="px-4 py-3 text-center text-sm font-medium text-gray-400 w-24">状态</th>
                     <th className="px-4 py-3 text-right text-sm font-medium text-gray-400 w-32">操作</th>
                   </tr>
@@ -216,12 +214,6 @@ const VideoList: React.FC<VideoListProps> = ({ onEdit }) => {
                       </td>
                       <td className="px-4 py-3">
                         <span className="text-gray-400 font-mono text-sm">{video.bvid}</span>
-                      </td>
-                      <td className="px-4 py-3 text-center">
-                        <span className="text-gray-400">{video.page || 1}</span>
-                      </td>
-                      <td className="px-4 py-3 text-center">
-                        <span className="text-gray-400">{video.order}</span>
                       </td>
                       <td className="px-4 py-3 text-center">
                         <button

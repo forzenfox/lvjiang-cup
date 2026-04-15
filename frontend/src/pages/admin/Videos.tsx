@@ -12,6 +12,7 @@ import VideoForm from './components/VideoForm';
 const Videos: React.FC = () => {
   const [formOpen, setFormOpen] = useState(false);
   const [editingVideo, setEditingVideo] = useState<Video | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const handleAdd = () => {
     setEditingVideo(null);
@@ -37,6 +38,7 @@ const Videos: React.FC = () => {
       }
       toast.success(editingVideo ? '视频更新成功' : '视频创建成功');
       handleCloseForm();
+      setRefreshKey(prev => prev + 1);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : '保存失败');
       throw error;
@@ -71,7 +73,7 @@ const Videos: React.FC = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <VideoList onEdit={handleEdit} />
+            <VideoList key={refreshKey} onEdit={handleEdit} />
           </CardContent>
         </Card>
       </div>

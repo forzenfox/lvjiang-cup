@@ -13,6 +13,7 @@ export const uploadConfig = {
   teamLogoDir: 'teams',
   memberAvatarDir: 'members',
   streamerPosterDir: 'streamers',
+  videoCoverDir: 'covers',
 
   // 允许的文件类型
   allowedMimeTypes: ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp'],

@@ -30,3 +30,6 @@ export {
 
 // Re-export datetime utilities
 export * from './datetime';
+
+// Type guards
+export { isMatchAssigned, isMatchFinished, getSafeTeamId } from './typeGuards';

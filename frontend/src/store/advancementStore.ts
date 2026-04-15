@@ -104,9 +104,9 @@ export function calculateAdvancement(
   matches: {
     stage: string;
     status: string;
-    winnerId: string | null;
-    teamAId: string;
-    teamBId: string;
+    winnerId?: string | null;
+    teamAId?: string;
+    teamBId?: string;
   }[],
   teams: { id: string }[]
 ): SwissAdvancementResult {
@@ -119,10 +119,10 @@ export function calculateAdvancement(
 
   // 遍历所有瑞士轮比赛，统计每支队伍的战绩
   matches
-    .filter(m => m.stage === 'swiss' && m.status === 'finished' && m.winnerId)
+    .filter(m => m.stage === 'swiss' && m.status === 'finished' && m.winnerId && m.teamAId && m.teamBId)
     .forEach(match => {
       const winnerId = match.winnerId!;
-      const loserId = match.teamAId === winnerId ? match.teamBId : match.teamAId;
+      const loserId = match.teamAId === winnerId ? match.teamBId! : match.teamAId!;
 
       // 更新胜者战绩
       const winnerRecord = teamRecords.get(winnerId)!;

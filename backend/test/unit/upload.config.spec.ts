@@ -10,6 +10,7 @@ describe('uploadConfig', () => {
     it('应该有正确的子目录配置', () => {
       expect(uploadConfig.teamLogoDir).toBe('teams');
       expect(uploadConfig.memberAvatarDir).toBe('members');
+      expect(uploadConfig.videoCoverDir).toBe('covers');
     });
   });
 

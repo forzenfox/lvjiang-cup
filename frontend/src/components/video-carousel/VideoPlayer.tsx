@@ -5,7 +5,6 @@ export type VideoItem = {
   bvid: string;
   title: string;
   cover?: string;
-  page?: number;
 };
 
 interface VideoPlayerProps {
@@ -21,7 +20,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
 }) => {
   const { isLoading, isError, retry } = useVideoLoad(video.bvid);
 
-  const src = `https://player.bilibili.com/player.html?bvid=${video.bvid}&page=${video.page || 1}${autoplay ? '&autoplay=1' : ''}${muted ? '&muted=1' : ''}`;
+  const src = `https://player.bilibili.com/player.html?bvid=${video.bvid}${autoplay ? '&autoplay=1' : ''}${muted ? '&muted=1' : ''}`;
 
   if (isLoading) {
     return (

@@ -19,7 +19,7 @@ const VideoPreview: React.FC<VideoPreviewProps> = ({ video, autoPlay = false }) 
     );
   }
 
-  const src = `https://player.bilibili.com/player.html?bvid=${video.bvid}&page=${video.page || 1}${autoPlay ? '&autoplay=1' : ''}`;
+  const src = `https://player.bilibili.com/player.html?bvid=${video.bvid}${autoPlay ? '&autoplay=1' : ''}`;
 
   return (
     <div className="space-y-3">
@@ -36,7 +36,6 @@ const VideoPreview: React.FC<VideoPreviewProps> = ({ video, autoPlay = false }) 
         <h4 className="text-white font-medium truncate">{video.title}</h4>
         <div className="flex items-center gap-4 mt-2 text-sm text-gray-400">
           <span>BV: {video.bvid}</span>
-          <span>Page: {video.page || 1}</span>
         </div>
       </div>
     </div>

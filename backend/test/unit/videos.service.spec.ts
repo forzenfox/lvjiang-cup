@@ -4,6 +4,17 @@ import { DatabaseService } from '../../src/database/database.service';
 import { CacheService } from '../../src/cache/cache.service';
 import { NotFoundException, BadRequestException } from '@nestjs/common';
 
+jest.mock('fs', () => ({
+  existsSync: jest.fn().mockReturnValue(true),
+  mkdirSync: jest.fn(),
+  unlinkSync: jest.fn(),
+  createWriteStream: jest.fn().mockReturnValue({
+    on: jest.fn().mockReturnThis(),
+    end: jest.fn(),
+    close: jest.fn(),
+  }),
+}));
+
 describe('VideosService', () => {
   let service: VideosService;
   let databaseService: DatabaseService;
@@ -27,7 +38,7 @@ describe('VideosService', () => {
     custom_title: '',
     bvid: 'BV1234567890',
     page: 1,
-    cover_url: 'http://example.com/cover.jpg',
+    cover_url: 'test-cover.jpg',
     order: 0,
     status: 'enabled',
     created_at: '2024-01-01T00:00:00Z',
@@ -55,6 +66,8 @@ describe('VideosService', () => {
     service = module.get<VideosService>(VideosService);
     databaseService = module.get<DatabaseService>(DatabaseService);
     cacheService = module.get<CacheService>(CacheService);
+
+    jest.spyOn(service, 'fetchAndSaveCover').mockResolvedValue('test-cover.jpg');
   });
 
   afterEach(() => {
