@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import * as fs from 'fs';
 import * as path from 'path';
+import * as crypto from 'crypto';
 import { uploadConfig } from '../../config/upload.config';
 import { DatabaseService } from '../../database/database.service';
 import {
@@ -18,6 +19,7 @@ import {
 export interface UploadResult {
   url: string;
   thumbnailUrl?: string;
+  reused?: boolean;
 }
 
 export interface CleanupResult {
@@ -28,11 +30,17 @@ export interface CleanupResult {
   duration: number;
 }
 
+export type FileType = 'avatar' | 'logo' | 'poster';
+
 @Injectable()
 export class UploadService {
   private readonly logger = new Logger(UploadService.name);
 
   constructor(private readonly databaseService: DatabaseService) {}
+
+  private async computeFileHash(buffer: Buffer): Promise<string> {
+    return crypto.createHash('md5').update(buffer).digest('hex');
+  }
 
   /**
    * 上传战队图标
@@ -40,13 +48,7 @@ export class UploadService {
    * @param buffer 文件内容
    */
   async uploadTeamLogo(filename: string, buffer: Buffer): Promise<UploadResult> {
-    const logoPath = getTeamLogoPath(filename);
-    await this.ensureDir(path.dirname(logoPath));
-    await fs.promises.writeFile(logoPath, buffer);
-
-    this.logger.log(`Team logo uploaded: ${filename}`);
-
-    return { url: getTeamLogoUrl(filename) };
+    return this.uploadWithDeduplication('logo', filename, buffer, getTeamLogoPath, getTeamLogoUrl);
   }
 
   /**
@@ -55,13 +57,7 @@ export class UploadService {
    * @param buffer 文件内容
    */
   async uploadMemberAvatar(filename: string, buffer: Buffer): Promise<UploadResult> {
-    const avatarPath = getMemberAvatarPath(filename);
-    await this.ensureDir(path.dirname(avatarPath));
-    await fs.promises.writeFile(avatarPath, buffer);
-
-    this.logger.log(`Member avatar uploaded: ${filename}`);
-
-    return { url: getMemberAvatarUrl(filename) };
+    return this.uploadWithDeduplication('avatar', filename, buffer, getMemberAvatarPath, getMemberAvatarUrl);
   }
 
   /**
@@ -70,13 +66,35 @@ export class UploadService {
    * @param buffer 文件内容
    */
   async uploadStreamerPoster(filename: string, buffer: Buffer): Promise<UploadResult> {
-    const posterPath = getStreamerPosterPath(filename);
-    await this.ensureDir(path.dirname(posterPath));
-    await fs.promises.writeFile(posterPath, buffer);
+    return this.uploadWithDeduplication('poster', filename, buffer, getStreamerPosterPath, getStreamerPosterUrl);
+  }
 
-    this.logger.log(`Streamer poster uploaded: ${filename}`);
+  /**
+   * 带去重的统一上传逻辑
+   */
+  private async uploadWithDeduplication(
+    fileType: FileType,
+    filename: string,
+    buffer: Buffer,
+    getFilePath: (fname: string) => string,
+    getFileUrl: (fname: string) => string,
+  ): Promise<UploadResult> {
+    const hash = await this.computeFileHash(buffer);
 
-    return { url: getStreamerPosterUrl(filename) };
+    const existing = await this.databaseService.findFileByHash(hash);
+    if (existing) {
+      this.logger.log(`File already exists (${fileType}), reusing: ${existing.file_path} (hash: ${hash})`);
+      return { url: getFileUrl(path.basename(existing.file_path)), reused: true };
+    }
+
+    const filePath = getFilePath(filename);
+    await this.ensureDir(path.dirname(filePath));
+    await fs.promises.writeFile(filePath, buffer);
+
+    await this.databaseService.recordFileHash(hash, filePath, fileType);
+
+    this.logger.log(`File uploaded (${fileType}): ${filename} (hash: ${hash})`);
+    return { url: getFileUrl(filename) };
   }
 
   /**
@@ -134,6 +152,7 @@ export class UploadService {
             const filePath = path.join(dir, file);
             try {
               await fs.promises.unlink(filePath);
+              await this.databaseService.deleteFileHashByPath(filePath);
               result.deletedFiles.push(fileUrl);
               result.orphanedFiles++;
               this.logger.log(`Deleted orphaned file: ${fileUrl}`);

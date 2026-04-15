@@ -252,6 +252,7 @@ export interface Streamer {
   liveUrl: string;
   streamerType: StreamerType;
   isStar: boolean;
+  sortOrder?: number;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -272,6 +273,7 @@ export interface UpdateStreamerRequest {
   liveUrl?: string;
   streamerType?: StreamerType;
   isStar?: boolean;
+  sortOrder?: number;
 }
 
 /**

@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { VideoPlayer, type VideoItem } from './VideoPlayer';
 import { VideoThumbnail } from './VideoThumbnail';
 import { ControlArrows } from './ControlArrows';
@@ -44,6 +44,24 @@ export const VideoCarousel: React.FC<VideoCarouselProps> = ({ videos }) => {
     threshold: 50,
   });
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        goToPrev();
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        goToNext();
+      }
+    };
+
+    const carouselElement = document.querySelector('[data-testid="video-carousel"]');
+    if (carouselElement) {
+      carouselElement.addEventListener('keydown', handleKeyDown);
+      return () => carouselElement.removeEventListener('keydown', handleKeyDown);
+    }
+  }, [goToNext, goToPrev]);
+
   if (videos.length === 0) {
     return (
       <div className="w-full h-full bg-gray-900 flex items-center justify-center">
@@ -53,7 +71,8 @@ export const VideoCarousel: React.FC<VideoCarouselProps> = ({ videos }) => {
   }
 
   const currentVideo = videos[currentIndex];
-  const showControls = videos.length > 2;
+  const showThumbnails = videos.length > 2;
+  const showControls = videos.length > 1;
 
   const getPrevIndex = () => (currentIndex - 1 + videos.length) % videos.length;
   const getNextIndex = () => (currentIndex + 1) % videos.length;
@@ -75,7 +94,7 @@ export const VideoCarousel: React.FC<VideoCarouselProps> = ({ videos }) => {
         </div>
       ) : (
         <div className="flex-1 flex items-center gap-4 min-h-0">
-          {showControls && videos.length > 2 && (
+          {showThumbnails && (
             <div className="w-[20%] h-full flex items-center">
               <VideoThumbnail
                 video={videos[getPrevIndex()]}
@@ -86,7 +105,7 @@ export const VideoCarousel: React.FC<VideoCarouselProps> = ({ videos }) => {
             </div>
           )}
 
-          <div className="flex-1 relative max-w-[60%] h-full flex items-center">
+          <div className={`flex-1 relative h-full flex items-center ${showThumbnails ? 'max-w-[60%]' : 'max-w-full'}`}>
             <div className="w-full aspect-video bg-gray-900">
               <VideoPlayer video={currentVideo} autoplay />
             </div>
@@ -100,7 +119,7 @@ export const VideoCarousel: React.FC<VideoCarouselProps> = ({ videos }) => {
             )}
           </div>
 
-          {showControls && videos.length > 2 && (
+          {showThumbnails && (
             <div className="w-[20%] h-full flex items-center">
               <VideoThumbnail
                 video={videos[getNextIndex()]}

@@ -42,12 +42,28 @@ describe('VideoCarousel', () => {
     });
   });
 
-  it('hides controls when video count <= 2', () => {
-    const twoVideos = mockVideos.slice(0, 2);
-    render(<VideoCarousel videos={twoVideos} />);
+  it('hides controls when video count is 1', () => {
+    const oneVideo = mockVideos.slice(0, 1);
+    render(<VideoCarousel videos={oneVideo} />);
 
     expect(screen.queryByTestId('prev-arrow')).toBeNull();
     expect(screen.queryByTestId('next-arrow')).toBeNull();
+  });
+
+  it('shows controls when video count is 2', () => {
+    const twoVideos = mockVideos.slice(0, 2);
+    render(<VideoCarousel videos={twoVideos} />);
+
+    expect(screen.getByTestId('prev-arrow')).toBeInTheDocument();
+    expect(screen.getByTestId('next-arrow')).toBeInTheDocument();
+  });
+
+  it('hides thumbnails when video count <= 2', () => {
+    const twoVideos = mockVideos.slice(0, 2);
+    render(<VideoCarousel videos={twoVideos} />);
+
+    const thumbnails = screen.queryAllByTestId(/^thumbnail-/);
+    expect(thumbnails.length).toBe(0);
   });
 
   it('navigates to next video when next arrow is clicked', async () => {

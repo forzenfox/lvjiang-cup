@@ -254,6 +254,7 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
         live_url TEXT,
         streamer_type TEXT CHECK(streamer_type IN ('internal', 'guest')),
         is_star INTEGER DEFAULT 0,
+        sort_order INTEGER DEFAULT 0,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
       )
@@ -285,6 +286,25 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
       `CREATE UNIQUE INDEX IF NOT EXISTS idx_videos_bvid ON videos(bvid)`,
     );
 
+    // file_hashes 表（图片去重）
+    await run(
+      this.db,
+      `
+      CREATE TABLE IF NOT EXISTS file_hashes (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        hash TEXT NOT NULL UNIQUE,
+        file_path TEXT NOT NULL,
+        file_type TEXT NOT NULL CHECK(file_type IN ('avatar', 'logo', 'poster', 'cover')),
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `,
+    );
+
+    await run(
+      this.db,
+      `CREATE UNIQUE INDEX IF NOT EXISTS idx_file_hash ON file_hashes(hash)`,
+    );
+
     // 初始化 stream_info 和 advancement 的默认数据
     await this.initDefaultData();
 
@@ -310,12 +330,36 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     );
   }
 
+  // file_hashes 表操作方法
+  async findFileByHash(hash: string): Promise<{ hash: string; file_path: string; file_type: string } | undefined> {
+    return this.get<{ hash: string; file_path: string; file_type: string }>(
+      'SELECT hash, file_path, file_type FROM file_hashes WHERE hash = ?',
+      [hash],
+    );
+  }
+
+  async recordFileHash(hash: string, filePath: string, fileType: string): Promise<void> {
+    await this.run(
+      'INSERT INTO file_hashes (hash, file_path, file_type) VALUES (?, ?, ?)',
+      [hash, filePath, fileType],
+    );
+  }
+
+  async deleteFileHash(hash: string): Promise<void> {
+    await this.run('DELETE FROM file_hashes WHERE hash = ?', [hash]);
+  }
+
+  async deleteFileHashByPath(filePath: string): Promise<void> {
+    await this.run('DELETE FROM file_hashes WHERE file_path = ?', [filePath]);
+  }
+
   // 清空所有数据
   async clearAllData() {
     await run(this.db, 'DELETE FROM team_members');
     await run(this.db, 'DELETE FROM teams');
     await run(this.db, 'DELETE FROM matches');
     await run(this.db, 'DELETE FROM streamers');
+    await run(this.db, 'DELETE FROM file_hashes');
     await run(
       this.db,
       `UPDATE stream_info SET title = '', url = '', is_live = 0, updated_at = CURRENT_TIMESTAMP WHERE id = 1`,

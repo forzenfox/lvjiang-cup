@@ -98,10 +98,10 @@ export class VideosService {
     }
   }
 
-  private async downloadImage(url: string, destPath: string): Promise<void> {
+  private async downloadImageToBuffer(url: string): Promise<Buffer> {
     return new Promise((resolve, reject) => {
       const protocol = url.startsWith('https') ? https : http;
-      const file = fs.createWriteStream(destPath);
+      const chunks: Buffer[] = [];
 
       protocol.get(url, {
         headers: {
@@ -110,22 +110,18 @@ export class VideosService {
         },
       }, (response) => {
         if (response.statusCode !== 200) {
-          file.close();
-          fs.unlink(destPath, () => {});
           reject(new Error(`Failed to download image: ${response.statusCode}`));
           return;
         }
-        response.pipe(file);
-        file.on('finish', () => {
-          file.close();
-          resolve();
-        });
-      }).on('error', (err) => {
-        file.close();
-        fs.unlink(destPath, () => {});
-        reject(err);
-      });
+        response.on('data', (chunk: Buffer) => chunks.push(chunk));
+        response.on('end', () => resolve(Buffer.concat(chunks)));
+        response.on('error', reject);
+      }).on('error', reject);
     });
+  }
+
+  private async computeFileHash(buffer: Buffer): Promise<string> {
+    return crypto.createHash('md5').update(buffer).digest('hex');
   }
 
   private async ensureCoverDir(): Promise<string> {
@@ -141,13 +137,22 @@ export class VideosService {
 
     await this.ensureCoverDir();
 
+    const coverBuffer = await this.downloadImageToBuffer(meta.coverUrl);
+    const hash = await this.computeFileHash(coverBuffer);
+
+    const existing = await this.databaseService.findFileByHash(hash);
+    if (existing) {
+      this.logger.log(`Cover already exists for ${bvid}, reusing: ${existing.file_path} (hash: ${hash})`);
+      return path.basename(existing.file_path);
+    }
+
     const filename = `${crypto.randomUUID()}.jpg`;
     const coverPath = getVideoCoverPath(filename);
+    await fs.promises.writeFile(coverPath, coverBuffer);
 
-    await this.downloadImage(meta.coverUrl, coverPath);
+    await this.databaseService.recordFileHash(hash, coverPath, 'cover');
 
-    this.logger.log(`Cover downloaded for ${bvid}: ${filename}`);
-
+    this.logger.log(`Cover downloaded for ${bvid}: ${filename} (hash: ${hash})`);
     return filename;
   }
 
@@ -158,6 +163,7 @@ export class VideosService {
       const coverPath = getVideoCoverPath(coverFilename);
       if (fs.existsSync(coverPath)) {
         fs.unlinkSync(coverPath);
+        await this.databaseService.deleteFileHashByPath(coverPath);
         this.logger.log(`Cover deleted: ${coverFilename}`);
       }
     } catch (error) {

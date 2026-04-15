@@ -15,6 +15,7 @@ export interface Streamer {
   liveUrl: string;
   streamerType: StreamerType;
   isStar: boolean;
+  sortOrder: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -35,6 +36,11 @@ export interface UpdateStreamerDto {
   liveUrl?: string;
   streamerType?: StreamerType;
   isStar?: boolean;
+  sortOrder?: number;
+}
+
+export interface UpdateStreamerSortDto {
+  orders: { id: string; sortOrder: number }[];
 }
 
 interface StreamerRow {
@@ -45,6 +51,7 @@ interface StreamerRow {
   live_url: string;
   streamer_type: string;
   is_star: number;
+  sort_order: number;
   created_at: string;
   updated_at: string;
 }
@@ -70,6 +77,7 @@ export class StreamersService {
       liveUrl: row.live_url,
       streamerType: row.streamer_type as StreamerType,
       isStar: Boolean(row.is_star),
+      sortOrder: row.sort_order ?? 0,
       createdAt: new Date(row.created_at),
       updatedAt: new Date(row.updated_at),
     };
@@ -82,7 +90,7 @@ export class StreamersService {
     }
 
     const rows = await this.databaseService.all<StreamerRow>(
-      'SELECT * FROM streamers ORDER BY created_at DESC',
+      'SELECT * FROM streamers ORDER BY sort_order ASC, created_at DESC',
     );
 
     const streamers = rows.map(row => this.mapRowToStreamer(row));
@@ -171,6 +179,10 @@ export class StreamersService {
       updates.push('is_star = ?');
       params.push(updateStreamerDto.isStar ? 1 : 0);
     }
+    if (updateStreamerDto.sortOrder !== undefined) {
+      updates.push('sort_order = ?');
+      params.push(updateStreamerDto.sortOrder);
+    }
 
     if (updates.length > 0) {
       updates.push('updated_at = ?');
@@ -196,6 +208,19 @@ export class StreamersService {
     await this.findOne(id);
     await this.databaseService.run('DELETE FROM streamers WHERE id = ?', [id]);
     this.invalidateCache(id);
+  }
+
+  async updateSort(updateStreamerSortDto: UpdateStreamerSortDto): Promise<void> {
+    const { orders } = updateStreamerSortDto;
+
+    for (const order of orders) {
+      await this.databaseService.run(
+        'UPDATE streamers SET sort_order = ?, updated_at = ? WHERE id = ?',
+        [order.sortOrder, new Date().toISOString(), order.id],
+      );
+    }
+
+    this.invalidateCache();
   }
 
   private invalidateCache(id?: string): void {

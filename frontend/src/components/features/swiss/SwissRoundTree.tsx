@@ -168,7 +168,7 @@ const SwissRoundTree: React.FC<SwissRoundTreeProps> = ({
     <div className={className} data-testid={testId}>
       {/* BO1/BO3 切换标签 - 方案C：模拟官方3:1宽度比例设计 + 下划线效果 */}
       <div
-        className="relative mb-4 mx-auto"
+        className="relative mb-2 mx-auto"
         style={{
           width: `${visibleWidth}px`,
         }}

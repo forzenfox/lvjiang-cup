@@ -10,7 +10,7 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
-import { StreamersService, CreateStreamerDto, UpdateStreamerDto } from './streamers.service';
+import { StreamersService, CreateStreamerDto, UpdateStreamerDto, UpdateStreamerSortDto } from './streamers.service';
 
 @ApiTags('streamers')
 @Controller('streamers')
@@ -49,5 +49,12 @@ export class StreamersController {
   @ApiOperation({ summary: '删除主播' })
   async remove(@Param('id') id: string) {
     return this.streamersService.remove(id);
+  }
+
+  @Patch('sort')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: '批量更新主播排序' })
+  async updateSort(@Body() updateStreamerSortDto: UpdateStreamerSortDto) {
+    return this.streamersService.updateSort(updateStreamerSortDto);
   }
 }

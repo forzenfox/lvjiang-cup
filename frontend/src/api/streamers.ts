@@ -1,6 +1,11 @@
 import apiClient from './axios';
 import type { Streamer, CreateStreamerRequest, UpdateStreamerRequest } from './types';
 
+export interface StreamerOrder {
+  id: string;
+  sortOrder: number;
+}
+
 export const streamersApi = {
   async getAll(): Promise<Streamer[]> {
     const response = await apiClient.get('/streamers');
@@ -24,6 +29,10 @@ export const streamersApi = {
 
   async remove(id: string): Promise<void> {
     await apiClient.delete(`/streamers/${id}`);
+  },
+
+  async updateSort(orders: StreamerOrder[]): Promise<void> {
+    await apiClient.patch('/streamers/sort', { orders });
   },
 };
 
