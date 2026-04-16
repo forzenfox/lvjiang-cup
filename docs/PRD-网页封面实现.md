@@ -71,8 +71,10 @@ graph TD
 
 ### 4.1 设计风格
 
-- **整体风格**: 仿照 LPL 官方 Worlds 2025 封面
+- **整体风格**: 结合 LPL 官方 Worlds 2025 封面风格，与当前项目暗黑主题保持一致
 - **背景**: 纯黑色全屏
+- **主色调**: 深蓝色 (`#1E3A8A`) 和金色 (`#F59E0B`)
+- **视觉效果**: 发光效果、渐变文字、磨砂玻璃效果
 - **动画**: 流畅过渡，无卡顿
 - **响应式**: PC 端和移动端分别适配
 
@@ -98,8 +100,8 @@ graph TD
 |------|------|
 | 背景图 1 | 赛事主题背景图，居中覆盖 |
 | 背景图 2 | 另一张赛事主题背景图，居中覆盖 |
-| 主文案图 | "争者留其名" 或自定义赛事 slogan |
-| Logo 图 | Worlds 2025 或驴酱杯 Logo |
+| 主文案图 | "博至武汉" 赛事主题 slogan |
+| Logo 图 | 驴酱杯 Logo |
 | 滚动箭头 | 向下箭头，1.6s 周期弹跳动画 |
 
 ### 4.4 动画效果
@@ -221,13 +223,13 @@ const triggerExit = () => {
 
 | 资源 | URL（临时） | 用途 |
 |------|------------|------|
-| start-bg1.jpg | `//game.gtimg.cn/images/lpl/act/a20250822s15/start-bg1.jpg` | 封面上半部分背景图1 |
-| start-bg2.jpg | `//game.gtimg.cn/images/lpl/act/a20250822s15/start-bg2.jpg` | 封面上半部分背景图2 |
-| start-box-pic1.png | `//game.gtimg.cn/images/lpl/act/a20250822s15/start-box-pic1.png` | 主文案图（PC） |
-| start-box-pic2.png | `//game.gtimg.cn/images/lpl/act/a20250822s15/start-box-pic2.png` | Logo（PC） |
-| glide-tip.png | `//game.gtimg.cn/images/lpl/act/a20250822s15/glide-tip.png` | 向下滚动提示箭头 |
-| m/start-box-pic1.png | `//game.gtimg.cn/images/lpl/act/a20250822s15/m/start-box-pic1.png` | 主文案图（移动端） |
-| m/start-box-pic2.png | `//game.gtimg.cn/images/lpl/act/a20250822s15/m/start-box-pic2.png` | Logo（移动端） |
+| start-bg1.jpg | `//game.gtimg.cn/images/lpl/act/a20250822s15/start-bg1.jpg` | 封面上半部分背景图1（临时） |
+| start-bg2.jpg | `//game.gtimg.cn/images/lpl/act/a20250822s15/start-bg2.jpg` | 封面上半部分背景图2（临时） |
+| start-box-pic1.png | `//game.gtimg.cn/images/lpl/act/a20250822s15/start-box-pic1.png` | 主文案图 "博至武汉"（PC，临时） |
+| start-box-pic2.png | `//game.gtimg.cn/images/lpl/act/a20250822s15/start-box-pic2.png` | 驴酱杯 Logo（PC，临时） |
+| glide-tip.png | `//game.gtimg.cn/images/lpl/act/a20250822s15/glide-tip.png` | 向下滚动提示箭头（临时） |
+| m/start-box-pic1.png | `//game.gtimg.cn/images/lpl/act/a20250822s15/m/start-box-pic1.png` | 主文案图 "博至武汉"（移动端，临时） |
+| m/start-box-pic2.png | `//game.gtimg.cn/images/lpl/act/a20250822s15/m/start-box-pic2.png` | 驴酱杯 Logo（移动端，临时） |
 
 &gt; **注意**: 以上为临时使用官方图片，后续需要替换为自有版权图片。
 
@@ -332,6 +334,13 @@ return (
 ---
 
 ## 10. 更新日志
+
+### v1.2 (2026-04-16)
+- 更新主文案图：将 "争者留其名" 改为 "博至武汉"
+- 优化UI设计风格：与当前项目暗黑主题保持一致
+- 明确主色调：深蓝色 (`#1E3A8A`) 和金色 (`#F59E0B`)
+- 添加视觉效果描述：发光效果、渐变文字、磨砂玻璃效果
+- 更新图片资源清单描述
 
 ### v1.1 (2026-04-16)
 - 优化封面显示逻辑：每次页面加载（包括刷新）都显示封面
