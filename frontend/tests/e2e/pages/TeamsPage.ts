@@ -478,4 +478,46 @@ export class TeamsPage {
     await this.refresh();
     await this.page.waitForTimeout(1000);
   }
+
+  /**
+   * 点击下载模板按钮
+   */
+  async clickDownloadTemplateButton(): Promise<void> {
+    const templateButton = this.page.getByTestId('download-template-button');
+    if (await templateButton.isVisible().catch(() => false)) {
+      await templateButton.click();
+    } else {
+      const button = this.page.getByRole('button', { name: '下载模板' });
+      await button.click();
+    }
+  }
+
+  /**
+   * 点击批量导入按钮
+   */
+  async clickBatchImportButton(): Promise<void> {
+    const importButton = this.page.getByTestId('batch-import-button');
+    if (await importButton.isVisible().catch(() => false)) {
+      await importButton.click();
+    } else {
+      const button = this.page.getByRole('button', { name: '批量导入' });
+      await button.click();
+    }
+  }
+
+  /**
+   * 验证下载模板按钮存在
+   */
+  async expectDownloadTemplateButtonVisible(): Promise<void> {
+    const button = this.page.getByTestId('download-template-button');
+    await expect(button).toBeVisible();
+  }
+
+  /**
+   * 验证批量导入按钮存在
+   */
+  async expectBatchImportButtonVisible(): Promise<void> {
+    const button = this.page.getByTestId('batch-import-button');
+    await expect(button).toBeVisible();
+  }
 }

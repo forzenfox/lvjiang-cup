@@ -123,6 +123,33 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     return this.db;
   }
 
+  async begin(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this.db.run('BEGIN TRANSACTION', (err) => {
+        if (err) reject(err);
+        else resolve();
+      });
+    });
+  }
+
+  async commit(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this.db.run('COMMIT', (err) => {
+        if (err) reject(err);
+        else resolve();
+      });
+    });
+  }
+
+  async rollback(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this.db.run('ROLLBACK', (err) => {
+        if (err) reject(err);
+        else resolve();
+      });
+    });
+  }
+
   // 包装方法供其他服务使用
   async run(sql: string, params: any[] = []): Promise<RunResult> {
     return run(this.db, sql, params);

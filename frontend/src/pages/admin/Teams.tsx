@@ -6,13 +6,16 @@ import { uploadTeamLogo } from '@/api/teams';
 import type { Team, Player, CreateTeamRequest, UpdateTeamRequest, PlayerLevel } from '@/api/types';
 import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
-import { Plus, Trash2, Edit2, Save, RefreshCw, Users, Upload as UploadIcon, X } from 'lucide-react';
+import { Plus, Trash2, Edit2, Save, RefreshCw, Users, Upload as UploadIcon, X, Download } from 'lucide-react';
 import { toast } from 'sonner';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { getPositionLabel } from '@/utils/position';
 import { PositionType } from '@/types/position';
 import HeroSelector from '@/components/team/HeroSelector';
 import { getLevelBadgeClasses, getCaptainBadgeClasses } from '@/utils/levelColors';
+import { ImportDialog, ImportResultDialog } from '@/components/import';
+import { downloadTemplate } from '@/api/teams-import';
+import type { ImportResult } from '@/api/teams-import';
 
 interface MemberFormData {
   avatarUrl?: string;
@@ -123,6 +126,11 @@ const AdminTeams: React.FC = () => {
   // 英雄选择器状态
   const [isHeroSelectorOpen, setIsHeroSelectorOpen] = useState(false);
 
+  // 导入对话框状态
+  const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
+  const [isImportResultDialogOpen, setIsImportResultDialogOpen] = useState(false);
+  const [importResult, setImportResult] = useState<ImportResult | null>(null);
+
   useEffect(() => {
     if (!hasLoaded) {
       loadTeams();
@@ -159,6 +167,38 @@ const AdminTeams: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // 下载模板
+  const handleDownloadTemplate = async () => {
+    try {
+      const blob = await downloadTemplate();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `驴酱杯_战队导入模板_${new Date().toISOString().slice(0, 10).replace(/-/g, '')}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+      toast.success('模板下载成功');
+    } catch (error) {
+      console.error('Failed to download template:', error);
+      toast.error('模板下载失败');
+    }
+  };
+
+  // 导入成功回调
+  const handleImportSuccess = (result: ImportResult) => {
+    setImportResult(result);
+    setIsImportResultDialogOpen(true);
+  };
+
+  // 导入对话框关闭后刷新
+  const handleImportResultClose = () => {
+    setIsImportResultDialogOpen(false);
+    setImportResult(null);
+    loadTeams();
   };
 
   // ==================== 垂直列表展开方案：新增函数 ====================
@@ -471,6 +511,23 @@ const AdminTeams: React.FC = () => {
             data-testid="add-team-button"
           >
             <Plus className="w-4 h-4 mr-2" /> 添加战队
+          </Button>
+          <Button
+            variant="outline"
+            onClick={handleDownloadTemplate}
+            data-testid="download-template-button"
+            className="border-gray-600 text-gray-300 hover:bg-gray-700"
+          >
+            <Download className="w-4 h-4 mr-2" />
+            下载模板
+          </Button>
+          <Button
+            onClick={() => setIsImportDialogOpen(true)}
+            data-testid="batch-import-button"
+            className="bg-gradient-to-r from-yellow-400 to-yellow-600 text-black border-yellow-300 hover:shadow-[0_0_15px_rgba(250,204,21,0.5)]"
+          >
+            <UploadIcon className="w-4 h-4 mr-2" />
+            批量导入
           </Button>
         </div>
       </div>
@@ -1306,6 +1363,20 @@ const AdminTeams: React.FC = () => {
           setIsDeleteDialogOpen(false);
           setTeamToDelete(null);
         }}
+      />
+
+      {/* 批量导入对话框 */}
+      <ImportDialog
+        open={isImportDialogOpen}
+        onClose={() => setIsImportDialogOpen(false)}
+        onSuccess={handleImportSuccess}
+      />
+
+      {/* 导入结果对话框 */}
+      <ImportResultDialog
+        open={isImportResultDialogOpen}
+        onClose={handleImportResultClose}
+        result={importResult}
       />
     </AdminLayout>
   );
