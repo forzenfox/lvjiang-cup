@@ -69,15 +69,24 @@ async function createTestExcel() {
   for (const team of teams) {
     const { teamName, logoUrl, battleCry, members } = team;
 
-    for (const member of members) {
+    for (let i = 0; i < members.length; i++) {
+      const member = members[i];
       const position = POSITION_MAP[member.position] || member.position;
       const championPool = Array.isArray(member.championPool)
         ? member.championPool.join(',')
         : (member.championPool || '');
 
-      sheet.getCell(1, rowNum).value = teamName;
-      sheet.getCell(2, rowNum).value = logoUrl || '';
-      sheet.getCell(3, rowNum).value = battleCry || '';
+      // 战队信息只在第1行（i === 0）填写，后续4行留空
+      if (i === 0) {
+        sheet.getCell(1, rowNum).value = teamName;
+        sheet.getCell(2, rowNum).value = logoUrl || '';
+        sheet.getCell(3, rowNum).value = battleCry || '';
+      } else {
+        sheet.getCell(1, rowNum).value = '';
+        sheet.getCell(2, rowNum).value = '';
+        sheet.getCell(3, rowNum).value = '';
+      }
+
       sheet.getCell(4, rowNum).value = position;
       sheet.getCell(5, rowNum).value = member.nickname;
       sheet.getCell(6, rowNum).value = member.gameId || '';
