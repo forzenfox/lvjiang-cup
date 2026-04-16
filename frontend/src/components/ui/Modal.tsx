@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { createPortal } from 'react-dom';
 import { cn } from '../../lib/utils';
+import { ZIndexLayers } from '../../constants/zIndex';
 
 export interface ModalProps {
   visible: boolean;
@@ -36,7 +37,7 @@ const Modal: React.FC<ModalProps> = ({ visible, onClose, title, children, classN
 
   const modalContent = (
     <div
-      className="fixed z-[100] flex items-center justify-center"
+      className="fixed flex items-center justify-center"
       style={{
         top: 0,
         left: 0,
@@ -44,6 +45,7 @@ const Modal: React.FC<ModalProps> = ({ visible, onClose, title, children, classN
         bottom: 0,
         width: '100vw',
         height: '100vh',
+        zIndex: ZIndexLayers.MODAL_OVERLAY,
       }}
     >
       {/* 黑色遮罩背景 */}
@@ -56,13 +58,14 @@ const Modal: React.FC<ModalProps> = ({ visible, onClose, title, children, classN
       {/* 弹框内容 */}
       <div
         className={cn(
-          'relative z-[101] bg-gray-900 border border-gray-700 rounded-xl shadow-2xl',
+          'relative bg-gray-900 border border-gray-700 rounded-xl shadow-2xl',
           'animate-in zoom-in-95 fade-in duration-200',
           'w-full max-w-lg mx-4',
           className
         )}
         style={{
           maxHeight: '90vh',
+          zIndex: ZIndexLayers.MODAL,
         }}
         role="dialog"
         aria-modal="true"

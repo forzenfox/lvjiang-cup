@@ -3,12 +3,10 @@ import {
   Get,
   Post,
   Body,
-  Param,
   UseGuards,
   UseInterceptors,
   UploadedFile,
   Res,
-  StreamableFile,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiConsumes } from '@nestjs/swagger';
@@ -27,34 +25,32 @@ export class TeamsImportController {
 
   @Get('template')
   @ApiOperation({ summary: '下载战队导入模板' })
-  async downloadTemplate(@Res({ passthrough: true }) res: Response): Promise<StreamableFile> {
+  async downloadTemplate(@Res() res: Response) {
     const templatePath = await this.teamsImportService.generateTemplate();
 
     const fileName = `驴酱杯_战队导入模板_${new Date().toISOString().slice(0, 10).replace(/-/g, '')}.xlsx`;
+
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename*=UTF-8''${encodeURIComponent(fileName)}`);
+    res.setHeader('Content-Length', fs.statSync(templatePath).size.toString());
+
     const fileStream = fs.createReadStream(templatePath);
-
-    res.set({
-      'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      'Content-Disposition': `attachment; filename*=UTF-8''${encodeURIComponent(fileName)}`,
-    });
-
-    return new StreamableFile(fileStream);
+    fileStream.pipe(res);
   }
 
   @Get('template/refresh')
   @ApiOperation({ summary: '刷新战队导入模板（删除旧模板并重新生成）' })
-  async refreshTemplate(@Res({ passthrough: true }) res: Response): Promise<StreamableFile> {
+  async refreshTemplate(@Res() res: Response) {
     const templatePath = await this.teamsImportService.refreshTemplate();
 
     const fileName = `驴酱杯_战队导入模板_${new Date().toISOString().slice(0, 10).replace(/-/g, '')}.xlsx`;
+
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename*=UTF-8''${encodeURIComponent(fileName)}`);
+    res.setHeader('Content-Length', fs.statSync(templatePath).size.toString());
+
     const fileStream = fs.createReadStream(templatePath);
-
-    res.set({
-      'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      'Content-Disposition': `attachment; filename*=UTF-8''${encodeURIComponent(fileName)}`,
-    });
-
-    return new StreamableFile(fileStream);
+    fileStream.pipe(res);
   }
 
   @Post()
@@ -74,8 +70,8 @@ export class TeamsImportController {
   @ApiOperation({ summary: '下载导入错误报告' })
   async downloadErrorReport(
     @Body() errorReport: { errors: ImportErrorDto[] },
-    @Res({ passthrough: true }) res: Response,
-  ): Promise<StreamableFile> {
+    @Res() res: Response,
+  ) {
     const { errors } = errorReport;
 
     if (!errors || !Array.isArray(errors) || errors.length === 0) {
@@ -83,13 +79,13 @@ export class TeamsImportController {
     }
 
     const reportPath = await this.teamsImportService.generateErrorReport(errors);
+    const reportName = `驴酱杯_导入错误报告_${new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)}.xlsx`;
+
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename*=UTF-8''${encodeURIComponent(reportName)}`);
+    res.setHeader('Content-Length', fs.statSync(reportPath).size.toString());
+
     const fileStream = fs.createReadStream(reportPath);
-
-    res.set({
-      'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      'Content-Disposition': 'attachment',
-    });
-
-    return new StreamableFile(fileStream);
+    fileStream.pipe(res);
   }
 }

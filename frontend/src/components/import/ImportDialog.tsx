@@ -93,11 +93,7 @@ export const ImportDialog: React.FC<ImportDialogProps> = ({ open, onClose, onSuc
   };
 
   return (
-    <Modal
-      visible={open}
-      onClose={handleClose}
-      title="批量导入战队"
-    >
+    <Modal visible={open} onClose={handleClose} title="批量导入战队">
       <div className="space-y-4">
         <div className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-lg">
           <div className="flex items-start gap-3">
@@ -115,9 +111,7 @@ export const ImportDialog: React.FC<ImportDialogProps> = ({ open, onClose, onSuc
 
         <div
           className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-            dragging
-              ? 'border-blue-500 bg-blue-500/10'
-              : 'border-gray-600 hover:border-gray-500'
+            dragging ? 'border-blue-500 bg-blue-500/10' : 'border-gray-600 hover:border-gray-500'
           }`}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
@@ -128,14 +122,9 @@ export const ImportDialog: React.FC<ImportDialogProps> = ({ open, onClose, onSuc
               <FileText className="w-8 h-8 text-blue-400" />
               <div className="text-left">
                 <p className="text-white font-medium">{file.name}</p>
-                <p className="text-gray-400 text-sm">
-                  {(file.size / 1024 / 1024).toFixed(2)} MB
-                </p>
+                <p className="text-gray-400 text-sm">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
               </div>
-              <button
-                onClick={() => setFile(null)}
-                className="p-1 hover:bg-white/10 rounded"
-              >
+              <button onClick={() => setFile(null)} className="p-1 hover:bg-white/10 rounded">
                 <X className="w-5 h-5 text-gray-400" />
               </button>
             </div>

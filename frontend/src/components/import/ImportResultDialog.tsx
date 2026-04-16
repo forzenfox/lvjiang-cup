@@ -11,7 +11,11 @@ interface ImportResultDialogProps {
   result: ImportResult | null;
 }
 
-export const ImportResultDialog: React.FC<ImportResultDialogProps> = ({ open, onClose, result }) => {
+export const ImportResultDialog: React.FC<ImportResultDialogProps> = ({
+  open,
+  onClose,
+  result,
+}) => {
   if (!result) return null;
 
   const hasErrors = result.errors && result.errors.length > 0;
@@ -39,11 +43,7 @@ export const ImportResultDialog: React.FC<ImportResultDialogProps> = ({ open, on
   };
 
   return (
-    <Modal
-      visible={open}
-      onClose={handleClose}
-      title="导入结果"
-    >
+    <Modal visible={open} onClose={handleClose} title="导入结果">
       <div className="space-y-4">
         {isSuccess ? (
           <div className="p-4 bg-green-500/10 border border-green-500/20 rounded-lg">
@@ -99,7 +99,9 @@ export const ImportResultDialog: React.FC<ImportResultDialogProps> = ({ open, on
                 </p>
                 <ul className="mt-2 space-y-1 text-sm text-blue-200/80 max-h-32 overflow-y-auto">
                   {result.externalUrlItems.map((item, idx) => (
-                    <li key={idx} className="break-all">{item}</li>
+                    <li key={idx} className="break-all">
+                      {item}
+                    </li>
                   ))}
                 </ul>
               </div>

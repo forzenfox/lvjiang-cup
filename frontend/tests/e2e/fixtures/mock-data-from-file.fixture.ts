@@ -28,7 +28,6 @@ export const mockDataFixtures = base.extend<MockDataFixtures>({
     swissAdvancement,
   },
 
-   
   /* eslint-disable react-hooks/rules-of-hooks */
   loadMockData: async ({}, use) => {
     const loadFn = async (page: Page) => {

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Button } from './button';
 import { AlertTriangle } from 'lucide-react';
+import { ZIndexLayers } from '../../constants/zIndex';
 
 interface ConfirmDialogProps {
   isOpen: boolean;
@@ -27,7 +28,8 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
     <div
       role="alertdialog"
       aria-modal="true"
-      className="fixed inset-0 z-50 flex items-center justify-center"
+      className="fixed inset-0 flex items-center justify-center"
+      style={{ zIndex: ZIndexLayers.CONFIRM_DIALOG }}
     >
       {/* 背景遮罩 */}
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onCancel} />

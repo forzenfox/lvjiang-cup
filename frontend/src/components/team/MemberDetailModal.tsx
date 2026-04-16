@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import MemberCard, { TeamMember } from './MemberCard';
+import { ZIndexLayers } from '@/constants/zIndex';
 
 interface MemberDetailModalProps {
   visible: boolean;
@@ -38,7 +39,10 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({ visible, onClose,
   if (!visible) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div
+      className="fixed inset-0 flex items-center justify-center p-4"
+      style={{ zIndex: ZIndexLayers.MODAL_OVERLAY }}
+    >
       {/* 黑色遮罩背景 */}
       <div
         className="absolute inset-0 bg-black/80 backdrop-blur-sm"
@@ -51,12 +55,13 @@ const MemberDetailModal: React.FC<MemberDetailModalProps> = ({ visible, onClose,
 
       {/* 弹框内容 */}
       <div
-        className="relative z-50 w-full max-w-3xl mx-4 rounded-2xl overflow-hidden"
+        className="relative w-full max-w-3xl mx-4 rounded-2xl overflow-hidden"
         style={{
           background: '#0F172A',
           boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
           maxHeight: '600px',
           animation: 'slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+          zIndex: ZIndexLayers.MODAL,
         }}
         role="dialog"
         aria-modal="true"

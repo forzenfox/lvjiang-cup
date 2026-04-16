@@ -8,6 +8,7 @@ import { Card } from '../../components/ui/card';
 import { Plus, Trash2, Edit2, Save, RefreshCw, User, GripVertical } from 'lucide-react';
 import { toast } from 'sonner';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { ZIndexLayers } from '@/constants/zIndex';
 import {
   DndContext,
   closestCenter,
@@ -88,7 +89,7 @@ const SortableStreamerCard: React.FC<SortableStreamerCardProps> = ({
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : 1,
-    zIndex: isDragging ? 1000 : 1,
+    zIndex: isDragging ? ZIndexLayers.DRAGGING : 1,
   };
 
   return (

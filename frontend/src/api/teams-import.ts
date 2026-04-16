@@ -54,9 +54,13 @@ export async function importTeams(file: File): Promise<ImportResult> {
 }
 
 export async function downloadErrorReport(errors: ImportError[]): Promise<Blob> {
-  const response = await apiClient.post<Blob>('/admin/teams/import/error-report', { errors }, {
-    responseType: 'blob',
-  });
+  const response = await apiClient.post<Blob>(
+    '/admin/teams/import/error-report',
+    { errors },
+    {
+      responseType: 'blob',
+    }
+  );
   return response.data;
 }
 

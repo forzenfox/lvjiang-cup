@@ -3,6 +3,7 @@ import { getChampionIconUrl } from '../../utils/championUtils';
 import type { PlayerLevel } from '../../api/types';
 import { getLevelBadgeClasses, getCaptainBadgeClasses } from '../../utils/levelColors';
 import { getUploadUrl } from '@/utils/upload';
+import { ZIndexLayers } from '@/constants/zIndex';
 
 interface MemberCardProps {
   member: TeamMember;
@@ -87,11 +88,12 @@ const ChampionHover: React.FC<{ championName: string }> = ({ championName }) => 
       </span>
       {isVisible && iconUrl && (
         <div
-          className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-50 pointer-events-none"
+          className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 pointer-events-none"
           style={{
             opacity: 1,
             transform: 'translateX(-50%) translateY(0)',
             transition: 'opacity 0.2s ease, transform 0.2s ease',
+            zIndex: ZIndexLayers.DROPDOWN,
           }}
         >
           <div

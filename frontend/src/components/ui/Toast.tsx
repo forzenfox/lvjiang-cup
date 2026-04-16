@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { cn } from '../../lib/utils';
+import { ZIndexLayers } from '../../constants/zIndex';
 
 export interface ToastProps {
   id: string;
@@ -133,7 +134,10 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     <ToastContext.Provider value={{ toasts, addToast, removeToast }}>
       {children}
       {/* Toast 容器 - 固定在右下角 */}
-      <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2">
+      <div
+        className="fixed bottom-4 right-4 flex flex-col gap-2"
+        style={{ zIndex: ZIndexLayers.TOAST }}
+      >
         {toasts.map(toast => (
           <Toast key={toast.id} {...toast} onClose={removeToast} />
         ))}

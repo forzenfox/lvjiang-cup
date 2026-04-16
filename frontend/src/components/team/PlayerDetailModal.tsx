@@ -5,6 +5,7 @@ import { PositionType } from '@/types/position';
 import { getChampionIconUrl } from '@/utils/championUtils';
 import { getLevelBadgeClasses, getCaptainBadgeClasses } from '@/utils/levelColors';
 import { getUploadUrl } from '@/utils/upload';
+import { ZIndexLayers } from '@/constants/zIndex';
 
 interface PlayerDetailModalProps {
   player: Player;
@@ -114,11 +115,12 @@ export const PlayerDetailModal: React.FC<PlayerDetailModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 flex items-center justify-center p-4"
       data-testid="player-detail-modal"
       role="dialog"
       aria-modal="true"
       aria-labelledby="player-modal-title"
+      style={{ zIndex: ZIndexLayers.MODAL_OVERLAY }}
     >
       <div
         className="absolute inset-0 bg-black/80 backdrop-blur-sm"
@@ -129,12 +131,13 @@ export const PlayerDetailModal: React.FC<PlayerDetailModalProps> = ({
       />
 
       <div
-        className="relative z-50 w-full max-w-lg mx-4 rounded-2xl overflow-hidden"
+        className="relative w-full max-w-lg mx-4 rounded-2xl overflow-hidden"
         style={{
           background: 'linear-gradient(145deg, #0F172A 0%, #1E293B 100%)',
           boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 30px rgba(251, 191, 36, 0.1)',
           animation: 'slideUp 0.2s ease-out',
           maxHeight: '90vh',
+          zIndex: ZIndexLayers.MODAL,
         }}
       >
         <div

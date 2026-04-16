@@ -8,6 +8,7 @@ import StreamerSection from '../components/features/StreamerSection';
 import { VideoCarousel, VideoItem } from '../components/video-carousel';
 import { streamService, teamService, matchService, advancementService } from '../services';
 import * as videoApi from '../api/videos';
+import { ZIndexLayers } from '../constants/zIndex';
 
 /**
  * 首页数据加载状态
@@ -33,7 +34,10 @@ const GlobalErrorToast: React.FC<{ message: string; onClose: () => void }> = ({
   message,
   onClose,
 }) => (
-  <div className="fixed top-4 right-4 z-50 bg-red-500/90 text-white px-6 py-4 rounded-lg shadow-lg flex items-center space-x-3 animate-in slide-in-from-top-2">
+  <div
+    className="fixed top-4 right-4 bg-red-500/90 text-white px-6 py-4 rounded-lg shadow-lg flex items-center space-x-3 animate-in slide-in-from-top-2"
+    style={{ zIndex: ZIndexLayers.TOAST }}
+  >
     <AlertCircle className="w-5 h-5" />
     <span>{message}</span>
     <button onClick={onClose} className="ml-2 hover:bg-white/20 rounded p-1">
@@ -48,7 +52,10 @@ const GlobalErrorToast: React.FC<{ message: string; onClose: () => void }> = ({
 const GlobalLoadingIndicator: React.FC<{ visible: boolean }> = ({ visible }) => {
   if (!visible) return null;
   return (
-    <div className="fixed bottom-4 right-4 z-50 bg-black/80 text-white px-4 py-2 rounded-lg shadow-lg flex items-center space-x-2">
+    <div
+      className="fixed bottom-4 right-4 bg-black/80 text-white px-4 py-2 rounded-lg shadow-lg flex items-center space-x-2"
+      style={{ zIndex: ZIndexLayers.TOAST }}
+    >
       <Loader2 className="w-4 h-4 animate-spin" />
       <span className="text-sm">数据更新中...</span>
     </div>

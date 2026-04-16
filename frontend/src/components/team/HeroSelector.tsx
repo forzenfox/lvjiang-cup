@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Search, X, Check } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { getChampionNameToEn } from '../../utils/championUtils';
+import { ZIndexLayers } from '../../constants/zIndex';
 
 export interface HeroSelectorProps {
   visible: boolean;
@@ -92,10 +93,10 @@ const HeroSelector: React.FC<HeroSelectorProps> = ({
       <div
         ref={containerRef}
         className={cn(
-          'absolute z-50 w-full mt-2 bg-[#0F172A] border border-white/10 rounded-xl shadow-xl',
+          'absolute w-full mt-2 bg-[#0F172A] border border-white/10 rounded-xl shadow-xl',
           'animate-in fade-in zoom-in-95 duration-150'
         )}
-        style={{ maxHeight: '320px' }}
+        style={{ maxHeight: '320px', zIndex: ZIndexLayers.DROPDOWN }}
       >
         <div className="sticky top-0 px-3 py-3 border-b border-white/10 bg-[#0F172A]">
           <div className="relative">

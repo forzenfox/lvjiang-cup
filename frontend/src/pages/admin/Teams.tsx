@@ -6,7 +6,17 @@ import { uploadTeamLogo } from '@/api/teams';
 import type { Team, Player, CreateTeamRequest, UpdateTeamRequest, PlayerLevel } from '@/api/types';
 import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
-import { Plus, Trash2, Edit2, Save, RefreshCw, Users, Upload as UploadIcon, X, Download } from 'lucide-react';
+import {
+  Plus,
+  Trash2,
+  Edit2,
+  Save,
+  RefreshCw,
+  Users,
+  Upload as UploadIcon,
+  X,
+  Download,
+} from 'lucide-react';
 import { toast } from 'sonner';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { getPositionLabel } from '@/utils/position';
@@ -15,7 +25,7 @@ import HeroSelector from '@/components/team/HeroSelector';
 import { getLevelBadgeClasses, getCaptainBadgeClasses } from '@/utils/levelColors';
 import { ImportDialog, ImportResultDialog } from '@/components/import';
 import { downloadTemplate } from '@/api/teams-import';
-import type { ImportResult } from '@/api/teams-import';
+import type { ImportResult } from '@/components/import';
 
 interface MemberFormData {
   avatarUrl?: string;
@@ -171,20 +181,29 @@ const AdminTeams: React.FC = () => {
 
   // 下载模板
   const handleDownloadTemplate = async () => {
+    const toastId = toast.loading('正在下载模板...');
+
     try {
       const blob = await downloadTemplate();
       const url = window.URL.createObjectURL(blob);
+      const fileName = `驴酱杯_战队导入模板_${new Date().toISOString().slice(0, 10).replace(/-/g, '')}.xlsx`;
+
       const a = document.createElement('a');
       a.href = url;
-      a.download = `驴酱杯_战队导入模板_${new Date().toISOString().slice(0, 10).replace(/-/g, '')}.xlsx`;
+      a.download = fileName;
       document.body.appendChild(a);
       a.click();
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
-      toast.success('模板下载成功');
+
+      // 延迟清理 DOM，给浏览器时间开始下载
+      setTimeout(() => {
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+      }, 500);
+
+      toast.success('模板已开始下载，请查看浏览器下载进度', { id: toastId });
     } catch (error) {
       console.error('Failed to download template:', error);
-      toast.error('模板下载失败');
+      toast.error('模板下载失败', { id: toastId });
     }
   };
 

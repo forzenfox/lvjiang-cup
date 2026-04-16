@@ -13,7 +13,7 @@ import { ImportTeamDto, ImportResultDto, ImportErrorDto } from '../dto/import';
 @Injectable()
 export class TeamsImportService {
   private readonly logger = new Logger(TeamsImportService.name);
-  private readonly TEMPLATE_DIR = '/app/templates';
+  private readonly TEMPLATE_DIR = path.join(process.cwd(), 'templates');
   private readonly TEMPLATE_FILE = 'team-import-template.xlsx';
   private readonly CACHE_KEY_ALL = 'teams:all';
   private readonly CACHE_KEY_PREFIX = 'team:';

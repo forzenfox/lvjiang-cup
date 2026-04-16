@@ -13,7 +13,9 @@ function getFixtureExcelPath(): string {
 function copyFixtureToTemp(tempDir: string): string {
   const fixturePath = getFixtureExcelPath();
   if (!fs.existsSync(fixturePath)) {
-    throw new Error(`Fixture file not found: ${fixturePath}. Please run 'npm run generate:test-excel' in frontend directory first.`);
+    throw new Error(
+      `Fixture file not found: ${fixturePath}. Please run 'npm run generate:test-excel' in frontend directory first.`
+    );
   }
   const destPath = path.join(tempDir, `test_import_${Date.now()}.xlsx`);
   fs.copyFileSync(fixturePath, destPath);
@@ -137,8 +139,14 @@ test.describe('【导入功能】战队批量导入测试', () => {
 
     await page.waitForTimeout(3000);
 
-    const successVisible = await page.locator('text=导入成功').isVisible({ timeout: 10000 }).catch(() => false);
-    const partialVisible = await page.locator('text=部分成功').isVisible({ timeout: 10000 }).catch(() => false);
+    const successVisible = await page
+      .locator('text=导入成功')
+      .isVisible({ timeout: 10000 })
+      .catch(() => false);
+    const partialVisible = await page
+      .locator('text=部分成功')
+      .isVisible({ timeout: 10000 })
+      .catch(() => false);
 
     expect(successVisible || partialVisible).toBeTruthy();
     console.log(`✅ 导入结果展示成功`);
@@ -176,7 +184,10 @@ test.describe('【导入功能】战队批量导入测试', () => {
 
     await page.waitForTimeout(500);
 
-    const errorVisible = await page.locator('text=仅支持 .xlsx 格式').isVisible({ timeout: 3000 }).catch(() => false);
+    const errorVisible = await page
+      .locator('text=仅支持 .xlsx 格式')
+      .isVisible({ timeout: 3000 })
+      .catch(() => false);
     expect(errorVisible).toBeTruthy();
     console.log('✅ 前端校验：无效文件格式被正确拦截');
 
@@ -202,7 +213,10 @@ test.describe('【导入功能】战队批量导入测试', () => {
 
     await teamsPage.clickBatchImportButton();
 
-    const coverModeHint = await page.locator('text=覆盖模式').isVisible().catch(() => false);
+    const coverModeHint = await page
+      .locator('text=覆盖模式')
+      .isVisible()
+      .catch(() => false);
     expect(coverModeHint).toBeTruthy();
     console.log('✅ 覆盖模式提示可见');
 
@@ -218,7 +232,10 @@ test.describe('【导入功能】战队批量导入测试', () => {
 
     await page.waitForTimeout(3000);
 
-    const successVisible = await page.locator('text=导入成功').isVisible({ timeout: 10000 }).catch(() => false);
+    const successVisible = await page
+      .locator('text=导入成功')
+      .isVisible({ timeout: 10000 })
+      .catch(() => false);
     expect(successVisible).toBeTruthy();
     console.log('✅ 首次导入成功');
 

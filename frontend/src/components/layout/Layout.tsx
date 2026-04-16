@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Trophy } from 'lucide-react';
+import { ZIndexLayers } from '../../constants/zIndex';
 
 // 隐藏滚动条的样式
 const styles = `
@@ -110,7 +111,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
       {/* PC端顶部导航栏 - 仅在md及以上屏幕显示 */}
-      <header className="hidden md:block fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-[#0a0a0a] via-[#1a1a2e] to-[#0a0a0a] border-b-2 border-secondary/50 shadow-lg shadow-secondary/10">
+      <header
+        className="hidden md:block fixed top-0 left-0 right-0 bg-gradient-to-r from-[#0a0a0a] via-[#1a1a2e] to-[#0a0a0a] border-b-2 border-secondary/50 shadow-lg shadow-secondary/10"
+        style={{ zIndex: ZIndexLayers.STICKY }}
+      >
         <div className="container mx-auto px-8 h-24 flex items-center justify-between">
           {/* Logo区域 */}
           <div
@@ -182,7 +186,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       <main className="flex-grow pb-16 md:pb-0">{children}</main>
 
       {/* 移动端底部导航栏 - 参考官方设计 */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#1a1a1a] border-t border-white/10">
+      <nav
+        className="md:hidden fixed bottom-0 left-0 right-0 bg-[#1a1a1a] border-t border-white/10"
+        style={{ zIndex: ZIndexLayers.STICKY }}
+      >
         <div className="flex items-center justify-around">
           {navItems.map(item => {
             const isActive = activeSection === item.id;
