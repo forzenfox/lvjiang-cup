@@ -157,10 +157,9 @@ describe('VideosService', () => {
 
       expect(result.id).toBe('1');
       expect(result.title).toBe('Test Video');
-      expect(mockDatabaseService.get).toHaveBeenCalledWith(
-        'SELECT * FROM videos WHERE id = ?',
-        ['1'],
-      );
+      expect(mockDatabaseService.get).toHaveBeenCalledWith('SELECT * FROM videos WHERE id = ?', [
+        '1',
+      ]);
     });
 
     it('应该在视频不存在时抛出NotFoundException', async () => {
@@ -241,7 +240,9 @@ describe('VideosService', () => {
     it('应该在视频不存在时抛出NotFoundException', async () => {
       mockDatabaseService.get.mockResolvedValue(null);
 
-      await expect(service.update('999', { customTitle: 'Test' })).rejects.toThrow(NotFoundException);
+      await expect(service.update('999', { customTitle: 'Test' })).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -252,10 +253,9 @@ describe('VideosService', () => {
 
       await service.remove('1');
 
-      expect(mockDatabaseService.run).toHaveBeenCalledWith(
-        'DELETE FROM videos WHERE id = ?',
-        ['1'],
-      );
+      expect(mockDatabaseService.run).toHaveBeenCalledWith('DELETE FROM videos WHERE id = ?', [
+        '1',
+      ]);
       expect(mockCacheService.del).toHaveBeenCalled();
     });
 

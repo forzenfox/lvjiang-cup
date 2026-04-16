@@ -1,11 +1,5 @@
 import apiClient from './axios';
-import type {
-  ApiResponse,
-  Team,
-  CreateTeamRequest,
-  UpdateTeamRequest,
-  PaginatedResponse,
-} from './types';
+import type { ApiResponse, Team, CreateTeamRequest, UpdateTeamRequest } from './types';
 
 /**
  * 战队 API
@@ -13,14 +7,10 @@ import type {
 
 /**
  * 获取所有战队
- * @param page 页码
- * @param pageSize 每页数量
  * @returns 战队列表
  */
-export async function getAll(page = 1, pageSize = 10): Promise<PaginatedResponse<Team>> {
-  const response = await apiClient.get<ApiResponse<PaginatedResponse<Team>>>('/teams', {
-    params: { page, pageSize },
-  });
+export async function getAll(): Promise<Team[]> {
+  const response = await apiClient.get<ApiResponse<Team[]>>('/teams');
   const responseData = response.data;
 
   if (!responseData.success || !responseData.data) {

@@ -1,5 +1,5 @@
 import * as teamApi from '@/api/teams';
-import type { Team, CreateTeamRequest, UpdateTeamRequest, PaginatedResponse } from '@/api/types';
+import type { Team, CreateTeamRequest, UpdateTeamRequest } from '@/api/types';
 
 /**
  * 战队服务状态接口
@@ -13,12 +13,6 @@ export interface TeamServiceState {
   loading: boolean;
   /** 错误信息 */
   error: string | null;
-  /** 分页信息 */
-  pagination: {
-    total: number;
-    page: number;
-    pageSize: number;
-  };
 }
 
 /**
@@ -26,7 +20,7 @@ export interface TeamServiceState {
  */
 interface TeamService {
   /** 获取所有战队 */
-  getAll: (page?: number, pageSize?: number) => Promise<PaginatedResponse<Team>>;
+  getAll: () => Promise<Team[]>;
   /** 根据 ID 获取战队 */
   getById: (id: string) => Promise<Team>;
   /** 创建战队 */
@@ -51,11 +45,6 @@ let state: TeamServiceState = {
   currentTeam: null,
   loading: false,
   error: null,
-  pagination: {
-    total: 0,
-    page: 1,
-    pageSize: 10,
-  },
 };
 
 /**
@@ -107,27 +96,20 @@ function handleError(error: unknown, defaultMessage: string): never {
 export const teamService: TeamService = {
   /**
    * 获取所有战队
-   * @param page 页码，默认为 1
-   * @param pageSize 每页数量，默认为 10
-   * @returns 分页的战队列表
+   * @returns 战队列表
    */
-  async getAll(page = 1, pageSize = 10): Promise<PaginatedResponse<Team>> {
+  async getAll(): Promise<Team[]> {
     setState({ loading: true, error: null });
 
     try {
-      const response = await teamApi.getAll(page, pageSize);
+      const teams = await teamApi.getAll();
 
       setState({
-        teams: response.data,
-        pagination: {
-          total: response.total,
-          page: response.page,
-          pageSize: response.pageSize,
-        },
+        teams,
         loading: false,
       });
 
-      return response;
+      return teams;
     } catch (error) {
       handleError(error, '获取战队列表失败');
     }
@@ -257,11 +239,6 @@ export const teamService: TeamService = {
       currentTeam: null,
       loading: false,
       error: null,
-      pagination: {
-        total: 0,
-        page: 1,
-        pageSize: 10,
-      },
     };
     listeners.forEach(listener => listener(state));
   },

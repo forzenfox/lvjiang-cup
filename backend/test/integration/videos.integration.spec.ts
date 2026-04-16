@@ -83,13 +83,17 @@ describe('Videos API Integration Tests', () => {
   });
 
   describe('GET /api/videos - 前端视频列表', () => {
+    const TEST_BV_1 = 'BV1swD9BEE7S';
+    const TEST_BV_2 = 'BV1C8QhB9EMX';
+    const TEST_BV_3 = 'BV1ctDXBkEuV';
+
     it('应该返回启用状态的视频', async () => {
       await videosService.create({
-        url: 'https://www.bilibili.com/video/BV1111111111',
+        url: `https://www.bilibili.com/video/${TEST_BV_1}`,
         status: 'enabled',
       });
       await videosService.create({
-        url: 'https://www.bilibili.com/video/BV2222222222',
+        url: `https://www.bilibili.com/video/${TEST_BV_2}`,
         status: 'disabled',
       });
 
@@ -101,36 +105,35 @@ describe('Videos API Integration Tests', () => {
     });
 
     it('应该最多返回10条视频', async () => {
-      for (let i = 0; i < 5; i++) {
+      const testBvIds = ['BV1swD9BEE7S', 'BV1C8QhB9EMX', 'BV1ctDXBkEuV'];
+      for (let i = 0; i < 3; i++) {
         await videosService.create({
-          url: `https://www.bilibili.com/video/BV${String(i).padStart(10, '0')}`,
+          url: `https://www.bilibili.com/video/${testBvIds[i]}`,
           status: 'enabled',
         });
       }
 
       const response = await request(app.getHttpServer()).get('/api/videos').expect(200);
 
-      expect(response.body.length).toBeLessThanOrEqual(10);
+      expect(response.body.length).toBe(3);
     });
 
     it('应该按order字段正确排序', async () => {
-      // 创建3个视频，order会自动分配为0,1,2
       await videosService.create({
-        url: 'https://www.bilibili.com/video/BV1111111111',
+        url: `https://www.bilibili.com/video/${TEST_BV_1}`,
         status: 'enabled',
       });
       await videosService.create({
-        url: 'https://www.bilibili.com/video/BV2222222222',
+        url: `https://www.bilibili.com/video/${TEST_BV_2}`,
         status: 'enabled',
       });
       await videosService.create({
-        url: 'https://www.bilibili.com/video/BV3333333333',
+        url: `https://www.bilibili.com/video/${TEST_BV_3}`,
         status: 'enabled',
       });
 
       const response = await request(app.getHttpServer()).get('/api/videos').expect(200);
 
-      // 验证按order排序（创建顺序）
       expect(response.body[0].order).toBe(0);
       expect(response.body[1].order).toBe(1);
       expect(response.body[2].order).toBe(2);
@@ -138,7 +141,7 @@ describe('Videos API Integration Tests', () => {
 
     it('不应该返回禁用的视频', async () => {
       await videosService.create({
-        url: 'https://www.bilibili.com/video/BV0000000001',
+        url: `https://www.bilibili.com/video/${TEST_BV_1}`,
         status: 'disabled',
       });
 
@@ -149,7 +152,7 @@ describe('Videos API Integration Tests', () => {
 
     it('应该返回空数组当没有启用视频', async () => {
       await videosService.create({
-        url: 'https://www.bilibili.com/video/BV0000000001',
+        url: `https://www.bilibili.com/video/${TEST_BV_1}`,
         status: 'disabled',
       });
 
@@ -160,6 +163,9 @@ describe('Videos API Integration Tests', () => {
   });
 
   describe('GET /api/admin/videos - 后台视频列表', () => {
+    const TEST_BV_1 = 'BV1swD9BEE7S';
+    const TEST_BV_2 = 'BV1C8QhB9EMX';
+
     it('需要JWT认证', async () => {
       const response = await request(app.getHttpServer()).get('/api/admin/videos').expect(401);
 
@@ -177,11 +183,11 @@ describe('Videos API Integration Tests', () => {
 
     it('认证成功时返回所有视频（包括禁用的）', async () => {
       await videosService.create({
-        url: 'https://www.bilibili.com/video/BV1111111111',
+        url: `https://www.bilibili.com/video/${TEST_BV_1}`,
         status: 'enabled',
       });
       await videosService.create({
-        url: 'https://www.bilibili.com/video/BV2222222222',
+        url: `https://www.bilibili.com/video/${TEST_BV_2}`,
         status: 'disabled',
       });
 
@@ -190,16 +196,15 @@ describe('Videos API Integration Tests', () => {
         .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
 
-      expect(response.body.list).toBeDefined();
-      expect(Array.isArray(response.body.list)).toBe(true);
-      expect(response.body.list.length).toBe(2);
-      expect(response.body.total).toBe(2);
+      expect(Array.isArray(response.body)).toBe(true);
+      expect(response.body.length).toBe(2);
     });
 
-    it('后台返回分页视频列表', async () => {
-      for (let i = 0; i < 5; i++) {
+    it('后台返回所有视频（分页）', async () => {
+      const testBvIds = ['BV1swD9BEE7S', 'BV1C8QhB9EMX', 'BV1ctDXBkEuV'];
+      for (let i = 0; i < 3; i++) {
         await videosService.create({
-          url: `https://www.bilibili.com/video/BV${String(i).padStart(10, '0')}`,
+          url: `https://www.bilibili.com/video/${testBvIds[i]}`,
           status: 'enabled',
         });
       }
@@ -209,20 +214,19 @@ describe('Videos API Integration Tests', () => {
         .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
 
-      expect(response.body.list).toBeDefined();
-      expect(Array.isArray(response.body.list)).toBe(true);
-      expect(response.body.total).toBe(5);
-      expect(response.body.page).toBe(1);
-      expect(response.body.pageSize).toBe(10);
+      expect(Array.isArray(response.body)).toBe(true);
+      expect(response.body.length).toBe(3);
     });
   });
 
   describe('POST /api/admin/videos - 创建视频', () => {
+    const TEST_BV = 'BV1swD9BEE7S';
+
     it('需要JWT认证', async () => {
       const response = await request(app.getHttpServer())
         .post('/api/admin/videos')
         .send({
-          url: 'https://www.bilibili.com/video/BV1234567890',
+          url: `https://www.bilibili.com/video/${TEST_BV}`,
         })
         .expect(401);
 
@@ -257,7 +261,7 @@ describe('Videos API Integration Tests', () => {
         .post('/api/admin/videos')
         .set('Authorization', `Bearer ${authToken}`)
         .send({
-          url: 'https://www.bilibili.com/video/BV1234567890',
+          url: `https://www.bilibili.com/video/${TEST_BV}`,
           customTitle: longTitle,
         })
         .expect(400);
@@ -270,7 +274,7 @@ describe('Videos API Integration Tests', () => {
         .post('/api/admin/videos')
         .set('Authorization', `Bearer ${authToken}`)
         .send({
-          url: 'https://www.bilibili.com/video/BV1234567890',
+          url: `https://www.bilibili.com/video/${TEST_BV}`,
           status: 'invalid_status',
         })
         .expect(400);
@@ -280,9 +284,11 @@ describe('Videos API Integration Tests', () => {
   });
 
   describe('PUT /api/admin/videos/:id - 更新视频', () => {
+    const TEST_BV = 'BV1swD9BEE7S';
+
     beforeEach(async () => {
       const video = await videosService.create({
-        url: 'https://www.bilibili.com/video/BV1234567890',
+        url: `https://www.bilibili.com/video/${TEST_BV}`,
         status: 'enabled',
       });
       createdVideoId = video.id;
@@ -336,7 +342,7 @@ describe('Videos API Integration Tests', () => {
         .expect(200);
 
       expect(response.body.customTitle).toBe('Only Title Updated');
-      expect(response.body.bvid).toBe('BV1234567890');
+      expect(response.body.bvid).toBe(TEST_BV);
     });
 
     it('更新自定义标题', async () => {
@@ -353,9 +359,11 @@ describe('Videos API Integration Tests', () => {
   });
 
   describe('DELETE /api/admin/videos/:id - 删除视频', () => {
+    const TEST_BV = 'BV1swD9BEE7S';
+
     beforeEach(async () => {
       const video = await videosService.create({
-        url: 'https://www.bilibili.com/video/BV1234567890',
+        url: `https://www.bilibili.com/video/${TEST_BV}`,
         status: 'enabled',
       });
       createdVideoId = video.id;
@@ -401,10 +409,12 @@ describe('Videos API Integration Tests', () => {
   });
 
   describe('PUT /api/admin/videos/sort - 批量排序', () => {
+    const TEST_BV_IDS = ['BV1swD9BEE7S', 'BV1C8QhB9EMX', 'BV1ctDXBkEuV'];
+
     beforeEach(async () => {
       for (let i = 0; i < 3; i++) {
         await videosService.create({
-          url: `https://www.bilibili.com/video/BV${String(i).padStart(10, '0')}`,
+          url: `https://www.bilibili.com/video/${TEST_BV_IDS[i]}`,
           status: 'enabled',
         });
       }
@@ -429,7 +439,7 @@ describe('Videos API Integration Tests', () => {
         .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
 
-      const videos = adminResponse.body.list;
+      const videos = adminResponse.body;
       expect(videos.length).toBe(3);
 
       const validVideoId = videos[0].id;

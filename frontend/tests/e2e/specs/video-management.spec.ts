@@ -794,10 +794,10 @@ test.describe('【视频模块】表单验证测试', () => {
     await videosPage.expectFormVisible();
 
     const invalidBvids = [
-      'BV123456',        // 太短
-      'bv1xx411c7xz',    // 小写
-      'AV123456789',     // AV号不是BV号
-      '1234567890',      // 无前缀
+      'BV123456', // 太短
+      'bv1xx411c7xz', // 小写
+      'AV123456789', // AV号不是BV号
+      '1234567890', // 无前缀
     ];
 
     for (const invalidBvid of invalidBvids) {

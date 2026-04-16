@@ -38,7 +38,7 @@ export class UploadController {
         cb(null, true);
       },
       limits: {
-        fileSize: uploadConfig.maxFileSize,
+        fileSize: uploadConfig.defaultMaxFileSize,
       },
     }),
   )
@@ -54,6 +54,12 @@ export class UploadController {
       throw new BadRequestException('上传类型错误，必须是 "avatar"、"logo" 或 "poster"');
     }
 
+    const maxSize = uploadConfig.maxFileSize[type as keyof typeof uploadConfig.maxFileSize];
+    if (file.size > maxSize) {
+      const maxSizeMB = maxSize / (1024 * 1024);
+      throw new BadRequestException(`文件大小不能超过 ${maxSizeMB}MB`);
+    }
+
     const uuid = uuidv4();
     const ext = file.originalname ? file.originalname.split('.').pop() : 'png';
     const filename = `${uuid}.${ext}`;
@@ -62,6 +68,10 @@ export class UploadController {
       `File uploaded: ${file.originalname}, type: ${type}, generated filename: ${filename}`,
     );
 
-    return this.uploadService.uploadImage(type as 'avatar' | 'logo', filename, file.buffer);
+    return this.uploadService.uploadImage(
+      type as 'avatar' | 'logo' | 'poster',
+      filename,
+      file.buffer,
+    );
   }
 }

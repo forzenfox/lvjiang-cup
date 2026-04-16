@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as crypto from 'crypto';
+import * as sharp from 'sharp';
 import { uploadConfig } from '../../config/upload.config';
 import { DatabaseService } from '../../database/database.service';
 import {
@@ -42,6 +43,62 @@ export class UploadService {
     return crypto.createHash('md5').update(buffer).digest('hex');
   }
 
+  private async compressImage(
+    buffer: Buffer,
+    fileType: FileType,
+  ): Promise<{ compressed: Buffer; hash: string }> {
+    if (!uploadConfig.compression.enabled) {
+      return { compressed: buffer, hash: await this.computeFileHash(buffer) };
+    }
+
+    const config = uploadConfig.compression[fileType];
+    let sharpInstance = sharp(buffer);
+
+    sharpInstance = sharpInstance.resize(config.width, config.height, {
+      fit: config.fit as 'cover' | 'contain' | 'inside' | 'outside',
+      withoutEnlargement: true,
+    });
+
+    if (config.format === 'webp') {
+      sharpInstance = sharpInstance.webp({ quality: config.quality });
+    } else if (config.format === 'jpeg') {
+      sharpInstance = sharpInstance.jpeg({ quality: config.quality });
+    } else if (config.format === 'png') {
+      sharpInstance = sharpInstance.png({ quality: config.quality });
+    }
+
+    const compressed = await sharpInstance.toBuffer();
+    const hash = await this.computeFileHash(compressed);
+
+    return { compressed, hash };
+  }
+
+  private async generateThumbnail(
+    buffer: Buffer,
+    fileType: FileType,
+    filename: string,
+    getThumbnailPath: (fname: string) => string,
+  ): Promise<string | null> {
+    if (fileType !== 'logo' && fileType !== 'avatar') {
+      return null;
+    }
+
+    const thumbnailBuffer = await sharp(buffer)
+      .resize(uploadConfig.thumbnailSize.width, uploadConfig.thumbnailSize.height, {
+        fit: 'cover',
+      })
+      .webp({ quality: 80 })
+      .toBuffer();
+
+    const thumbnailFilename = filename.replace(/\.[^.]+$/, '.webp');
+    const thumbnailPath = getThumbnailPath(thumbnailFilename);
+
+    await this.ensureDir(path.dirname(thumbnailPath));
+    await fs.promises.writeFile(thumbnailPath, thumbnailBuffer);
+
+    return thumbnailFilename;
+  }
+
   /**
    * 上传战队图标
    * @param filename UUID 文件名 (含扩展名)
@@ -57,7 +114,13 @@ export class UploadService {
    * @param buffer 文件内容
    */
   async uploadMemberAvatar(filename: string, buffer: Buffer): Promise<UploadResult> {
-    return this.uploadWithDeduplication('avatar', filename, buffer, getMemberAvatarPath, getMemberAvatarUrl);
+    return this.uploadWithDeduplication(
+      'avatar',
+      filename,
+      buffer,
+      getMemberAvatarPath,
+      getMemberAvatarUrl,
+    );
   }
 
   /**
@@ -66,7 +129,13 @@ export class UploadService {
    * @param buffer 文件内容
    */
   async uploadStreamerPoster(filename: string, buffer: Buffer): Promise<UploadResult> {
-    return this.uploadWithDeduplication('poster', filename, buffer, getStreamerPosterPath, getStreamerPosterUrl);
+    return this.uploadWithDeduplication(
+      'poster',
+      filename,
+      buffer,
+      getStreamerPosterPath,
+      getStreamerPosterUrl,
+    );
   }
 
   /**
@@ -79,22 +148,43 @@ export class UploadService {
     getFilePath: (fname: string) => string,
     getFileUrl: (fname: string) => string,
   ): Promise<UploadResult> {
-    const hash = await this.computeFileHash(buffer);
+    const { compressed, hash } = await this.compressImage(buffer, fileType);
 
     const existing = await this.databaseService.findFileByHash(hash);
     if (existing) {
-      this.logger.log(`File already exists (${fileType}), reusing: ${existing.file_path} (hash: ${hash})`);
+      this.logger.log(
+        `File already exists (${fileType}), reusing: ${existing.file_path} (hash: ${hash})`,
+      );
       return { url: getFileUrl(path.basename(existing.file_path)), reused: true };
     }
 
-    const filePath = getFilePath(filename);
+    const webpFilename = filename.replace(/\.[^.]+$/, '.webp');
+    const filePath = getFilePath(webpFilename);
     await this.ensureDir(path.dirname(filePath));
-    await fs.promises.writeFile(filePath, buffer);
+    await fs.promises.writeFile(filePath, compressed);
 
     await this.databaseService.recordFileHash(hash, filePath, fileType);
 
-    this.logger.log(`File uploaded (${fileType}): ${filename} (hash: ${hash})`);
-    return { url: getFileUrl(filename) };
+    const result: UploadResult = { url: getFileUrl(webpFilename) };
+
+    if (fileType === 'logo' || fileType === 'avatar') {
+      const thumbnailFilename = await this.generateThumbnail(
+        compressed,
+        fileType,
+        webpFilename,
+        fileType === 'logo' ? getTeamLogoThumbnailPath : getMemberAvatarPath,
+      );
+      if (thumbnailFilename) {
+        const thumbnailUrl =
+          fileType === 'logo'
+            ? getTeamLogoThumbnailUrl(thumbnailFilename)
+            : getMemberAvatarUrl(thumbnailFilename);
+        result.thumbnailUrl = thumbnailUrl;
+      }
+    }
+
+    this.logger.log(`File uploaded (${fileType}): ${webpFilename} (hash: ${hash})`);
+    return result;
   }
 
   /**

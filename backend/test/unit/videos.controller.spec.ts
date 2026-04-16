@@ -73,18 +73,13 @@ describe('VideosController', () => {
     });
 
     it('GET /api/admin/videos需要认证', async () => {
-      const mockPaginatedResult = {
-        list: [mockVideo],
-        total: 1,
-        page: 1,
-        pageSize: 10,
-      };
-      mockVideosService.findAllAdminPaginated.mockResolvedValue(mockPaginatedResult);
+      const mockVideos: Video[] = [mockVideo];
+      mockVideosService.findAllAdmin.mockResolvedValue(mockVideos);
 
-      const result = await controller.findAllAdmin({ page: 1, pageSize: 10 } as any);
+      const result = await controller.findAllAdmin();
 
-      expect(result).toEqual(mockPaginatedResult);
-      expect(mockVideosService.findAllAdminPaginated).toHaveBeenCalled();
+      expect(result).toEqual(mockVideos);
+      expect(mockVideosService.findAllAdmin).toHaveBeenCalled();
     });
 
     it('POST /api/admin/videos需要认证', async () => {
@@ -141,10 +136,7 @@ describe('VideosController', () => {
 
   describe('GET /api/videos - 获取前端视频列表', () => {
     it('应该返回启用状态的视频列表', async () => {
-      const mockVideos: Video[] = [
-        mockVideo,
-        { ...mockVideo, id: '2', title: 'Video 2' },
-      ];
+      const mockVideos: Video[] = [mockVideo, { ...mockVideo, id: '2', title: 'Video 2' }];
       mockVideosService.findAll.mockResolvedValue(mockVideos);
 
       const result = await controller.findAll();
@@ -164,22 +156,16 @@ describe('VideosController', () => {
 
   describe('GET /api/admin/videos - 获取后台视频列表', () => {
     it('应该返回所有视频（包括禁用的）', async () => {
-      const mockPaginatedResult = {
-        list: [
-          mockVideo,
-          { ...mockVideo, id: '2', status: 'disabled', isEnabled: false },
-        ],
-        total: 2,
-        page: 1,
-        pageSize: 10,
-      };
-      mockVideosService.findAllAdminPaginated.mockResolvedValue(mockPaginatedResult);
+      const mockVideos: Video[] = [
+        mockVideo,
+        { ...mockVideo, id: '2', status: 'disabled', isEnabled: false },
+      ];
+      mockVideosService.findAllAdmin.mockResolvedValue(mockVideos);
 
-      const result = await controller.findAllAdmin({ page: 1, pageSize: 10 } as any);
+      const result = await controller.findAllAdmin();
 
-      expect(result.list).toHaveLength(2);
-      expect(result.total).toBe(2);
-      expect(mockVideosService.findAllAdminPaginated).toHaveBeenCalled();
+      expect(result).toHaveLength(2);
+      expect(mockVideosService.findAllAdmin).toHaveBeenCalled();
     });
   });
 
@@ -259,7 +245,9 @@ describe('VideosController', () => {
     it('应该在更新不存在的视频时抛出NotFoundException', async () => {
       mockVideosService.update.mockRejectedValue(new NotFoundException('视频不存在: 999'));
 
-      await expect(controller.update('999', { customTitle: 'Test' })).rejects.toThrow(NotFoundException);
+      await expect(controller.update('999', { customTitle: 'Test' })).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('应该在删除不存在的视频时抛出NotFoundException', async () => {

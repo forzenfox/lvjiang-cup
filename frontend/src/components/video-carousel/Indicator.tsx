@@ -7,11 +7,7 @@ interface IndicatorProps {
   onSelect: (index: number) => void;
 }
 
-export const Indicator: React.FC<IndicatorProps> = ({
-  videos,
-  currentIndex,
-  onSelect,
-}) => {
+export const Indicator: React.FC<IndicatorProps> = ({ videos, currentIndex, onSelect }) => {
   return (
     <div className="flex justify-center gap-2 p-4" data-testid="indicator">
       {videos.map((video, index) => (

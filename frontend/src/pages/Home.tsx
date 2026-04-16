@@ -121,7 +121,7 @@ const Home: React.FC = () => {
           (async () => {
             updateLoadingState('teams', true);
             try {
-              await teamService.getAll(1, 100);
+              await teamService.getAll();
             } finally {
               updateLoadingState('teams', false);
             }
@@ -130,7 +130,7 @@ const Home: React.FC = () => {
           (async () => {
             updateLoadingState('matches', true);
             try {
-              await matchService.getAll(1, 100);
+              await matchService.getAll();
             } finally {
               updateLoadingState('matches', false);
             }
@@ -147,7 +147,7 @@ const Home: React.FC = () => {
             updateLoadingState('videos', true);
             try {
               const result = await videoApi.getVideos({ isEnabled: true, pageSize: 100 });
-              const videoList = Array.isArray(result) ? result : (result.list || []);
+              const videoList = Array.isArray(result) ? result : result.list || [];
               const videoItems: VideoItem[] = videoList.map(video => ({
                 bvid: video.bvid,
                 title: video.title,
@@ -201,7 +201,10 @@ const Home: React.FC = () => {
 
       {/* 页面内容 */}
       <HeroSection />
-      <section id="videos" className="min-h-screen bg-gradient-to-b from-[#0a0a0a] to-[#1a1a2e] flex items-center justify-center">
+      <section
+        id="videos"
+        className="min-h-screen bg-gradient-to-b from-[#0a0a0a] to-[#1a1a2e] flex items-center justify-center"
+      >
         <div className="container mx-auto px-4 w-full h-full flex flex-col justify-center">
           {videos.length > 0 ? (
             <div className="flex-1 flex items-center justify-center min-h-0">

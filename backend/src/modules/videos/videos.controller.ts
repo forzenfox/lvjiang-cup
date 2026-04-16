@@ -1,20 +1,9 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Put,
-  Delete,
-  Body,
-  Param,
-  UseGuards,
-  Query,
-} from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth, ApiParam, ApiQuery } from '@nestjs/swagger';
+import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiBearerAuth, ApiParam } from '@nestjs/swagger';
 import { VideosService, SortItem } from './videos.service';
 import { UpdateVideoDto } from './dto/update-video.dto';
 import { CreateVideoDto } from './dto/create-video.dto';
 import { SortVideosDto } from './dto/sort-videos.dto';
-import { VideoPaginationDto, PaginatedResult } from './dto/pagination.dto';
 import { Video } from './entities/video.entity';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
@@ -33,8 +22,8 @@ export class VideosController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: '获取后台视频列表（需认证）' })
-  async findAllAdmin(@Query() paginationDto: VideoPaginationDto): Promise<PaginatedResult<Video>> {
-    return this.videosService.findAllAdminPaginated(paginationDto);
+  async findAllAdmin(): Promise<Video[]> {
+    return this.videosService.findAllAdmin();
   }
 
   @Post('admin/videos')

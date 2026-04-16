@@ -158,9 +158,7 @@ export const videoService = {
   },
 };
 
-export function subscribeToVideoService(
-  callback: (state: VideoServiceState) => void
-): () => void {
+export function subscribeToVideoService(callback: (state: VideoServiceState) => void): () => void {
   listeners.add(callback);
   callback(state);
 

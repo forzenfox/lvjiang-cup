@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import AdminLayout from '../../components/layout/AdminLayout';
 import { streamersApi } from '@/api/streamers';
 import apiClient from '@/api/axios';
-import type { Streamer, StreamerType } from '@/api/types';
+import { Streamer, StreamerType } from '@/api/types';
 import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
 import { Plus, Trash2, Edit2, Save, RefreshCw, User, GripVertical } from 'lucide-react';
@@ -80,14 +80,9 @@ const SortableStreamerCard: React.FC<SortableStreamerCardProps> = ({
   onEditingStreamerDataChange,
   loading,
 }) => {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: streamer.id });
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: streamer.id,
+  });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -184,9 +179,7 @@ const SortableStreamerCard: React.FC<SortableStreamerCardProps> = ({
               </Button>
             </>
           )}
-          <div
-            className={`transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}
-          >
+          <div className={`transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}>
             <svg
               className="w-5 h-5 text-gray-400"
               fill="none"
@@ -205,10 +198,7 @@ const SortableStreamerCard: React.FC<SortableStreamerCardProps> = ({
       </div>
 
       {isExpanded && (
-        <div
-          data-testid={`streamer-detail-${streamer.id}`}
-          className="border-t border-white/10"
-        >
+        <div data-testid={`streamer-detail-${streamer.id}`} className="border-t border-white/10">
           {isBeingEdited && editingStreamerData ? (
             <div className="p-4 space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -230,9 +220,7 @@ const SortableStreamerCard: React.FC<SortableStreamerCardProps> = ({
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-[#94A3B8] mb-2">
-                    主播类型
-                  </label>
+                  <label className="block text-sm font-medium text-[#94A3B8] mb-2">主播类型</label>
                   <select
                     value={editingStreamerData.streamerType}
                     onChange={e =>
@@ -270,9 +258,7 @@ const SortableStreamerCard: React.FC<SortableStreamerCardProps> = ({
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-[#94A3B8] mb-2">
-                  海报URL
-                </label>
+                <label className="block text-sm font-medium text-[#94A3B8] mb-2">海报URL</label>
                 <div className="flex items-start gap-3">
                   <div
                     className="relative flex-shrink-0 w-32 h-32 border-2 border-dashed border-white/20 rounded-lg
@@ -281,22 +267,19 @@ const SortableStreamerCard: React.FC<SortableStreamerCardProps> = ({
                     onClick={() => {
                       const input = document.createElement('input');
                       input.type = 'file';
-                      input.accept = 'image/png,image/jpeg,image/jpg';
+                      input.accept = 'image/png,image/jpeg,image/jpg,image/gif,image/webp';
                       input.onchange = async e => {
                         const file = (e.target as HTMLInputElement).files?.[0];
                         if (!file) return;
-                        if (file.size > 5 * 1024 * 1024) {
-                          toast.error('图片大小不能超过 5MB');
+                        if (file.size > 20 * 1024 * 1024) {
+                          toast.error('图片大小不能超过 20MB');
                           return;
                         }
                         try {
                           const formData = new FormData();
                           formData.append('file', file);
                           formData.append('type', 'poster');
-                          const response = await apiClient.post(
-                            '/admin/upload/image',
-                            formData
-                          );
+                          const response = await apiClient.post('/admin/upload/image', formData);
                           const url = response.data?.data?.url || response.data?.url;
                           if (url) {
                             onEditingStreamerDataChange({
@@ -353,9 +336,7 @@ const SortableStreamerCard: React.FC<SortableStreamerCardProps> = ({
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-[#94A3B8] mb-2">
-                  直播间URL
-                </label>
+                <label className="block text-sm font-medium text-[#94A3B8] mb-2">直播间URL</label>
                 <input
                   type="text"
                   value={editingStreamerData.liveUrl}
@@ -372,9 +353,7 @@ const SortableStreamerCard: React.FC<SortableStreamerCardProps> = ({
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-[#94A3B8] mb-2">
-                  个人简介
-                </label>
+                <label className="block text-sm font-medium text-[#94A3B8] mb-2">个人简介</label>
                 <textarea
                   value={editingStreamerData.bio}
                   onChange={e =>
@@ -699,15 +678,8 @@ const AdminStreamers: React.FC = () => {
           <p className="text-sm mt-2">点击"添加主播"按钮创建第一个主播</p>
         </div>
       ) : (
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          onDragEnd={handleDragEnd}
-        >
-          <SortableContext
-            items={streamers.map(s => s.id)}
-            strategy={verticalListSortingStrategy}
-          >
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+          <SortableContext items={streamers.map(s => s.id)} strategy={verticalListSortingStrategy}>
             <div className="space-y-4">
               {streamers.map(streamer => {
                 const isExpanded = expandedStreamerId === streamer.id;

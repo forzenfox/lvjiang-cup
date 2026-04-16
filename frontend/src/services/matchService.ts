@@ -1,10 +1,5 @@
 import * as matchApi from '@/api/matches';
-import type {
-  Match,
-  UpdateMatchRequest,
-  PaginatedResponse,
-  FindMatchesByStageRequest,
-} from '@/api/types';
+import type { Match, UpdateMatchRequest, FindMatchesByStageRequest } from '@/api/types';
 
 /**
  * 比赛服务状态接口
@@ -20,12 +15,6 @@ export interface MatchServiceState {
   loading: boolean;
   /** 错误信息 */
   error: string | null;
-  /** 分页信息 */
-  pagination: {
-    total: number;
-    page: number;
-    pageSize: number;
-  };
 }
 
 /**
@@ -33,7 +22,7 @@ export interface MatchServiceState {
  */
 interface MatchService {
   /** 获取所有比赛 */
-  getAll: (page?: number, pageSize?: number) => Promise<PaginatedResponse<Match>>;
+  getAll: () => Promise<Match[]>;
   /** 根据 ID 获取比赛 */
   getById: (id: string) => Promise<Match>;
   /** 更新比赛 */
@@ -59,11 +48,6 @@ let state: MatchServiceState = {
   matchesByStage: new Map(),
   loading: false,
   error: null,
-  pagination: {
-    total: 0,
-    page: 1,
-    pageSize: 10,
-  },
 };
 
 /**
@@ -121,27 +105,20 @@ function handleError(error: unknown, defaultMessage: string): never {
 export const matchService: MatchService = {
   /**
    * 获取所有比赛
-   * @param page 页码，默认为 1
-   * @param pageSize 每页数量，默认为 10
-   * @returns 分页的比赛列表
+   * @returns 比赛列表
    */
-  async getAll(page = 1, pageSize = 10): Promise<PaginatedResponse<Match>> {
+  async getAll(): Promise<Match[]> {
     setState({ loading: true, error: null });
 
     try {
-      const response = await matchApi.getAll(page, pageSize);
+      const matches = await matchApi.getAll();
 
       setState({
-        matches: response.data,
-        pagination: {
-          total: response.total,
-          page: response.page,
-          pageSize: response.pageSize,
-        },
+        matches,
         loading: false,
       });
 
-      return response;
+      return matches;
     } catch (error) {
       handleError(error, '获取比赛列表失败');
     }
@@ -307,11 +284,6 @@ export const matchService: MatchService = {
       matchesByStage: new Map(),
       loading: false,
       error: null,
-      pagination: {
-        total: 0,
-        page: 1,
-        pageSize: 10,
-      },
     };
     listeners.forEach(listener => listener(state));
   },

@@ -10,7 +10,12 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
-import { StreamersService, CreateStreamerDto, UpdateStreamerDto, UpdateStreamerSortDto } from './streamers.service';
+import {
+  StreamersService,
+  CreateStreamerDto,
+  UpdateStreamerDto,
+  UpdateStreamerSortDto,
+} from './streamers.service';
 
 @ApiTags('streamers')
 @Controller('streamers')
@@ -37,10 +42,7 @@ export class StreamersController {
 
   @Patch(':id')
   @ApiOperation({ summary: '更新主播' })
-  async update(
-    @Param('id') id: string,
-    @Body() updateStreamerDto: UpdateStreamerDto,
-  ) {
+  async update(@Param('id') id: string, @Body() updateStreamerDto: UpdateStreamerDto) {
     return this.streamersService.update(id, updateStreamerDto);
   }
 

@@ -22,18 +22,21 @@ export const useSwipe = ({
     touchStartX.current = e.touches[0].clientX;
   }, []);
 
-  const onTouchEnd = useCallback((e: React.TouchEvent) => {
-    const touchEndX = e.changedTouches[0].clientX;
-    const diff = touchEndX - touchStartX.current;
+  const onTouchEnd = useCallback(
+    (e: React.TouchEvent) => {
+      const touchEndX = e.changedTouches[0].clientX;
+      const diff = touchEndX - touchStartX.current;
 
-    if (Math.abs(diff) < threshold) return;
+      if (Math.abs(diff) < threshold) return;
 
-    if (diff > 0) {
-      onSwipeRight();
-    } else {
-      onSwipeLeft();
-    }
-  }, [onSwipeLeft, onSwipeRight, threshold]);
+      if (diff > 0) {
+        onSwipeRight();
+      } else {
+        onSwipeLeft();
+      }
+    },
+    [onSwipeLeft, onSwipeRight, threshold]
+  );
 
   return { onTouchStart, onTouchEnd };
 };

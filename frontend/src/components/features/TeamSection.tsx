@@ -166,8 +166,8 @@ const TeamSection: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await teamService.getAll(1, 100); // 获取所有战队
-      const convertedTeams = response.data.map(convertApiTeamToLocal);
+      const response = await teamService.getAll();
+      const convertedTeams = response.map(convertApiTeamToLocal);
       setTeams(convertedTeams);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : '获取战队数据失败';

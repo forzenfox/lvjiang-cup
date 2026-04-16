@@ -281,10 +281,7 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     );
 
     // videos表唯一索引(bvid)
-    await run(
-      this.db,
-      `CREATE UNIQUE INDEX IF NOT EXISTS idx_videos_bvid ON videos(bvid)`,
-    );
+    await run(this.db, `CREATE UNIQUE INDEX IF NOT EXISTS idx_videos_bvid ON videos(bvid)`);
 
     // file_hashes 表（图片去重）
     await run(
@@ -300,10 +297,7 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     `,
     );
 
-    await run(
-      this.db,
-      `CREATE UNIQUE INDEX IF NOT EXISTS idx_file_hash ON file_hashes(hash)`,
-    );
+    await run(this.db, `CREATE UNIQUE INDEX IF NOT EXISTS idx_file_hash ON file_hashes(hash)`);
 
     // 初始化 stream_info 和 advancement 的默认数据
     await this.initDefaultData();
@@ -331,7 +325,9 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
   }
 
   // file_hashes 表操作方法
-  async findFileByHash(hash: string): Promise<{ hash: string; file_path: string; file_type: string } | undefined> {
+  async findFileByHash(
+    hash: string,
+  ): Promise<{ hash: string; file_path: string; file_type: string } | undefined> {
     return this.get<{ hash: string; file_path: string; file_type: string }>(
       'SELECT hash, file_path, file_type FROM file_hashes WHERE hash = ?',
       [hash],
@@ -339,10 +335,11 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
   }
 
   async recordFileHash(hash: string, filePath: string, fileType: string): Promise<void> {
-    await this.run(
-      'INSERT INTO file_hashes (hash, file_path, file_type) VALUES (?, ?, ?)',
-      [hash, filePath, fileType],
-    );
+    await this.run('INSERT INTO file_hashes (hash, file_path, file_type) VALUES (?, ?, ?)', [
+      hash,
+      filePath,
+      fileType,
+    ]);
   }
 
   async deleteFileHash(hash: string): Promise<void> {

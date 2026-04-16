@@ -11,26 +11,14 @@ describe('Indicator', () => {
   ];
 
   it('renders correct number of indicators', () => {
-    render(
-      <Indicator
-        videos={mockVideos}
-        currentIndex={0}
-        onSelect={vi.fn()}
-      />
-    );
+    render(<Indicator videos={mockVideos} currentIndex={0} onSelect={vi.fn()} />);
 
     const indicators = screen.getAllByTestId('indicator-dot');
     expect(indicators).toHaveLength(3);
   });
 
   it('highlights current indicator', () => {
-    render(
-      <Indicator
-        videos={mockVideos}
-        currentIndex={1}
-        onSelect={vi.fn()}
-      />
-    );
+    render(<Indicator videos={mockVideos} currentIndex={1} onSelect={vi.fn()} />);
 
     const indicators = screen.getAllByTestId('indicator-dot');
     expect(indicators[1]).toHaveClass('bg-white');
@@ -39,13 +27,7 @@ describe('Indicator', () => {
 
   it('calls onSelect when indicator is clicked', () => {
     const handleSelect = vi.fn();
-    render(
-      <Indicator
-        videos={mockVideos}
-        currentIndex={0}
-        onSelect={handleSelect}
-      />
-    );
+    render(<Indicator videos={mockVideos} currentIndex={0} onSelect={handleSelect} />);
 
     fireEvent.click(screen.getAllByTestId('indicator-dot')[2]);
     expect(handleSelect).toHaveBeenCalledWith(2);

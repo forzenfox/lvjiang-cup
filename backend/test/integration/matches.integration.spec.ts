@@ -62,8 +62,9 @@ describe('Matches Integration Tests', () => {
         start_time TEXT,
         stage TEXT NOT NULL,
         swiss_record TEXT,
-        swiss_day INTEGER,
-        elimination_bracket TEXT,
+        swiss_round INTEGER,
+        bo_format TEXT,
+        elimination_bracket TEXT CHECK(elimination_bracket IN ('quarterfinals', 'semifinals', 'finals')),
         elimination_game_number INTEGER,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -101,7 +102,7 @@ describe('Matches Integration Tests', () => {
       };
 
       await databaseService.run(
-        `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, swiss_record, swiss_day, status) 
+        `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, swiss_record, swiss_round, status) 
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           match.id,
@@ -216,7 +217,7 @@ describe('Matches Integration Tests', () => {
   describe('比赛 CRUD 完整流程', () => {
     it('should complete full match lifecycle: create → update → finish → clear', async () => {
       await databaseService.run(
-        `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status, swiss_record, swiss_day) 
+        `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status, swiss_record, swiss_round) 
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
         ['match-1', 'team-1', 'team-2', 'swiss', '第一轮', 'upcoming', '0-0', 1],
       );
@@ -251,9 +252,9 @@ describe('Matches Integration Tests', () => {
     it('should handle match creation with all fields', async () => {
       await databaseService.run(
         `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status, 
-         score_a, score_b, winner_id, start_time, swiss_record, swiss_day, 
-         elimination_bracket, elimination_game_number) 
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+         score_a, score_b, winner_id, start_time, swiss_record, swiss_round, 
+         bo_format, elimination_bracket, elimination_game_number) 
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           'match-full',
           'team-a',
@@ -267,15 +268,17 @@ describe('Matches Integration Tests', () => {
           '2024-01-01T10:00:00Z',
           null,
           null,
-          'grand_finals',
-          8,
+          'BO5',
+          'finals',
+          1,
         ],
       );
 
       const match = await service.findOne('match-full');
       expect(match.stage).toBe('elimination');
-      expect(match.eliminationBracket).toBe('grand_finals');
-      expect(match.eliminationGameNumber).toBe(8);
+      expect(match.boFormat).toBe('BO5');
+      expect(match.eliminationBracket).toBe('finals');
+      expect(match.eliminationGameNumber).toBe(1);
       expect(match.startTime).toBe('2024-01-01T10:00:00Z');
     });
   });
@@ -408,65 +411,45 @@ describe('Matches Integration Tests', () => {
 
   describe('淘汰赛晋级逻辑', () => {
     it('should track elimination bracket progression', async () => {
-      // 胜者组半决赛
       await databaseService.run(
         `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status, 
          elimination_bracket, elimination_game_number) 
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
         [
-          'elim-winners-1',
+          'elim-qf-1',
           'team-1',
           'team-2',
           'elimination',
-          '胜者组半决赛',
+          '四分之一决赛',
           'finished',
-          'winners',
+          'quarterfinals',
           1,
         ],
       );
 
-      let match = await service.findOne('elim-winners-1');
-      expect(match.eliminationBracket).toBe('winners');
+      let match = await service.findOne('elim-qf-1');
+      expect(match.eliminationBracket).toBe('quarterfinals');
       expect(match.eliminationGameNumber).toBe(1);
 
       await databaseService.run(
         `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status, 
          elimination_bracket, elimination_game_number) 
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-        [
-          'elim-losers-3',
-          'team-3',
-          'team-4',
-          'elimination',
-          '败者组第一轮',
-          'finished',
-          'losers',
-          3,
-        ],
+        ['elim-sf-1', 'team-1', 'team-3', 'elimination', '半决赛', 'finished', 'semifinals', 5],
       );
 
-      match = await service.findOne('elim-losers-3');
-      expect(match.eliminationBracket).toBe('losers');
+      match = await service.findOne('elim-sf-1');
+      expect(match.eliminationBracket).toBe('semifinals');
 
-      // 总决赛
       await databaseService.run(
         `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status, 
          elimination_bracket, elimination_game_number) 
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-        [
-          'elim-grand-8',
-          'team-1',
-          'team-3',
-          'elimination',
-          '总决赛',
-          'finished',
-          'grand_finals',
-          8,
-        ],
+        ['elim-f-1', 'team-1', 'team-3', 'elimination', '决赛', 'finished', 'finals', 7],
       );
 
-      match = await service.findOne('elim-grand-8');
-      expect(match.eliminationBracket).toBe('grand_finals');
+      match = await service.findOne('elim-f-1');
+      expect(match.eliminationBracket).toBe('finals');
     });
 
     it('should query matches by elimination bracket', async () => {
@@ -474,21 +457,21 @@ describe('Matches Integration Tests', () => {
         `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status, 
          elimination_bracket, elimination_game_number) 
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-        ['w1', 'team-1', 'team-2', 'elimination', '胜者组', 'upcoming', 'winners', 1],
+        ['qf-1', 'team-1', 'team-2', 'elimination', '四分之一决赛', 'upcoming', 'quarterfinals', 1],
       );
       await databaseService.run(
         `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status, 
          elimination_bracket, elimination_game_number) 
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-        ['l1', 'team-3', 'team-4', 'elimination', '败者组', 'upcoming', 'losers', 3],
+        ['sf-1', 'team-3', 'team-4', 'elimination', '半决赛', 'upcoming', 'semifinals', 5],
       );
 
-      const winnersMatches = await databaseService.all<{ id: string; elimination_bracket: string }>(
-        'SELECT * FROM matches WHERE elimination_bracket = ?',
-        ['winners'],
-      );
-      expect(winnersMatches).toHaveLength(1);
-      expect(winnersMatches[0].id).toBe('w1');
+      const quarterfinalsMatches = await databaseService.all<{
+        id: string;
+        elimination_bracket: string;
+      }>('SELECT * FROM matches WHERE elimination_bracket = ?', ['quarterfinals']);
+      expect(quarterfinalsMatches).toHaveLength(1);
+      expect(quarterfinalsMatches[0].id).toBe('qf-1');
     });
   });
 

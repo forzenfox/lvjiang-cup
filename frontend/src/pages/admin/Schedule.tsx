@@ -85,13 +85,13 @@ const AdminSchedule: React.FC = () => {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [matchesResult, teamsResult] = await Promise.all([
-        matchService.getAll(1, 100),
-        teamService.getAll(1, 100),
+      const [backendMatches, teamsResult] = await Promise.all([
+        matchService.getAll(),
+        teamService.getAll(),
       ]);
 
-      const frontendMatches = matchesResult.data.map(toFrontendMatch);
-      const frontendTeams = teamsResult.data.map(t => ({
+      const mappedMatches = backendMatches.map(toFrontendMatch);
+      const mappedTeams = teamsResult.map(t => ({
         id: t.id,
         name: t.name,
         logo: getUploadUrl(t.logo || t.logoUrl) || '',
@@ -106,8 +106,8 @@ const AdminSchedule: React.FC = () => {
         })),
       }));
 
-      setMatches(frontendMatches);
-      setTeams(frontendTeams as Team[]);
+      setMatches(mappedMatches);
+      setTeams(mappedTeams as Team[]);
     } catch (error) {
       console.error('Failed to load data:', error);
       toast.error('数据加载失败');

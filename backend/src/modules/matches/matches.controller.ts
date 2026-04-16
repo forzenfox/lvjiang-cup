@@ -2,7 +2,6 @@ import { Controller, Get, Put, Delete, Body, Param, Query, UseGuards } from '@ne
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiParam, ApiQuery } from '@nestjs/swagger';
 import { MatchesService, Match } from './matches.service';
 import { UpdateMatchDto } from './dto/update-match.dto';
-import { PaginationDto, PaginatedResult } from '../teams/dto/pagination.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @ApiTags('比赛管理')
@@ -13,26 +12,8 @@ export class MatchesController {
   @Get('matches')
   @ApiOperation({ summary: '获取所有比赛列表' })
   @ApiQuery({ name: 'stage', required: false, description: '按阶段筛选 (swiss/elimination)' })
-  async findAll(
-    @Query() paginationDto: PaginationDto,
-    @Query('stage') stage?: string,
-  ): Promise<PaginatedResult<Match>> {
-    const allMatches = await this.matchesService.findAll(stage);
-    const page = paginationDto.page || 1;
-    const pageSize = paginationDto.pageSize || 100;
-
-    // 计算分页
-    const total = allMatches.length;
-    const start = (page - 1) * pageSize;
-    const end = start + pageSize;
-    const paginatedData = allMatches.slice(start, end);
-
-    return {
-      data: paginatedData,
-      total,
-      page,
-      pageSize,
-    };
+  async findAll(@Query('stage') stage?: string): Promise<Match[]> {
+    return this.matchesService.findAll(stage);
   }
 
   @Get('matches/:id')

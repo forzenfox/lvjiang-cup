@@ -58,7 +58,10 @@ test.describe('【第二阶段-3】战队列表功能测试', () => {
         const logo = card.locator(
           '[data-testid="team-logo"], [data-testid="team-logo-placeholder"], img, [class*="logo"]'
         );
-        const logoVisible = await logo.first().isVisible().catch(() => false);
+        const logoVisible = await logo
+          .first()
+          .isVisible()
+          .catch(() => false);
         if (logoVisible) {
           console.log('✅ 战队Logo可见');
         }

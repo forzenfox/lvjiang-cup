@@ -1,11 +1,5 @@
 import apiClient from './axios';
-import type {
-  ApiResponse,
-  Match,
-  UpdateMatchRequest,
-  PaginatedResponse,
-  FindMatchesByStageRequest,
-} from './types';
+import type { ApiResponse, Match, UpdateMatchRequest, FindMatchesByStageRequest } from './types';
 
 /**
  * 比赛 API
@@ -13,14 +7,10 @@ import type {
 
 /**
  * 获取所有比赛
- * @param page 页码
- * @param pageSize 每页数量
  * @returns 比赛列表
  */
-export async function getAll(page = 1, pageSize = 10): Promise<PaginatedResponse<Match>> {
-  const response = await apiClient.get<ApiResponse<PaginatedResponse<Match>>>('/matches', {
-    params: { page, pageSize },
-  });
+export async function getAll(): Promise<Match[]> {
+  const response = await apiClient.get<ApiResponse<Match[]>>('/matches');
   const responseData = response.data;
 
   if (!responseData.success || !responseData.data) {

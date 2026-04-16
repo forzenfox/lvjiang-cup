@@ -93,7 +93,7 @@ export class StreamersService {
       'SELECT * FROM streamers ORDER BY sort_order ASC, created_at DESC',
     );
 
-    const streamers = rows.map(row => this.mapRowToStreamer(row));
+    const streamers = rows.map((row) => this.mapRowToStreamer(row));
     this.cacheService.set(this.CACHE_KEY_ALL, streamers);
     return streamers;
   }
@@ -144,6 +144,7 @@ export class StreamersService {
     return {
       id,
       ...createStreamerDto,
+      sortOrder: 0,
       createdAt: new Date(now),
       updatedAt: new Date(now),
     };

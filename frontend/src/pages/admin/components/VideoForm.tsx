@@ -144,7 +144,10 @@ const VideoForm: React.FC<VideoFormProps> = ({ video, isOpen, onClose, onSave })
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-      <Card className="w-full max-w-4xl bg-gray-800 border-gray-700 max-h-[90vh] overflow-y-auto" data-testid="video-form">
+      <Card
+        className="w-full max-w-4xl bg-gray-800 border-gray-700 max-h-[90vh] overflow-y-auto"
+        data-testid="video-form"
+      >
         <CardHeader className="flex flex-row items-center justify-between pb-4">
           <CardTitle className="text-white text-lg">{video ? '编辑视频' : '添加视频'}</CardTitle>
           <Button
@@ -178,7 +181,9 @@ const VideoForm: React.FC<VideoFormProps> = ({ video, isOpen, onClose, onSave })
                   {errors.url && touched.url ? (
                     <p className="text-sm text-red-500 mt-1">{errors.url}</p>
                   ) : (
-                    <p className="text-xs text-gray-500 mt-1">支持直接输入BV号或粘贴B站视频链接自动解析</p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      支持直接输入BV号或粘贴B站视频链接自动解析
+                    </p>
                   )}
                 </div>
 
@@ -195,7 +200,9 @@ const VideoForm: React.FC<VideoFormProps> = ({ video, isOpen, onClose, onSave })
                     placeholder="留空则使用B站原始标题"
                     maxLength={50}
                     className={`w-full px-3 py-2 bg-gray-900 border rounded-md text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                      errors.customTitle && touched.customTitle ? 'border-red-500' : 'border-gray-700'
+                      errors.customTitle && touched.customTitle
+                        ? 'border-red-500'
+                        : 'border-gray-700'
                     }`}
                   />
                   <div className="flex justify-between mt-1">
@@ -207,7 +214,6 @@ const VideoForm: React.FC<VideoFormProps> = ({ video, isOpen, onClose, onSave })
                     <p className="text-sm text-gray-500">{formData.customTitle.length}/50</p>
                   </div>
                 </div>
-
               </div>
 
               <div>

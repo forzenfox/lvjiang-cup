@@ -119,7 +119,9 @@ export function calculateAdvancement(
 
   // 遍历所有瑞士轮比赛，统计每支队伍的战绩
   matches
-    .filter(m => m.stage === 'swiss' && m.status === 'finished' && m.winnerId && m.teamAId && m.teamBId)
+    .filter(
+      m => m.stage === 'swiss' && m.status === 'finished' && m.winnerId && m.teamAId && m.teamBId
+    )
     .forEach(match => {
       const winnerId = match.winnerId!;
       const loserId = match.teamAId === winnerId ? match.teamBId! : match.teamAId!;

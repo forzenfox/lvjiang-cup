@@ -1,5 +1,5 @@
 import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
-import { DatabaseService, RunResult } from '../../database/database.service';
+import { DatabaseService } from '../../database/database.service';
 import { CacheService } from '../../cache/cache.service';
 import { UpdateVideoDto } from './dto/update-video.dto';
 import { CreateVideoDto } from './dto/create-video.dto';
@@ -10,7 +10,6 @@ import * as https from 'https';
 import * as http from 'http';
 import * as fs from 'fs';
 import * as path from 'path';
-import { uploadConfig } from '../../config/upload.config';
 import { getVideoCoverPath, getVideoCoverUrl } from '../../common/utils/path.util';
 
 export interface SortItem {
@@ -59,19 +58,28 @@ export class VideosService {
   private httpGet(url: string): Promise<{ data: string; statusCode: number }> {
     return new Promise((resolve, reject) => {
       const protocol = url.startsWith('https') ? https : http;
-      const req = protocol.get(url, {
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-          'Referer': 'https://www.bilibili.com/',
+      const req = protocol.get(
+        url,
+        {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+            Referer: 'https://www.bilibili.com/',
+          },
+          timeout: 10000,
         },
-        timeout: 10000,
-      }, (res) => {
-        let data = '';
-        res.on('data', (chunk) => { data += chunk; });
-        res.on('end', () => resolve({ data, statusCode: res.statusCode || 0 }));
-      });
+        (res) => {
+          let data = '';
+          res.on('data', (chunk) => {
+            data += chunk;
+          });
+          res.on('end', () => resolve({ data, statusCode: res.statusCode || 0 }));
+        },
+      );
       req.on('error', reject);
-      req.setTimeout(10000, () => { req.destroy(); reject(new Error('Request timeout')); });
+      req.setTimeout(10000, () => {
+        req.destroy();
+        reject(new Error('Request timeout'));
+      });
     });
   }
 
@@ -103,20 +111,26 @@ export class VideosService {
       const protocol = url.startsWith('https') ? https : http;
       const chunks: Buffer[] = [];
 
-      protocol.get(url, {
-        headers: {
-          'Referer': 'https://www.bilibili.com/',
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-        },
-      }, (response) => {
-        if (response.statusCode !== 200) {
-          reject(new Error(`Failed to download image: ${response.statusCode}`));
-          return;
-        }
-        response.on('data', (chunk: Buffer) => chunks.push(chunk));
-        response.on('end', () => resolve(Buffer.concat(chunks)));
-        response.on('error', reject);
-      }).on('error', reject);
+      protocol
+        .get(
+          url,
+          {
+            headers: {
+              Referer: 'https://www.bilibili.com/',
+              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+            },
+          },
+          (response) => {
+            if (response.statusCode !== 200) {
+              reject(new Error(`Failed to download image: ${response.statusCode}`));
+              return;
+            }
+            response.on('data', (chunk: Buffer) => chunks.push(chunk));
+            response.on('end', () => resolve(Buffer.concat(chunks)));
+            response.on('error', reject);
+          },
+        )
+        .on('error', reject);
     });
   }
 
@@ -142,7 +156,9 @@ export class VideosService {
 
     const existing = await this.databaseService.findFileByHash(hash);
     if (existing) {
-      this.logger.log(`Cover already exists for ${bvid}, reusing: ${existing.file_path} (hash: ${hash})`);
+      this.logger.log(
+        `Cover already exists for ${bvid}, reusing: ${existing.file_path} (hash: ${hash})`,
+      );
       return path.basename(existing.file_path);
     }
 
@@ -243,7 +259,14 @@ export class VideosService {
   }
 
   async findAllAdminPaginated(paginationDto: VideoPaginationDto): Promise<PaginatedResult<Video>> {
-    const { page = 1, pageSize = 10, sortBy = 'order', sortOrder = 'asc', search, isEnabled } = paginationDto;
+    const {
+      page = 1,
+      pageSize = 10,
+      sortBy = 'order',
+      sortOrder = 'asc',
+      search,
+      isEnabled,
+    } = paginationDto;
 
     const conditions: string[] = [];
     const params: any[] = [];
@@ -309,10 +332,9 @@ export class VideosService {
       throw new BadRequestException(`最多只能添加${this.MAX_VIDEOS}个视频`);
     }
 
-    const existing = await this.databaseService.get<any>(
-      'SELECT * FROM videos WHERE bvid = ?',
-      [bvid],
-    );
+    const existing = await this.databaseService.get<any>('SELECT * FROM videos WHERE bvid = ?', [
+      bvid,
+    ]);
     if (existing) {
       throw new BadRequestException(`B站视频 ${bvid} 已存在`);
     }

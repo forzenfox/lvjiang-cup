@@ -68,9 +68,7 @@ const Videos: React.FC = () => {
 
         <Card className="bg-gray-800 border-gray-700">
           <CardHeader className="pb-4">
-            <CardTitle className="text-white text-lg flex items-center gap-2">
-              视频列表
-            </CardTitle>
+            <CardTitle className="text-white text-lg flex items-center gap-2">视频列表</CardTitle>
           </CardHeader>
           <CardContent>
             <VideoList key={refreshKey} onEdit={handleEdit} />

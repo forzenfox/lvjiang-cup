@@ -133,13 +133,13 @@ const ScheduleSection: React.FC = () => {
         }
 
         const [matchesResponse, teamsResponse, advancementData] = await Promise.all([
-          matchService.getAll(1, 100),
-          teamService.getAll(1, 100),
+          matchService.getAll(),
+          teamService.getAll(),
           advancementService.get(),
         ]);
 
-        const convertedTeams = teamsResponse.data.map(convertApiTeamToLocal);
-        const convertedMatches = matchesResponse.data.map(m =>
+        const convertedTeams = teamsResponse.map(convertApiTeamToLocal);
+        const convertedMatches = matchesResponse.map(m =>
           convertApiMatchToLocal(m, convertedTeams)
         );
 

@@ -1,6 +1,16 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Radio, Users, Calendar, LogOut, Home, Loader2, User, Video } from 'lucide-react';
+import {
+  LayoutDashboard,
+  Radio,
+  Users,
+  Calendar,
+  LogOut,
+  Home,
+  Loader2,
+  User,
+  Video,
+} from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { Button } from '../ui/button';
 import { useAuth } from '../../hooks/useAuth';

@@ -128,7 +128,9 @@ test.describe('【战队限制测试】16队战队限制功能', () => {
     console.log(`✅ 当前战队数量: ${currentCount}`);
 
     if (currentCount < MAX_TEAMS) {
-      console.log(`当前只有 ${currentCount} 支战队，需要添加 ${MAX_TEAMS - currentCount} 支来达到上限`);
+      console.log(
+        `当前只有 ${currentCount} 支战队，需要添加 ${MAX_TEAMS - currentCount} 支来达到上限`
+      );
 
       const teamsToAdd = MAX_TEAMS - currentCount;
       const addedTeams: string[] = [];
@@ -143,7 +145,10 @@ test.describe('【战队限制测试】16队战队限制功能', () => {
           console.log(`✅ 成功添加第 ${currentCount + addedTeams.length} 支战队: ${uniqueName}`);
         }
 
-        const isNowDisabled = await page.getByTestId('add-team-button').isDisabled().catch(() => false);
+        const isNowDisabled = await page
+          .getByTestId('add-team-button')
+          .isDisabled()
+          .catch(() => false);
         if (isNowDisabled) {
           console.log('✅ 添加按钮已被禁用，已达到上限');
           break;

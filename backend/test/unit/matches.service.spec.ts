@@ -254,8 +254,8 @@ describe('MatchesService', () => {
 
       await service.initSlots();
 
-      // 验证插入了36个瑞士轮槽位 + 7个淘汰赛槽位 = 43次调用
-      expect(mockDatabaseService.run).toHaveBeenCalledTimes(43);
+      // 验证插入了33个瑞士轮槽位 + 7个淘汰赛槽位 = 40次调用
+      expect(mockDatabaseService.run).toHaveBeenCalledTimes(40);
     });
 
     it('should not initialize if slots already exist', async () => {
@@ -277,7 +277,7 @@ describe('MatchesService', () => {
       const round5Calls = calls.filter(
         (call) => call[1] && call[1][0] && call[1][0].startsWith('swiss-r5'),
       );
-      expect(round5Calls.length).toBe(4);
+      expect(round5Calls.length).toBe(3);
     });
 
     it('should clear cache after initialization', async () => {

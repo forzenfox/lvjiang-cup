@@ -1,9 +1,8 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiParam } from '@nestjs/swagger';
 import { TeamsService, Team, TeamMember } from './teams.service';
 import { CreateTeamDto } from './dto/create-team.dto';
 import { UpdateTeamDto } from './dto/update-team.dto';
-import { PaginationDto, PaginatedResult } from './dto/pagination.dto';
 import { CreateMemberDto } from './dto/create-member.dto';
 import { UpdateMemberDto } from './dto/update-member.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -15,23 +14,8 @@ export class TeamsController {
 
   @Get('teams')
   @ApiOperation({ summary: '获取所有战队列表' })
-  async findAll(@Query() paginationDto: PaginationDto): Promise<PaginatedResult<Team>> {
-    const allTeams = await this.teamsService.findAll();
-    const page = paginationDto.page || 1;
-    const pageSize = paginationDto.pageSize || 100;
-
-    // 计算分页
-    const total = allTeams.length;
-    const start = (page - 1) * pageSize;
-    const end = start + pageSize;
-    const paginatedData = allTeams.slice(start, end);
-
-    return {
-      data: paginatedData,
-      total,
-      page,
-      pageSize,
-    };
+  async findAll(): Promise<Team[]> {
+    return this.teamsService.findAll();
   }
 
   @Get('teams/:id')

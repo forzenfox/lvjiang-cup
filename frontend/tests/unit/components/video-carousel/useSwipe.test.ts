@@ -24,11 +24,13 @@ describe('useSwipe', () => {
   };
 
   it('does not call callbacks when swipe distance is less than threshold', () => {
-    const { result } = renderHook(() => useSwipe({
-      onSwipeLeft: mockOnSwipeLeft,
-      onSwipeRight: mockOnSwipeRight,
-      threshold: 50,
-    }));
+    const { result } = renderHook(() =>
+      useSwipe({
+        onSwipeLeft: mockOnSwipeLeft,
+        onSwipeRight: mockOnSwipeRight,
+        threshold: 50,
+      })
+    );
 
     const { onTouchStart, onTouchEnd } = result.current;
 
@@ -45,11 +47,13 @@ describe('useSwipe', () => {
   });
 
   it('calls onSwipeRight when swiping right', () => {
-    const { result } = renderHook(() => useSwipe({
-      onSwipeLeft: mockOnSwipeLeft,
-      onSwipeRight: mockOnSwipeRight,
-      threshold: 50,
-    }));
+    const { result } = renderHook(() =>
+      useSwipe({
+        onSwipeLeft: mockOnSwipeLeft,
+        onSwipeRight: mockOnSwipeRight,
+        threshold: 50,
+      })
+    );
 
     const { onTouchStart, onTouchEnd } = result.current;
 
@@ -66,11 +70,13 @@ describe('useSwipe', () => {
   });
 
   it('calls onSwipeLeft when swiping left', () => {
-    const { result } = renderHook(() => useSwipe({
-      onSwipeLeft: mockOnSwipeLeft,
-      onSwipeRight: mockOnSwipeRight,
-      threshold: 50,
-    }));
+    const { result } = renderHook(() =>
+      useSwipe({
+        onSwipeLeft: mockOnSwipeLeft,
+        onSwipeRight: mockOnSwipeRight,
+        threshold: 50,
+      })
+    );
 
     const { onTouchStart, onTouchEnd } = result.current;
 

@@ -22,7 +22,11 @@ export class VideoPaginationDto {
   @IsString()
   sortBy?: string = 'order';
 
-  @ApiPropertyOptional({ description: '排序方向，asc 或 desc', default: 'asc', enum: ['asc', 'desc'] })
+  @ApiPropertyOptional({
+    description: '排序方向，asc 或 desc',
+    default: 'asc',
+    enum: ['asc', 'desc'],
+  })
   @IsOptional()
   @IsEnum(['asc', 'desc'])
   sortOrder?: 'asc' | 'desc' = 'asc';

@@ -52,8 +52,8 @@ export async function getVideos(params?: GetVideosParams): Promise<PaginatedVide
   return responseData.data;
 }
 
-export async function getAdminVideos(params?: GetVideosParams): Promise<PaginatedVideoData> {
-  const response = await apiClient.get<ApiResponse<PaginatedVideoData>>('/admin/videos', { params });
+export async function getAdminVideos(): Promise<Video[]> {
+  const response = await apiClient.get<ApiResponse<Video[]>>('/admin/videos');
   const responseData = response.data;
 
   if (!responseData.success || !responseData.data) {

@@ -27,19 +27,17 @@ export const mockDataFixtures = base.extend<MockDataFixtures>({
     eliminationMatches,
     swissAdvancement,
   },
+
    
+  /* eslint-disable react-hooks/rules-of-hooks */
   loadMockData: async ({}, use) => {
     const loadFn = async (page: Page) => {
-      // 如果后端不支持，可以使用 localStorage 模拟数据
       const baseURL = process.env.BASE_URL || 'http://localhost:5173';
 
-      // 方案 1：通过 localStorage 注入数据
       await page.goto(baseURL);
 
-      // 注入模拟数据到 localStorage
       await page.evaluate(
         ({ teams, swissMatches, eliminationMatches, swissAdvancement }) => {
-          // 存储到 localStorage
           localStorage.setItem('mock-teams', JSON.stringify(teams));
           localStorage.setItem('mock-swiss-matches', JSON.stringify(swissMatches));
           localStorage.setItem('mock-elimination-matches', JSON.stringify(eliminationMatches));

@@ -12,13 +12,12 @@ interface UseAutoplayResult {
 }
 
 export const useAutoplay = ({
-  enabled,
-  onAutoplay,
-  videoCount,
-  isMobile,
+  enabled: _enabled,
+  onAutoplay: _onAutoplay,
+  videoCount: _videoCount,
+  isMobile: _isMobile,
 }: UseAutoplayOptions): UseAutoplayResult => {
-  const pause = useCallback(() => {
-  }, []);
+  const pause = useCallback(() => {}, []);
 
   return { pause };
 };

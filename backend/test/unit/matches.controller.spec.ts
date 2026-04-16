@@ -69,15 +69,10 @@ describe('MatchesController', () => {
       mockMatchesService.findAll.mockResolvedValue(mockMatches);
 
       // Act
-      const result = await controller.findAll({ page: 1, pageSize: 10 });
+      const result = await controller.findAll();
 
       // Assert
-      expect(result).toEqual({
-        data: mockMatches,
-        total: 2,
-        page: 1,
-        pageSize: 10,
-      });
+      expect(result).toEqual(mockMatches);
       expect(mockMatchesService.findAll).toHaveBeenCalledWith(undefined);
     });
 
@@ -96,10 +91,10 @@ describe('MatchesController', () => {
       mockMatchesService.findAll.mockResolvedValue(mockSwissMatches);
 
       // Act
-      const result = await controller.findAll({ page: 1, pageSize: 10 }, 'swiss');
+      const result = await controller.findAll('swiss');
 
       // Assert
-      expect(result.data).toEqual(mockSwissMatches);
+      expect(result).toEqual(mockSwissMatches);
       expect(mockMatchesService.findAll).toHaveBeenCalledWith('swiss');
     });
 
@@ -111,11 +106,10 @@ describe('MatchesController', () => {
       mockMatchesService.findAll.mockResolvedValue(mockMatches);
 
       // Act
-      const result = await controller.findAll({});
+      const result = await controller.findAll();
 
       // Assert
-      expect(result.page).toBe(1);
-      expect(result.pageSize).toBe(100);
+      expect(result).toEqual(mockMatches);
     });
   });
 

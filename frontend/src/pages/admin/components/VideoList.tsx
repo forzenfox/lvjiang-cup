@@ -2,22 +2,15 @@ import React, { useState, useEffect, useCallback } from 'react';
 import * as videoApi from '@/api/videos';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import { Edit, Trash2, Eye, EyeOff, GripVertical, ChevronLeft, ChevronRight, Search, X, RefreshCw } from 'lucide-react';
+import { Edit, Trash2, Eye, EyeOff, GripVertical, Search, X, RefreshCw } from 'lucide-react';
 
 interface VideoListProps {
   onEdit: (video: videoApi.Video) => void;
 }
 
-interface PaginationState {
-  page: number;
-  pageSize: number;
-  total: number;
-}
-
 const VideoList: React.FC<VideoListProps> = ({ onEdit }) => {
   const [videos, setVideos] = useState<videoApi.Video[]>([]);
   const [loading, setLoading] = useState(false);
-  const [pagination, setPagination] = useState<PaginationState>({ page: 1, pageSize: 10, total: 0 });
   const [search, setSearch] = useState('');
   const [filterEnabled, setFilterEnabled] = useState<boolean | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
@@ -26,36 +19,37 @@ const VideoList: React.FC<VideoListProps> = ({ onEdit }) => {
   const fetchVideos = useCallback(async () => {
     setLoading(true);
     try {
-      const params: videoApi.GetVideosParams = {
-        page: pagination.page,
-        pageSize: pagination.pageSize,
-        sortBy: 'order',
-        sortOrder: 'asc',
-      };
-      if (search.trim()) {
-        params.search = search.trim();
-      }
-      if (filterEnabled !== null) {
-        params.isEnabled = filterEnabled;
-      }
-      const result = await videoApi.getAdminVideos(params);
-      setVideos(result.list || []);
-      setPagination(prev => ({ ...prev, total: result.total }));
+      const result = await videoApi.getAdminVideos();
+      setVideos(result || []);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : '获取视频列表失败');
     } finally {
       setLoading(false);
     }
-  }, [pagination.page, pagination.pageSize, search, filterEnabled]);
+  }, []);
 
   useEffect(() => {
     fetchVideos();
   }, [fetchVideos]);
 
+  const filteredVideos = videos.filter(video => {
+    if (
+      search.trim() &&
+      !video.title.toLowerCase().includes(search.toLowerCase()) &&
+      !video.bvid.toLowerCase().includes(search.toLowerCase())
+    ) {
+      return false;
+    }
+    if (filterEnabled !== null && video.isEnabled !== filterEnabled) {
+      return false;
+    }
+    return true;
+  });
+
   const handleToggleEnabled = async (video: videoApi.Video) => {
     try {
       const result = await videoApi.toggleVideoEnabled(video.id, !video.isEnabled);
-      setVideos(prev => prev.map(v => v.id === result.id ? result : v));
+      setVideos(prev => prev.map(v => (v.id === result.id ? result : v)));
       toast.success(`已${result.isEnabled ? '启用' : '禁用'}视频`);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : '切换状态失败');
@@ -66,7 +60,6 @@ const VideoList: React.FC<VideoListProps> = ({ onEdit }) => {
     try {
       await videoApi.deleteVideo(id);
       setVideos(prev => prev.filter(v => v.id !== id));
-      setPagination(prev => ({ ...prev, total: prev.total - 1 }));
       toast.success('删除成功');
       setDeleteConfirmId(null);
     } catch (error) {
@@ -91,15 +84,15 @@ const VideoList: React.FC<VideoListProps> = ({ onEdit }) => {
       return;
     }
 
-    const draggedIndex = videos.findIndex(v => v.id === draggedId);
-    const targetIndex = videos.findIndex(v => v.id === targetId);
+    const draggedIndex = filteredVideos.findIndex(v => v.id === draggedId);
+    const targetIndex = filteredVideos.findIndex(v => v.id === targetId);
 
     if (draggedIndex === -1 || targetIndex === -1) {
       setDraggedId(null);
       return;
     }
 
-    const newVideos = [...videos];
+    const newVideos = [...filteredVideos];
     const [draggedVideo] = newVideos.splice(draggedIndex, 1);
     newVideos.splice(targetIndex, 0, draggedVideo);
 
@@ -116,13 +109,6 @@ const VideoList: React.FC<VideoListProps> = ({ onEdit }) => {
     }
   };
 
-  const handlePageChange = (newPage: number) => {
-    if (newPage < 1 || newPage > Math.ceil(pagination.total / pagination.pageSize)) return;
-    setPagination(prev => ({ ...prev, page: newPage }));
-  };
-
-  const totalPages = Math.ceil(pagination.total / pagination.pageSize);
-
   return (
     <div className="space-y-4" data-testid="video-list">
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
@@ -132,13 +118,17 @@ const VideoList: React.FC<VideoListProps> = ({ onEdit }) => {
             <input
               type="text"
               value={search}
-              onChange={e => { setSearch(e.target.value); setPagination(prev => ({ ...prev, page: 1 })); }}
+              onChange={e => {
+                setSearch(e.target.value);
+              }}
               placeholder="搜索标题或BV号..."
               className="w-full pl-10 pr-10 py-2 bg-gray-900 border border-gray-700 rounded-md text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             {search && (
               <button
-                onClick={() => { setSearch(''); setPagination(prev => ({ ...prev, page: 1 })); }}
+                onClick={() => {
+                  setSearch('');
+                }}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
               >
                 <X className="w-4 h-4" />
@@ -147,7 +137,9 @@ const VideoList: React.FC<VideoListProps> = ({ onEdit }) => {
           </div>
           <select
             value={filterEnabled === null ? '' : filterEnabled.toString()}
-            onChange={e => { setFilterEnabled(e.target.value === '' ? null : e.target.value === 'true'); setPagination(prev => ({ ...prev, page: 1 })); }}
+            onChange={e => {
+              setFilterEnabled(e.target.value === '' ? null : e.target.value === 'true');
+            }}
             className="px-3 py-2 bg-gray-900 border border-gray-700 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="">全部状态</option>
@@ -172,7 +164,7 @@ const VideoList: React.FC<VideoListProps> = ({ onEdit }) => {
           <RefreshCw className="w-8 h-8 animate-spin mr-2" />
           加载中...
         </div>
-      ) : videos.length === 0 ? (
+      ) : filteredVideos.length === 0 ? (
         <div className="flex flex-col items-center justify-center h-64 text-gray-500 bg-gray-800/50 rounded-lg border border-gray-700">
           <p className="text-lg mb-2">暂无视频</p>
           <p className="text-sm">点击上方"添加视频"按钮创建第一个视频</p>
@@ -184,16 +176,24 @@ const VideoList: React.FC<VideoListProps> = ({ onEdit }) => {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-gray-700 bg-gray-900/50">
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-400 w-12">拖拽</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-400 w-16">序号</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-400 w-12">
+                      拖拽
+                    </th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-400 w-16">
+                      序号
+                    </th>
                     <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">标题</th>
                     <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">BV号</th>
-                    <th className="px-4 py-3 text-center text-sm font-medium text-gray-400 w-24">状态</th>
-                    <th className="px-4 py-3 text-right text-sm font-medium text-gray-400 w-32">操作</th>
+                    <th className="px-4 py-3 text-center text-sm font-medium text-gray-400 w-24">
+                      状态
+                    </th>
+                    <th className="px-4 py-3 text-right text-sm font-medium text-gray-400 w-32">
+                      操作
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
-                  {videos.map((video, index) => (
+                  {filteredVideos.map((video, index) => (
                     <tr
                       key={video.id}
                       draggable
@@ -206,11 +206,11 @@ const VideoList: React.FC<VideoListProps> = ({ onEdit }) => {
                       <td className="px-4 py-3 text-gray-500 cursor-move">
                         <GripVertical className="w-4 h-4" />
                       </td>
-                      <td className="px-4 py-3 text-gray-400">
-                        {(pagination.page - 1) * pagination.pageSize + index + 1}
-                      </td>
+                      <td className="px-4 py-3 text-gray-400">{index + 1}</td>
                       <td className="px-4 py-3">
-                        <span className="text-white font-medium truncate max-w-xs block">{video.title}</span>
+                        <span className="text-white font-medium truncate max-w-xs block">
+                          {video.title}
+                        </span>
                       </td>
                       <td className="px-4 py-3">
                         <span className="text-gray-400 font-mono text-sm">{video.bvid}</span>
@@ -287,37 +287,6 @@ const VideoList: React.FC<VideoListProps> = ({ onEdit }) => {
               </table>
             </div>
           </div>
-
-          {totalPages > 1 && (
-            <div className="flex items-center justify-between">
-              <p className="text-sm text-gray-400">
-                共 {pagination.total} 条记录，第 {pagination.page}/{totalPages} 页
-              </p>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handlePageChange(pagination.page - 1)}
-                  disabled={pagination.page <= 1}
-                  className="border-gray-600 text-gray-300 hover:bg-gray-700 disabled:opacity-50"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </Button>
-                <span className="text-sm text-gray-400 px-2">
-                  {pagination.page} / {totalPages}
-                </span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handlePageChange(pagination.page + 1)}
-                  disabled={pagination.page >= totalPages}
-                  className="border-gray-600 text-gray-300 hover:bg-gray-700 disabled:opacity-50"
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </Button>
-              </div>
-            </div>
-          )}
         </>
       )}
     </div>

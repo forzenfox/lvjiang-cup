@@ -20,11 +20,11 @@ export const VideoCarousel: React.FC<VideoCarouselProps> = ({ videos }) => {
   const isPC = useMediaQuery('(min-width: 1024px)');
 
   const goToNext = useCallback(() => {
-    setCurrentIndex((prev) => (prev + 1) % videos.length);
+    setCurrentIndex(prev => (prev + 1) % videos.length);
   }, [videos.length]);
 
   const goToPrev = useCallback(() => {
-    setCurrentIndex((prev) => (prev - 1 + videos.length) % videos.length);
+    setCurrentIndex(prev => (prev - 1 + videos.length) % videos.length);
   }, [videos.length]);
 
   const { pause: pauseAutoplay } = useAutoplay({
@@ -90,7 +90,9 @@ export const VideoCarousel: React.FC<VideoCarouselProps> = ({ videos }) => {
           <div className="flex-1 bg-gray-900 min-h-0">
             <VideoPlayer video={currentVideo} />
           </div>
-          {showControls && <Indicator videos={videos} currentIndex={currentIndex} onSelect={setCurrentIndex} />}
+          {showControls && (
+            <Indicator videos={videos} currentIndex={currentIndex} onSelect={setCurrentIndex} />
+          )}
         </div>
       ) : (
         <div className="flex-1 flex items-center gap-4 min-h-0">
@@ -105,7 +107,9 @@ export const VideoCarousel: React.FC<VideoCarouselProps> = ({ videos }) => {
             </div>
           )}
 
-          <div className={`flex-1 relative h-full flex items-center ${showThumbnails ? 'max-w-[60%]' : 'max-w-full'}`}>
+          <div
+            className={`flex-1 relative h-full flex items-center ${showThumbnails ? 'max-w-[60%]' : 'max-w-full'}`}
+          >
             <div className="w-full aspect-video bg-gray-900">
               <VideoPlayer video={currentVideo} autoplay />
             </div>

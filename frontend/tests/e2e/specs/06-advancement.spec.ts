@@ -60,7 +60,7 @@ test.describe('【第四阶段-1】瑞士轮晋级名单管理测试', () => {
     await expect(schedulePage.pageTitle).toBeVisible();
 
     const swissEditor = page.getByTestId('swiss-stage');
-    const hasSwissEditor = await swissEditor.isVisible().catch(() => false);
+    await swissEditor.isVisible().catch(() => false);
 
     const advancementStatus = page.getByTestId('advancement-status');
     const hasAdvancementStatus = await advancementStatus.isVisible().catch(() => false);
@@ -140,7 +140,7 @@ test.describe('【第四阶段-1】瑞士轮晋级名单管理测试', () => {
     await schedulePage.switchToSwiss();
 
     const swissEditor = page.getByTestId('swiss-stage');
-    const hasSwissEditor = await swissEditor.isVisible().catch(() => false);
+    await swissEditor.isVisible().catch(() => false);
 
     const advancementStatus = page.getByTestId('advancement-status');
     const hasAdvancementStatus = await advancementStatus.isVisible().catch(() => false);
@@ -178,7 +178,7 @@ test.describe('【第四阶段-1】瑞士轮晋级名单管理测试', () => {
     await schedulePage.switchToSwiss();
 
     const swissEditor = page.getByTestId('swiss-stage');
-    const hasSwissEditor = await swissEditor.isVisible().catch(() => false);
+    await swissEditor.isVisible().catch(() => false);
 
     const backendHasAdvancement = await page
       .getByTestId('advancement-status')
@@ -236,7 +236,7 @@ test.describe('【第四阶段-2】晋级名单同步验证测试', () => {
     await schedulePage.switchToSwiss();
 
     const swissEditor = page.getByTestId('swiss-stage');
-    const hasSwissEditor = await swissEditor.isVisible().catch(() => false);
+    await swissEditor.isVisible().catch(() => false);
 
     const advancementStatus = page.getByTestId('advancement-status');
     const hasAdvancementStatus = await advancementStatus.isVisible().catch(() => false);
@@ -292,7 +292,7 @@ test.describe('【边界测试】晋级名单边界测试', () => {
     await schedulePage.switchToSwiss();
 
     const swissEditor = page.getByTestId('swiss-stage');
-    const hasSwissEditor = await swissEditor.isVisible().catch(() => false);
+    await swissEditor.isVisible().catch(() => false);
 
     const recordGroups = ['swiss-round-1', 'swiss-round-2', 'swiss-round-3', 'swiss-round-4'];
 
@@ -338,7 +338,7 @@ test.describe('【边界测试】晋级名单边界测试', () => {
     await schedulePage.switchToSwiss();
 
     const swissEditor = page.getByTestId('swiss-stage');
-    const hasSwissEditor = await swissEditor.isVisible().catch(() => false);
+    await swissEditor.isVisible().catch(() => false);
 
     const expectedRecords = ['0-0', '1-0', '0-1', '2-0', '1-1', '0-2', '3-0', '2-1', '1-2', '0-3'];
     let foundRecords = 0;
@@ -368,7 +368,7 @@ test.describe('【边界测试】晋级名单边界测试', () => {
 
     // 验证瑞士轮编辑器可见
     const swissEditor = page.getByTestId('swiss-stage');
-    const hasSwissEditor = await swissEditor.isVisible().catch(() => false);
+    await swissEditor.isVisible().catch(() => false);
 
     // 验证晋级状态显示
     const advancementStatus = page.getByTestId('advancement-status');

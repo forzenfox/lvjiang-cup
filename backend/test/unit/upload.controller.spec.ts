@@ -75,6 +75,28 @@ describe('UploadController', () => {
       expect(result.url).toBe('/uploads/members/def456.png');
     });
 
+    it('应该上传主播海报并返回成功结果', async () => {
+      const mockFile = {
+        originalname: 'poster.jpg',
+        buffer: Buffer.from('test'),
+        mimetype: 'image/jpeg',
+      };
+
+      mockUploadService.uploadImage.mockResolvedValue({
+        url: '/uploads/streamers/poster123.jpg',
+      });
+
+      const result = await controller.uploadImage(mockFile as any, 'poster');
+
+      expect(result).toHaveProperty('url');
+      expect(result.url).toBe('/uploads/streamers/poster123.jpg');
+      expect(mockUploadService.uploadImage).toHaveBeenCalledWith(
+        'poster',
+        expect.any(String),
+        mockFile.buffer,
+      );
+    });
+
     it('应该在缺少文件时抛出错误', async () => {
       const mockFile = null;
 

@@ -38,9 +38,25 @@ describe('uploadConfig', () => {
   });
 
   describe('文件大小限制', () => {
-    it('应该有正确的文件大小限制（5MB）', () => {
-      expect(uploadConfig.maxFileSize).toBe(5 * 1024 * 1024);
-      expect(uploadConfig.maxFileSize).toBe(5242880);
+    it('应该有正确的 logo 文件大小限制（5MB）', () => {
+      expect(uploadConfig.maxFileSize.logo).toBe(5 * 1024 * 1024);
+      expect(uploadConfig.maxFileSize.logo).toBe(5242880);
+    });
+
+    it('应该有正确的 avatar 文件大小限制（5MB）', () => {
+      expect(uploadConfig.maxFileSize.avatar).toBe(5 * 1024 * 1024);
+    });
+
+    it('应该有正确的 poster 文件大小限制（20MB）', () => {
+      expect(uploadConfig.maxFileSize.poster).toBe(20 * 1024 * 1024);
+    });
+
+    it('应该有正确的 cover 文件大小限制（20MB）', () => {
+      expect(uploadConfig.maxFileSize.cover).toBe(20 * 1024 * 1024);
+    });
+
+    it('应该有正确的默认文件大小限制（5MB）', () => {
+      expect(uploadConfig.defaultMaxFileSize).toBe(5 * 1024 * 1024);
     });
   });
 

@@ -291,7 +291,10 @@ test.describe('【P1】瑞士轮编辑器 - 战绩分组测试', () => {
     }
 
     // 如果没有数据，验证编辑器容器存在即可
-    const editorExists = await page.getByTestId('swiss-stage-editor').isVisible().catch(() => false);
+    const editorExists = await page
+      .getByTestId('swiss-stage-editor')
+      .isVisible()
+      .catch(() => false);
     if (editorExists) {
       console.log(`✅ 瑞士轮编辑器存在，找到 ${foundRounds} 个轮次分组`);
     } else {
@@ -478,7 +481,7 @@ test.describe('【P0】淘汰赛管理测试', () => {
     // 如果没有数据，验证Tab切换成功即可
     const elimContent = page.getByTestId('elimination-content');
     const hasContent = await elimContent.isVisible().catch(() => false);
-    
+
     if (hasContent) {
       console.log(`✅ 淘汰赛Tab内容显示，找到 ${visibleCount}/4 场四分之一决赛`);
     } else {

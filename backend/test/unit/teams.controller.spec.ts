@@ -59,15 +59,10 @@ describe('TeamsController', () => {
       mockTeamsService.findAll.mockResolvedValue(mockTeams);
 
       // Act
-      const result = await controller.findAll({ page: 1, pageSize: 10 });
+      const result = await controller.findAll();
 
       // Assert
-      expect(result).toEqual({
-        data: mockTeams,
-        total: 2,
-        page: 1,
-        pageSize: 10,
-      });
+      expect(result).toEqual(mockTeams);
       expect(mockTeamsService.findAll).toHaveBeenCalled();
     });
 
@@ -77,11 +72,10 @@ describe('TeamsController', () => {
       mockTeamsService.findAll.mockResolvedValue(mockTeams);
 
       // Act
-      const result = await controller.findAll({});
+      const result = await controller.findAll();
 
       // Assert
-      expect(result.page).toBe(1);
-      expect(result.pageSize).toBe(100);
+      expect(result).toEqual(mockTeams);
     });
   });
 
@@ -211,7 +205,7 @@ describe('TeamsController', () => {
       mockTeamsService.findAll.mockRejectedValue(new Error('Internal server error'));
 
       // Act & Assert
-      await expect(controller.findAll({})).rejects.toThrow('Internal server error');
+      await expect(controller.findAll()).rejects.toThrow('Internal server error');
     });
   });
 
@@ -376,23 +370,17 @@ describe('TeamsController', () => {
   });
 
   describe('响应格式验证', () => {
-    it('应该返回正确的分页响应格式', async () => {
+    it('应该返回正确的数组响应格式', async () => {
       // Arrange
       const mockTeams: Team[] = [{ id: '1', name: 'Team1', members: [] }];
       mockTeamsService.findAll.mockResolvedValue(mockTeams);
 
       // Act
-      const result = await controller.findAll({ page: 1, pageSize: 10 });
+      const result = await controller.findAll();
 
       // Assert
-      expect(result).toHaveProperty('data');
-      expect(result).toHaveProperty('total');
-      expect(result).toHaveProperty('page');
-      expect(result).toHaveProperty('pageSize');
-      expect(Array.isArray(result.data)).toBe(true);
-      expect(typeof result.total).toBe('number');
-      expect(typeof result.page).toBe('number');
-      expect(typeof result.pageSize).toBe('number');
+      expect(Array.isArray(result)).toBe(true);
+      expect(result).toEqual(mockTeams);
     });
 
     it('应该返回正确的战队对象格式', async () => {

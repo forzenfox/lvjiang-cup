@@ -97,8 +97,9 @@ describe('Cross-Module Integration Tests', () => {
         start_time TEXT,
         stage TEXT NOT NULL,
         swiss_record TEXT,
-        swiss_day INTEGER,
-        elimination_bracket TEXT,
+        swiss_round INTEGER,
+        bo_format TEXT,
+        elimination_bracket TEXT CHECK(elimination_bracket IN ('quarterfinals', 'semifinals', 'finals')),
         elimination_game_number INTEGER,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -431,8 +432,8 @@ describe('Cross-Module Integration Tests', () => {
       // 创建瑞士轮比赛
       for (let i = 0; i < 4; i++) {
         await databaseService.run(
-          `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status, swiss_record, swiss_day) 
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+          `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status, swiss_record, swiss_round) 
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
           [
             `swiss-${i}`,
             teams[i * 2].id,
@@ -500,7 +501,6 @@ describe('Cross-Module Integration Tests', () => {
     });
 
     it('should track team progression through tournament stages', async () => {
-      // 创建战队
       const team = await teamsService.create({
         id: 'team-1',
         name: 'Champion Team',
@@ -509,53 +509,39 @@ describe('Cross-Module Integration Tests', () => {
         players: [],
       });
 
-      // 瑞士轮比赛
       await databaseService.run(
         `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status, winner_id) 
          VALUES (?, ?, ?, ?, ?, ?, ?)`,
         ['swiss-match', team.id, 'team-2', 'swiss', 'Round 1', 'finished', team.id],
       );
 
-      // 淘汰赛比赛
       await databaseService.run(
         `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status, 
          elimination_bracket, elimination_game_number, winner_id) 
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
-          'elim-match',
+          'elim-qf-1',
           team.id,
           'team-3',
           'elimination',
-          '胜者组决赛',
+          '四分之一决赛',
           'finished',
-          'winners',
-          5,
+          'quarterfinals',
+          1,
           team.id,
         ],
       );
 
-      // 总决赛
       await databaseService.run(
         `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status, 
          elimination_bracket, elimination_game_number, winner_id) 
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [
-          'final-match',
-          team.id,
-          'team-4',
-          'elimination',
-          '总决赛',
-          'finished',
-          'grand_finals',
-          8,
-          team.id,
-        ],
+        ['elim-f-1', team.id, 'team-4', 'elimination', '决赛', 'finished', 'finals', 7, team.id],
       );
 
-      // 验证战队在所有阶段的比赛
       const swissMatch = await matchesService.findOne('swiss-match');
-      const elimMatch = await matchesService.findOne('elim-match');
-      const finalMatch = await matchesService.findOne('final-match');
+      const elimMatch = await matchesService.findOne('elim-qf-1');
+      const finalMatch = await matchesService.findOne('elim-f-1');
 
       expect(swissMatch.winnerId).toBe(team.id);
       expect(elimMatch.winnerId).toBe(team.id);
@@ -713,7 +699,7 @@ describe('Cross-Module Integration Tests', () => {
       // 2. 创建比赛槽位
       for (let i = 0; i < 4; i++) {
         await databaseService.run(
-          `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status, swiss_record, swiss_day) 
+          `INSERT INTO matches (id, team_a_id, team_b_id, stage, round, status, swiss_record, swiss_round) 
            VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
           [
             `swiss-${i}`,

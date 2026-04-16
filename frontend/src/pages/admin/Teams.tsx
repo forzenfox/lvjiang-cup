@@ -133,8 +133,8 @@ const AdminTeams: React.FC = () => {
   const loadTeams = async () => {
     setLoading(true);
     try {
-      const response = await teamService.getAll(1, 100);
-      const backendTeams = response.data.map((team: Team) => ({
+      const backendTeams = await teamService.getAll();
+      const mappedTeams = backendTeams.map((team: any) => ({
         ...team,
         players: ensureAllPositions(
           (team.members || []).map(m => ({
@@ -152,7 +152,7 @@ const AdminTeams: React.FC = () => {
           team.id
         ),
       }));
-      setTeams(backendTeams);
+      setTeams(mappedTeams);
     } catch (error) {
       console.error('Failed to load teams:', error);
       toast.error('加载战队列表失败');
@@ -615,18 +615,25 @@ const AdminTeams: React.FC = () => {
                                 onClick={() => {
                                   const input = document.createElement('input');
                                   input.type = 'file';
-                                  input.accept = 'image/png,image/jpeg,image/jpg';
+                                  input.accept =
+                                    'image/png,image/jpeg,image/jpg,image/gif,image/webp';
                                   input.onchange = async e => {
                                     const file = (e.target as HTMLInputElement).files?.[0];
                                     if (!file) return;
-                                    if (file.size > 2 * 1024 * 1024) {
-                                      toast.error('图片大小不能超过 2MB');
+                                    if (file.size > 5 * 1024 * 1024) {
+                                      toast.error('图片大小不能超过 5MB');
                                       return;
                                     }
                                     if (
-                                      !['image/png', 'image/jpeg', 'image/jpg'].includes(file.type)
+                                      ![
+                                        'image/png',
+                                        'image/jpeg',
+                                        'image/jpg',
+                                        'image/gif',
+                                        'image/webp',
+                                      ].includes(file.type)
                                     ) {
-                                      toast.error('仅支持 JPG/PNG 格式图片');
+                                      toast.error('仅支持 JPG/PNG/GIF/WebP 格式图片');
                                       return;
                                     }
                                     try {

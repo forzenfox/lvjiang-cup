@@ -25,10 +25,9 @@ export class TestDatabaseHelper {
 
   async cleanup(): Promise<void> {
     // 清空所有表数据
-    await this.databaseService.run('DELETE FROM matches');
-    await this.databaseService.run('DELETE FROM team_players');
-    await this.databaseService.run('DELETE FROM teams');
-    await this.databaseService.run('DELETE FROM streams');
+    await databaseService.run('DELETE FROM matches');
+    await databaseService.run('DELETE FROM team_members');
+    await databaseService.run('DELETE FROM teams');
     await this.databaseService.run('DELETE FROM advancement');
   }
 

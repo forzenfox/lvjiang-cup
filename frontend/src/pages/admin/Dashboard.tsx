@@ -37,13 +37,13 @@ const AdminDashboard: React.FC = () => {
     try {
       // 并行获取数据
       const [teamsResult, matchesResult, streamResult] = await Promise.all([
-        teamService.getAll(1, 100),
-        matchService.getAll(1, 100),
+        teamService.getAll(),
+        matchService.getAll(),
         streamService.get().catch(() => null),
       ]);
 
-      const teams = teamsResult.data || [];
-      const matches = matchesResult.data || [];
+      const teams = teamsResult || [];
+      const matches = matchesResult || [];
 
       // 计算统计数据 - 将 API 状态映射到前端状态
       const mapStatus = (status: string): string => {
