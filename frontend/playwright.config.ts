@@ -16,8 +16,8 @@ const testConfig = getTestConfig();
 
 /**
  * Playwright Configuration for 驴酱杯赛事网站 E2E Tests
- * @version 1.2.0
- * @update 2026-04-11: 使用 .env 文件管理敏感信息
+ * @version 1.3.0
+ * @update 2026-04-16: 显式加载 tests/e2e/.env 环境变量
  *
  * ⚠️ 重要提示：当前测试用例存在强依赖关系，必须串行执行
  * 依赖链：TEST-001 → TEST-101 → TEST-105 → TEST-108 → TEST-110 → TEST-111 → TEST-112

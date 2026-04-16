@@ -4,61 +4,20 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
 
-const TEST_TEAM_NAME = `导入测试战队_${Date.now()}`;
-const TEST_TEAM_NAME_2 = `导入测试战队2_${Date.now()}`;
+const TEST_TEAM_NAME = '导入测试战队';
 
-function createMockExcelFile(filePath: string): void {
-  const ExcelJS = require('exceljs');
-  const workbook = new ExcelJS.Workbook();
-  const sheet = workbook.addWorksheet('战队与队员信息导入');
+function getFixtureExcelPath(): string {
+  return path.join(__dirname, '..', 'fixtures', 'test-import.xlsx');
+}
 
-  sheet.getCell('A1').value = '战队与队员信息导入模板';
-  sheet.getCell('A3').value = '战队名称';
-  sheet.getCell('B3').value = '队标URL';
-  sheet.getCell('C3').value = '参赛宣言';
-  sheet.getCell('D3').value = '位置';
-  sheet.getCell('E3').value = '队员昵称';
-  sheet.getCell('F3').value = '队员游戏ID';
-  sheet.getCell('G3').value = '队员头像URL';
-  sheet.getCell('H3').value = '评分';
-  sheet.getCell('I3').value = '是否队长';
-  sheet.getCell('J3').value = '实力等级';
-  sheet.getCell('K3').value = '常用英雄';
-  sheet.getCell('L3').value = '直播间号';
-  sheet.getCell('M3').value = '个人简介';
-
-  const row4Data = [
-    TEST_TEAM_NAME,
-    'https://example.com/logo.png',
-    '测试宣言',
-    '上单',
-    '小明',
-    'GameID001',
-    'https://example.com/avatar.png',
-    85,
-    '是',
-    'S',
-    '亚索,盲僧',
-    '123456',
-    '我是上单选手'
-  ];
-  row4Data.forEach((val, idx) => {
-    sheet.getCell(idx + 1, 4).value = val;
-  });
-
-  const positions = ['打野', '中单', 'ADC', '辅助'];
-  positions.forEach((pos, idx) => {
-    const rowNum = idx + 5;
-    sheet.getCell(1, rowNum).value = TEST_TEAM_NAME;
-    sheet.getCell(4, rowNum).value = pos;
-    sheet.getCell(5, rowNum).value = `队员${idx + 1}`;
-    sheet.getCell(8, rowNum).value = 75;
-    sheet.getCell(9, rowNum).value = '否';
-    sheet.getCell(10, rowNum).value = 'B';
-  });
-
-  const buffer = await workbook.xlsx.writeBuffer();
-  fs.writeFileSync(filePath, buffer);
+function copyFixtureToTemp(tempDir: string): string {
+  const fixturePath = getFixtureExcelPath();
+  if (!fs.existsSync(fixturePath)) {
+    throw new Error(`Fixture file not found: ${fixturePath}. Please run 'npm run generate:test-excel' in frontend directory first.`);
+  }
+  const destPath = path.join(tempDir, `test_import_${Date.now()}.xlsx`);
+  fs.copyFileSync(fixturePath, destPath);
+  return destPath;
 }
 
 /**
@@ -153,14 +112,20 @@ test.describe('【导入功能】战队批量导入测试', () => {
    * 验证正常Excel文件导入成功 - 真实业务场景
    */
   test('TEST-1403: 导入成功流程 @P1', async ({ page }) => {
+    const fixturePath = getFixtureExcelPath();
+    if (!fs.existsSync(fixturePath)) {
+      console.log('⚠️ 测试fixtures文件不存在，请先运行 create-test-excel.js 生成');
+      test.skip();
+      return;
+    }
+
     await teamsPage.clickBatchImportButton();
 
     const dialogVisible = await page.locator('text=批量导入战队').isVisible();
     expect(dialogVisible).toBeTruthy();
     console.log('✅ 导入对话框打开成功');
 
-    const excelFilePath = path.join(tempDir, `test_import_${Date.now()}.xlsx`);
-    createMockExcelFile(excelFilePath);
+    const excelFilePath = copyFixtureToTemp(tempDir);
 
     const fileInput = page.locator('input[type="file"]');
     await fileInput.setInputFiles(excelFilePath);
@@ -189,10 +154,6 @@ test.describe('【导入功能】战队批量导入测试', () => {
       console.log(`✅ 导入后战队列表刷新，新战队"${TEST_TEAM_NAME}"可见`);
     } else {
       console.log(`⚠️ 导入后刷新列表，未找到"${TEST_TEAM_NAME}"`);
-    }
-
-    if (fs.existsSync(excelFilePath)) {
-      fs.unlinkSync(excelFilePath);
     }
   });
 
@@ -232,14 +193,20 @@ test.describe('【导入功能】战队批量导入测试', () => {
    * 验证覆盖模式正确工作 - 真实业务场景
    */
   test('TEST-1405: 导入覆盖验证 @P2', async ({ page }) => {
+    const fixturePath = getFixtureExcelPath();
+    if (!fs.existsSync(fixturePath)) {
+      console.log('⚠️ 测试fixtures文件不存在，请先运行 create-test-excel.js 生成');
+      test.skip();
+      return;
+    }
+
     await teamsPage.clickBatchImportButton();
 
     const coverModeHint = await page.locator('text=覆盖模式').isVisible().catch(() => false);
     expect(coverModeHint).toBeTruthy();
     console.log('✅ 覆盖模式提示可见');
 
-    const excelFilePath = path.join(tempDir, `test_overwrite_${Date.now()}.xlsx`);
-    createMockExcelFile(excelFilePath);
+    const excelFilePath = copyFixtureToTemp(tempDir);
 
     const fileInput = page.locator('input[type="file"]');
     await fileInput.setInputFiles(excelFilePath);
@@ -264,11 +231,5 @@ test.describe('【导入功能】战队批量导入测试', () => {
     const teamExists = await teamsPage.hasTeam(TEST_TEAM_NAME);
     expect(teamExists).toBeTruthy();
     console.log(`✅ 导入后战队"${TEST_TEAM_NAME}"存在`);
-
-    await page.locator('text=取消').click();
-
-    if (fs.existsSync(excelFilePath)) {
-      fs.unlinkSync(excelFilePath);
-    }
   });
 });
