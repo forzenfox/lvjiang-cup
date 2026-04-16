@@ -39,24 +39,22 @@
 | 主视觉区域 | 上2/3展示背景轮播，下1/3展示文案和Logo |
 | 滚动提示 | 向下箭头弹跳动画，提示用户滚动 |
 | 退出动画 | 上下分裂滑出效果，展现主内容 |
-| 一次性触发 | 每个会话只触发一次封面动画 |
+| 每次加载显示 | 每次页面加载（包括刷新）都显示封面，与官方网站保持一致 |
 
 ---
 
 ## 3. 核心流程
 
-### 3.1 游客首次访问流程
+### 3.1 游客访问流程
 
 ```
 graph TD
-  A[用户访问首页] --&gt; B{是否首次访问该会话?}
-  B --&gt;|是| C[展示封面动画]
-  B --&gt;|否| D[直接展示主内容]
-  C --&gt; E[背景轮播自动播放]
-  E --&gt; F[用户向下滚动/触摸滑动]
-  F --&gt; G[触发上下分裂退出动画]
-  G --&gt; H[封面隐藏，展示主内容]
-  H --&gt; I[导航栏显示]
+  A[用户访问首页/刷新页面] --&gt; B[展示封面动画]
+  B --&gt; C[背景轮播自动播放]
+  C --&gt; D[用户向下滚动/触摸滑动]
+  D --&gt; E[触发上下分裂退出动画]
+  E --&gt; F[封面隐藏，展示主内容]
+  F --&gt; G[导航栏显示]
 ```
 
 ### 3.2 管理员访问流程
@@ -200,21 +198,18 @@ useEffect(() =&gt; {
 }, [isVisible, isExiting]);
 ```
 
-#### 一次性触发机制
+#### 每次加载显示机制
 
 ```typescript
-useEffect(() =&gt; {
-  const hasSeenCover = sessionStorage.getItem('hasSeenCover');
-  if (hasSeenCover) {
-    setHasExited(true);
-    setIsVisible(false);
-  }
+useEffect(() => {
+  // 每次页面加载都显示封面
+  setIsVisible(true);
+  setHasExited(false);
 }, []);
 
-const triggerExit = () =&gt; {
+const triggerExit = () => {
   setIsExiting(true);
-  sessionStorage.setItem('hasSeenCover', 'true');
-  setTimeout(() =&gt; {
+  setTimeout(() => {
     setIsVisible(false);
     setHasExited(true);
     onExit?.();
@@ -276,14 +271,14 @@ return (
 
 ### 7.1 功能验收
 
-- [ ] 首次访问网站时显示封面
+- [ ] 每次访问网站（包括刷新）时都显示封面
 - [ ] 背景轮播正常播放，3秒自动切换，淡入淡出效果
 - [ ] 滚动提示箭头有弹跳动画
 - [ ] PC 端向下滚动触发退出动画
 - [ ] 移动端向下滑动触发退出动画
 - [ ] 退出动画为上下分裂效果
-- [ ] 刷新页面后不再显示封面（sessionStorage 生效）
-- [ ] 关闭浏览器标签页重新打开后再次显示封面
+- [ ] 刷新页面后再次显示封面
+- [ ] 关闭浏览器标签页重新打开后显示封面
 - [ ] 访问 /admin/* 路径不显示封面
 
 ### 7.2 视觉验收
@@ -337,6 +332,11 @@ return (
 ---
 
 ## 10. 更新日志
+
+### v1.1 (2026-04-16)
+- 优化封面显示逻辑：每次页面加载（包括刷新）都显示封面
+- 移除 sessionStorage 存储机制，与官方网站保持一致
+- 更新相关功能描述、流程图和验收标准
 
 ### v1.0 (2026-04-16)
 - 初始版本 PRD
