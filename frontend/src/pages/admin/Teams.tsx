@@ -249,7 +249,7 @@ const AdminTeams: React.FC = () => {
     setEditingTeamId(team.id);
     setEditingTeamData({
       name: team.name,
-      logo: team.logo,
+      logo: team.logo || team.logoUrl,
       battleCry: team.battleCry,
     });
   };
@@ -584,9 +584,9 @@ const AdminTeams: React.FC = () => {
                   onClick={() => handleToggleExpand(team.id)}
                 >
                   <div className="flex items-center space-x-4">
-                    {team.logo ? (
+                    {team.logo || team.logoUrl ? (
                       <img
-                        src={team.logo}
+                        src={team.logo || team.logoUrl}
                         alt={team.name}
                         className="w-12 h-12 rounded object-contain bg-black/20"
                         onError={e => {
@@ -820,9 +820,9 @@ const AdminTeams: React.FC = () => {
                           </div>
                           <div>
                             <label className="block text-xs text-[#64748B] mb-1">队标</label>
-                            {team.logo ? (
+                            {team.logo || team.logoUrl ? (
                               <img
-                                src={team.logo}
+                                src={team.logo || team.logoUrl}
                                 alt="队标"
                                 className="w-16 h-16 rounded object-contain bg-black/20"
                               />
