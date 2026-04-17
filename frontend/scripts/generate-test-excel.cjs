@@ -78,25 +78,25 @@ async function createTestExcel() {
 
       // 战队信息只在第1行（i === 0）填写，后续4行留空
       if (i === 0) {
-        sheet.getCell(1, rowNum).value = teamName;
-        sheet.getCell(2, rowNum).value = logoUrl || '';
-        sheet.getCell(3, rowNum).value = battleCry || '';
+        sheet.getCell(rowNum, 1).value = teamName;
+        sheet.getCell(rowNum, 2).value = logoUrl || '';
+        sheet.getCell(rowNum, 3).value = battleCry || '';
       } else {
-        sheet.getCell(1, rowNum).value = '';
-        sheet.getCell(2, rowNum).value = '';
-        sheet.getCell(3, rowNum).value = '';
+        sheet.getCell(rowNum, 1).value = '';
+        sheet.getCell(rowNum, 2).value = '';
+        sheet.getCell(rowNum, 3).value = '';
       }
 
-      sheet.getCell(4, rowNum).value = position;
-      sheet.getCell(5, rowNum).value = member.nickname;
-      sheet.getCell(6, rowNum).value = member.gameId || '';
-      sheet.getCell(7, rowNum).value = member.avatarUrl || '';
-      sheet.getCell(8, rowNum).value = member.rating || 60;
-      sheet.getCell(9, rowNum).value = member.isCaptain || '否';
-      sheet.getCell(10, rowNum).value = member.level || 'B';
-      sheet.getCell(11, rowNum).value = championPool;
-      sheet.getCell(12, rowNum).value = member.liveRoom || '';
-      sheet.getCell(13, rowNum).value = member.bio || '';
+      sheet.getCell(rowNum, 4).value = position;
+      sheet.getCell(rowNum, 5).value = member.nickname;
+      sheet.getCell(rowNum, 6).value = member.gameId || '';
+      sheet.getCell(rowNum, 7).value = member.avatarUrl || '';
+      sheet.getCell(rowNum, 8).value = member.rating || 60;
+      sheet.getCell(rowNum, 9).value = member.isCaptain || '否';
+      sheet.getCell(rowNum, 10).value = member.level || 'B';
+      sheet.getCell(rowNum, 11).value = championPool;
+      sheet.getCell(rowNum, 12).value = member.liveRoom || '';
+      sheet.getCell(rowNum, 13).value = member.bio || '';
 
       sheet.getCell(`D${rowNum}`).dataValidation = {
         type: 'list',

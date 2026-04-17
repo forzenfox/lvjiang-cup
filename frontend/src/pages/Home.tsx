@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { Loader2, AlertCircle } from 'lucide-react';
 import Layout from '../components/layout/Layout';
+import { StartBox } from '../components/features/StartBox';
 import HeroSection from '../components/features/HeroSection';
 import ScheduleSection from '../components/features/ScheduleSection';
 import TeamSection from '../components/features/TeamSection';
@@ -198,6 +199,8 @@ const Home: React.FC = () => {
 
   return (
     <Layout>
+      <StartBox />
+
       {/* 全局错误提示 */}
       {showError && state.error && (
         <GlobalErrorToast message={state.error} onClose={() => setShowError(false)} />

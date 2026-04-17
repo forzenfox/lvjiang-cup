@@ -1,0 +1,46 @@
+@keyframes translateY1 {
+  0% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  50% {
+    transform: translateY(20px);
+    opacity: 0.1;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.scroll-tip-arrow {
+  animation: translateY1 1.6s ease infinite;
+}
+
+.background-carousel.exiting {
+  transform: translateY(-100%);
+  transition: transform 1s ease-in-out;
+}
+
+.start-box-cover .scroll-tip.exiting {
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+@media (max-width: 1023px) {
+  .start-box-cover .start-t {
+    height: 66.3%;
+  }
+
+  .start-box-cover .start-b {
+    height: 33.7%;
+  }
+
+  .start-box-cover .start-slogan {
+    width: 90%;
+  }
+
+  .start-box-cover .start-logo {
+    height: 13.6%;
+  }
+}
