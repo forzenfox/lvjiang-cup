@@ -15,6 +15,7 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/release/demo' || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/release/demo')
     steps:
       - name: Checkout
         uses: actions/checkout@v4

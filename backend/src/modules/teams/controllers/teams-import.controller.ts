@@ -9,12 +9,30 @@ import {
   Res,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { v4 as uuidv4 } from 'uuid';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiConsumes } from '@nestjs/swagger';
 import { Response } from 'express';
 import * as fs from 'fs';
+import * as path from 'path';
 import { TeamsImportService } from '../services/teams-import.service';
 import { ImportErrorDto } from '../dto/import';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
+
+const excelStorage = diskStorage({
+  destination: (req, file, cb) => {
+    const tempDir = path.join(process.cwd(), 'uploads', 'temp');
+    if (!fs.existsSync(tempDir)) {
+      fs.mkdirSync(tempDir, { recursive: true });
+    }
+    cb(null, tempDir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = uuidv4();
+    const ext = path.extname(file.originalname);
+    cb(null, `import-${uniqueSuffix}${ext}`);
+  },
+});
 
 @ApiTags('战队导入管理')
 @Controller('admin/teams/import')
@@ -56,7 +74,7 @@ export class TeamsImportController {
   @Post()
   @ApiOperation({ summary: '批量导入战队和队员信息' })
   @ApiConsumes('multipart/form-data')
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(FileInterceptor('file', { storage: excelStorage }))
   async importTeams(@UploadedFile() file: Express.Multer.File) {
     if (!file) {
       throw new Error('请上传 Excel 文件');

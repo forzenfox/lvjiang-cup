@@ -43,7 +43,7 @@ export const ImportResultDialog: React.FC<ImportResultDialogProps> = ({
   };
 
   return (
-    <Modal visible={open} onClose={handleClose} title="导入结果">
+    <Modal visible={open} onClose={handleClose} title="导入结果" className="max-w-2xl">
       <div className="space-y-4">
         {isSuccess ? (
           <div className="p-4 bg-green-500/10 border border-green-500/20 rounded-lg">

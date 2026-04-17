@@ -35,8 +35,22 @@ export function findChampionId(inputName: string): string | null {
   const championMap = loadChampionMap();
   const normalizedInput = inputName.trim();
 
+  if (!normalizedInput) {
+    return null;
+  }
+
   for (const champion of Object.values(championMap)) {
     if (champion.name === normalizedInput || champion.title === normalizedInput) {
+      return champion.id;
+    }
+
+    const fullName = `${champion.name}·${champion.title}`;
+    const fullNameDash = `${champion.name}-${champion.title}`;
+    if (fullName === normalizedInput || fullNameDash === normalizedInput) {
+      return champion.id;
+    }
+
+    if (champion.name.includes(normalizedInput) || champion.title.includes(normalizedInput)) {
       return champion.id;
     }
   }
@@ -68,20 +82,14 @@ export function validateChampionPool(poolStr: string): { valid: boolean; validCh
   }
 
   const names = poolStr.split(/[,，]/).map(n => n.trim()).filter(n => n.length > 0);
-  const championMap = loadChampionMap();
   const validChampions: string[] = [];
   const invalidNames: string[] = [];
 
   for (const name of names) {
-    let found = false;
-    for (const champion of Object.values(championMap)) {
-      if (champion.name === name || champion.title === name) {
-        validChampions.push(champion.id);
-        found = true;
-        break;
-      }
-    }
-    if (!found) {
+    const championId = findChampionId(name);
+    if (championId) {
+      validChampions.push(championId);
+    } else {
       invalidNames.push(name);
     }
   }

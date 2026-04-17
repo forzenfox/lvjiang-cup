@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { X, Star, ExternalLink } from 'lucide-react';
 import type { Player } from '@/api/types';
 import { PositionType } from '@/types/position';
-import { getChampionIconUrl } from '@/utils/championUtils';
+import { getChampionIconByEn, getChampionTitleByEn } from '@/utils/championUtils';
 import { getLevelBadgeClasses, getCaptainBadgeClasses } from '@/utils/levelColors';
 import { getUploadUrl } from '@/utils/upload';
 import { ZIndexLayers } from '@/constants/zIndex';
@@ -45,11 +45,12 @@ const StarRating: React.FC<{ rating: number }> = ({ rating }) => {
   );
 };
 
-const ChampionIcon: React.FC<{ championName: string; index: number }> = ({
-  championName,
+const ChampionIcon: React.FC<{ championId: string; index: number }> = ({
+  championId,
   index,
 }) => {
-  const iconUrl = getChampionIconUrl(championName);
+  const iconUrl = getChampionIconByEn(championId);
+  const championTitle = getChampionTitleByEn(championId);
 
   return (
     <div className="flex flex-col items-center gap-1 group cursor-pointer">
@@ -60,7 +61,7 @@ const ChampionIcon: React.FC<{ championName: string; index: number }> = ({
         {iconUrl ? (
           <img
             src={iconUrl}
-            alt={championName}
+            alt={championTitle}
             className="w-full h-full object-cover"
             onError={e => {
               (e.target as HTMLImageElement).style.display = 'none';
@@ -73,7 +74,7 @@ const ChampionIcon: React.FC<{ championName: string; index: number }> = ({
         )}
       </div>
       <span className="text-xs text-slate-400 group-hover:text-slate-200 transition-colors truncate max-w-[70px]">
-        {championName.split('·').pop() || championName}
+        {championTitle}
       </span>
     </div>
   );
@@ -226,8 +227,8 @@ export const PlayerDetailModal: React.FC<PlayerDetailModalProps> = ({
             <h4 className="text-sm font-medium text-slate-300 mb-3">常用英雄</h4>
             {player.championPool && player.championPool.length > 0 ? (
               <div className="flex flex-wrap justify-center gap-4">
-                {player.championPool.map((champion, index) => (
-                  <ChampionIcon key={champion} championName={champion} index={index} />
+                {player.championPool.map((championId, index) => (
+                  <ChampionIcon key={championId} championId={championId} index={index} />
                 ))}
               </div>
             ) : (

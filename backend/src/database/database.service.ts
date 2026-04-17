@@ -170,7 +170,7 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
       `
       CREATE TABLE IF NOT EXISTS teams (
         id TEXT PRIMARY KEY,
-        name TEXT NOT NULL,
+        name TEXT NOT NULL UNIQUE,
         logo TEXT,
         logo_url TEXT,
         logo_thumbnail_url TEXT,

@@ -12,7 +12,7 @@
         "rating": 95,
         "isCaptain": "是",
         "level": "S",
-        "championPool": "未来守护者·杰斯,荒漠屠夫·雷克顿,山隐之焰·奥恩",
+        "championPool": "暗裔剑魔",
         "liveRoom": "138243",
         "bio": "斗鱼138243"
       },
@@ -24,7 +24,7 @@
         "rating": 92,
         "isCaptain": "否",
         "level": "A",
-        "championPool": "盲僧,永猎双子·千珏,法外狂徒·格雷福斯",
+        "championPool": "盲僧,千珏,格雷福斯",
         "liveRoom": "138243",
         "bio": "斗鱼138243"
       },
@@ -36,7 +36,7 @@
         "rating": 94,
         "isCaptain": "否",
         "level": "S",
-        "championPool": "离群之刺·阿卡丽,解脱者·塞拉斯,暮光星灵·佐伊",
+        "championPool": "离群之刺,解脱者,暮光星灵",
         "liveRoom": "138243",
         "bio": "操作细腻"
       },
@@ -48,7 +48,7 @@
         "rating": 93,
         "isCaptain": "否",
         "level": "A",
-        "championPool": "残月之肃·厄斐琉斯,暴走萝莉·金克丝,虚空之女·卡莎",
+        "championPool": "厄斐琉斯,金克丝,卡莎",
         "liveRoom": "138243",
         "bio": "输出稳定"
       },
@@ -60,7 +60,7 @@
         "rating": 90,
         "isCaptain": "否",
         "level": "A",
-        "championPool": "魂锁典狱长·锤石,深海泰坦·诺提勒斯,幻翎·洛",
+        "championPool": "锤石,诺提勒斯,洛",
         "liveRoom": "8981206",
         "bio": "斗鱼8981206"
       }
@@ -79,7 +79,7 @@
         "rating": 91,
         "isCaptain": "是",
         "level": "A",
-        "championPool": "青钢影·卡蜜尔,腕豪·瑟提,狂暴之心·凯南",
+        "championPool": "卡蜜尔",
         "liveRoom": "1126960",
         "bio": "斗鱼1126960"
       },
@@ -91,7 +91,7 @@
         "rating": 88,
         "isCaptain": "否",
         "level": "B",
-        "championPool": "皮城执法官·蔚,北地之怒·瑟庄妮,水晶先锋·斯卡纳",
+        "championPool": "蔚,瑟庄妮,斯卡纳",
         "liveRoom": "1126960",
         "bio": "斗鱼1126960"
       },
@@ -103,7 +103,7 @@
         "rating": 93,
         "isCaptain": "否",
         "level": "A",
-        "championPool": "发条魔灵·奥莉安娜,机械先驱·维克托,暗黑元首·辛德拉",
+        "championPool": "奥莉安娜,维克托,辛德拉",
         "liveRoom": "1126960",
         "bio": "中路核心"
       },
@@ -115,7 +115,7 @@
         "rating": 94,
         "isCaptain": "否",
         "level": "S",
-        "championPool": "荣耀行刑官·德莱文,圣枪游侠·卢锡安,沙漠玫瑰·莎弥拉",
+        "championPool": "德莱文,卢锡安,莎弥拉",
         "liveRoom": "1126960",
         "bio": "激进射手"
       },
@@ -127,7 +127,7 @@
         "rating": 89,
         "isCaptain": "否",
         "level": "A",
-        "championPool": "唤潮鲛姬·娜美,风暴之怒·迦娜,仙灵女巫·璐璐",
+        "championPool": "娜美,迦娜,璐璐",
         "liveRoom": "1126960",
         "bio": "团队大脑"
       }
@@ -146,7 +146,7 @@
         "rating": 85,
         "isCaptain": "是",
         "level": "B",
-        "championPool": "熔岩巨兽·墨菲特,亡灵战神·赛恩,扭曲树精·茂凯",
+        "championPool": "墨菲特,赛恩,茂凯",
         "liveRoom": "4452132",
         "bio": "稳健上路"
       },
@@ -158,7 +158,7 @@
         "rating": 87,
         "isCaptain": "否",
         "level": "B",
-        "championPool": "战争之影·赫卡里姆,永恒梦魇·魔腾,虚空掠夺者·卡'兹克",
+        "championPool": "赫卡里姆,魔腾,卡兹克",
         "liveRoom": "4452132",
         "bio": "节奏掌控"
       },
@@ -170,7 +170,7 @@
         "rating": 86,
         "isCaptain": "否",
         "level": "B",
-        "championPool": "流浪法师·瑞兹,魔蛇之拥·卡西奥佩娅,虚空先知·玛尔扎哈",
+        "championPool": "瑞兹,卡西奥佩娅,玛尔扎哈",
         "liveRoom": "4452132",
         "bio": "斗鱼4452132"
       },
@@ -182,7 +182,7 @@
         "rating": 88,
         "isCaptain": "否",
         "level": "B",
-        "championPool": "战争女神·希维尔,瘟疫之源·图奇,深渊巨口·克格'莫",
+        "championPool": "希维尔,图奇,克格莫",
         "liveRoom": "4452132",
         "bio": "后期大核"
       },
@@ -194,7 +194,7 @@
         "rating": 84,
         "isCaptain": "否",
         "level": "C",
-        "championPool": "弗雷尔卓德之心·布隆,深海泰坦·诺提勒斯,牛头酋长·阿利斯塔",
+        "championPool": "布隆",
         "liveRoom": "8690608",
         "bio": "斗鱼8690608"
       }
@@ -213,7 +213,7 @@
         "rating": 92,
         "isCaptain": "是",
         "level": "A",
-        "championPool": "刀锋舞者·艾瑞莉娅,无双剑姬·菲奥娜,武器大师·贾克斯",
+        "championPool": "艾瑞莉娅,菲奥娜,贾克斯",
         "liveRoom": "251783",
         "bio": "上路猛男"
       },
@@ -225,7 +225,7 @@
         "rating": 90,
         "isCaptain": "否",
         "level": "A",
-        "championPool": "狂野女猎手·奈德丽,蜘蛛女皇·伊莉丝,时间刺客·艾克",
+        "championPool": "奈德丽,伊莉丝,艾克",
         "liveRoom": "251783",
         "bio": "经验丰富"
       },
@@ -237,7 +237,7 @@
         "rating": 91,
         "isCaptain": "否",
         "level": "A",
-        "championPool": "疾风剑豪·亚索,封魔剑魂·永恩,影流之主·劫",
+        "championPool": "亚索,永恩,劫",
         "liveRoom": "251783",
         "bio": "斗鱼251783"
       },
@@ -249,7 +249,7 @@
         "rating": 89,
         "isCaptain": "否",
         "level": "B",
-        "championPool": "逆羽·霞,暗夜猎手·薇恩,皮城女警·凯特琳",
+        "championPool": "霞,薇恩,凯特琳",
         "liveRoom": "251783",
         "bio": "稳定输出"
       },
@@ -261,7 +261,7 @@
         "rating": 86,
         "isCaptain": "否",
         "level": "B",
-        "championPool": "弗雷尔卓德之心·布隆,暮光之眼·慎,河流之王·塔姆·肯奇",
+        "championPool": "布隆,慎,塔姆",
         "liveRoom": "251783",
         "bio": "保护型辅助"
       }
@@ -280,7 +280,7 @@
         "rating": 90,
         "isCaptain": "是",
         "level": "A",
-        "championPool": "放逐之刃·锐雯,机械公敌·兰博,迷失之牙·纳尔",
+        "championPool": "锐雯,兰博,纳尔",
         "liveRoom": "2057760",
         "bio": "上路法王"
       },
@@ -292,7 +292,7 @@
         "rating": 85,
         "isCaptain": "否",
         "level": "B",
-        "championPool": "生化魔人·扎克,披甲龙龟·拉莫斯,狂战士·奥拉夫",
+        "championPool": "扎克,拉莫斯,奥拉夫",
         "liveRoom": "2057760",
         "bio": "肉盾型打野"
       },
@@ -304,7 +304,7 @@
         "rating": 88,
         "isCaptain": "否",
         "level": "B",
-        "championPool": "卡牌大师·崔斯特,正义巨像·加里奥,岩雀·塔莉垭",
+        "championPool": "崔斯特,加里奥,塔莉垭",
         "liveRoom": "2057760",
         "bio": "斗鱼2057760"
       },
@@ -316,7 +316,7 @@
         "rating": 87,
         "isCaptain": "否",
         "level": "B",
-        "championPool": "赏金猎人·厄运小姐,戏命师·烬,寒冰射手·艾希",
+        "championPool": "厄运小姐,烬,艾希",
         "liveRoom": "2057760",
         "bio": "技术流"
       },
@@ -328,7 +328,7 @@
         "rating": 86,
         "isCaptain": "否",
         "level": "B",
-        "championPool": "蒸汽机器人·布里茨,魂锁典狱长·锤石,复仇焰魂·布兰德",
+        "championPool": "布里茨,锤石,布兰德",
         "liveRoom": "12619385",
         "bio": "斗鱼12619385"
       }
@@ -347,7 +347,7 @@
         "rating": 86,
         "isCaptain": "是",
         "level": "B",
-        "championPool": "猩红收割者·弗拉基米尔,狂暴之心·凯南,暮光之眼·慎",
+        "championPool": "弗拉基米尔,凯南,慎",
         "liveRoom": "3863752",
         "bio": "夜猫子选手"
       },
@@ -359,7 +359,7 @@
         "rating": 84,
         "isCaptain": "否",
         "level": "C",
-        "championPool": "德玛西亚皇子·嘉文四世,酒桶·古拉加斯,虚空遁地兽·雷克塞",
+        "championPool": "嘉文四世,古拉加斯,雷克塞",
         "liveRoom": "3863752",
         "bio": "斗鱼3863752"
       },
@@ -371,7 +371,7 @@
         "rating": 83,
         "isCaptain": "否",
         "level": "C",
-        "championPool": "时光守护者·基兰,死亡颂唱者·卡尔萨斯,邪恶小法师·维迦",
+        "championPool": "基兰,卡尔萨斯,维迦",
         "liveRoom": "3863752",
         "bio": "温柔打法"
       },
@@ -383,7 +383,7 @@
         "rating": 85,
         "isCaptain": "否",
         "level": "C",
-        "championPool": "战争女神·希维尔,涤魂圣枪·赛娜,探险家·伊泽瑞尔",
+        "championPool": "希维尔,赛娜,伊泽瑞尔",
         "liveRoom": "1580850",
         "bio": "斗鱼1580850"
       },
@@ -395,7 +395,7 @@
         "rating": 82,
         "isCaptain": "否",
         "level": "C",
-        "championPool": "众星之子·索拉卡,琴瑟仙女·娑娜,万花通灵·妮蔻",
+        "championPool": "索拉卡,娑娜,妮蔻",
         "liveRoom": "12661677",
         "bio": "斗鱼12661677"
       }
@@ -414,7 +414,7 @@
         "rating": 82,
         "isCaptain": "是",
         "level": "C",
-        "championPool": "扭曲树精·茂凯,圣锤之毅·波比,暮光之眼·慎",
+        "championPool": "茂凯,波比,慎",
         "liveRoom": "10902240",
         "bio": "导师型选手"
       },
@@ -426,7 +426,7 @@
         "rating": 80,
         "isCaptain": "否",
         "level": "D",
-        "championPool": "无极剑圣·易,德邦总管·赵信,蛮族之王·泰达米尔",
+        "championPool": "易,赵信,泰达米尔",
         "liveRoom": "10902240",
         "bio": "幽默担当"
       },
@@ -438,7 +438,7 @@
         "rating": 81,
         "isCaptain": "否",
         "level": "D",
-        "championPool": "疾风剑豪·亚索,海洋之灾·普朗克,刀锋之影·泰隆",
+        "championPool": "亚索,普朗克,泰隆",
         "liveRoom": "10902240",
         "bio": "快乐游戏"
       },
@@ -450,7 +450,7 @@
         "rating": 79,
         "isCaptain": "否",
         "level": "D",
-        "championPool": "迅捷斥候·提莫,恶魔小丑·萨科,暗夜猎手·薇恩",
+        "championPool": "提莫,萨科,薇恩",
         "liveRoom": "10902240",
         "bio": "斗鱼10902240"
       },
@@ -462,7 +462,7 @@
         "rating": 78,
         "isCaptain": "否",
         "level": "D",
-        "championPool": "德玛西亚之力·盖伦,德邦总管·赵信,祖安狂人·蒙多医生",
+        "championPool": "盖伦,赵信,蒙多",
         "liveRoom": "10902240",
         "bio": "稳健辅助"
       }
@@ -481,7 +481,7 @@
         "rating": 84,
         "isCaptain": "是",
         "level": "C",
-        "championPool": "炼金术士·辛吉德,迅捷斥候·提莫,暗夜猎手·薇恩",
+        "championPool": "辛吉德,提莫,薇恩",
         "liveRoom": "9779433",
         "bio": "社交达人"
       },
@@ -493,7 +493,7 @@
         "rating": 83,
         "isCaptain": "否",
         "level": "C",
-        "championPool": "瘟疫之源·图奇,翠神·艾翁,雪原双子·努努和威朗普",
+        "championPool": "图奇,艾翁,努努",
         "liveRoom": "9779433",
         "bio": "宝藏选手"
       },
@@ -505,7 +505,7 @@
         "rating": 82,
         "isCaptain": "否",
         "level": "C",
-        "championPool": "扭曲树精·茂凯,翠神·艾翁,雪原双子·努努和威朗普",
+        "championPool": "茂凯,艾翁,努努",
         "liveRoom": "9779433",
         "bio": "森林之子"
       },
@@ -517,7 +517,7 @@
         "rating": 84,
         "isCaptain": "否",
         "level": "C",
-        "championPool": "圣枪游侠·卢锡安,暗夜猎手·薇恩,荣耀行刑官·德莱文",
+        "championPool": "卢锡安,薇恩,德莱文",
         "liveRoom": "9779433",
         "bio": "斗鱼9779433"
       },
@@ -529,7 +529,7 @@
         "rating": 83,
         "isCaptain": "否",
         "level": "C",
-        "championPool": "风暴之怒·迦娜,仙灵女巫·璐璐,琴瑟仙女·娑娜",
+        "championPool": "迦娜,璐璐,娑娜",
         "liveRoom": "317422",
         "bio": "斗鱼317422"
       }
@@ -548,7 +548,7 @@
         "rating": 91,
         "isCaptain": "是",
         "level": "A",
-        "championPool": "正义天使·凯尔,正义天使·凯尔,放逐之刃·锐雯",
+        "championPool": "凯尔",
         "liveRoom": "",
         "bio": "星光上路"
       },
@@ -560,7 +560,7 @@
         "rating": 89,
         "isCaptain": "否",
         "level": "B",
-        "championPool": "法外狂徒·格雷福斯,虚空掠夺者·卡'兹克,傲之追猎者·雷恩加尔",
+        "championPool": "格雷福斯,卡兹克,雷恩加尔",
         "liveRoom": "",
         "bio": "打野新星"
       },
@@ -572,7 +572,7 @@
         "rating": 90,
         "isCaptain": "否",
         "level": "A",
-        "championPool": "铸星龙王·奥瑞利安·索尔,虚空先知·玛尔扎哈,机械先驱·维克托",
+        "championPool": "奥瑞利安,玛尔扎哈,维克托",
         "liveRoom": "",
         "bio": "中单新秀"
       },
@@ -584,7 +584,7 @@
         "rating": 88,
         "isCaptain": "否",
         "level": "B",
-        "championPool": "惩戒之箭·韦鲁斯,寒冰射手·艾希,皮城女警·凯特琳",
+        "championPool": "韦鲁斯,艾希,凯特琳",
         "liveRoom": "",
         "bio": "精准射手"
       },
@@ -596,7 +596,7 @@
         "rating": 87,
         "isCaptain": "否",
         "level": "B",
-        "championPool": "幻翎·洛,唤潮鲛姬·娜美,天启者·卡尔玛",
+        "championPool": "洛,娜美,卡尔玛",
         "liveRoom": "",
         "bio": "夜空守护"
       }
@@ -615,7 +615,7 @@
         "rating": 90,
         "isCaptain": "是",
         "level": "A",
-        "championPool": "机械公敌·兰博,机械公敌·兰博,机械公敌·兰博",
+        "championPool": "兰博",
         "liveRoom": "",
         "bio": "烈焰上路"
       },
@@ -627,7 +627,7 @@
         "rating": 86,
         "isCaptain": "否",
         "level": "B",
-        "championPool": "复仇焰魂·布兰德,末日使者·费德提克,永恒梦魇·魔腾",
+        "championPool": "布兰德,费德提克,魔腾",
         "liveRoom": "",
         "bio": "燃烧打野"
       },
@@ -639,7 +639,7 @@
         "rating": 89,
         "isCaptain": "否",
         "level": "B",
-        "championPool": "黑暗之女·安妮,黑暗之女·安妮,流浪法师·瑞兹",
+        "championPool": "安妮,瑞兹",
         "liveRoom": "",
         "bio": "中单强者"
       },
@@ -651,7 +651,7 @@
         "rating": 87,
         "isCaptain": "否",
         "level": "B",
-        "championPool": "赏金猎人·厄运小姐,戏命师·烬,赏金猎人·厄运小姐",
+        "championPool": "厄运小姐,烬",
         "liveRoom": "",
         "bio": "火焰射手"
       },
@@ -663,7 +663,7 @@
         "rating": 85,
         "isCaptain": "否",
         "level": "C",
-        "championPool": "复仇焰魂·布兰德,机械公敌·兰博,涤魂圣枪·尼菈",
+        "championPool": "布兰德,兰博,尼菈",
         "liveRoom": "",
         "bio": "辅助新星"
       }
@@ -682,7 +682,7 @@
         "rating": 88,
         "isCaptain": "是",
         "level": "B",
-        "championPool": "冰霜女巫·丽桑卓,圣锤之毅·波比,深海泰坦·诺提勒斯",
+        "championPool": "丽桑卓,波比,诺提勒斯",
         "liveRoom": "",
         "bio": "冰封上路"
       },
@@ -694,7 +694,7 @@
         "rating": 85,
         "isCaptain": "否",
         "level": "C",
-        "championPool": "寒冰射手·艾希,冰晶凤凰·艾尼维亚,扭曲树精·茂凯",
+        "championPool": "艾希,艾尼维亚,茂凯",
         "liveRoom": "",
         "bio": "雪花打野"
       },
@@ -706,7 +706,7 @@
         "rating": 86,
         "isCaptain": "否",
         "level": "B",
-        "championPool": "冰晶凤凰·艾尼维亚,发条魔灵·奥莉安娜,机械先驱·维克托",
+        "championPool": "艾尼维亚,奥莉安娜,维克托",
         "liveRoom": "",
         "bio": "寒冰中单"
       },
@@ -718,7 +718,7 @@
         "rating": 87,
         "isCaptain": "否",
         "level": "B",
-        "championPool": "寒冰射手·艾希,惩戒之箭·韦鲁斯,寒冰射手·艾希",
+        "championPool": "艾希,韦鲁斯",
         "liveRoom": "",
         "bio": "冰川射手"
       },
@@ -730,7 +730,7 @@
         "rating": 86,
         "isCaptain": "否",
         "level": "B",
-        "championPool": "冰霜女巫·丽桑卓,风暴之怒·迦娜,仙灵女巫·璐璐",
+        "championPool": "丽桑卓,迦娜,璐璐",
         "liveRoom": "",
         "bio": "极光守护"
       }
@@ -749,7 +749,7 @@
         "rating": 89,
         "isCaptain": "是",
         "level": "B",
-        "championPool": "刀锋舞者·艾瑞莉娅,青钢影·卡蜜尔,雷霆咆哮·沃利贝尔",
+        "championPool": "艾瑞莉娅,卡蜜尔,沃利贝尔",
         "liveRoom": "",
         "bio": "闪电上路"
       },
@@ -761,7 +761,7 @@
         "rating": 87,
         "isCaptain": "否",
         "level": "B",
-        "championPool": "傲之追猎者·雷恩加尔,虚空掠夺者·卡'兹克,虚空遁地兽·雷克塞",
+        "championPool": "雷恩加尔,卡兹克,雷克塞",
         "liveRoom": "",
         "bio": "雷鸣打野"
       },
@@ -773,7 +773,7 @@
         "rating": 88,
         "isCaptain": "否",
         "level": "B",
-        "championPool": "机械先驱·维克托,暮光星灵·佐伊,暗黑元首·辛德拉",
+        "championPool": "维克托,佐伊,辛德拉",
         "liveRoom": "",
         "bio": "电场中单"
       },
@@ -785,7 +785,7 @@
         "rating": 86,
         "isCaptain": "否",
         "level": "B",
-        "championPool": "暴走萝莉·金克丝,赏金猎人·厄运小姐,英勇投弹手·库奇",
+        "championPool": "金克丝,厄运小姐,库奇",
         "liveRoom": "",
         "bio": "电荷射手"
       },
@@ -797,7 +797,7 @@
         "rating": 85,
         "isCaptain": "否",
         "level": "C",
-        "championPool": "雷霆咆哮·沃利贝尔,风暴之怒·迦娜,仙灵女巫·璐璐",
+        "championPool": "沃利贝尔,迦娜,璐璐",
         "liveRoom": "",
         "bio": "云端辅助"
       }
@@ -816,7 +816,7 @@
         "rating": 88,
         "isCaptain": "是",
         "level": "B",
-        "championPool": "刀锋之影·泰隆,影流之主·劫,法外狂徒·格雷福斯",
+        "championPool": "泰隆,劫,格雷福斯",
         "liveRoom": "",
         "bio": "暗影上路"
       },
@@ -828,7 +828,7 @@
         "rating": 86,
         "isCaptain": "否",
         "level": "B",
-        "championPool": "永恒梦魇·魔腾,瘟疫之源·图奇,傲之追猎者·雷恩加尔",
+        "championPool": "魔腾,图奇,雷恩加尔",
         "liveRoom": "",
         "bio": "幽灵打野"
       },
@@ -840,7 +840,7 @@
         "rating": 87,
         "isCaptain": "否",
         "level": "B",
-        "championPool": "暗黑元首·辛德拉,影流之主·劫,虚空行者·卡萨丁",
+        "championPool": "辛德拉,劫,卡萨丁",
         "liveRoom": "",
         "bio": "黑夜中单"
       },
@@ -852,7 +852,7 @@
         "rating": 86,
         "isCaptain": "否",
         "level": "B",
-        "championPool": "暗夜猎手·薇恩,虚空之女·卡莎,圣枪游侠·卢锡安",
+        "championPool": "薇恩,卡莎,卢锡安",
         "liveRoom": "",
         "bio": "暗夜射手"
       },
@@ -864,7 +864,7 @@
         "rating": 84,
         "isCaptain": "否",
         "level": "C",
-        "championPool": "血港鬼影·派克,深海泰坦·诺提勒斯,诺克萨斯之手·德莱厄斯",
+        "championPool": "派克,诺提勒斯,德莱厄斯",
         "liveRoom": "",
         "bio": "迷雾守护"
       }
@@ -883,7 +883,7 @@
         "rating": 90,
         "isCaptain": "是",
         "level": "A",
-        "championPool": "疾风剑豪·亚索,疾风剑豪·亚索,封魔剑魂·永恩",
+        "championPool": "亚索,永恩",
         "liveRoom": "",
         "bio": "风暴上路"
       },
@@ -895,7 +895,7 @@
         "rating": 87,
         "isCaptain": "否",
         "level": "B",
-        "championPool": "皮城执法官·蔚,德邦总管·赵信,武器大师·贾克斯",
+        "championPool": "蔚,赵信,贾克斯",
         "liveRoom": "",
         "bio": "飓风打野"
       },
@@ -907,7 +907,7 @@
         "rating": 88,
         "isCaptain": "否",
         "level": "B",
-        "championPool": "疾风剑豪·亚索,影流之主·劫,封魔剑魂·永恩",
+        "championPool": "亚索,劫,永恩",
         "liveRoom": "",
         "bio": "微风中单"
       },
@@ -919,7 +919,7 @@
         "rating": 86,
         "isCaptain": "否",
         "level": "B",
-        "championPool": "复仇之矛·卡莉斯塔,暗夜猎手·薇恩,圣枪游侠·卢锡安",
+        "championPool": "卡莉丝塔,薇恩,卢锡安",
         "liveRoom": "",
         "bio": "狂风射手"
       },
@@ -931,7 +931,7 @@
         "rating": 85,
         "isCaptain": "否",
         "level": "C",
-        "championPool": "风暴之怒·迦娜,唤潮鲛姬·娜美,幻翎·洛",
+        "championPool": "迦娜,娜美,洛",
         "liveRoom": "",
         "bio": "清风辅助"
       }
@@ -950,7 +950,7 @@
         "rating": 86,
         "isCaptain": "是",
         "level": "C",
-        "championPool": "熔岩巨兽·墨菲特,山隐之焰·奥恩,扭曲树精·茂凯",
+        "championPool": "墨菲特,奥恩,茂凯",
         "liveRoom": "",
         "bio": "岩石上路"
       },
@@ -962,7 +962,7 @@
         "rating": 84,
         "isCaptain": "否",
         "level": "C",
-        "championPool": "生化魔人·扎克,披甲龙龟·拉莫斯,殇之木乃伊·阿木木",
+        "championPool": "扎克,拉莫斯,阿木木",
         "liveRoom": "",
         "bio": "山岳打野"
       },
@@ -974,7 +974,7 @@
         "rating": 85,
         "isCaptain": "否",
         "level": "C",
-        "championPool": "虚空先知·玛尔扎哈,流浪法师·瑞兹,卡牌大师·崔斯特",
+        "championPool": "玛尔扎哈,瑞兹,崔斯特",
         "liveRoom": "",
         "bio": "砂石中单"
       },
@@ -986,7 +986,7 @@
         "rating": 84,
         "isCaptain": "否",
         "level": "C",
-        "championPool": "战争女神·希维尔,惩戒之箭·韦鲁斯,寒冰射手·艾希",
+        "championPool": "希维尔,韦鲁斯,艾希",
         "liveRoom": "",
         "bio": "碎石射手"
       },
@@ -998,7 +998,7 @@
         "rating": 83,
         "isCaptain": "否",
         "level": "D",
-        "championPool": "深海泰坦·诺提勒斯,弗雷尔卓德之心·布隆,牛头酋长·阿利斯塔",
+        "championPool": "诺提勒斯,布隆,阿利斯塔",
         "liveRoom": "",
         "bio": "岩壁辅助"
       }
@@ -1017,7 +1017,7 @@
         "rating": 89,
         "isCaptain": "是",
         "level": "A",
-        "championPool": "海洋之灾·普朗克,俄洛伊,海洋之灾·普朗克",
+        "championPool": "普朗克,俄洛伊",
         "liveRoom": "",
         "bio": "海浪上路"
       },
@@ -1029,7 +1029,7 @@
         "rating": 88,
         "isCaptain": "否",
         "level": "B",
-        "championPool": "潮汐海灵·菲兹,潮汐海灵·菲兹,蜘蛛女皇·伊莉丝",
+        "championPool": "菲兹,伊莉丝",
         "liveRoom": "",
         "bio": "潮汐打野"
       },
@@ -1041,7 +1041,7 @@
         "rating": 87,
         "isCaptain": "否",
         "level": "B",
-        "championPool": "潮汐海灵·菲兹,虚空行者·卡萨丁,时间刺客·艾克",
+        "championPool": "菲兹,卡萨丁,艾克",
         "liveRoom": "",
         "bio": "珊瑚中单"
       },
@@ -1053,7 +1053,7 @@
         "rating": 86,
         "isCaptain": "否",
         "level": "B",
-        "championPool": "涤魂圣枪·尼菈,战争女神·希维尔,麦林炮手·崔丝塔娜",
+        "championPool": "尼菈,希维尔,崔丝塔娜",
         "liveRoom": "",
         "bio": "海龟射手"
       },
@@ -1065,7 +1065,7 @@
         "rating": 85,
         "isCaptain": "否",
         "level": "C",
-        "championPool": "唤潮鲛姬·娜美,幻翎·洛,风暴之怒·迦娜",
+        "championPool": "娜美,洛,迦娜",
         "liveRoom": "",
         "bio": "珍珠辅助"
       }

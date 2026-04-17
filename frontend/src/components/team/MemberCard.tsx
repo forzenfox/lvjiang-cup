@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { getChampionIconUrl } from '../../utils/championUtils';
+import { getChampionIconByEn, getChampionTitleByEn } from '../../utils/championUtils';
 import type { PlayerLevel } from '../../api/types';
 import { getLevelBadgeClasses, getCaptainBadgeClasses } from '../../utils/levelColors';
 import { getUploadUrl } from '@/utils/upload';
@@ -56,7 +56,7 @@ const StarRating: React.FC<{ rating: number }> = ({ rating }) => {
   );
 };
 
-const ChampionHover: React.FC<{ championName: string }> = ({ championName }) => {
+const ChampionHover: React.FC<{ championId: string }> = ({ championId }) => {
   const [isVisible, setIsVisible] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -79,12 +79,13 @@ const ChampionHover: React.FC<{ championName: string }> = ({ championName }) => 
     };
   }, []);
 
-  const iconUrl = getChampionIconUrl(championName);
+  const iconUrl = getChampionIconByEn(championId);
+  const championTitle = getChampionTitleByEn(championId);
 
   return (
     <span className="relative inline-block" onMouseEnter={showTooltip} onMouseLeave={hideTooltip}>
       <span className="text-slate-400 text-xs hover:text-amber-500 transition-colors cursor-default">
-        {championName}
+        {championTitle}
       </span>
       {isVisible && iconUrl && (
         <div
@@ -104,7 +105,7 @@ const ChampionHover: React.FC<{ championName: string }> = ({ championName }) => 
           >
             <img
               src={iconUrl}
-              alt={championName}
+              alt={championTitle}
               className="w-full h-full object-cover"
               onError={e => {
                 (e.target as HTMLImageElement).style.display = 'none';
@@ -236,8 +237,8 @@ const MemberCard: React.FC<MemberCardProps> = ({ member }) => {
         <div>
           <span className="text-xs text-slate-500">常用英雄：</span>
           <div className="inline-flex flex-wrap gap-2 mt-1">
-            {member.championPool.map(champion => (
-              <ChampionHover key={champion} championName={champion} />
+            {member.championPool.map(championId => (
+              <ChampionHover key={championId} championId={championId} />
             ))}
           </div>
         </div>

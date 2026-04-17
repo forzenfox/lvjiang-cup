@@ -122,6 +122,13 @@ export function getChampionNameByEn(id: string): string {
   return staticChampionMapTyped[id]?.name || id;
 }
 
+export function getChampionTitleByEn(id: string): string {
+  if (cachedChampionMap) {
+    return cachedChampionMap[id]?.title || id;
+  }
+  return staticChampionMapTyped[id]?.title || id;
+}
+
 export function getChampionNameToEn(): Record<string, string> {
   if (cachedChampionMap) {
     const map: Record<string, string> = {};

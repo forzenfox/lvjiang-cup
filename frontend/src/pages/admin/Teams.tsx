@@ -23,6 +23,7 @@ import { getPositionLabel } from '@/utils/position';
 import { PositionType } from '@/types/position';
 import HeroSelector from '@/components/team/HeroSelector';
 import { getLevelBadgeClasses, getCaptainBadgeClasses } from '@/utils/levelColors';
+import { getChampionTitleByEn } from '@/utils/championUtils';
 import { ImportDialog, ImportResultDialog } from '@/components/import';
 import { downloadTemplate } from '@/api/teams-import';
 import type { ImportResult } from '@/components/import';
@@ -1114,20 +1115,35 @@ const AdminTeams: React.FC = () => {
                                           </div>
 
                                           {/* 第3行：常用英雄 */}
-                                          <div className="relative">
+                                          <div className="relative hero-pool-container">
                                             <label className="block text-xs text-gray-400 mb-1">
                                               常用英雄
                                             </label>
-                                            <div className="flex flex-wrap items-center gap-2 min-h-[32px] p-1.5 bg-white/5 border border-white/10 rounded">
+                                            <div
+                                              className="flex flex-wrap items-center gap-2 min-h-[32px] p-1.5 bg-white/5 border border-white/10 rounded cursor-pointer hover:border-white/20 transition-colors"
+                                              onClick={() => setIsHeroSelectorOpen(true)}
+                                            >
                                               {editingPlayerData.championPool?.map(
-                                                (champion, championIdx) => (
+                                                (championId, championIdx) => (
                                                   <span
-                                                    key={champion}
+                                                    key={championId}
                                                     className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-500/20 text-blue-400 text-xs rounded"
+                                                    onClick={e => {
+                                                      e.stopPropagation();
+                                                      const newChampionPool =
+                                                        editingPlayerData.championPool.filter(
+                                                          (_, i) => i !== championIdx
+                                                        );
+                                                      setEditingPlayerData({
+                                                        ...editingPlayerData,
+                                                        championPool: newChampionPool,
+                                                      });
+                                                    }}
                                                   >
-                                                    {champion}
+                                                    {getChampionTitleByEn(championId)}
                                                     <button
-                                                      onClick={() => {
+                                                      onClick={e => {
+                                                        e.stopPropagation();
                                                         const newChampionPool =
                                                           editingPlayerData.championPool.filter(
                                                             (_, i) => i !== championIdx
@@ -1146,13 +1162,10 @@ const AdminTeams: React.FC = () => {
                                               )}
                                               {(editingPlayerData.championPool?.length || 0) <
                                                 5 && (
-                                                <button
-                                                  onClick={() => setIsHeroSelectorOpen(true)}
-                                                  className="inline-flex items-center gap-1 px-2 py-0.5 text-xs text-gray-400 hover:text-white border border-dashed border-white/20 rounded hover:border-white/40 transition-colors"
-                                                >
+                                                <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs text-gray-400">
                                                   <Plus className="w-3 h-3" />
                                                   添加
-                                                </button>
+                                                </span>
                                               )}
                                             </div>
                                             {/* 英雄选择器下拉框 */}
@@ -1316,12 +1329,12 @@ const AdminTeams: React.FC = () => {
                                               <div className="flex items-center gap-2">
                                                 <span className="text-gray-500">常用英雄:</span>
                                                 <div className="flex flex-wrap gap-1">
-                                                  {player.championPool.map(champion => (
+                                                  {player.championPool.map(championId => (
                                                     <span
-                                                      key={champion}
+                                                      key={championId}
                                                       className="px-2 py-0.5 bg-blue-500/10 text-blue-400 text-xs rounded"
                                                     >
-                                                      {champion}
+                                                      {getChampionTitleByEn(championId)}
                                                     </span>
                                                   ))}
                                                 </div>

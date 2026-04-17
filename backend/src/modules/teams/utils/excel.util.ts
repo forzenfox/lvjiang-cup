@@ -13,6 +13,7 @@ export interface ParsedRow {
   avatarUrl: string;
   rating: number;
   isCaptain: boolean;
+  isCaptainStr: string;
   level: string;
   championPoolStr: string;
   liveRoom: string;
@@ -111,7 +112,9 @@ export async function parseExcel(filePath: string): Promise<ImportTeamDto[]> {
     const gameId = String(rowData[6] || '').trim();
     const avatarUrl = String(rowData[7] || '').trim();
     const rating = rowData[8];
-    const isCaptain = rowData[9];
+    const isCaptainRaw = rowData[9]; // 保留原始值
+    const isCaptain = parseIsCaptain(isCaptainRaw);
+    const isCaptainStr = typeof isCaptainRaw === 'string' ? isCaptainRaw.trim() : (isCaptain ? '是' : '否');
     const level = rowData[10];
     const championPoolStr = String(rowData[11] || '').trim();
     const liveRoom = String(rowData[12] || '').trim();
@@ -134,7 +137,8 @@ export async function parseExcel(filePath: string): Promise<ImportTeamDto[]> {
         gameId,
         avatarUrl,
         rating: parseRating(rating),
-        isCaptain: parseIsCaptain(isCaptain),
+        isCaptain,
+        isCaptainStr,
         level: String(level || '').trim(),
         championPoolStr,
         liveRoom,
@@ -161,6 +165,7 @@ export async function parseExcel(filePath: string): Promise<ImportTeamDto[]> {
     }
 
     const member: ImportMemberDto = {
+      rowIndex: row.rowIndex,
       nickname: row.nickname || undefined,
       avatarUrl: row.avatarUrl || undefined,
       position: parsedPosition,
@@ -168,8 +173,8 @@ export async function parseExcel(filePath: string): Promise<ImportTeamDto[]> {
       bio: row.bio || undefined,
       championPoolStr: row.championPoolStr,
       rating: row.rating,
-      isCaptainStr: String(row.isCaptain),
-      isCaptain: parseIsCaptain(row.isCaptain),
+      isCaptainStr: row.isCaptainStr,
+      isCaptain: row.isCaptain,
       level: parseLevel(row.level) || undefined,
       liveRoom: row.liveRoom,
       personalBio: row.bio || undefined,

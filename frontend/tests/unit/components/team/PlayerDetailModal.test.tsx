@@ -12,7 +12,7 @@ const mockPlayer: Player = {
   teamId: 'team-1',
   gameId: 'Yasuo123',
   bio: '十年磨剑，只为一剑。',
-  championPool: ['疾风剑豪·亚索', '刀锋舞者·艾瑞莉娅', '封魔剑魂·永恩'],
+  championPool: ['Yasuo', 'Irelia', 'Yone'],
   rating: 96, // 96分对应4.8星 (96/100*5=4.8)
   isCaptain: true,
   liveUrl: 'https://twitch.tv/yasuo',

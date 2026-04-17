@@ -1,7 +1,12 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsString, IsOptional, IsNumber, IsBoolean, IsArray, IsEnum } from 'class-validator';
+import { IsString, IsOptional, IsNumber, IsBoolean, IsArray, IsEnum, IsInt } from 'class-validator';
 
 export class ImportMemberDto {
+  @ApiPropertyOptional({ description: 'Excel 原始行号' })
+  @IsInt()
+  @IsOptional()
+  rowIndex?: number;
+
   @ApiPropertyOptional({ description: '昵称' })
   @IsString()
   @IsOptional()
