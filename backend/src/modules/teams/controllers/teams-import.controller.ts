@@ -48,8 +48,14 @@ export class TeamsImportController {
 
     const fileName = `驴酱杯_战队导入模板_${new Date().toISOString().slice(0, 10).replace(/-/g, '')}.xlsx`;
 
-    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    res.setHeader('Content-Disposition', `attachment; filename*=UTF-8''${encodeURIComponent(fileName)}`);
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    );
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename*=UTF-8''${encodeURIComponent(fileName)}`,
+    );
     res.setHeader('Content-Length', fs.statSync(templatePath).size.toString());
 
     const fileStream = fs.createReadStream(templatePath);
@@ -63,8 +69,14 @@ export class TeamsImportController {
 
     const fileName = `驴酱杯_战队导入模板_${new Date().toISOString().slice(0, 10).replace(/-/g, '')}.xlsx`;
 
-    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    res.setHeader('Content-Disposition', `attachment; filename*=UTF-8''${encodeURIComponent(fileName)}`);
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    );
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename*=UTF-8''${encodeURIComponent(fileName)}`,
+    );
     res.setHeader('Content-Length', fs.statSync(templatePath).size.toString());
 
     const fileStream = fs.createReadStream(templatePath);
@@ -99,8 +111,14 @@ export class TeamsImportController {
     const reportPath = await this.teamsImportService.generateErrorReport(errors);
     const reportName = `驴酱杯_导入错误报告_${new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)}.xlsx`;
 
-    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    res.setHeader('Content-Disposition', `attachment; filename*=UTF-8''${encodeURIComponent(reportName)}`);
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    );
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename*=UTF-8''${encodeURIComponent(reportName)}`,
+    );
     res.setHeader('Content-Length', fs.statSync(reportPath).size.toString());
 
     const fileStream = fs.createReadStream(reportPath);

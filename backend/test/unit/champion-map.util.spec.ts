@@ -1,4 +1,10 @@
-import { loadChampionMap, findChampionId, parseChampionPool, validateChampionPool, clearChampionCache } from '../../src/modules/teams/utils/champion-map.util';
+import {
+  loadChampionMap,
+  findChampionId,
+  parseChampionPool,
+  validateChampionPool,
+  clearChampionCache,
+} from '../../src/modules/teams/utils/champion-map.util';
 import * as fs from 'fs';
 import * as path from 'path';
 

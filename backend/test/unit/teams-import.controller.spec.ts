@@ -229,9 +229,9 @@ describe('TeamsImportController', () => {
         controller.downloadErrorReport({ errors: [] } as any, {} as any),
       ).rejects.toThrow('没有错误信息可以生成报告');
 
-      await expect(
-        controller.downloadErrorReport({} as any, {} as any),
-      ).rejects.toThrow('没有错误信息可以生成报告');
+      await expect(controller.downloadErrorReport({} as any, {} as any)).rejects.toThrow(
+        '没有错误信息可以生成报告',
+      );
     });
   });
 });

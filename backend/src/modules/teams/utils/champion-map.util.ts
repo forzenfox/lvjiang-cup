@@ -63,7 +63,10 @@ export function parseChampionPool(poolStr: string): string[] {
     return [];
   }
 
-  const names = poolStr.split(/[,，]/).map(n => n.trim()).filter(n => n.length > 0);
+  const names = poolStr
+    .split(/[,，]/)
+    .map((n) => n.trim())
+    .filter((n) => n.length > 0);
   const result: string[] = [];
 
   for (const name of names) {
@@ -76,12 +79,19 @@ export function parseChampionPool(poolStr: string): string[] {
   return result;
 }
 
-export function validateChampionPool(poolStr: string): { valid: boolean; validChampions: string[]; invalidNames: string[] } {
+export function validateChampionPool(poolStr: string): {
+  valid: boolean;
+  validChampions: string[];
+  invalidNames: string[];
+} {
   if (!poolStr || typeof poolStr !== 'string') {
     return { valid: true, validChampions: [], invalidNames: [] };
   }
 
-  const names = poolStr.split(/[,，]/).map(n => n.trim()).filter(n => n.length > 0);
+  const names = poolStr
+    .split(/[,，]/)
+    .map((n) => n.trim())
+    .filter((n) => n.length > 0);
   const validChampions: string[] = [];
   const invalidNames: string[] = [];
 
@@ -97,7 +107,7 @@ export function validateChampionPool(poolStr: string): { valid: boolean; validCh
   return {
     valid: invalidNames.length === 0,
     validChampions,
-    invalidNames
+    invalidNames,
   };
 }
 

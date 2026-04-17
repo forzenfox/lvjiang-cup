@@ -1,4 +1,11 @@
-import { parsePosition, parseRating, parseIsCaptain, parseLevel, parseLiveUrl, POSITION_MAP } from '../../src/modules/teams/utils/excel.util';
+import {
+  parsePosition,
+  parseRating,
+  parseIsCaptain,
+  parseLevel,
+  parseLiveUrl,
+  POSITION_MAP,
+} from '../../src/modules/teams/utils/excel.util';
 
 describe('ExcelUtil', () => {
   describe('parsePosition', () => {

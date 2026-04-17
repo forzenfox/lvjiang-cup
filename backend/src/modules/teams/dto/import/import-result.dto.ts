@@ -26,7 +26,7 @@ export class ImportResultDto {
     updated: number = 0,
     failed: number = 0,
     errors: ImportErrorDto[] = [],
-    externalUrlItems: string[] = []
+    externalUrlItems: string[] = [],
   ) {
     this.total = total;
     this.created = created;

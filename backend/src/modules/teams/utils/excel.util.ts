@@ -24,23 +24,43 @@ export interface PositionMapping {
   [key: string]: 'TOP' | 'JUNGLE' | 'MID' | 'ADC' | 'SUPPORT';
 }
 
+function extractCellValue(cellValue: any): string {
+  if (cellValue === null || cellValue === undefined) {
+    return '';
+  }
+  if (typeof cellValue === 'string') {
+    return cellValue.trim();
+  }
+  if (typeof cellValue === 'object' && cellValue !== null) {
+    if (cellValue.hyperlink && cellValue.hyperlink.target) {
+      return String(cellValue.hyperlink.target).trim();
+    }
+    if (cellValue.text) {
+      return String(cellValue.text).trim();
+    }
+  }
+  return String(cellValue).trim();
+}
+
 export const POSITION_MAP: PositionMapping = {
-  '上单': 'TOP',
-  '打野': 'JUNGLE',
-  '中单': 'MID',
-  'ADC': 'ADC',
-  '辅助': 'SUPPORT',
+  上单: 'TOP',
+  打野: 'JUNGLE',
+  中单: 'MID',
+  ADC: 'ADC',
+  辅助: 'SUPPORT',
 };
 
 export const REVERSE_POSITION_MAP: { [key: string]: string } = {
-  'TOP': '上单',
-  'JUNGLE': '打野',
-  'MID': '中单',
-  'ADC': 'ADC',
-  'SUPPORT': '辅助',
+  TOP: '上单',
+  JUNGLE: '打野',
+  MID: '中单',
+  ADC: 'ADC',
+  SUPPORT: '辅助',
 };
 
-export function parsePosition(position: string): 'TOP' | 'JUNGLE' | 'MID' | 'ADC' | 'SUPPORT' | null {
+export function parsePosition(
+  position: string,
+): 'TOP' | 'JUNGLE' | 'MID' | 'ADC' | 'SUPPORT' | null {
   const normalized = position?.trim();
   return POSITION_MAP[normalized] || null;
 }
@@ -104,21 +124,22 @@ export async function parseExcel(filePath: string): Promise<ImportTeamDto[]> {
     }
 
     const rowData = row.values as any[];
-    const teamName = String(rowData[1] || '').trim();
-    const logoUrl = String(rowData[2] || '').trim();
-    const battleCry = String(rowData[3] || '').trim();
-    const position = String(rowData[4] || '').trim();
-    const nickname = String(rowData[5] || '').trim();
-    const gameId = String(rowData[6] || '').trim();
-    const avatarUrl = String(rowData[7] || '').trim();
+    const teamName = extractCellValue(rowData[1]);
+    const logoUrl = extractCellValue(rowData[2]);
+    const battleCry = extractCellValue(rowData[3]);
+    const position = extractCellValue(rowData[4]);
+    const nickname = extractCellValue(rowData[5]);
+    const gameId = extractCellValue(rowData[6]);
+    const avatarUrl = extractCellValue(rowData[7]);
     const rating = rowData[8];
     const isCaptainRaw = rowData[9]; // 保留原始值
     const isCaptain = parseIsCaptain(isCaptainRaw);
-    const isCaptainStr = typeof isCaptainRaw === 'string' ? isCaptainRaw.trim() : (isCaptain ? '是' : '否');
+    const isCaptainStr =
+      typeof isCaptainRaw === 'string' ? isCaptainRaw.trim() : isCaptain ? '是' : '否';
     const level = rowData[10];
-    const championPoolStr = String(rowData[11] || '').trim();
-    const liveRoom = String(rowData[12] || '').trim();
-    const bio = String(rowData[13] || '').trim();
+    const championPoolStr = extractCellValue(rowData[11]);
+    const liveRoom = extractCellValue(rowData[12]);
+    const bio = extractCellValue(rowData[13]);
 
     if (teamName) {
       currentTeamName = teamName;
@@ -198,7 +219,9 @@ export async function getExcelRowCount(filePath: string): Promise<number> {
   return sheet.rowCount;
 }
 
-export async function validateExcelHeaders(filePath: string): Promise<{ valid: boolean; missingHeaders: string[] }> {
+export async function validateExcelHeaders(
+  filePath: string,
+): Promise<{ valid: boolean; missingHeaders: string[] }> {
   const workbook = new ExcelJS.Workbook();
   await workbook.xlsx.readFile(filePath);
 
@@ -211,9 +234,19 @@ export async function validateExcelHeaders(filePath: string): Promise<{ valid: b
   const headers = headerRow.values as string[];
 
   const requiredHeaders = [
-    '战队名称', '队标URL', '参赛宣言', '位置', '队员昵称',
-    '队员游戏ID', '队员头像URL', '评分', '是否队长',
-    '实力等级', '常用英雄', '直播间号', '个人简介'
+    '战队名称',
+    '队标URL',
+    '参赛宣言',
+    '位置',
+    '队员昵称',
+    '队员游戏ID',
+    '队员头像URL',
+    '评分',
+    '是否队长',
+    '实力等级',
+    '常用英雄',
+    '直播间号',
+    '个人简介',
   ];
 
   const missingHeaders: string[] = [];

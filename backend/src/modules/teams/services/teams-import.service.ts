@@ -6,7 +6,14 @@ import { v4 as uuidv4 } from 'uuid';
 import { DatabaseService } from '../../../database/database.service';
 import { CacheService } from '../../../cache/cache.service';
 import { loadChampionMap, parseChampionPool } from '../utils/champion-map.util';
-import { parseExcel, getExcelRowCount, validateExcelHeaders, parsePosition, parseLiveUrl, parseLevel } from '../utils/excel.util';
+import {
+  parseExcel,
+  getExcelRowCount,
+  validateExcelHeaders,
+  parsePosition,
+  parseLiveUrl,
+  parseLevel,
+} from '../utils/excel.util';
 import { validateImportData } from '../utils/validate-import.util';
 import { ImportTeamDto, ImportResultDto, ImportErrorDto } from '../dto/import';
 
@@ -60,7 +67,8 @@ export class TeamsImportService {
     sheet.getCell('A1').font = { size: 16, bold: true };
     sheet.getCell('A1').alignment = { horizontal: 'center' };
 
-    sheet.getCell('A2').value = '说明：每支战队占5行，分别对应5个位置（上单、打野、中单、ADC、辅助）。请按顺序填写，同一战队只需在第1行填写战队信息。';
+    sheet.getCell('A2').value =
+      '说明：每支战队占5行，分别对应5个位置（上单、打野、中单、ADC、辅助）。请按顺序填写，同一战队只需在第1行填写战队信息。';
     sheet.getCell('A2').font = { size: 10, color: { argb: 'FF666666' } };
     sheet.mergeCells('A2:M2');
 
@@ -83,7 +91,7 @@ export class TeamsImportService {
     headerRow.fill = {
       type: 'pattern',
       pattern: 'solid',
-      fgColor: { argb: 'FFCCE5FF' }
+      fgColor: { argb: 'FFCCE5FF' },
     };
 
     sheet.getCell('A4').value = '示例战队';
@@ -215,7 +223,7 @@ export class TeamsImportService {
     headerRow.fill = {
       type: 'pattern',
       pattern: 'solid',
-      fgColor: { argb: 'FFCCFFCC' }
+      fgColor: { argb: 'FFCCFFCC' },
     };
 
     const championMap = loadChampionMap();
@@ -249,7 +257,7 @@ export class TeamsImportService {
     const externalUrlItems: string[] = [];
     let created = 0;
     let updated = 0;
-    let failed = 0;
+    const failed = 0;
 
     try {
       const headerValidation = await validateExcelHeaders(filePath);
@@ -262,21 +270,14 @@ export class TeamsImportService {
 
       const validationResult = validateImportData(teams, rowCount);
       if (!validationResult.valid) {
-        return new ImportResultDto(
-          teams.length,
-          0,
-          0,
-          teams.length,
-          validationResult.errors,
-          []
-        );
+        return new ImportResultDto(teams.length, 0, 0, teams.length, validationResult.errors, []);
       }
 
       const existingTeams = await this.databaseService.all<any>('SELECT * FROM teams');
-      const existingTeamMap = new Map(existingTeams.map(t => [t.name, t]));
+      const existingTeamMap = new Map(existingTeams.map((t) => [t.name, t]));
 
       const existingTeamCount = existingTeams.length;
-      const newTeamCount = teams.filter(t => !existingTeamMap.has(t.name)).length;
+      const newTeamCount = teams.filter((t) => !existingTeamMap.has(t.name)).length;
 
       if (existingTeamCount + newTeamCount > 16) {
         return new ImportResultDto(
@@ -285,7 +286,7 @@ export class TeamsImportService {
           0,
           teams.length,
           [new ImportErrorDto(0, '', '', 'teamLimit', '导入后战队总数将超过16支上限')],
-          []
+          [],
         );
       }
 
@@ -308,7 +309,9 @@ export class TeamsImportService {
           }
           for (const member of team.members) {
             if (member.avatarUrl && member.avatarUrl.startsWith('http')) {
-              externalUrlItems.push(`头像: ${team.name}-${member.nickname || member.position} - ${member.avatarUrl}`);
+              externalUrlItems.push(
+                `头像: ${team.name}-${member.nickname || member.position} - ${member.avatarUrl}`,
+              );
             }
           }
         }
@@ -324,14 +327,7 @@ export class TeamsImportService {
         this.cacheService.del(`${this.CACHE_KEY_PREFIX}${team.id}`);
       }
 
-      return new ImportResultDto(
-        teams.length,
-        created,
-        updated,
-        failed,
-        errors,
-        externalUrlItems
-      );
+      return new ImportResultDto(teams.length, created, updated, failed, errors, externalUrlItems);
     } finally {
       this.cleanupTempFile(filePath);
     }
@@ -342,7 +338,7 @@ export class TeamsImportService {
 
     await this.databaseService.run(
       `INSERT INTO teams (id, name, logo_url, battle_cry, created_at, updated_at) VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`,
-      [teamId, team.name, team.logoUrl || null, team.battleCry || null]
+      [teamId, team.name, team.logoUrl || null, team.battleCry || null],
     );
 
     for (const member of team.members) {
@@ -364,7 +360,7 @@ export class TeamsImportService {
           member.isCaptain ? 1 : 0,
           member.liveRoom ? parseLiveUrl(member.liveRoom) : null,
           member.level || null,
-        ]
+        ],
       );
     }
   }
@@ -372,7 +368,7 @@ export class TeamsImportService {
   private async updateTeamWithMembers(teamId: string, team: ImportTeamDto): Promise<void> {
     await this.databaseService.run(
       `UPDATE teams SET name = ?, logo_url = ?, battle_cry = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
-      [team.name, team.logoUrl || null, team.battleCry || null, teamId]
+      [team.name, team.logoUrl || null, team.battleCry || null, teamId],
     );
 
     await this.databaseService.run(`DELETE FROM team_members WHERE team_id = ?`, [teamId]);
@@ -396,7 +392,7 @@ export class TeamsImportService {
           member.isCaptain ? 1 : 0,
           member.liveRoom ? parseLiveUrl(member.liveRoom) : null,
           member.level || null,
-        ]
+        ],
       );
     }
   }
@@ -419,7 +415,7 @@ export class TeamsImportService {
     headerRow.fill = {
       type: 'pattern',
       pattern: 'solid',
-      fgColor: { argb: 'FFFFCCCC' }
+      fgColor: { argb: 'FFFFCCCC' },
     };
 
     let row = 4;
