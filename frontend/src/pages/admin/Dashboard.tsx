@@ -4,7 +4,7 @@ import { Button } from '../../components/ui/button';
 import { teamService } from '@/services/teamService';
 import { matchService } from '@/services/matchService';
 import { streamService } from '@/services/streamService';
-import { Users, Trophy, Radio, Activity } from 'lucide-react';
+import { Users, Trophy, Radio, Activity, User, Video } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface DashboardStats {
@@ -154,13 +154,35 @@ const AdminDashboard: React.FC = () => {
       </div>
 
       {/* 快捷操作区域 */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <div
           className="bg-gray-800 p-6 rounded-lg border border-gray-700 hover:border-blue-500/50 transition-colors cursor-pointer"
           onClick={() => (window.location.href = '/admin/stream')}
         >
           <h3 className="text-xl font-semibold text-secondary mb-2">直播管理</h3>
           <p className="text-gray-400">管理直播链接和状态</p>
+          <div className="mt-4 flex items-center text-sm text-blue-400">
+            <span>进入管理</span>
+            <span className="ml-1">→</span>
+          </div>
+        </div>
+        <div
+          className="bg-gray-800 p-6 rounded-lg border border-gray-700 hover:border-blue-500/50 transition-colors cursor-pointer"
+          onClick={() => (window.location.href = '/admin/streamers')}
+        >
+          <h3 className="text-xl font-semibold text-secondary mb-2">主播管理</h3>
+          <p className="text-gray-400">管理主播信息和直播间配置</p>
+          <div className="mt-4 flex items-center text-sm text-blue-400">
+            <span>进入管理</span>
+            <span className="ml-1">→</span>
+          </div>
+        </div>
+        <div
+          className="bg-gray-800 p-6 rounded-lg border border-gray-700 hover:border-blue-500/50 transition-colors cursor-pointer"
+          onClick={() => (window.location.href = '/admin/videos')}
+        >
+          <h3 className="text-xl font-semibold text-secondary mb-2">视频管理</h3>
+          <p className="text-gray-400">管理赛事视频内容和展示配置</p>
           <div className="mt-4 flex items-center text-sm text-blue-400">
             <span>进入管理</span>
             <span className="ml-1">→</span>

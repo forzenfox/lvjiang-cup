@@ -11,6 +11,7 @@ import Videos from './pages/admin/Videos';
 // [REMOVE] 晋级名单管理页面已废弃
 // import AdvancementManager from './pages/admin/AdvancementManager';
 import ProtectedRoute from './components/layout/ProtectedRoute';
+import MatchDataPage from './components/features/match-data/MatchDataPage';
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/admin/login" element={<AdminLogin />} />
+        <Route path="/match/:id/games" element={<MatchDataPage />} />
 
         {/* Protected Routes */}
         <Route

@@ -12,6 +12,8 @@ import { VideosModule } from './modules/videos/videos.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { AdminModule } from './modules/admin/admin.module';
 import { UploadModule } from './modules/upload/upload.module';
+import { MatchDataModule } from './modules/match-data/match-data.module';
+import { TrackingModule } from './modules/tracking/tracking.module';
 import appConfig from './config/app.config';
 import { getUploadBaseDir } from './common/utils/path.util';
 
@@ -38,6 +40,8 @@ import { getUploadBaseDir } from './common/utils/path.util';
     AuthModule,
     AdminModule,
     UploadModule,
+    MatchDataModule,
+    TrackingModule,
   ],
 })
 export class AppModule {}

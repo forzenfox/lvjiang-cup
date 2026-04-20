@@ -40,6 +40,13 @@ export class StreamersController {
     return this.streamersService.create(createStreamerDto);
   }
 
+  @Patch('sort')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: '批量更新主播排序' })
+  async updateSort(@Body() updateStreamerSortDto: UpdateStreamerSortDto) {
+    return this.streamersService.updateSort(updateStreamerSortDto);
+  }
+
   @Patch(':id')
   @ApiOperation({ summary: '更新主播' })
   async update(@Param('id') id: string, @Body() updateStreamerDto: UpdateStreamerDto) {
@@ -51,12 +58,5 @@ export class StreamersController {
   @ApiOperation({ summary: '删除主播' })
   async remove(@Param('id') id: string) {
     return this.streamersService.remove(id);
-  }
-
-  @Patch('sort')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: '批量更新主播排序' })
-  async updateSort(@Body() updateStreamerSortDto: UpdateStreamerSortDto) {
-    return this.streamersService.updateSort(updateStreamerSortDto);
   }
 }

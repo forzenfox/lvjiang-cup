@@ -111,16 +111,16 @@ const StreamerCard: React.FC<{ streamer: Streamer; onClick: () => void }> = ({
         </div>
       </div>
 
-      <CardHeader>
+      <CardHeader className="pb-2">
         <CardTitle className="text-xl text-center text-secondary group-hover:text-white transition-colors">
           {streamer.nickname}
         </CardTitle>
       </CardHeader>
 
-      <CardContent>
-        <p className="text-sm text-gray-400 mb-4 line-clamp-2">{streamer.bio}</p>
+      <CardContent className="flex flex-col gap-4 pt-2">
+        <p className="text-sm text-gray-400 min-h-[2.5rem] line-clamp-2">{streamer.bio}</p>
         <Button
-          className="w-full bg-secondary hover:bg-secondary/80"
+          className="w-full bg-secondary hover:bg-secondary/80 py-2"
           onClick={e => {
             e.stopPropagation();
             window.open(streamer.liveUrl, '_blank');
@@ -215,16 +215,16 @@ const StreamerSection: React.FC<StreamerSectionProps> = ({ refreshInterval = 300
   return (
     <section
       id="streamers"
-      className="min-h-screen flex flex-col bg-gradient-to-b from-background to-black relative"
+      className="min-h-screen flex flex-col bg-gradient-to-b from-background via-[#0f1420] to-black relative"
     >
-      <div className="container mx-auto px-4 flex-1 flex flex-col justify-center min-h-0">
-        <div className="flex justify-center mb-8">
+      <div className="container mx-auto px-6 flex-1 flex flex-col justify-center min-h-0 py-16">
+        <div className="flex justify-center mb-16">
           <Tabs
             defaultValue="star"
             value={activeTab}
             onValueChange={value => setActiveTab(value as 'internal' | 'star' | 'guest')}
           >
-            <TabsList className="bg-gray-800/50">
+            <TabsList className="bg-gray-800/50 gap-2 p-1.5">
               <TabsTrigger value="internal">驴酱主播</TabsTrigger>
               <TabsTrigger value="star">明星主播</TabsTrigger>
               <TabsTrigger value="guest">嘉宾主播</TabsTrigger>
@@ -233,7 +233,7 @@ const StreamerSection: React.FC<StreamerSectionProps> = ({ refreshInterval = 300
         </div>
 
         {loading && streamers.length === 0 ? (
-          <div className="flex space-x-6 overflow-x-auto pb-8" style={{ scrollbarWidth: 'none' }}>
+          <div className="flex space-x-8 overflow-x-auto pb-8" style={{ scrollbarWidth: 'none' }}>
             {[1, 2, 3, 4, 5, 6].map(i => (
               <div key={i} className="flex-shrink-0 w-80">
                 <StreamerCardSkeleton />
@@ -301,7 +301,7 @@ const StreamerSection: React.FC<StreamerSectionProps> = ({ refreshInterval = 300
 
             <div
               id="streamers-scroll"
-              className="flex space-x-6 overflow-x-auto pb-8 snap-x snap-mandatory"
+              className="flex space-x-8 overflow-x-auto pb-8 snap-x snap-mandatory"
               style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
               data-testid="streamers-grid"
             >
@@ -318,7 +318,7 @@ const StreamerSection: React.FC<StreamerSectionProps> = ({ refreshInterval = 300
         )}
 
         {loading && streamers.length > 0 && (
-          <div className="mt-8 flex items-center justify-center space-x-2 text-gray-400">
+          <div className="mt-10 flex items-center justify-center space-x-2 text-gray-400">
             <Loader2 className="w-4 h-4 animate-spin" />
             <span className="text-sm">更新中...</span>
           </div>

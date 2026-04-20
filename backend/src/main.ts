@@ -5,6 +5,7 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
+import * as compression from 'compression';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -103,6 +104,9 @@ async function bootstrap() {
   await validateEnvironmentConfig();
 
   const app = await NestFactory.create(AppModule);
+
+  // 启用gzip压缩中间件，减少响应体大小，提升传输性能
+  app.use(compression());
 
   app.enableCors({
     origin: process.env.CORS_ORIGIN!,

@@ -310,6 +310,88 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     // videos表唯一索引(bvid)
     await run(this.db, `CREATE UNIQUE INDEX IF NOT EXISTS idx_videos_bvid ON videos(bvid)`);
 
+    // teams表唯一索引(name)
+    await run(this.db, `CREATE UNIQUE INDEX IF NOT EXISTS idx_teams_name ON teams(name)`);
+
+    // match_games 表（对战数据表）
+    await run(
+      this.db,
+      `
+      CREATE TABLE IF NOT EXISTS match_games (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        match_id TEXT NOT NULL,
+        game_number INTEGER NOT NULL CHECK(game_number BETWEEN 1 AND 5),
+        winner_team_id TEXT,
+        game_duration TEXT,
+        game_start_time TEXT,
+        blue_team_id TEXT,
+        red_team_id TEXT,
+        blue_kills INTEGER DEFAULT 0,
+        blue_gold INTEGER DEFAULT 0,
+        blue_towers INTEGER DEFAULT 0,
+        blue_dragons INTEGER DEFAULT 0,
+        blue_barons INTEGER DEFAULT 0,
+        red_kills INTEGER DEFAULT 0,
+        red_gold INTEGER DEFAULT 0,
+        red_towers INTEGER DEFAULT 0,
+        red_dragons INTEGER DEFAULT 0,
+        red_barons INTEGER DEFAULT 0,
+        status INTEGER DEFAULT 1 CHECK(status IN (0, 1)),
+        created_by TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (match_id) REFERENCES matches(id) ON DELETE CASCADE,
+        FOREIGN KEY (winner_team_id) REFERENCES teams(id),
+        FOREIGN KEY (blue_team_id) REFERENCES teams(id),
+        FOREIGN KEY (red_team_id) REFERENCES teams(id),
+        UNIQUE(match_id, game_number)
+      )
+    `,
+    );
+
+    // match_games 表索引
+    await run(this.db, `CREATE INDEX IF NOT EXISTS idx_match_games_match_id ON match_games(match_id)`);
+    await run(this.db, `CREATE INDEX IF NOT EXISTS idx_match_games_status ON match_games(status)`);
+
+    // player_match_stats 表（选手对战数据表）
+    await run(
+      this.db,
+      `
+      CREATE TABLE IF NOT EXISTS player_match_stats (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        match_game_id INTEGER NOT NULL,
+        player_id TEXT NOT NULL,
+        team_id TEXT NOT NULL,
+        position TEXT CHECK(position IN ('TOP', 'JUNGLE', 'MID', 'ADC', 'SUPPORT')),
+        champion_name TEXT,
+        kills INTEGER DEFAULT 0,
+        deaths INTEGER DEFAULT 0,
+        assists INTEGER DEFAULT 0,
+        cs INTEGER DEFAULT 0,
+        gold INTEGER DEFAULT 0,
+        damage_dealt INTEGER DEFAULT 0,
+        damage_taken INTEGER DEFAULT 0,
+        vision_score INTEGER DEFAULT 0,
+        wards_placed INTEGER DEFAULT 0,
+        level INTEGER DEFAULT 1,
+        first_blood INTEGER DEFAULT 0,
+        mvp INTEGER DEFAULT 0,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (match_game_id) REFERENCES match_games(id) ON DELETE CASCADE,
+        FOREIGN KEY (player_id) REFERENCES team_members(id) ON DELETE CASCADE,
+        FOREIGN KEY (team_id) REFERENCES teams(id) ON DELETE CASCADE,
+        UNIQUE(match_game_id, player_id)
+      )
+    `,
+    );
+
+    // player_match_stats 表索引
+    await run(this.db, `CREATE INDEX IF NOT EXISTS idx_player_match_stats_match_game_id ON player_match_stats(match_game_id)`);
+    await run(this.db, `CREATE INDEX IF NOT EXISTS idx_player_match_stats_player_id ON player_match_stats(player_id)`);
+    await run(this.db, `CREATE INDEX IF NOT EXISTS idx_player_match_stats_team_id ON player_match_stats(team_id)`);
+    await run(this.db, `CREATE INDEX IF NOT EXISTS idx_player_match_stats_position ON player_match_stats(position)`);
+
     // file_hashes 表（图片去重）
     await run(
       this.db,
@@ -379,6 +461,10 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
 
   // 清空所有数据
   async clearAllData() {
+    // 先删除有外键依赖的子表
+    await run(this.db, 'DELETE FROM player_match_stats');
+    await run(this.db, 'DELETE FROM match_games');
+    // 再删除其他表
     await run(this.db, 'DELETE FROM team_members');
     await run(this.db, 'DELETE FROM teams');
     await run(this.db, 'DELETE FROM matches');
