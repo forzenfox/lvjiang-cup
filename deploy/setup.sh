@@ -151,10 +151,33 @@ fi
 # 创建数据目录（包括上传文件目录）
 mkdir -p $PROJECT_DIR/data $PROJECT_DIR/backup $PROJECT_DIR/uploads
 
-# 设置数据目录权限（与 Dockerfile 中的 nodejs 用户匹配）
-chown -R 1001:1001 $PROJECT_DIR/data $PROJECT_DIR/backup $PROJECT_DIR/uploads
+# 从镜像中提取英雄映射数据文件到宿主机
+# 必须在 docker-compose up 之前完成，因为 volume 挂载会覆盖容器内文件
+CHAMPION_MAP_SRC="/app/data/lol-champion-map.json"
+CHAMPION_MAP_DST="$PROJECT_DIR/data/lol-champion-map.json"
+if [ ! -f "$CHAMPION_MAP_DST" ]; then
+    echo "从镜像提取英雄映射数据文件..."
+    IMAGE_NAME="ghcr.io/${GITHUB_OWNER:-forzenfox}/${GITHUB_REPO:-lvjiang-cup}/backend:${TAG:-latest}"
+    
+    # 先拉取镜像（如果还没拉过）
+    TAG=$TAG $COMPOSE_CMD pull backend
+    
+    # 从镜像中临时创建一个容器来复制文件
+    TEMP_CONTAINER=$(docker create "$IMAGE_NAME" sh)
+    docker cp "$TEMP_CONTAINER:$CHAMPION_MAP_SRC" "$PROJECT_DIR/data/"
+    docker rm "$TEMP_CONTAINER" > /dev/null 2>&1
+    
+    if [ -f "$CHAMPION_MAP_DST" ]; then
+        chown -R 1001:1001 "$CHAMPION_MAP_DST"
+        echo "${GREEN}✅ 英雄映射数据文件已提取到 $PROJECT_DIR/data/${NC}"
+    else
+        echo "${RED}❌ 镜像中未找到英雄映射数据文件${NC}"
+        echo "请检查镜像是否正确构建"
+        exit 1
+    fi
+fi
 
-# 拉取镜像并启动
+# 拉取其他服务镜像并启动
 echo "拉取镜像..."
 TAG=$TAG $COMPOSE_CMD pull
 

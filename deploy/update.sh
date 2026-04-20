@@ -15,6 +15,12 @@ TAG="${1:-latest}"
 PROJECT_DIR="/opt/lvjiang-cup"
 DEPLOY_DIR="$PROJECT_DIR/deploy"
 
+# 颜色定义
+GREEN="\033[0;32m"
+YELLOW="\033[1;33m"
+RED="\033[0;31m"
+NC="\033[0m"
+
 echo "========================================"
 echo "  驴酱杯应用更新脚本"
 echo "========================================"
@@ -42,6 +48,30 @@ cd $DEPLOY_DIR
 
 echo "📦 拉取最新镜像..."
 TAG=$TAG $COMPOSE_CMD pull
+
+# 同步英雄映射数据文件到宿主机
+# 如果宿主机 data 目录没有该文件，需要从镜像中提取
+# 注意：使用 docker create 而不是从运行中的容器复制，因为 volume 挂载会覆盖容器内文件
+CHAMPION_MAP_DST="$PROJECT_DIR/data/lol-champion-map.json"
+if [ ! -f "$CHAMPION_MAP_DST" ]; then
+    echo "${YELLOW}⚠️  宿主机缺少英雄映射数据文件，正在从镜像提取...${NC}"
+    IMAGE_NAME="ghcr.io/${GITHUB_OWNER:-forzenfox}/${GITHUB_REPO:-lvjiang-cup}/backend:${TAG:-latest}"
+    CHAMPION_MAP_SRC="/app/data/lol-champion-map.json"
+
+    # 从镜像中临时创建一个容器来复制文件
+    TEMP_CONTAINER=$(docker create "$IMAGE_NAME" sh)
+    docker cp "$TEMP_CONTAINER:$CHAMPION_MAP_SRC" "$PROJECT_DIR/data/"
+    docker rm "$TEMP_CONTAINER" > /dev/null 2>&1
+
+    if [ -f "$CHAMPION_MAP_DST" ]; then
+        chown -R 1001:1001 "$CHAMPION_MAP_DST"
+        echo "${GREEN}✅ 英雄映射数据文件已提取到宿主机${NC}"
+    else
+        echo "${RED}❌ 镜像中未找到英雄映射数据文件${NC}"
+        echo "请检查镜像是否正确构建"
+        exit 1
+    fi
+fi
 
 echo ""
 echo "🎯 停止当前服务..."

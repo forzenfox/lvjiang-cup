@@ -27,8 +27,9 @@ COPY package*.json ./
 RUN npm ci --only=production && \
     npm cache clean --force
 
-# 从构建阶段复制构建产物
+# 从构建阶段复制构建产物和数据文件
 COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/data ./data
 
 # 创建数据目录并设置权限
 RUN mkdir -p /app/data /app/backup /app/uploads && \
