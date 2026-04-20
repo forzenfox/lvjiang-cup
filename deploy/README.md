@@ -672,6 +672,93 @@ docker exec lvjiang-backend ls -ld /app/uploads
        max-file: "5"    # 增加文件数量
    ```
 
+### 问题 8：数据库启动报错（SQLITE_CANTOPEN）
+
+**错误信息**：
+```
+[Error: SQLITE_CANTOPEN: unable to open database file] {
+  errno: 14,
+  code: 'SQLITE_CANTOPEN'
+}
+```
+
+**原因分析**：
+- `data/` 目录不存在或为空
+- 目录权限不正确（容器内 nodejs 用户 UID 1001 无法访问）
+- 数据库文件不存在且无法自动创建
+
+**快速诊断**：
+```bash
+# 1. 检查 data 目录是否存在
+ls -la /opt/lvjiang-cup/data/
+
+# 2. 检查目录权限
+# 应该显示 1001:1001，如果是 root:root 则需要修复
+ls -ld /opt/lvjiang-cup/data/
+
+# 3. 检查数据库文件是否存在
+ls -l /opt/lvjiang-cup/data/lvjiang.db
+```
+
+**解决方案**：
+
+方式一：使用快速修复脚本（推荐）
+```bash
+# 方法 A：直接执行远程脚本
+curl -fsSL https://raw.githubusercontent.com/forzenfox/lvjiang-cup/main/deploy/quick-fix-db.sh | sudo bash
+
+# 方法 B：下载并执行本地脚本
+cd /opt/lvjiang-cup/deploy
+chmod +x quick-fix-db.sh
+./quick-fix-db.sh
+```
+
+方式二：手动修复
+```bash
+# 1. 确保目录存在
+mkdir -p /opt/lvjiang-cup/data
+mkdir -p /opt/lvjiang-cup/backup
+mkdir -p /opt/lvjiang-cup/uploads
+
+# 2. 设置正确的权限（UID 1001 对应容器内的 nodejs 用户）
+chown -R 1001:1001 /opt/lvjiang-cup/data
+chown -R 1001:1001 /opt/lvjiang-cup/backup
+chown -R 1001:1001 /opt/lvjiang-cup/uploads
+chmod -R 755 /opt/lvjiang-cup/data
+
+# 3. 重启后端容器（会自动创建数据库文件）
+cd /opt/lvjiang-cup/deploy
+docker-compose restart backend
+
+# 4. 验证数据库连接
+docker exec lvjiang-backend sqlite3 /app/data/lvjiang.db '.tables'
+```
+
+方式三：完整初始化（适用于全新部署）
+```bash
+cd /opt/lvjiang-cup/deploy
+chmod +x init-database.sh
+./init-database.sh
+```
+
+**验证修复**：
+```bash
+# 查看权限（应该是 1001:1001）
+ls -ld /opt/lvjiang-cup/data/
+ls -l /opt/lvjiang-cup/data/lvjiang.db
+
+# 查看后端日志
+docker-compose logs -f backend
+
+# 测试 API
+docker exec lvjiang-backend wget -q -O - http://127.0.0.1:3000/api/teams
+```
+
+**预防措施**：
+- 部署时 `setup.sh` 脚本会自动设置正确的权限
+- 不要手动用 root 用户创建数据目录
+- 定期检查目录权限是否正确
+
 ---
 
 ## 安全建议
