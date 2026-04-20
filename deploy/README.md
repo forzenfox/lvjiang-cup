@@ -3,14 +3,15 @@
 ## 目录
 
 1. [架构概述](#架构概述)
-2. [快速部署](#快速部署)
-3. [Nginx Proxy Manager 配置](#nginx-proxy-manager-配置)
-4. [CDN 配置（腾讯云）](#cdn-配置腾讯云)
-5. [前端配置](#前端配置)
-6. [常用操作](#常用操作)
-7. [清理与重置](#清理与重置)
-8. [故障排查](#故障排查)
-9. [安全建议](#安全建议)
+2. [国内服务器镜像加速](#国内服务器镜像加速)
+3. [快速部署](#快速部署)
+4. [Nginx Proxy Manager 配置](#nginx-proxy-manager-配置)
+5. [CDN 配置（腾讯云）](#cdn-配置腾讯云)
+6. [前端配置](#前端配置)
+7. [常用操作](#常用操作)
+8. [清理与重置](#清理与重置)
+9. [故障排查](#故障排查)
+10. [安全建议](#安全建议)
 
 ---
 
@@ -46,6 +47,67 @@
 | `.env` | 环境变量 | 后端服务配置 |
 | `docker-compose.yml` | Docker Compose 配置 | 服务编排（含日志轮转配置） |
 | `health-check.sh` | 健康检查脚本 | 检查服务状态和日志大小 |
+
+---
+
+## 国内服务器镜像加速
+
+> **重要**：在腾讯元、阿里云等国内服务器上部署时，强烈建议先配置 Docker 镜像加速器，否则镜像拉取速度会很慢。
+
+### 快速配置（一键脚本）
+
+```bash
+# 使用自动配置脚本（推荐）
+curl -fsSL https://raw.githubusercontent.com/forzenfox/lvjiang-cup/main/deploy/setup-docker-mirror.sh | sudo bash
+```
+
+脚本会自动：
+- ✅ 检测云服务器提供商（腾讯云/阿里云/华为云）
+- ✅ 配置最优镜像源地址
+- ✅ 重启 Docker 服务
+- ✅ 验证加速效果
+
+### 手动配置
+
+**腾讯云服务器：**
+
+```bash
+sudo mkdir -p /etc/docker
+sudo tee /etc/docker/daemon.json <<-'EOF'
+{
+  "registry-mirrors": [
+    "https://mirror.ccs.tencentyun.com",
+    "https://docker.m.daocloud.io"
+  ]
+}
+EOF
+
+sudo systemctl daemon-reload
+sudo systemctl restart docker
+```
+
+**验证配置：**
+
+```bash
+# 查看 Docker 信息
+docker info | grep -A 5 "Registry Mirrors"
+
+# 测试拉取速度
+time docker pull hello-world
+```
+
+### 性能对比
+
+| 配置 | 拉取速度 | 说明 |
+|------|---------|------|
+| 腾讯云镜像源 | 5-10 MB/s | ⭐⭐⭐⭐⭐ 推荐 |
+| 阿里云镜像源 | 5-10 MB/s | ⭐⭐⭐⭐⭐ 推荐 |
+| DaoCloud | 2-5 MB/s | ⭐⭐⭐⭐ |
+| 官方源（无加速） | 0.1-1 MB/s | ⭐ 不推荐 |
+
+### 详细文档
+
+更多配置选项和故障排查，请参考：[Docker 镜像加速配置指南](docker-mirror-config.md)
 
 ---
 
