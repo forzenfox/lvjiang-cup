@@ -101,7 +101,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   // 导航项配置
   const navItems = [
-    { id: 'hero', label: '直播' },
+    { id: 'hero', label: '总览' },
     { id: 'videos', label: '视频' },
     { id: 'streamers', label: '主播' },
     { id: 'teams', label: '战队' },
@@ -185,12 +185,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
       <main className="flex-grow pb-16 md:pb-0">{children}</main>
 
-      {/* 移动端底部导航栏 - 参考官方设计 */}
+      {/* 移动端底部导航栏 */}
       <nav
-        className="md:hidden fixed bottom-0 left-0 right-0 bg-[#1a1a1a] border-t border-white/10"
+        className="md:hidden fixed bottom-0 left-0 right-0 bg-[#1a1a1a]/95 backdrop-blur-lg border-t border-white/10"
         style={{ zIndex: ZIndexLayers.STICKY }}
       >
-        <div className="flex items-center justify-around">
+        <div className="flex items-center justify-between px-2 py-1">
           {navItems.map(item => {
             const isActive = activeSection === item.id;
             return (
@@ -198,14 +198,21 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 key={item.id}
                 onClick={() => scrollToSection(item.id)}
                 className={`
-                  flex-1 py-3 text-sm font-medium transition-all duration-200
+                  flex flex-col items-center justify-center flex-1 py-2 px-1 text-xs font-medium transition-all duration-200 rounded-lg mx-0.5
                   ${
                     isActive
-                      ? 'bg-primary text-white'
-                      : 'text-gray-400 hover:text-white hover:bg-white/5'
+                      ? 'text-secondary bg-secondary/10'
+                      : 'text-gray-400 hover:text-white'
                   }
                 `}
               >
+                <span className={`text-base mb-0.5 transition-transform duration-200 ${isActive ? 'scale-110' : ''}`}>
+                  {item.label === '总览' && '🏠'}
+                  {item.label === '视频' && '📺'}
+                  {item.label === '主播' && '🎙️'}
+                  {item.label === '战队' && '⚔️'}
+                  {item.label === '赛程' && '📅'}
+                </span>
                 <span className="relative z-10">{item.label}</span>
               </button>
             );

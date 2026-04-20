@@ -6,11 +6,11 @@ import type { PlayerLevel } from '@/api/types';
  * 用于统一整个项目中玩家相关徽章的样式
  */
 export const LEVEL_COLORS: Record<PlayerLevel, string> = {
-  S: 'bg-amber-500/40 text-amber-300 border-amber-500/50 shadow-amber-500/20',
-  A: 'bg-purple-500/40 text-purple-300 border-purple-500/50 shadow-purple-500/20',
-  B: 'bg-blue-500/40 text-blue-300 border-blue-500/50 shadow-blue-500/20',
-  C: 'bg-green-500/40 text-green-300 border-green-500/50 shadow-green-500/20',
-  D: 'bg-gray-500/40 text-gray-300 border-gray-500/50 shadow-gray-500/20',
+  S: 'bg-amber-500/70 text-amber-300 border-amber-500/70 shadow-amber-500/20',
+  A: 'bg-purple-500/70 text-purple-300 border-purple-500/70 shadow-purple-500/20',
+  B: 'bg-blue-500/70 text-blue-300 border-blue-500/70 shadow-blue-500/20',
+  C: 'bg-green-500/70 text-green-300 border-green-500/70 shadow-green-500/20',
+  D: 'bg-gray-500/70 text-gray-300 border-gray-500/70 shadow-gray-500/20',
 };
 
 /**

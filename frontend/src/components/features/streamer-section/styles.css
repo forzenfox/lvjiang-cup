@@ -1,0 +1,73 @@
+.streamer-carousel {
+  @apply relative w-full overflow-hidden;
+}
+
+.streamer-carousel .main-card-container {
+  @apply transition-all duration-500 ease-in-out;
+}
+
+.streamer-carousel .thumbnail-card {
+  @apply transition-all duration-300 ease-in-out;
+}
+
+.streamer-carousel .control-arrow {
+  @apply opacity-0 transition-opacity duration-200;
+}
+
+.streamer-carousel:hover .control-arrow {
+  @apply opacity-100;
+}
+
+.streamer-carousel .indicator-dot {
+  @apply transition-all duration-200;
+}
+
+.streamer-carousel .indicator-dot:hover {
+  @apply scale-150;
+}
+
+@media (min-width: 1024px) {
+  .streamer-carousel .carousel-container {
+    @apply flex items-center gap-6;
+  }
+
+  .streamer-carousel .thumbnail-section {
+    @apply w-[20%] h-full flex items-center;
+  }
+
+  .streamer-carousel .main-section {
+    @apply flex-1 max-w-[60%] h-full;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .streamer-carousel .carousel-container {
+    @apply flex items-center gap-4;
+  }
+
+  .streamer-carousel .thumbnail-section {
+    @apply w-[17.5%] h-full flex items-center;
+  }
+
+  .streamer-carousel .main-section {
+    @apply flex-1 max-w-[65%] h-full;
+  }
+}
+
+@media (max-width: 767px) {
+  .streamer-carousel .carousel-container {
+    @apply flex-col;
+  }
+
+  .streamer-carousel .thumbnail-section {
+    @apply hidden;
+  }
+
+  .streamer-carousel .main-section {
+    @apply w-full max-w-none;
+  }
+
+  .streamer-carousel .control-arrow {
+    @apply hidden;
+  }
+}

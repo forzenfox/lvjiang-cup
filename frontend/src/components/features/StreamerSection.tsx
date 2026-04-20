@@ -1,34 +1,26 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { Loader2, AlertCircle } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { Button } from '../ui/button';
 import { Tabs, TabsList, TabsTrigger } from '../ui/tabs';
+import { Button } from '../ui/button';
 import { streamersApi } from '@/api/streamers';
 import { type Streamer, StreamerType } from '@/api/types';
-
-const styles = `
-  #streamers-scroll::-webkit-scrollbar {
-    display: none;
-  }
-`;
+import { useMediaQuery } from '@/hooks/useMediaQuery';
+import { StreamerMainCard } from './streamer-section/StreamerMainCard';
+import { StreamerThumbnailCard } from './streamer-section/StreamerThumbnailCard';
+import { StreamerIndicator } from './streamer-section/StreamerIndicator';
+import { StreamerControlArrows } from './streamer-section/StreamerControlArrows';
+import { useStreamerAutoplay, useStreamerSwipe } from './streamer-section/hooks';
+import './streamer-section/styles.css';
 
 const StreamerCardSkeleton: React.FC = () => (
-  <Card className="bg-white/5 border-white/10 overflow-hidden">
-    <div className="h-64 bg-gradient-to-br from-blue-900/30 to-purple-900/30 relative">
-      <div className="w-full h-full bg-white/10 animate-pulse" />
+  <div className="bg-white/5 border border-white/10 rounded-lg overflow-hidden animate-pulse">
+    <div className="aspect-video bg-white/10" />
+    <div className="p-6">
+      <div className="h-8 w-3/4 mx-auto bg-white/10 rounded mb-4" />
+      <div className="h-20 bg-white/10 rounded mb-4" />
+      <div className="h-12 bg-white/10 rounded" />
     </div>
-    <CardHeader>
-      <div className="h-6 w-3/4 mx-auto bg-white/10 rounded animate-pulse" />
-      <div className="h-4 w-1/2 mx-auto bg-white/10 rounded animate-pulse mt-2" />
-    </CardHeader>
-    <CardContent>
-      <div className="h-12 bg-white/10 rounded animate-pulse mb-4" />
-      <div className="flex space-x-2">
-        <div className="flex-1 h-10 bg-white/10 rounded animate-pulse" />
-        <div className="w-20 h-10 bg-white/10 rounded animate-pulse" />
-      </div>
-    </CardContent>
-  </Card>
+  </div>
 );
 
 const EmptyState: React.FC<{ onRetry: () => void }> = ({ onRetry }) => (
@@ -77,80 +69,19 @@ const ErrorState: React.FC<{ message: string; onRetry: () => void }> = ({ messag
   </div>
 );
 
-const StreamerCard: React.FC<{ streamer: Streamer; onClick: () => void }> = ({
-  streamer,
-  onClick,
-}) => {
-  return (
-    <Card
-      className="bg-white/5 border-white/10 hover:border-secondary/50 transition-all duration-300 hover:transform hover:-translate-y-2 group overflow-hidden cursor-pointer"
-      onClick={onClick}
-    >
-      <div className="relative h-64 overflow-hidden">
-        <img
-          src={streamer.posterUrl}
-          alt={streamer.nickname}
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-        />
-        <div className="absolute top-4 left-4 flex space-x-2">
-          {streamer.streamerType === StreamerType.INTERNAL && (
-            <span className="bg-blue-500 text-white px-2 py-1 rounded-full text-xs font-bold">
-              驴酱
-            </span>
-          )}
-          {streamer.streamerType === StreamerType.GUEST && (
-            <span className="bg-purple-500 text-white px-2 py-1 rounded-full text-xs font-bold">
-              嘉宾
-            </span>
-          )}
-          {streamer.isStar && (
-            <span className="bg-yellow-500 text-black px-2 py-1 rounded-full text-xs font-bold">
-              明星
-            </span>
-          )}
-        </div>
-      </div>
-
-      <CardHeader className="pb-2">
-        <CardTitle className="text-xl text-center text-secondary group-hover:text-white transition-colors">
-          {streamer.nickname}
-        </CardTitle>
-      </CardHeader>
-
-      <CardContent className="flex flex-col gap-4 pt-2">
-        <p className="text-sm text-gray-400 min-h-[2.5rem] line-clamp-2">{streamer.bio}</p>
-        <Button
-          className="w-full bg-secondary hover:bg-secondary/80 py-2"
-          onClick={e => {
-            e.stopPropagation();
-            window.open(streamer.liveUrl, '_blank');
-          }}
-        >
-          进入直播间
-        </Button>
-      </CardContent>
-    </Card>
-  );
-};
-
 interface StreamerSectionProps {
   refreshInterval?: number;
 }
 
 const StreamerSection: React.FC<StreamerSectionProps> = ({ refreshInterval = 30000 }) => {
-  useEffect(() => {
-    const styleElement = document.createElement('style');
-    styleElement.textContent = styles;
-    document.head.appendChild(styleElement);
-    return () => {
-      document.head.removeChild(styleElement);
-    };
-  }, []);
+  const isMobile = useMediaQuery('(max-width: 767px)');
+  const isPC = useMediaQuery('(min-width: 1024px)');
 
   const [streamers, setStreamers] = useState<Streamer[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'internal' | 'star' | 'guest'>('star');
+  const [activeTab, setActiveTab] = useState<'internal' | 'guest'>('internal');
+  const [currentIndex, setCurrentIndex] = useState(0);
 
   const fetchStreamers = useCallback(async () => {
     try {
@@ -189,28 +120,65 @@ const StreamerSection: React.FC<StreamerSectionProps> = ({ refreshInterval = 300
     };
   }, [refreshInterval, fetchStreamers]);
 
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      const scrollContainer = document.getElementById('streamers-scroll');
-      if (!scrollContainer) return;
-
-      if (e.key === 'ArrowLeft') {
-        scrollContainer.scrollBy({ left: -300, behavior: 'smooth' });
-      } else if (e.key === 'ArrowRight') {
-        scrollContainer.scrollBy({ left: 300, behavior: 'smooth' });
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
-
   const filteredStreamers = streamers.filter(streamer => {
-    if (activeTab === 'star') return streamer.isStar;
     if (activeTab === 'internal') return streamer.streamerType === StreamerType.INTERNAL;
     if (activeTab === 'guest') return streamer.streamerType === StreamerType.GUEST;
     return true;
   });
+
+  const goToNext = useCallback(() => {
+    setCurrentIndex(prev => (prev + 1) % filteredStreamers.length);
+  }, [filteredStreamers.length]);
+
+  const goToPrev = useCallback(() => {
+    setCurrentIndex(prev => (prev - 1 + filteredStreamers.length) % filteredStreamers.length);
+  }, [filteredStreamers.length]);
+
+  const { pause: pauseAutoplay } = useStreamerAutoplay({
+    enabled: isPC && filteredStreamers.length > 2,
+    onNext: goToNext,
+    streamerCount: filteredStreamers.length,
+    isMobile,
+    interval: 6000,
+    pauseDuration: 30000,
+  });
+
+  const handleUserInteraction = useCallback(() => {
+    pauseAutoplay();
+  }, [pauseAutoplay]);
+
+  const { onTouchStart, onTouchEnd } = useStreamerSwipe({
+    onSwipeLeft: goToNext,
+    onSwipeRight: goToPrev,
+    threshold: 50,
+  });
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        goToPrev();
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        goToNext();
+      }
+    };
+
+    const carouselElement = document.querySelector('[data-testid="streamer-carousel"]');
+    if (carouselElement) {
+      carouselElement.addEventListener('keydown', handleKeyDown);
+      return () => carouselElement.removeEventListener('keydown', handleKeyDown);
+    }
+  }, [goToNext, goToPrev]);
+
+  useEffect(() => {
+    setCurrentIndex(0);
+  }, [activeTab]);
+
+  const getPrevIndex = () => (currentIndex - 1 + filteredStreamers.length) % filteredStreamers.length;
+  const getNextIndex = () => (currentIndex + 1) % filteredStreamers.length;
+
+  const showControls = filteredStreamers.length > 2;
 
   return (
     <section
@@ -218,102 +186,99 @@ const StreamerSection: React.FC<StreamerSectionProps> = ({ refreshInterval = 300
       className="min-h-screen flex flex-col bg-gradient-to-b from-background via-[#0f1420] to-black relative"
     >
       <div className="container mx-auto px-6 flex-1 flex flex-col justify-center min-h-0 py-16">
-        <div className="flex justify-center mb-16">
+        <div className="flex justify-center mb-12">
           <Tabs
-            defaultValue="star"
+            defaultValue="internal"
             value={activeTab}
-            onValueChange={value => setActiveTab(value as 'internal' | 'star' | 'guest')}
+            onValueChange={value => setActiveTab(value as 'internal' | 'guest')}
           >
             <TabsList className="bg-gray-800/50 gap-2 p-1.5">
               <TabsTrigger value="internal">驴酱主播</TabsTrigger>
-              <TabsTrigger value="star">明星主播</TabsTrigger>
               <TabsTrigger value="guest">嘉宾主播</TabsTrigger>
             </TabsList>
           </Tabs>
         </div>
 
         {loading && streamers.length === 0 ? (
-          <div className="flex space-x-8 overflow-x-auto pb-8" style={{ scrollbarWidth: 'none' }}>
-            {[1, 2, 3, 4, 5, 6].map(i => (
-              <div key={i} className="flex-shrink-0 w-80">
-                <StreamerCardSkeleton />
-              </div>
-            ))}
+          <div className="max-w-4xl mx-auto w-full">
+            <StreamerCardSkeleton />
           </div>
         ) : error && streamers.length === 0 ? (
-          <div className="grid grid-cols-1">
-            <ErrorState message={error} onRetry={fetchStreamers} />
-          </div>
-        ) : streamers.length === 0 ? (
-          <div className="grid grid-cols-1">
-            <EmptyState onRetry={fetchStreamers} />
-          </div>
+          <ErrorState message={error} onRetry={fetchStreamers} />
+        ) : filteredStreamers.length === 0 ? (
+          <EmptyState onRetry={fetchStreamers} />
         ) : (
-          <div className="relative">
-            <div className="absolute left-0 top-1/2 -translate-y-1/2 z-10 hidden md:block">
-              <button
-                className="bg-black/50 hover:bg-black/80 text-white p-2 rounded-full"
-                onClick={() =>
-                  document
-                    .getElementById('streamers-scroll')
-                    ?.scrollBy({ left: -300, behavior: 'smooth' })
-                }
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="m15 18-6-6 6-6" />
-                </svg>
-              </button>
-            </div>
-            <div className="absolute right-0 top-1/2 -translate-y-1/2 z-10 hidden md:block">
-              <button
-                className="bg-black/50 hover:bg-black/80 text-white p-2 rounded-full"
-                onClick={() =>
-                  document
-                    .getElementById('streamers-scroll')
-                    ?.scrollBy({ left: 300, behavior: 'smooth' })
-                }
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="m9 18 6-6-6-6" />
-                </svg>
-              </button>
-            </div>
-
-            <div
-              id="streamers-scroll"
-              className="flex space-x-8 overflow-x-auto pb-8 snap-x snap-mandatory"
-              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-              data-testid="streamers-grid"
-            >
-              {filteredStreamers.map(streamer => (
-                <div key={streamer.id} className="flex-shrink-0 w-80 snap-center">
-                  <StreamerCard
-                    streamer={streamer}
-                    onClick={() => window.open(streamer.liveUrl, '_blank')}
-                  />
+          <div
+            className="streamer-carousel"
+            data-testid="streamer-carousel"
+            onMouseDown={handleUserInteraction}
+            onTouchStart={onTouchStart}
+            onTouchEnd={onTouchEnd}
+          >
+            {isMobile ? (
+              <div className="flex flex-col">
+                <div className="w-full">
+                  <StreamerMainCard streamer={filteredStreamers[currentIndex]} />
                 </div>
-              ))}
-            </div>
+                <StreamerIndicator
+                  streamers={filteredStreamers}
+                  currentIndex={currentIndex}
+                  onSelect={setCurrentIndex}
+                />
+              </div>
+            ) : (
+              <div className="carousel-container relative">
+                {showControls && (
+                  <div className="thumbnail-section">
+                    <StreamerThumbnailCard
+                      streamer={filteredStreamers[getPrevIndex()]}
+                      onClick={() => {
+                        setCurrentIndex(getPrevIndex());
+                        handleUserInteraction();
+                      }}
+                    />
+                  </div>
+                )}
+
+                <div className={`main-section ${showControls ? '' : 'max-w-2xl mx-auto'}`}>
+                  <div className="main-card-container">
+                    <StreamerMainCard streamer={filteredStreamers[currentIndex]} />
+                  </div>
+                  {showControls && (
+                    <StreamerControlArrows
+                      onPrev={() => {
+                        goToPrev();
+                        handleUserInteraction();
+                      }}
+                      onNext={() => {
+                        goToNext();
+                        handleUserInteraction();
+                      }}
+                      canPrev={filteredStreamers.length > 1}
+                      canNext={filteredStreamers.length > 1}
+                    />
+                  )}
+                </div>
+
+                {showControls && (
+                  <div className="thumbnail-section">
+                    <StreamerThumbnailCard
+                      streamer={filteredStreamers[getNextIndex()]}
+                      onClick={() => {
+                        setCurrentIndex(getNextIndex());
+                        handleUserInteraction();
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
+            )}
+
+            <StreamerIndicator
+              streamers={filteredStreamers}
+              currentIndex={currentIndex}
+              onSelect={setCurrentIndex}
+            />
           </div>
         )}
 

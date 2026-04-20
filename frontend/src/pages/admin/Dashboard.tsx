@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import AdminLayout from '../../components/layout/AdminLayout';
 import { Button } from '../../components/ui/button';
 import { teamService } from '@/services/teamService';
 import { matchService } from '@/services/matchService';
 import { streamService } from '@/services/streamService';
-import { Users, Trophy, Radio, Activity, User, Video } from 'lucide-react';
+import { Users, Trophy, Radio, Activity, User, Video, BarChart3 } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface DashboardStats {
@@ -14,9 +15,11 @@ interface DashboardStats {
   ongoingMatches: number;
   finishedMatches: number;
   liveStream: boolean;
+  matchesWithData: number;
 }
 
 const AdminDashboard: React.FC = () => {
+  const navigate = useNavigate();
   const [stats, setStats] = useState<DashboardStats>({
     totalTeams: 0,
     totalMatches: 0,
@@ -24,6 +27,7 @@ const AdminDashboard: React.FC = () => {
     ongoingMatches: 0,
     finishedMatches: 0,
     liveStream: false,
+    matchesWithData: 0,
   });
   const [loadingStats, setLoadingStats] = useState(true);
 
@@ -63,6 +67,13 @@ const AdminDashboard: React.FC = () => {
       const ongoingMatches = matches.filter(m => mapStatus(m.status) === 'ongoing').length;
       const finishedMatches = matches.filter(m => mapStatus(m.status) === 'finished').length;
 
+      // 计算有多少比赛有对战数据（通过检查 finished 状态的比赛）
+      // 这里简化处理，假设已完成且有比分的比赛有数据
+      const matchesWithData = matches.filter(m => {
+        const status = mapStatus(m.status);
+        return status === 'finished' && m.scoreA > 0 && m.scoreB > 0;
+      }).length;
+
       setStats({
         totalTeams: teams.length,
         totalMatches: matches.length,
@@ -70,6 +81,7 @@ const AdminDashboard: React.FC = () => {
         ongoingMatches,
         finishedMatches,
         liveStream: streamResult?.isActive || false,
+        matchesWithData,
       });
     } catch (error) {
       console.error('Failed to load stats:', error);
@@ -85,14 +97,19 @@ const AdminDashboard: React.FC = () => {
     icon: Icon,
     color,
     subtitle,
+    onClick,
   }: {
     title: string;
     value: number | string;
     icon: React.ElementType;
     color: string;
     subtitle?: string;
+    onClick?: () => void;
   }) => (
-    <div className="bg-gray-800 p-6 rounded-lg border border-gray-700">
+    <div
+      className={`bg-gray-800 p-6 rounded-lg border border-gray-700 ${onClick ? 'hover:border-secondary/50 cursor-pointer transition-colors' : ''}`}
+      onClick={onClick}
+    >
       <div className="flex items-center justify-between">
         <div>
           <p className="text-sm text-gray-400 mb-1">{title}</p>
@@ -122,7 +139,7 @@ const AdminDashboard: React.FC = () => {
       </div>
 
       {/* 统计卡片区域 */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
         <StatCard
           title="参赛战队"
           value={stats.totalTeams}
@@ -136,6 +153,14 @@ const AdminDashboard: React.FC = () => {
           icon={Trophy}
           color="bg-purple-600"
           subtitle={`${stats.upcomingMatches} 未开始 / ${stats.ongoingMatches} 进行中 / ${stats.finishedMatches} 已结束`}
+        />
+        <StatCard
+          title="对战数据"
+          value={stats.matchesWithData}
+          icon={BarChart3}
+          color="bg-secondary"
+          subtitle={`${stats.totalMatches - stats.matchesWithData} 场比赛待导入`}
+          onClick={() => navigate('/admin/matches')}
         />
         <StatCard
           title="直播状态"
@@ -154,7 +179,18 @@ const AdminDashboard: React.FC = () => {
       </div>
 
       {/* 快捷操作区域 */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div
+          className="bg-gray-800 p-6 rounded-lg border border-gray-700 hover:border-blue-500/50 transition-colors cursor-pointer"
+          onClick={() => (window.location.href = '/admin/matches')}
+        >
+          <h3 className="text-xl font-semibold text-secondary mb-2">对战数据管理</h3>
+          <p className="text-gray-400">导入和管理比赛详细数据</p>
+          <div className="mt-4 flex items-center text-sm text-blue-400">
+            <span>进入管理</span>
+            <span className="ml-1">→</span>
+          </div>
+        </div>
         <div
           className="bg-gray-800 p-6 rounded-lg border border-gray-700 hover:border-blue-500/50 transition-colors cursor-pointer"
           onClick={() => (window.location.href = '/admin/stream')}

@@ -10,6 +10,8 @@ import AdminStreamers from '../pages/admin/Streamers';
 import Videos from '../pages/admin/Videos';
 import ProtectedRoute from '../components/layout/ProtectedRoute';
 import MatchDataPage from '../components/features/match-data/MatchDataPage';
+import MatchDataManagement from '../pages/admin/MatchDataManagement';
+import MatchDataList from '../pages/admin/MatchDataList';
 
 /**
  * 路由配置
@@ -76,6 +78,22 @@ export const routes: RouteObject[] = [
     element: (
       <ProtectedRoute>
         <Videos />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/admin/matches',
+    element: (
+      <ProtectedRoute>
+        <MatchDataList />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/admin/matches/:matchId/games',
+    element: (
+      <ProtectedRoute>
+        <MatchDataManagement />
       </ProtectedRoute>
     ),
   },

@@ -14,7 +14,6 @@ export interface Streamer {
   bio: string;
   liveUrl: string;
   streamerType: StreamerType;
-  isStar: boolean;
   sortOrder: number;
   createdAt: Date;
   updatedAt: Date;
@@ -26,7 +25,6 @@ export interface CreateStreamerDto {
   bio: string;
   liveUrl: string;
   streamerType: StreamerType;
-  isStar: boolean;
 }
 
 export interface UpdateStreamerDto {
@@ -35,7 +33,6 @@ export interface UpdateStreamerDto {
   bio?: string;
   liveUrl?: string;
   streamerType?: StreamerType;
-  isStar?: boolean;
   sortOrder?: number;
 }
 
@@ -50,7 +47,6 @@ interface StreamerRow {
   bio: string;
   live_url: string;
   streamer_type: string;
-  is_star: number;
   sort_order: number;
   created_at: string;
   updated_at: string;
@@ -76,7 +72,6 @@ export class StreamersService {
       bio: row.bio,
       liveUrl: row.live_url,
       streamerType: row.streamer_type as StreamerType,
-      isStar: Boolean(row.is_star),
       sortOrder: row.sort_order ?? 0,
       createdAt: new Date(row.created_at),
       updatedAt: new Date(row.updated_at),
@@ -124,8 +119,8 @@ export class StreamersService {
     const now = new Date().toISOString();
 
     await this.databaseService.run(
-      `INSERT INTO streamers (id, nickname, poster_url, bio, live_url, streamer_type, is_star, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO streamers (id, nickname, poster_url, bio, live_url, streamer_type, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         id,
         createStreamerDto.nickname,
@@ -133,7 +128,6 @@ export class StreamersService {
         createStreamerDto.bio,
         createStreamerDto.liveUrl,
         createStreamerDto.streamerType,
-        createStreamerDto.isStar ? 1 : 0,
         now,
         now,
       ],
@@ -175,10 +169,6 @@ export class StreamersService {
     if (updateStreamerDto.streamerType !== undefined) {
       updates.push('streamer_type = ?');
       params.push(updateStreamerDto.streamerType);
-    }
-    if (updateStreamerDto.isStar !== undefined) {
-      updates.push('is_star = ?');
-      params.push(updateStreamerDto.isStar ? 1 : 0);
     }
     if (updateStreamerDto.sortOrder !== undefined) {
       updates.push('sort_order = ?');

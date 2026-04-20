@@ -1,15 +1,14 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { User, Users, Loader2, AlertCircle } from 'lucide-react';
+import { Users, Loader2, AlertCircle } from 'lucide-react';
 import { teamService } from '../../services';
 import type { Team as ApiTeam, Player } from '../../api/types';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui/card';
+import { Card, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
-import { TopIcon, JungleIcon, MidIcon, AdcIcon, SupportIcon } from '../icons/PositionIcons';
-import { getPositionLabel } from '../../utils/position';
-import { PositionType } from '../../types/position';
 import { PlayerDetailModal } from '../team/PlayerDetailModal';
-import { getLevelBadgeClasses, getCaptainBadgeClasses } from '../../utils/levelColors';
+import { TeamMemberModal } from '../team/TeamMemberModal';
+import PlayerDetailDrawer from '../team/PlayerDetailDrawer';
 import { getUploadUrl } from '@/utils/upload';
+import type { PositionType } from '@/types/position';
 
 // 本地 Team 类型（与后端数据模型一致）
 interface Team {
@@ -20,47 +19,17 @@ interface Team {
   players: Player[];
 }
 
-const PositionIcon: React.FC<{ position: PositionType }> = ({ position }) => {
-  switch (position) {
-    case 'TOP':
-      return <TopIcon className="w-4 h-4" />;
-    case 'JUNGLE':
-      return <JungleIcon className="w-4 h-4" />;
-    case 'MID':
-      return <MidIcon className="w-4 h-4" />;
-    case 'ADC':
-      return <AdcIcon className="w-4 h-4" />;
-    case 'SUPPORT':
-      return <SupportIcon className="w-4 h-4" />;
-    default:
-      return <User className="w-4 h-4 text-gray-400" />;
-  }
-};
-
-// 骨架屏组件
+// 骨架屏组件（正方形卡片样式，队标队名同一区域，图标队名占比更大）
 const TeamCardSkeleton: React.FC = () => (
-  <Card className="bg-white/5 border-white/10 overflow-hidden">
-    <div className="h-32 bg-gradient-to-br from-blue-900/30 to-purple-900/30 relative flex items-center justify-center p-4">
-      <div className="w-24 h-24 rounded-full bg-white/10 animate-pulse" />
+  <div
+    className="aspect-square bg-[#1a1a2e] border border-white/10 rounded-lg overflow-hidden animate-pulse"
+    data-testid="team-card-skeleton"
+  >
+    <div className="h-full flex flex-col items-center justify-center p-2 gap-1">
+      <div className="w-16 h-16 rounded-lg bg-white/10" />
+      <div className="h-4 w-16 bg-white/10 rounded" />
     </div>
-    <CardHeader>
-      <div className="h-6 w-3/4 mx-auto bg-white/10 rounded animate-pulse" />
-      <div className="h-4 w-1/2 mx-auto bg-white/10 rounded animate-pulse mt-2" />
-    </CardHeader>
-    <CardContent>
-      <div className="space-y-3">
-        {[1, 2, 3, 4, 5].map(i => (
-          <div key={i} className="flex items-center justify-between p-2 rounded bg-black/20">
-            <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 rounded-full bg-white/10 animate-pulse" />
-              <div className="h-4 w-20 bg-white/10 rounded animate-pulse" />
-            </div>
-            <div className="h-4 w-12 bg-white/10 rounded animate-pulse" />
-          </div>
-        ))}
-      </div>
-    </CardContent>
-  </Card>
+  </div>
 );
 
 // 空数据状态组件
@@ -102,18 +71,46 @@ const TeamSection: React.FC = () => {
   const [teams, setTeams] = useState<Team[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+
+  // 弹框状态
+  const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
+  const [isTeamModalOpen, setIsTeamModalOpen] = useState<boolean>(false);
+
+  // 抽屉状态（独立于弹框）
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
-  const handlePlayerClick = (player: Player) => {
-    setSelectedPlayer(player);
-    setIsModalOpen(true);
-  };
+  // 检测是否为移动端
+  const [isMobile, setIsMobile] = useState(false);
 
-  const handleCloseModal = () => {
+  // 点击战队卡片打开弹框
+  const handleTeamClick = useCallback((team: Team) => {
+    setSelectedTeam(team);
+    setIsTeamModalOpen(true);
+  }, []);
+
+  // 点击队员打开抽屉
+  const handlePlayerClick = useCallback((player: Player) => {
+    setSelectedPlayer(player);
+  }, []);
+
+  // 关闭旧版队员详情弹框
+  const handleCloseModal = useCallback(() => {
     setIsModalOpen(false);
     setSelectedPlayer(null);
-  };
+  }, []);
+
+  // 关闭弹框（清空所有状态）
+  const handleCloseTeamModal = useCallback(() => {
+    setIsTeamModalOpen(false);
+    setSelectedTeam(null);
+    setSelectedPlayer(null); // 同时清空 selectedPlayer
+  }, []);
+
+  // 关闭抽屉
+  const handleCloseDrawer = useCallback(() => {
+    setSelectedPlayer(null);
+  }, []);
 
   // 将 API Team 转换为本地 Team 格式
   const convertApiTeamToLocal = (apiTeam: ApiTeam): Team => {
@@ -182,13 +179,22 @@ const TeamSection: React.FC = () => {
     fetchTeams();
   }, [fetchTeams]);
 
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
   return (
     <section id="teams" className="min-h-screen flex flex-col bg-black relative">
-      <div className="container mx-auto px-4 flex-1 flex flex-col justify-center min-h-0">
+      <div className="container mx-auto px-4 flex-1 flex flex-col justify-center min-h-0 py-8">
         {/* 加载骨架屏 */}
         {loading && teams.length === 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {[1, 2, 3, 4].map(i => (
+          <div className="grid grid-cols-4 gap-4 max-w-5xl mx-auto w-full">
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16].map(i => (
               <TeamCardSkeleton key={i} />
             ))}
           </div>
@@ -203,75 +209,34 @@ const TeamSection: React.FC = () => {
             <EmptyState onRetry={fetchTeams} />
           </div>
         ) : (
-          /* 正常数据展示 */
+          /* 正常数据展示（4行4列正方形卡片布局，队标队名占比更大） */
           <div
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8"
+            className="grid grid-cols-4 gap-4 max-w-3xl mx-auto w-full"
             data-testid="teams-grid"
           >
             {teams.map(team => (
-              <Card
+              <div
                 key={team.id}
-                className="bg-white/5 border-white/10 hover:border-secondary/50 transition-all duration-300 hover:transform hover:-translate-y-2 group overflow-hidden"
+                className="aspect-square bg-[#1a1a2e] border border-white/10 hover:border-white/30 transition-all duration-300 hover:transform hover:-translate-y-1 group overflow-hidden cursor-pointer rounded-lg"
                 data-testid="team-card"
+                onClick={() => handleTeamClick(team)}
               >
-                <div className="h-32 bg-gradient-to-br from-blue-900/50 to-purple-900/50 relative flex items-center justify-center p-4">
+                {/* 队标和队名在同一区域垂直居中显示，图标队名占比更大 */}
+                <div className="h-full flex flex-col items-center justify-center p-2 gap-1">
                   <img
                     src={team.logo}
                     alt={team.name}
-                    className="w-24 h-24 object-contain drop-shadow-lg transform group-hover:scale-110 transition-transform duration-300"
+                    className="w-16 h-16 object-contain drop-shadow-lg transform group-hover:scale-110 transition-transform duration-300"
                     data-testid="team-logo"
                   />
-                </div>
-                <CardHeader>
-                  <CardTitle
-                    className="text-xl text-center text-secondary group-hover:text-white transition-colors"
+                  <span
+                    className="text-sm text-center text-gray-300 group-hover:text-white transition-colors truncate font-medium max-w-full"
                     data-testid="team-name"
                   >
                     {team.name}
-                  </CardTitle>
-                  <CardDescription className="text-center" data-testid="team-battle-cry">
-                    {team.battleCry}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {team.players.map(player => (
-                      <div
-                        key={player.id}
-                        className="flex items-center justify-between p-2 rounded bg-gray-200/90 hover:bg-gray-100/95 transition-colors shadow-sm cursor-pointer"
-                        onClick={() => handlePlayerClick(player)}
-                        data-testid="player-row"
-                      >
-                        <div className="flex items-center space-x-2">
-                          <img
-                            src={player.avatarUrl}
-                            alt={player.nickname}
-                            className="w-8 h-8 rounded-full bg-gray-300 object-cover ring-2 ring-white/50"
-                          />
-                          <span className="text-sm font-semibold text-gray-700">
-                            {player.nickname}
-                          </span>
-                          {player.level && (
-                            <span className={getLevelBadgeClasses(player.level)}>
-                              {player.level}
-                            </span>
-                          )}
-                          {player.isCaptain && (
-                            <span className={getCaptainBadgeClasses()}>队长</span>
-                          )}
-                        </div>
-                        <div
-                          className="flex items-center"
-                          title={getPositionLabel(player.position)}
-                          data-testid="position-icon"
-                        >
-                          <PositionIcon position={player.position} />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+                  </span>
+                </div>
+              </div>
             ))}
           </div>
         )}
@@ -284,7 +249,7 @@ const TeamSection: React.FC = () => {
           </div>
         )}
 
-        {/* 队员详情弹框 */}
+        {/* 旧版队员详情弹框（向后兼容保留） */}
         {selectedPlayer && (
           <PlayerDetailModal
             player={selectedPlayer}
@@ -292,6 +257,29 @@ const TeamSection: React.FC = () => {
             onClose={handleCloseModal}
           />
         )}
+
+        {/* 新版弹框：战队成员列表 */}
+        {selectedTeam && (
+          <TeamMemberModal
+            team={{
+              id: selectedTeam.id,
+              name: selectedTeam.name,
+              logoUrl: selectedTeam.logo,
+              battleCry: selectedTeam.battleCry,
+              members: selectedTeam.players,
+            }}
+            isOpen={isTeamModalOpen}
+            onClose={handleCloseTeamModal}
+            onPlayerClick={handlePlayerClick}
+          />
+        )}
+
+        {/* 嵌套在弹框内的抽屉：队员详情 */}
+        <PlayerDetailDrawer
+          player={selectedPlayer}
+          onClose={handleCloseDrawer}
+          isMobile={isMobile}
+        />
       </div>
     </section>
   );

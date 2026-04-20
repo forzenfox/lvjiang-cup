@@ -8,7 +8,7 @@ import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { MatchDataService } from './match-data.service';
 
 @ApiTags('对战数据')
-@Controller('api/matches')
+@Controller('matches')
 export class MatchDataController {
   constructor(private readonly matchDataService: MatchDataService) {}
 

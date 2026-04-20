@@ -51,7 +51,6 @@ interface StreamerFormData {
   bio: string;
   liveUrl: string;
   streamerType: StreamerType;
-  isStar: boolean;
 }
 
 interface SortableStreamerCardProps {
@@ -141,11 +140,6 @@ const SortableStreamerCard: React.FC<SortableStreamerCardProps> = ({
               ) : (
                 <span className="bg-purple-500 text-white px-2 py-0.5 rounded-full text-xs font-bold">
                   嘉宾
-                </span>
-              )}
-              {streamer.isStar && (
-                <span className="bg-yellow-500 text-black px-2 py-0.5 rounded-full text-xs font-bold">
-                  明星
                 </span>
               )}
             </div>
@@ -239,22 +233,6 @@ const SortableStreamerCard: React.FC<SortableStreamerCardProps> = ({
                       嘉宾主播
                     </option>
                   </select>
-                </div>
-                <div className="flex items-center">
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={editingStreamerData.isStar}
-                      onChange={e =>
-                        onEditingStreamerDataChange({
-                          ...editingStreamerData,
-                          isStar: e.target.checked,
-                        })
-                      }
-                      className="w-4 h-4 rounded border-white/20 bg-white/5 text-yellow-500 focus:ring-yellow-500"
-                    />
-                    <span className="text-sm text-gray-300">明星主播</span>
-                  </label>
                 </div>
               </div>
 
@@ -406,11 +384,6 @@ const SortableStreamerCard: React.FC<SortableStreamerCardProps> = ({
                         嘉宾主播
                       </span>
                     )}
-                    {streamer.isStar && (
-                      <span className="bg-yellow-500 text-black px-2 py-0.5 rounded-full text-xs font-bold">
-                        明星主播
-                      </span>
-                    )}
                   </div>
                 </div>
               </div>
@@ -544,7 +517,6 @@ const AdminStreamers: React.FC = () => {
       bio: streamer.bio,
       liveUrl: streamer.liveUrl,
       streamerType: streamer.streamerType,
-      isStar: streamer.isStar,
     });
   };
 
@@ -574,7 +546,6 @@ const AdminStreamers: React.FC = () => {
           bio: editingStreamerData.bio,
           liveUrl: normalizedLiveUrl,
           streamerType: editingStreamerData.streamerType,
-          isStar: editingStreamerData.isStar,
         });
         toast.success('主播创建成功');
       } else {
@@ -584,7 +555,6 @@ const AdminStreamers: React.FC = () => {
           bio: editingStreamerData.bio,
           liveUrl: normalizedLiveUrl,
           streamerType: editingStreamerData.streamerType,
-          isStar: editingStreamerData.isStar,
         });
         toast.success('主播信息已更新');
       }
@@ -631,7 +601,6 @@ const AdminStreamers: React.FC = () => {
       bio: '',
       liveUrl: '',
       streamerType: StreamerType.INTERNAL,
-      isStar: false,
     };
 
     setStreamers([newStreamer, ...streamers]);
@@ -643,7 +612,6 @@ const AdminStreamers: React.FC = () => {
       bio: '',
       liveUrl: '',
       streamerType: StreamerType.INTERNAL,
-      isStar: false,
     });
   };
 

@@ -12,7 +12,7 @@ class TrackingEventDto {
 }
 
 @ApiTags('数据跟踪')
-@Controller('api/track')
+@Controller('track')
 export class TrackingController {
   private readonly logger = new Logger(TrackingController.name);
 

@@ -16,7 +16,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { AdminRoleGuard } from './guards/admin-role.guard';
 
 @ApiTags('对战数据管理')
-@Controller('api/admin/matches')
+@Controller('admin/matches')
 @UseGuards(JwtAuthGuard, AdminRoleGuard)
 @ApiBearerAuth()
 export class MatchDataAdminController {

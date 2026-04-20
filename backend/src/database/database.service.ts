@@ -280,7 +280,6 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
         bio TEXT,
         live_url TEXT,
         streamer_type TEXT CHECK(streamer_type IN ('internal', 'guest')),
-        is_star INTEGER DEFAULT 0,
         sort_order INTEGER DEFAULT 0,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP

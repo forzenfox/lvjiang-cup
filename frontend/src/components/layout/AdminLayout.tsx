@@ -10,6 +10,7 @@ import {
   Loader2,
   User,
   Video,
+  Trophy,
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { Button } from '../ui/button';
@@ -59,6 +60,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
     { path: '/admin/videos', label: '视频管理', icon: Video },
     { path: '/admin/teams', label: '战队管理', icon: Users },
     { path: '/admin/schedule', label: '赛程管理', icon: Calendar },
+    { path: '/admin/matches', label: '对战数据', icon: Trophy },
   ];
 
   return (

@@ -251,7 +251,6 @@ export interface Streamer {
   bio: string;
   liveUrl: string;
   streamerType: StreamerType;
-  isStar: boolean;
   sortOrder?: number;
   createdAt?: string;
   updatedAt?: string;
@@ -263,7 +262,6 @@ export interface CreateStreamerRequest {
   bio: string;
   liveUrl: string;
   streamerType: StreamerType;
-  isStar: boolean;
 }
 
 export interface UpdateStreamerRequest {
@@ -272,7 +270,6 @@ export interface UpdateStreamerRequest {
   bio?: string;
   liveUrl?: string;
   streamerType?: StreamerType;
-  isStar?: boolean;
   sortOrder?: number;
 }
 

@@ -12,6 +12,8 @@ import Videos from './pages/admin/Videos';
 // import AdvancementManager from './pages/admin/AdvancementManager';
 import ProtectedRoute from './components/layout/ProtectedRoute';
 import MatchDataPage from './components/features/match-data/MatchDataPage';
+import MatchDataList from './pages/admin/MatchDataList';
+import MatchDataManagement from './pages/admin/MatchDataManagement';
 
 function App() {
   return (
@@ -74,6 +76,22 @@ function App() {
           element={
             <ProtectedRoute>
               <Videos />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/matches"
+          element={
+            <ProtectedRoute>
+              <MatchDataList />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/matches/:matchId/games"
+          element={
+            <ProtectedRoute>
+              <MatchDataManagement />
             </ProtectedRoute>
           }
         />
