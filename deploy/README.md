@@ -40,9 +40,13 @@
 
 | 文件 | 用途 | 说明 |
 |------|------|------|
-| `setup.sh` | 一键部署脚本 | 自动完成网络初始化、NPM 部署、应用部署 |
+| `setup.sh` | 一键部署脚本 | 自动完成网络初始化、NPM 部署、应用部署、权限设置 |
+| `setup-docker-mirror.sh` | Docker 镜像加速配置 | 国内服务器专用，自动选择最优镜像源 |
+| `quick-fix-permissions.sh` | 快速修复脚本 | 修复目录权限问题（数据库、上传、备份） |
 | `cleanup.sh` | 清理脚本 | 清理容器和镜像，可选择保留数据 |
 | `update.sh` | 更新脚本 | 拉取新镜像并重启服务 |
+| `backup.sh` | 备份脚本 | 备份数据库 |
+| `init-database.sh` | 数据库初始化脚本 | 完整初始化数据库 |
 | `config.js` | 前端运行时配置 | 通过 volume 挂载，可热更新 |
 | `.env` | 环境变量 | 后端服务配置 |
 | `docker-compose.yml` | Docker Compose 配置 | 服务编排（含日志轮转配置） |
@@ -124,6 +128,12 @@ cd /opt/lvjiang-cup/deploy
 ## 主部署脚本
 curl -fsSL https://raw.githubusercontent.com/forzenfox/lvjiang-cup/main/deploy/setup.sh -o setup.sh
 
+## 镜像加速脚本（国内服务器推荐先执行）
+curl -fsSL https://raw.githubusercontent.com/forzenfox/lvjiang-cup/main/deploy/setup-docker-mirror.sh -o setup-docker-mirror.sh
+
+## 快速修复脚本（权限问题修复）
+curl -fsSL https://raw.githubusercontent.com/forzenfox/lvjiang-cup/main/deploy/quick-fix-permissions.sh -o quick-fix-permissions.sh
+
 ## 更新脚本
 curl -fsSL https://raw.githubusercontent.com/forzenfox/lvjiang-cup/main/deploy/update.sh -o update.sh
 
@@ -132,6 +142,9 @@ curl -fsSL https://raw.githubusercontent.com/forzenfox/lvjiang-cup/main/deploy/c
 
 ## 备份脚本
 curl -fsSL https://raw.githubusercontent.com/forzenfox/lvjiang-cup/main/deploy/backup.sh -o backup.sh
+
+## 数据库初始化脚本
+curl -fsSL https://raw.githubusercontent.com/forzenfox/lvjiang-cup/main/deploy/init-database.sh -o init-database.sh
 
 ## 健康检查脚本
 curl -fsSL https://raw.githubusercontent.com/forzenfox/lvjiang-cup/main/deploy/health-check.sh -o health-check.sh
@@ -153,6 +166,7 @@ chmod +x *.sh
 
 **脚本功能**：
 - ✅ 自动初始化 Docker 网络 `npm-network`
+- ✅ 自动设置目录权限（data、backup、uploads）
 - ✅ 自动部署 Nginx Proxy Manager
 - ✅ 自动部署驴酱杯应用
 - ✅ 自动下载前端配置文件 `config.js`
@@ -162,9 +176,12 @@ chmod +x *.sh
 | 脚本 | 用途 | 使用场景 |
 |------|------|----------|
 | `setup.sh` | 一键部署 | 首次部署或完全重新部署 |
+| `setup-docker-mirror.sh` | 镜像加速配置 | 国内服务器部署前（可选） |
+| `quick-fix-permissions.sh` | 权限快速修复 | 修复上传/数据库/备份目录权限 |
 | `update.sh` | 更新应用 | 升级到新版本 |
 | `cleanup.sh` | 清理环境 | 清理容器和镜像，保留数据 |
 | `backup.sh` | 数据备份 | 备份数据库 |
+| `init-database.sh` | 数据库初始化 | 完整初始化数据库 |
 | `health-check.sh` | 健康检查 | 检查服务状态 |
 
 ### 方式二：手动部署
@@ -605,11 +622,11 @@ EACCES: permission denied, mkdir '/app/uploads/teams'
 
 **解决方案**：
 
-方式一：使用修复脚本（推荐）
+方式一：使用快速修复脚本（推荐，同时修复所有目录权限）
 ```bash
 cd /opt/lvjiang-cup/deploy
-chmod +x fix-upload-permissions.sh
-./fix-upload-permissions.sh
+chmod +x quick-fix-permissions.sh
+./quick-fix-permissions.sh
 ```
 
 方式二：手动修复
@@ -705,12 +722,12 @@ ls -l /opt/lvjiang-cup/data/lvjiang.db
 方式一：使用快速修复脚本（推荐）
 ```bash
 # 方法 A：直接执行远程脚本
-curl -fsSL https://raw.githubusercontent.com/forzenfox/lvjiang-cup/main/deploy/quick-fix-db.sh | sudo bash
+curl -fsSL https://raw.githubusercontent.com/forzenfox/lvjiang-cup/main/deploy/quick-fix-permissions.sh | sudo bash
 
 # 方法 B：下载并执行本地脚本
 cd /opt/lvjiang-cup/deploy
-chmod +x quick-fix-db.sh
-./quick-fix-db.sh
+chmod +x quick-fix-permissions.sh
+./quick-fix-permissions.sh
 ```
 
 方式二：手动修复
@@ -819,9 +836,10 @@ sudo ufw reload
 
 ---
 
-**文档版本**: v1.2  
-**更新日期**: 2026-04-07  
-**适用场景**: 生产环境部署（方案 C）  
+**文档版本**: v1.3
+**更新日期**: 2026-04-21
+**适用场景**: 生产环境部署（方案 C）
 **更新日志**:
+- v1.3: 优化脚本结构 - 移除镜像加速检查逻辑（由独立脚本处理）、合并权限设置到部署脚本、重命名 quick-fix-db.sh 为 quick-fix-permissions.sh、删除 fix-upload-permissions.sh
 - v1.2: 修复前端配置文件挂载路径说明（从 `/app/public/config.js` 改为 `/app/dist/config.js`）
 - v1.1: 添加日志轮转配置和日志管理文档
