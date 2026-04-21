@@ -73,7 +73,7 @@ export const StartBox: React.FC<StartBoxProps> = ({ onExit }) => {
 
   const backgrounds = isMobile ? COVER_BACKGROUNDS.mobile : COVER_BACKGROUNDS.pc;
 
-  if (!isVisible || backgrounds.length === 0 || hasImageError) return null;
+  if (!isVisible || !backgrounds.length || hasImageError) return null;
 
   return (
     <motion.div

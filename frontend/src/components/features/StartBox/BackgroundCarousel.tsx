@@ -30,7 +30,7 @@ export const BackgroundCarousel: React.FC<BackgroundCarouselProps> = ({ isExitin
     onError();
   };
 
-  if (hasError || backgrounds.length === 0) {
+  if (hasError || !backgrounds.length) {
     return null;
   }
 
