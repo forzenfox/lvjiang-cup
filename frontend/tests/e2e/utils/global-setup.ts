@@ -1,4 +1,4 @@
-import { chromium, FullConfig } from '@playwright/test';
+import { chromium, devices, FullConfig } from '@playwright/test';
 import * as path from 'path';
 import { getTestConfig } from '../config/TestConfig';
 
@@ -20,9 +20,15 @@ async function globalSetup(config: FullConfig) {
       console.log('ℹ️ 数据清理已禁用');
     }
 
-    // 启动浏览器并登录
-    const browser = await chromium.launch();
-    const context = await browser.newContext();
+    // 启动浏览器并登录（使用 msedge）
+    const browser = await chromium.launch({
+      channel: 'msedge',
+      executablePath: 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe',
+    });
+    const context = await browser.newContext({
+      ...devices['Desktop Edge'],
+      viewport: { width: 1920, height: 1080 },
+    });
     const page = await context.newPage();
 
     const baseURL = testConfig.urls.frontend;
