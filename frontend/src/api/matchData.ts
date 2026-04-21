@@ -121,10 +121,22 @@ export async function updateMatchGameData(
   return responseData.data;
 }
 
+/**
+ * 下载对战数据导入模板
+ * @returns 模板文件 Blob
+ */
+export async function downloadMatchDataTemplate(): Promise<Blob> {
+  const response = await apiClient.get<Blob>('/admin/matches/import/template', {
+    responseType: 'blob',
+  });
+  return response.data;
+}
+
 export default {
   checkMatchDataExists,
   getMatchSeries,
   getMatchGameData,
   importMatchData,
   updateMatchGameData,
+  downloadMatchDataTemplate,
 };

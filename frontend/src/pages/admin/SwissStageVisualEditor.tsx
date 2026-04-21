@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Match, Team, MatchStatus } from '@/types';
 import { Card } from '@/components/ui/card';
-import { Clock } from 'lucide-react';
+import { Clock, Upload } from 'lucide-react';
 import { formatDateTime } from '@/utils/datetime';
 import { swissRoundSlots, SwissRoundSlot } from './swissRoundSlots';
 import MatchEditDialog from '@/pages/admin/components/MatchEditDialog';
@@ -18,6 +18,7 @@ interface SwissStageVisualEditorProps {
   onMatchUpdate: (match: Match) => void;
   onMatchCreate?: (match: Omit<Match, 'id'>) => void;
   onMatchDelete?: (matchId: string) => void;
+  onImportClick?: (matchId: string) => void;
 }
 
 interface TeamLogoProps {
@@ -56,6 +57,7 @@ interface FixedSlotMatchCardProps {
   slotIndex: number;
   onUpdate: (match: Match) => void;
   onCreate?: (match: Omit<Match, 'id'>) => void;
+  onImportClick?: (matchId: string) => void;
 }
 
 const FixedSlotMatchCard: React.FC<FixedSlotMatchCardProps> = ({
@@ -65,6 +67,7 @@ const FixedSlotMatchCard: React.FC<FixedSlotMatchCardProps> = ({
   slotIndex,
   onUpdate,
   onCreate,
+  onImportClick,
 }) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const isEmpty = !match;
@@ -107,6 +110,13 @@ const FixedSlotMatchCard: React.FC<FixedSlotMatchCardProps> = ({
     setIsDialogOpen(false);
   };
 
+  const handleImportClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (match && onImportClick) {
+      onImportClick(match.id);
+    }
+  };
+
   if (isEmpty) {
     return (
       <>
@@ -144,6 +154,17 @@ const FixedSlotMatchCard: React.FC<FixedSlotMatchCardProps> = ({
             <Clock className="w-3 h-3" />
             <span>{formatDateTime(match.startTime)}</span>
           </div>
+        )}
+        {/* 导入数据按钮 */}
+        {onImportClick && (
+          <button
+            onClick={handleImportClick}
+            className="absolute top-0 right-0 mt-6 mr-1 p-1 bg-blue-600/80 hover:bg-blue-500 text-white rounded text-[10px] flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+            title="导入对战数据"
+          >
+            <Upload className="w-3 h-3" />
+            导入
+          </button>
         )}
         <div className="flex flex-col gap-2 pt-4">
           <div
@@ -200,6 +221,7 @@ const SwissStageVisualEditor: React.FC<SwissStageVisualEditorProps> = ({
   advancement,
   onMatchUpdate,
   onMatchCreate,
+  onImportClick,
 }) => {
   const matchesByRecord = useMemo(() => {
     return swissRoundSlots.reduce(
@@ -304,6 +326,7 @@ const SwissStageVisualEditor: React.FC<SwissStageVisualEditorProps> = ({
                             slotIndex={idx}
                             onUpdate={onMatchUpdate}
                             onCreate={onMatchCreate}
+                            onImportClick={onImportClick}
                           />
                         ))}
                         {Array.from({
@@ -317,6 +340,7 @@ const SwissStageVisualEditor: React.FC<SwissStageVisualEditorProps> = ({
                             slotIndex={slotMatches.length + idx}
                             onUpdate={onMatchUpdate}
                             onCreate={onMatchCreate}
+                            onImportClick={onImportClick}
                           />
                         ))}
                       </div>

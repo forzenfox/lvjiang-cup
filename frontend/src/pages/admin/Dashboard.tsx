@@ -182,17 +182,6 @@ const AdminDashboard: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <div
           className="bg-gray-800 p-6 rounded-lg border border-gray-700 hover:border-blue-500/50 transition-colors cursor-pointer"
-          onClick={() => (window.location.href = '/admin/matches')}
-        >
-          <h3 className="text-xl font-semibold text-secondary mb-2">对战数据管理</h3>
-          <p className="text-gray-400">导入和管理比赛详细数据</p>
-          <div className="mt-4 flex items-center text-sm text-blue-400">
-            <span>进入管理</span>
-            <span className="ml-1">→</span>
-          </div>
-        </div>
-        <div
-          className="bg-gray-800 p-6 rounded-lg border border-gray-700 hover:border-blue-500/50 transition-colors cursor-pointer"
           onClick={() => (window.location.href = '/admin/stream')}
         >
           <h3 className="text-xl font-semibold text-secondary mb-2">直播管理</h3>
@@ -241,6 +230,17 @@ const AdminDashboard: React.FC = () => {
         >
           <h3 className="text-xl font-semibold text-secondary mb-2">赛程管理</h3>
           <p className="text-gray-400">更新比赛结果和赛程安排</p>
+          <div className="mt-4 flex items-center text-sm text-blue-400">
+            <span>进入管理</span>
+            <span className="ml-1">→</span>
+          </div>
+        </div>
+        <div
+          className="bg-gray-800 p-6 rounded-lg border border-gray-700 hover:border-blue-500/50 transition-colors cursor-pointer"
+          onClick={() => (window.location.href = '/admin/matches')}
+        >
+          <h3 className="text-xl font-semibold text-secondary mb-2">对战数据管理</h3>
+          <p className="text-gray-400">导入和管理比赛详细数据</p>
           <div className="mt-4 flex items-center text-sm text-blue-400">
             <span>进入管理</span>
             <span className="ml-1">→</span>

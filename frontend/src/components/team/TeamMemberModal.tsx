@@ -37,7 +37,7 @@ const SkeletonLoader: React.FC = () => (
     {[1, 2, 3, 4, 5].map(i => (
       <div
         key={i}
-        className="h-12 rounded-lg bg-gray-200 animate-pulse"
+        className="h-12 rounded-lg bg-gray-800 animate-pulse"
         data-testid="skeleton-line"
       />
     ))}
@@ -104,12 +104,12 @@ export const TeamMemberModal: React.FC<TeamMemberModalProps> = ({
             exit={{ opacity: 0 }}
           />
 
-          {/* 弹框内容 - 响应式宽度 */}
+          {/* 弹框内容 - 响应式宽度 - 暗色主题 */}
           <motion.div
             className="relative w-[90vw] sm:w-[90vw] md:w-[500px] lg:w-[550px] rounded-2xl overflow-hidden"
             style={{
-              background: '#dddddd',
-              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.3)',
+              background: '#1a1a1a',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
               maxHeight: '85vh',
             }}
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -118,9 +118,9 @@ export const TeamMemberModal: React.FC<TeamMemberModalProps> = ({
           >
             {/* 头部 - 队标和队名并排居中显示 */}
             <div
-              className="flex items-center justify-center gap-3 px-6 py-4 border-b border-gray-300 relative"
+              className="flex items-center justify-center gap-3 px-6 py-4 border-b border-gray-700 relative"
               style={{
-                background: '#f0f0f0',
+                background: '#111111',
               }}
             >
               {team.logoUrl && (
@@ -133,30 +133,30 @@ export const TeamMemberModal: React.FC<TeamMemberModalProps> = ({
               )}
               <h2
                 id="team-member-modal-title"
-                className="text-xl font-bold text-gray-800"
+                className="text-xl font-bold text-white"
               >
                 {team.name}
               </h2>
               <button
                 data-testid="close-modal-button"
                 onClick={onClose}
-                className="absolute right-4 top-1/2 -translate-y-1/2 p-1.5 text-gray-500 hover:text-gray-800 hover:bg-gray-300 rounded-lg transition-colors cursor-pointer"
+                className="absolute right-4 top-1/2 -translate-y-1/2 p-1.5 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-colors cursor-pointer"
                 aria-label="关闭"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            {/* 参赛宣言 - 优化UI */}
+            {/* 参赛宣言 */}
             {team.battleCry && (
-              <div className="px-6 py-2 bg-gradient-to-r from-transparent via-gray-200/50 to-transparent">
-                <p className="text-sm text-gray-500 text-center">
+              <div className="px-6 py-2 border-b border-gray-700">
+                <p className="text-sm text-gray-400 text-center">
                   {team.battleCry}
                 </p>
               </div>
             )}
 
-            {/* 成员列表 - 响应式高度 */}
+            {/* 成员列表 */}
             <div className="overflow-y-auto p-4" style={{ maxHeight: 'calc(85vh - 120px)' }}>
               {loading ? (
                 <SkeletonLoader />
@@ -167,7 +167,7 @@ export const TeamMemberModal: React.FC<TeamMemberModalProps> = ({
                   {members.map(player => (
                     <div
                       key={player.id}
-                      className="flex items-center gap-3 p-3 rounded-lg border border-gray-300 cursor-pointer transition-all duration-200 hover:border-amber-500/50 hover:shadow-md hover:bg-gray-200"
+                      className="flex items-center gap-3 p-3 rounded-lg border border-gray-700 cursor-pointer transition-all duration-200 hover:border-amber-500/50 hover:bg-gray-800/50"
                       data-testid="member-row"
                       onClick={() => onPlayerClick(player)}
                     >
@@ -180,9 +180,9 @@ export const TeamMemberModal: React.FC<TeamMemberModalProps> = ({
                         />
                       )}
                       <div className="flex items-center gap-2 min-w-0 flex-1">
-                        <span className="text-gray-800 font-medium truncate">{player.nickname}</span>
+                        <span className="text-white font-medium truncate">{player.nickname}</span>
                         {player.isCaptain && (
-                          <div className="flex items-center gap-1 text-amber-600 flex-shrink-0" title="队长">
+                          <div className="flex items-center gap-1 text-amber-400 flex-shrink-0" title="队长">
                             <Crown className="w-4 h-4" />
                             <span className="text-xs">队长</span>
                           </div>
@@ -199,7 +199,7 @@ export const TeamMemberModal: React.FC<TeamMemberModalProps> = ({
                         )}
                         <div
                           data-testid="member-position-icon"
-                          className="text-gray-600"
+                          className="text-gray-400"
                         >
                           <PositionIcon position={player.position} />
                         </div>

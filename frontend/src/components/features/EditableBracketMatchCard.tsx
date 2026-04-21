@@ -2,11 +2,13 @@ import React, { useState, forwardRef } from 'react';
 import { Match, Team, MatchStatus } from '@/types';
 import { ELIMINATION_THEME } from '@/constants/eliminationTheme';
 import MatchEditDialog from '@/pages/admin/components/MatchEditDialog';
+import { Upload } from 'lucide-react';
 
 interface EditableBracketMatchCardProps {
   match: Match;
   teams: Team[];
   onUpdate: (match: Match) => void;
+  onImportClick?: (matchId: string) => void;
 }
 
 // 状态徽章组件 - 与BracketMatchCard保持一致
@@ -130,7 +132,7 @@ const formatMatchTime = (startTime: string): string => {
 };
 
 const EditableBracketMatchCard = forwardRef<HTMLDivElement, EditableBracketMatchCardProps>(
-  ({ match, teams, onUpdate }, ref) => {
+  ({ match, teams, onUpdate, onImportClick }, ref) => {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
 
     const teamA = teams.find(t => t.id === match.teamAId);
@@ -148,6 +150,13 @@ const EditableBracketMatchCard = forwardRef<HTMLDivElement, EditableBracketMatch
     const handleSave = (updatedMatch: Match) => {
       onUpdate(updatedMatch);
       return true;
+    };
+
+    const handleImportClick = (e: React.MouseEvent) => {
+      e.stopPropagation();
+      if (onImportClick) {
+        onImportClick(match.id);
+      }
     };
 
     return (
@@ -205,9 +214,19 @@ const EditableBracketMatchCard = forwardRef<HTMLDivElement, EditableBracketMatch
             />
           </div>
 
-          {/* 编辑提示 */}
-          <div className="flex justify-end mt-1 opacity-0 group-hover:opacity-60 transition-opacity">
+          {/* 编辑提示和导入按钮 */}
+          <div className="flex justify-between items-center mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
             <span className="text-xs text-blue-400">点击编辑</span>
+            {onImportClick && (
+              <button
+                onClick={handleImportClick}
+                className="flex items-center gap-1 px-2 py-0.5 bg-blue-600/80 hover:bg-blue-500 text-white rounded text-[10px]"
+                title="导入对战数据"
+              >
+                <Upload className="w-3 h-3" />
+                导入
+              </button>
+            )}
           </div>
         </div>
 

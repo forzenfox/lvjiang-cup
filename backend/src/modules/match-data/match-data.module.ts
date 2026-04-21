@@ -5,6 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { MatchDataController } from './match-data.controller';
 import { MatchDataAdminController } from './match-data-admin.controller';
 import { MatchDataService } from './match-data.service';
+import { MatchDataImportService } from './services/match-data-import.service';
 import { AdminRoleGuard } from './guards/admin-role.guard';
 import { DatabaseModule } from '../../database/database.module';
 import { CacheModule } from '../../cache/cache.module';
@@ -42,7 +43,7 @@ const multerConfig = {
     MulterModule.register(multerConfig),
   ],
   controllers: [MatchDataController, MatchDataAdminController],
-  providers: [MatchDataService, AdminRoleGuard],
+  providers: [MatchDataService, MatchDataImportService, AdminRoleGuard],
   exports: [MatchDataService],
 })
 export class MatchDataModule {}

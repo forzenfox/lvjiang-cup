@@ -50,21 +50,25 @@ const formatMatchDateTime = (startTime: string): string => {
   return `${year}年${month}月${day}日 ${hours}:${minutes}`;
 };
 
-// 获取位置显示文本
-const getPositionText = (position: string): string => {
-  const positionMap: Record<string, string> = {
-    TOP: '上单',
-    JUNGLE: '打野',
-    MID: '中单',
-    ADC: 'ADC',
-    SUPPORT: '辅助',
-    top: '上单',
-    jungle: '打野',
-    mid: '中单',
-    adc: 'ADC',
-    support: '辅助',
+// 位置图标样式
+const POSITION_ICON_BASE_URL = '//game.gtimg.cn/images/lpl/es/web201612/n-spr.png';
+
+interface PositionIconStyle {
+  width: number;
+  height: number;
+  backgroundPosition: string;
+}
+
+const getPositionIconStyle = (position: string): PositionIconStyle | null => {
+  const upperPosition = position.toUpperCase();
+  const positionStyles: Record<string, PositionIconStyle> = {
+    TOP: { width: 32, height: 24, backgroundPosition: '-420px -4px' },
+    JUNGLE: { width: 32, height: 24, backgroundPosition: '-420px -32px' },
+    MID: { width: 32, height: 24, backgroundPosition: '-384px -4px' },
+    ADC: { width: 32, height: 24, backgroundPosition: '-384px -32px' },
+    SUPPORT: { width: 32, height: 24, backgroundPosition: '-456px -4px' },
   };
-  return positionMap[position] || position;
+  return positionStyles[upperPosition] || null;
 };
 
 // 队伍Logo组件
@@ -238,6 +242,8 @@ const MatchDetailModal: React.FC<MatchDetailModalProps> = ({ visible, onClose, m
                 // 如果双方都没有该位置的队员，不显示
                 if (!playerA && !playerB) return null;
 
+                const iconStyle = getPositionIconStyle(position);
+
                 return (
                   <div
                     key={position}
@@ -256,27 +262,30 @@ const MatchDetailModal: React.FC<MatchDetailModalProps> = ({ visible, onClose, m
                           {playerA?.nickname?.charAt(0) || '?'}
                         </div>
                       )}
-                      <div className="flex flex-col">
-                        <span className="text-white text-sm font-medium">
-                          {playerA?.nickname || '-'}
-                        </span>
-                        <span className="text-gray-500 text-xs">{getPositionText(position)}</span>
-                      </div>
+                      <span className="text-white text-sm font-medium">
+                        {playerA?.nickname || '待定'}
+                      </span>
                     </div>
 
-                    {/* 位置标签（中间） */}
-                    <div className="px-4">
-                      <span className="text-gray-500 text-xs font-medium">VS</span>
+                    {/* 位置图标（中间） */}
+                    <div className="px-4 flex items-center justify-center">
+                      {iconStyle && (
+                        <div
+                          style={{
+                            width: iconStyle.width,
+                            height: iconStyle.height,
+                            backgroundImage: `url(${POSITION_ICON_BASE_URL})`,
+                            backgroundPosition: iconStyle.backgroundPosition,
+                          }}
+                        />
+                      )}
                     </div>
 
                     {/* 右侧队员 */}
                     <div className="flex items-center gap-2 flex-1 justify-end">
-                      <div className="flex flex-col items-end">
-                        <span className="text-white text-sm font-medium">
-                          {playerB?.nickname || '-'}
-                        </span>
-                        <span className="text-gray-500 text-xs">{getPositionText(position)}</span>
-                      </div>
+                      <span className="text-white text-sm font-medium">
+                        {playerB?.nickname || '待定'}
+                      </span>
                       {playerB?.avatarUrl ? (
                         <img
                           src={playerB.avatarUrl}

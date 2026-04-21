@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { ZIndexLayers } from '@/constants/zIndex';
-import { ANIMATION_CONFIG, COVER_IMAGES } from './constants';
+import { COVER_BACKGROUNDS, ANIMATION_CONFIG } from './constants';
 import { BackgroundCarousel } from './BackgroundCarousel';
 import { ScrollTip } from './ScrollTip';
+import { useIsMobile } from '@/hooks/useMediaQuery';
 import './StartBox.styles.css';
 
 interface StartBoxProps {
@@ -13,6 +14,8 @@ interface StartBoxProps {
 export const StartBox: React.FC<StartBoxProps> = ({ onExit }) => {
   const [isVisible, setIsVisible] = useState(true);
   const [isExiting, setIsExiting] = useState(false);
+  const [hasImageError, setHasImageError] = useState(false);
+  const isMobile = useIsMobile();
 
   const triggerExit = useCallback(() => {
     if (isExiting) return;
@@ -68,37 +71,23 @@ export const StartBox: React.FC<StartBoxProps> = ({ onExit }) => {
     };
   }, [isVisible, isExiting, triggerExit]);
 
-  if (!isVisible) return null;
+  const backgrounds = isMobile ? COVER_BACKGROUNDS.mobile : COVER_BACKGROUNDS.pc;
+
+  if (!isVisible || backgrounds.length === 0 || hasImageError) return null;
 
   return (
     <motion.div
       className="fixed inset-0 bg-black overflow-hidden start-box-cover"
       style={{ zIndex: ZIndexLayers.COVER }}
       initial={{ opacity: 1 }}
-      animate={isExiting ? { opacity: 0 } : { opacity: 1 }}
-      transition={{ duration: 0.3 }}
+      animate={{ opacity: 1 }}
     >
-      <div className="absolute top-0 left-0 right-0 h-[66.66%]">
-        <BackgroundCarousel isExiting={isExiting} />
-      </div>
-
-      <div className="absolute bottom-0 left-0 right-0 h-[33.34%]">
-        <motion.div
-          className="absolute top-[10px] left-[10%] w-[80%] h-[70%] bg-contain bg-no-repeat bg-center"
-          style={{ backgroundImage: `url(${COVER_IMAGES.pc.slogan})` }}
-          animate={isExiting ? { y: '100%' } : {}}
-          transition={{ duration: 1, ease: 'easeInOut' }}
-        />
-
-        <motion.div
-          className="absolute bottom-[3.33%] left-0 right-0 h-[16.6%] bg-contain bg-no-repeat bg-center"
-          style={{ backgroundImage: `url(${COVER_IMAGES.pc.logo})` }}
-          animate={isExiting ? { opacity: 0 } : {}}
-          transition={{ duration: 0.5 }}
-        />
-
-        <ScrollTip isExiting={isExiting} />
-      </div>
+      <BackgroundCarousel
+        isExiting={isExiting}
+        isMobile={isMobile}
+        onError={() => setHasImageError(true)}
+      />
+      <ScrollTip isExiting={isExiting} />
     </motion.div>
   );
 };

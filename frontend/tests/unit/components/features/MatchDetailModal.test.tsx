@@ -146,9 +146,9 @@ describe('MatchDetailModal', () => {
     // 验证队员对阵标题
     expect(screen.getByText('队员对阵')).toBeInTheDocument();
 
-    // 验证VS标签存在
-    const vsLabels = screen.getAllByText('VS');
-    expect(vsLabels.length).toBeGreaterThan(0);
+    // 验证位置图标存在（5个位置）
+    const positionIcons = document.querySelectorAll('div[style*="background-image"]');
+    expect(positionIcons.length).toBeGreaterThanOrEqual(5);
   });
 
   it('应该显示队员昵称', () => {
@@ -160,25 +160,67 @@ describe('MatchDetailModal', () => {
     expect(screen.getByText('阿强')).toBeInTheDocument();
   });
 
-  it('应该显示位置信息', () => {
+  it('当队员昵称为空时应该显示待定', () => {
+    const teamsWithEmptyNickname: Team[] = [
+      {
+        id: 'team1',
+        name: '驴酱',
+        logo: '/logo1.png',
+        battleCry: '冲啊',
+        players: [
+          { id: 'p1', nickname: '', position: 'TOP', avatarUrl: '/avatar1.png' },
+          { id: 'p2', nickname: '小红', position: 'JUNGLE', avatarUrl: '/avatar2.png' },
+        ],
+      },
+      {
+        id: 'team2',
+        name: '雨酱',
+        logo: '/logo2.png',
+        battleCry: '加油',
+        players: [
+          { id: 'p6', nickname: '阿强', position: 'TOP' },
+          { id: 'p7', nickname: '', position: 'JUNGLE', avatarUrl: '/avatar7.png' },
+        ],
+      },
+    ];
+
+    const match = createMockMatch();
+    render(<MatchDetailModal visible={true} onClose={vi.fn()} match={match} teams={teamsWithEmptyNickname} />);
+
+    // 验证空昵称显示"待定"
+    const pendingLabels = screen.getAllByText('待定');
+    expect(pendingLabels.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it('应该正确区分队员昵称和位置信息', () => {
     const match = createMockMatch();
     render(<MatchDetailModal visible={true} onClose={vi.fn()} match={match} teams={mockTeams} />);
 
-    // 验证位置显示（使用 getAllByText 因为有多个相同位置）
-    const topLabels = screen.getAllByText('上单');
-    expect(topLabels.length).toBeGreaterThanOrEqual(2); // 双方都有上单
+    // 验证队员昵称显示（不是队名+位置格式）
+    expect(screen.getByText('小明')).toBeInTheDocument();
+    expect(screen.getByText('小红')).toBeInTheDocument();
+    expect(screen.getByText('阿强')).toBeInTheDocument();
+    expect(screen.getByText('阿伟')).toBeInTheDocument();
 
-    const jungleLabels = screen.getAllByText('打野');
-    expect(jungleLabels.length).toBeGreaterThanOrEqual(2);
+    // 验证不应该显示"队名-位置"格式
+    expect(screen.queryByText('驴酱 - 上单')).not.toBeInTheDocument();
+    expect(screen.queryByText('雨酱 - 上单')).not.toBeInTheDocument();
+  });
 
-    const midLabels = screen.getAllByText('中单');
-    expect(midLabels.length).toBeGreaterThanOrEqual(2);
+  it('应该显示位置图标代替位置文字', () => {
+    const match = createMockMatch();
+    render(<MatchDetailModal visible={true} onClose={vi.fn()} match={match} teams={mockTeams} />);
 
-    const adcLabels = screen.getAllByText('ADC');
-    expect(adcLabels.length).toBeGreaterThanOrEqual(2);
+    // 验证位置图标存在（每个位置都应有对应的图标）
+    const positionIcons = document.querySelectorAll('div[style*="background-image: url(\\"//game.gtimg.cn/images/lpl/es/web201612/n-spr.png\\")"]');
+    expect(positionIcons.length).toBeGreaterThanOrEqual(5); // 5个位置
 
-    const supportLabels = screen.getAllByText('辅助');
-    expect(supportLabels.length).toBeGreaterThanOrEqual(2);
+    // 验证位置文字不再显示
+    expect(screen.queryByText('上单')).not.toBeInTheDocument();
+    expect(screen.queryByText('打野')).not.toBeInTheDocument();
+    expect(screen.queryByText('中单')).not.toBeInTheDocument();
+    expect(screen.queryByText('ADC')).not.toBeInTheDocument();
+    expect(screen.queryByText('辅助')).not.toBeInTheDocument();
   });
 
   it('应该显示赛制信息', () => {

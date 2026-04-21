@@ -1,11 +1,11 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, cleanup, waitFor } from '@testing-library/react';
+import { render, cleanup } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { StartBox } from '@/components/features/StartBox';
 import { ZIndexLayers } from '@/constants/zIndex';
 
 vi.mock('@/components/features/StartBox/BackgroundCarousel', () => ({
-  BackgroundCarousel: ({ isExiting }: { isExiting: boolean }) => (
+  BackgroundCarousel: ({ isExiting, onError }: { isExiting: boolean; onError: () => void }) => (
     <div data-testid="background-carousel" data-exiting={isExiting}>
       BackgroundCarousel
     </div>
@@ -18,6 +18,10 @@ vi.mock('@/components/features/StartBox/ScrollTip', () => ({
       ScrollTip
     </div>
   ),
+}));
+
+vi.mock('@/hooks/useMediaQuery', () => ({
+  useIsMobile: () => false,
 }));
 
 describe('StartBox 组件', () => {
@@ -36,7 +40,7 @@ describe('StartBox 组件', () => {
     });
   });
 
-  describe('T-01: 渲染封面容器', () => {
+  describe('渲染封面容器', () => {
     it('应该渲染封面容器', () => {
       Object.defineProperty(window, 'location', {
         value: { pathname: '/' },
@@ -50,7 +54,7 @@ describe('StartBox 组件', () => {
     });
   });
 
-  describe('T-02: 管理员路径不渲染', () => {
+  describe('管理员路径不渲染', () => {
     it('/admin/* 路径不显示封面', () => {
       Object.defineProperty(window, 'location', {
         value: { pathname: '/admin/dashboard' },
@@ -76,7 +80,7 @@ describe('StartBox 组件', () => {
     });
   });
 
-  describe('T-03 & T-04: 滚动交互', () => {
+  describe('滚动交互', () => {
     it('向上滚动不应该触发退出', () => {
       Object.defineProperty(window, 'location', {
         value: { pathname: '/' },
@@ -93,7 +97,7 @@ describe('StartBox 组件', () => {
     });
   });
 
-  describe('T-05: 触摸滑动交互', () => {
+  describe('触摸滑动交互', () => {
     it('向上滑动不应该触发退出', () => {
       Object.defineProperty(window, 'location', {
         value: { pathname: '/' },
@@ -143,7 +147,7 @@ describe('StartBox 组件', () => {
     });
   });
 
-  describe('T-08: 刷新后重新显示', () => {
+  describe('刷新后重新显示', () => {
     it('组件每次渲染时都是可见状态', () => {
       Object.defineProperty(window, 'location', {
         value: { pathname: '/' },

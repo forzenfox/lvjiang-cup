@@ -53,21 +53,34 @@ const convertApiMatchToLocal = (apiMatch: ApiMatch, teams: Team[]): Match => {
 
 // 将 API Team 转换为本地 Team 格式
 const convertApiTeamToLocal = (apiTeam: ApiTeam): Team => {
-  const positions: PositionType[] = ['TOP', 'JUNGLE', 'MID', 'ADC', 'SUPPORT'];
-  const positionNames: Record<PositionType, string> = {
-    TOP: '上单',
-    JUNGLE: '打野',
-    MID: '中单',
-    ADC: 'ADC',
-    SUPPORT: '辅助',
-  };
-  const players: Player[] = positions.map((position, index) => ({
-    id: `${apiTeam.id}-player-${index}`,
-    nickname: `${apiTeam.name} - ${positionNames[position]}`,
-    avatarUrl: `https://api.dicebear.com/7.x/avataaars/svg?seed=${apiTeam.id}-${index}`,
-    position,
-    bio: `${positionNames[position]}选手`,
-  }));
+  // 优先使用 API 返回的真实队员数据
+  const apiPlayers = apiTeam.members || apiTeam.players || [];
+
+  // 如果有真实队员数据，转换为本地格式
+  const players: Player[] =
+    apiPlayers.length > 0
+      ? apiPlayers.map(apiPlayer => ({
+          id: apiPlayer.id,
+          nickname: apiPlayer.nickname,
+          avatarUrl: apiPlayer.avatarUrl,
+          position: apiPlayer.position,
+          bio: apiPlayer.bio,
+          teamId: apiPlayer.teamId,
+          gameId: apiPlayer.gameId,
+          championPool: apiPlayer.championPool,
+          rating: apiPlayer.rating,
+          isCaptain: apiPlayer.isCaptain,
+          liveUrl: apiPlayer.liveUrl,
+          level: apiPlayer.level,
+        }))
+      : // 如果没有队员数据，创建默认空位
+        (['TOP', 'JUNGLE', 'MID', 'ADC', 'SUPPORT'] as PositionType[]).map((position, index) => ({
+          id: `${apiTeam.id}-player-${index}`,
+          nickname: '待定',
+          avatarUrl: undefined,
+          position,
+          bio: undefined,
+        }));
 
   return {
     id: apiTeam.id,
