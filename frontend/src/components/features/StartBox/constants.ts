@@ -1,9 +1,9 @@
 export const COVER_BACKGROUNDS = {
   pc: [
-    '/驴酱杯封面.png',
+    '/驴酱杯封面.webp',
   ],
   mobile: [
-    '/驴酱杯封面.png',
+    '/驴酱杯封面.webp',
   ],
 } as const;
 

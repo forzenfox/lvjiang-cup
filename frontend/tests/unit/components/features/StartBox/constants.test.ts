@@ -14,11 +14,11 @@ describe('StartBox constants', () => {
     });
 
     it('PC 端应该包含驴酱杯封面图片', () => {
-      expect(COVER_BACKGROUNDS.pc).toContain('/驴酱杯封面.png');
+      expect(COVER_BACKGROUNDS.pc).toContain('/驴酱杯封面.webp');
     });
 
     it('移动端应该包含驴酱杯封面图片', () => {
-      expect(COVER_BACKGROUNDS.mobile).toContain('/驴酱杯封面.png');
+      expect(COVER_BACKGROUNDS.mobile).toContain('/驴酱杯封面.webp');
     });
   });
 
