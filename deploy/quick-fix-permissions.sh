@@ -1,10 +1,10 @@
 #!/bin/bash
 
-# 驴酱杯快速修复脚本 - 数据库权限问题
-# 用途：快速修复 SQLITE_CANTOPEN 错误
+# 驴酱杯快速修复脚本 - 目录权限问题
+# 用途：快速修复数据库、备份、上传目录的权限问题
 # 
 # 使用方法（复制到服务器执行）：
-# curl -fsSL https://raw.githubusercontent.com/forzenfox/lvjiang-cup/main/deploy/quick-fix-db.sh | sudo bash
+# curl -fsSL https://raw.githubusercontent.com/forzenfox/lvjiang-cup/main/deploy/quick-fix-permissions.sh | sudo bash
 
 set -e
 
@@ -14,7 +14,7 @@ DB_FILE="$DATA_DIR/lvjiang.db"
 DEPLOY_DIR="$PROJECT_DIR/deploy"
 
 echo "========================================"
-echo "  驴酱杯 - 数据库权限快速修复"
+echo "  驴酱杯 - 目录权限快速修复"
 echo "========================================"
 echo ""
 
@@ -30,6 +30,7 @@ chown -R 1001:1001 "$DATA_DIR"
 chown -R 1001:1001 "$PROJECT_DIR/backup"
 chown -R 1001:1001 "$PROJECT_DIR/uploads"
 chmod -R 755 "$DATA_DIR"
+echo "✅ 权限设置完成 (所有者：1001:1001)"
 
 # 3. 检查数据库文件
 if [ ! -f "$DB_FILE" ]; then

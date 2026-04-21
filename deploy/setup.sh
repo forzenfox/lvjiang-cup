@@ -46,26 +46,6 @@ else
     exit 1
 fi
 
-# 步骤 0：配置 Docker 镜像加速（国内服务器）
-echo "${YELLOW}🚀 步骤 0：检查 Docker 镜像加速配置${NC}"
-if [ -f /etc/docker/daemon.json ]; then
-    if grep -q "registry-mirrors" /etc/docker/daemon.json; then
-        echo "${GREEN}✅ Docker 镜像加速已配置，跳过${NC}"
-    else
-        echo "${YELLOW}⚠️  检测到 Docker 但未配置镜像加速${NC}"
-        echo "国内服务器建议配置镜像加速器以提高拉取速度"
-        echo "提示：运行以下命令配置加速："
-        echo "  curl -fsSL https://raw.githubusercontent.com/forzenfox/lvjiang-cup/main/deploy/setup-docker-mirror.sh | sudo bash"
-        echo ""
-    fi
-else
-    echo "${YELLOW}⚠️  未找到 Docker 配置文件${NC}"
-    echo "如需配置镜像加速，运行："
-    echo "  curl -fsSL https://raw.githubusercontent.com/forzenfox/lvjiang-cup/main/deploy/setup-docker-mirror.sh | sudo bash"
-    echo ""
-fi
-echo ""
-
 # 步骤 1：初始化网络
 echo "${YELLOW}📡 步骤 1：初始化 Docker 网络${NC}"
 if ! docker network ls | grep -q npm-network; then
@@ -170,6 +150,13 @@ fi
 
 # 创建数据目录（包括上传文件目录）
 mkdir -p $PROJECT_DIR/data $PROJECT_DIR/backup $PROJECT_DIR/uploads
+
+# 设置目录权限（UID 1001 对应容器内的 nodejs 用户）
+echo "${YELLOW}🔐 设置目录权限...${NC}"
+chown -R 1001:1001 $PROJECT_DIR/data $PROJECT_DIR/backup $PROJECT_DIR/uploads
+chmod -R 755 $PROJECT_DIR/data $PROJECT_DIR/backup $PROJECT_DIR/uploads
+echo "${GREEN}✅ 权限设置完成${NC}"
+echo ""
 
 # 从镜像中提取英雄映射数据文件到宿主机
 # 必须在 docker-compose up 之前完成，因为 volume 挂载会覆盖容器内文件
