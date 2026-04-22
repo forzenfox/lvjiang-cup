@@ -93,6 +93,7 @@ const TeamLogo: React.FC<{ team?: Team; size?: number }> = ({ team, size = 48 })
 const MatchDetailModal: React.FC<MatchDetailModalProps> = ({ visible, onClose, match, teams }) => {
   const [hasMatchData, setHasMatchData] = useState(false);
   const [checkingMatchData, setCheckingMatchData] = useState(false);
+  const spriteUrl = useSpriteUrl();
 
   useEffect(() => {
     if (visible && match && match.status === 'finished') {
@@ -291,7 +292,7 @@ const MatchDetailModal: React.FC<MatchDetailModalProps> = ({ visible, onClose, m
                           style={{
                             width: iconStyle.width,
                             height: iconStyle.height,
-                            backgroundImage: `url(${POSITION_ICON_BASE_URL})`,
+                            backgroundImage: `url(${spriteUrl})`,
                             backgroundPosition: iconStyle.backgroundPosition,
                           }}
                         />

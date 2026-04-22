@@ -12,5 +12,4 @@ export {
   SwissTableSkeleton,
 } from './Skeleton';
 
-// Position Icon
-export { PositionIcon } from './PositionIcon';
+
