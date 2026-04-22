@@ -1,5 +1,5 @@
 import { ImportTeamDto, ImportErrorDto } from '../dto/import';
-import { REVERSE_POSITION_MAP } from './excel.util';
+import { REVERSE_POSITION_MAP, parseLevel } from './excel.util';
 import { validateChampionPool } from './champion-map.util';
 
 export interface ValidationResult {

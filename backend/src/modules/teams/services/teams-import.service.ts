@@ -5,7 +5,7 @@ import * as path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import { DatabaseService } from '../../../database/database.service';
 import { CacheService } from '../../../cache/cache.service';
-import { loadChampionMap } from '../utils/champion-map.util';
+import { loadChampionMap, parseChampionPool } from '../utils/champion-map.util';
 import {
   parseExcel,
   getExcelRowCount,
