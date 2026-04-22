@@ -13,12 +13,14 @@ describe('StartBox constants', () => {
       expect(Array.isArray(COVER_BACKGROUNDS.mobile)).toBe(true);
     });
 
-    it('PC 端应该包含驴酱杯封面图片', () => {
-      expect(COVER_BACKGROUNDS.pc).toContain('/驴酱杯封面.webp');
+    it('PC 端应该包含驴酱杯封面图片 CDN 外链地址', () => {
+      expect(COVER_BACKGROUNDS.pc[0]).toContain('assets/驴酱杯封面.webp');
+      expect(COVER_BACKGROUNDS.pc[0]).toMatch(/^https?:\/\//);
     });
 
-    it('移动端应该包含驴酱杯封面图片', () => {
-      expect(COVER_BACKGROUNDS.mobile).toContain('/驴酱杯封面.webp');
+    it('移动端应该包含驴酱杯封面图片 CDN 外链地址', () => {
+      expect(COVER_BACKGROUNDS.mobile[0]).toContain('assets/驴酱杯封面.webp');
+      expect(COVER_BACKGROUNDS.mobile[0]).toMatch(/^https?:\/\//);
     });
   });
 

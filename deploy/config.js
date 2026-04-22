@@ -22,6 +22,10 @@ window.APP_CONFIG = {
 
   // 版本号
   VERSION: '1.0.0',
+
+  // GitHub CDN 基础地址 (用于加载 assets/ 目录下的图片资源)
+  // 默认使用 JSDMirror (国内加速)，可随时切换为其他 CDN 源
+  GITHUB_CDN_BASE: 'https://cdn.jsdmirror.com/gh/forzenfox/lvjiang-cup@main',
 };
 
 console.log('[Config] 生产环境配置已加载:', window.APP_CONFIG);
