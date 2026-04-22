@@ -16,6 +16,7 @@ export const BackgroundCarousel: React.FC<BackgroundCarouselProps> = ({
 }) => {
   const availableBackgrounds = useImageWithFallback(backgrounds);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set());
   const [hasError, setHasError] = useState(false);
 
   const shouldCarousel = availableBackgrounds.length >= 2;
@@ -30,6 +31,24 @@ export const BackgroundCarousel: React.FC<BackgroundCarouselProps> = ({
     return () => clearInterval(interval);
   }, [shouldCarousel, availableBackgrounds.length, hasError]);
 
+  // 预加载图片并跟踪加载状态
+  useEffect(() => {
+    if (!availableBackgrounds.length) return;
+
+    availableBackgrounds.forEach((bg) => {
+      if (loadedImages.has(bg.cdn)) return;
+
+      const img = new Image();
+      img.onload = () => {
+        setLoadedImages(prev => new Set(prev).add(bg.cdn));
+      };
+      img.onerror = () => {
+        // 图片加载失败，静默处理
+      };
+      img.src = bg.cdn;
+    });
+  }, [availableBackgrounds, loadedImages]);
+
   const handleImageError = () => {
     if (!hasError) {
       setHasError(true);
@@ -37,7 +56,10 @@ export const BackgroundCarousel: React.FC<BackgroundCarouselProps> = ({
     }
   };
 
-  if (hasError || !availableBackgrounds.length) {
+  // 过滤出已加载的图片
+  const displayBackgrounds = availableBackgrounds.filter(bg => loadedImages.has(bg.cdn));
+
+  if (hasError || !displayBackgrounds.length) {
     return null;
   }
 
@@ -49,16 +71,23 @@ export const BackgroundCarousel: React.FC<BackgroundCarouselProps> = ({
       transition={{ duration: ANIMATION_CONFIG.exitDuration / 1000 }}
     >
       <div className="absolute inset-0">
-        {availableBackgrounds.map((bg, index) => (
-          <div
-            key={bg.cdn}
-            className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-opacity duration-1000"
-            style={{
-              backgroundImage: `url(${bg.cdn})`,
-              opacity: shouldCarousel ? (index === currentIndex ? 1 : 0) : 1,
-            }}
-          />
-        ))}
+        {availableBackgrounds.map((bg, index) => {
+          // 使用已加载的图片 URL
+          const imageUrl = loadedImages.has(bg.cdn) ? bg.cdn : null;
+          
+          if (!imageUrl) return null;
+
+          return (
+            <div
+              key={bg.cdn}
+              className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-opacity duration-1000"
+              style={{
+                backgroundImage: `url(${imageUrl})`,
+                opacity: shouldCarousel ? (index === currentIndex ? 1 : 0) : 1,
+              }}
+            />
+          );
+        })}
       </div>
       {availableBackgrounds.map(bg => (
         <img
