@@ -28,7 +28,7 @@ export const WeChatSection: React.FC<WeChatSectionProps> = ({
     img.onerror = () => {
       if (!isRetry) {
         // 降级到本地路径
-        const localPath = qrCode;
+        const localPath = `/assets/lvlvdianjing.webp`;
         if (localPath !== src) {
           loadImage(localPath, true);
           return;

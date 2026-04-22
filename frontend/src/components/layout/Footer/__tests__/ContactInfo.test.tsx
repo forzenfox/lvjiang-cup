@@ -21,6 +21,8 @@ describe('ContactInfo', () => {
 
   it('应该显示邮箱图标', () => {
     render(<ContactInfo email="lvjiangshangwu@163.com" />);
-    expect(screen.getByText('📧')).toBeInTheDocument();
+    const icon = document.querySelector('[data-testid="contact-info"] svg');
+    expect(icon).toBeInTheDocument();
+    expect(icon).toHaveClass('text-blue-400');
   });
 });

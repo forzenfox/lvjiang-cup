@@ -192,7 +192,7 @@ const ScheduleSection: React.FC = () => {
   }, [loadData]);
 
   return (
-    <section id="schedule" className="min-h-screen flex flex-col bg-black">
+    <section id="schedule" className="h-screen flex flex-col bg-black">
       <div className="max-w-7xl mx-auto px-4 flex-1 flex flex-col justify-center min-h-0">
         {loading && matches.length === 0 ? (
           // 加载骨架屏

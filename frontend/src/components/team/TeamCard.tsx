@@ -1,7 +1,31 @@
 import React from 'react';
 import { Crown } from 'lucide-react';
-import { PositionIcon } from '../common/PositionIcon';
+import {
+  TopIcon,
+  JungleIcon,
+  MidIcon,
+  AdcIcon,
+  SupportIcon,
+} from '@/components/icons/PositionIcons';
 import { getUploadUrl } from '@/utils/upload';
+import type { PositionType } from '@/types/position';
+
+const PositionIcon: React.FC<{ position: PositionType; size?: number }> = ({ position, size = 24 }) => {
+  switch (position) {
+    case 'TOP':
+      return <TopIcon style={{ width: size, height: size * 0.75 }} />;
+    case 'JUNGLE':
+      return <JungleIcon style={{ width: size, height: size * 0.75 }} />;
+    case 'MID':
+      return <MidIcon style={{ width: size, height: size * 0.75 }} />;
+    case 'ADC':
+      return <AdcIcon style={{ width: size, height: size * 0.75 }} />;
+    case 'SUPPORT':
+      return <SupportIcon style={{ width: size, height: size * 0.75 }} />;
+    default:
+      return null;
+  }
+};
 
 export interface TeamMember {
   id: string;

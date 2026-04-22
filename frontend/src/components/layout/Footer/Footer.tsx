@@ -1,60 +1,114 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { SocialLinks } from './SocialLinks';
 import { WeChatSection } from './WeChatSection';
 import { ContactInfo } from './ContactInfo';
 import { ICPInfo } from './ICPInfo';
 import { FOOTER_CONFIG } from '@/config/footer';
 import { cn } from '@/lib/utils';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface FooterProps {
   className?: string;
 }
 
 export const Footer: React.FC<FooterProps> = ({ className }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [hasInteracted, setHasInteracted] = useState(false);
+
   return (
-    <footer
-      className={cn(
-        'bg-gradient-to-b from-primary to-gray-900 text-white',
-        'hidden lg:block',
-        className
-      )}
-      role="contentinfo"
-      data-testid="footer"
-    >
+    <>
+      {/* 触发区域 - 底部不可见区域 */}
       <div
-        className="mx-auto"
-        style={{
-          maxWidth: FOOTER_CONFIG.layout.maxWidth,
-          padding: `${FOOTER_CONFIG.layout.paddingY} ${FOOTER_CONFIG.layout.paddingX}`,
+        className="fixed bottom-0 left-0 right-0 z-40"
+        style={{ height: '20px' }}
+        data-testid="footer-trigger"
+        onMouseEnter={() => {
+          setIsOpen(true);
+          setHasInteracted(true);
         }}
+      />
+
+      {/* 提示条 - 首次访问时显示，提示用户有页脚 */}
+      <AnimatePresence>
+        {!isOpen && !hasInteracted && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ delay: 2 }}
+            className="fixed bottom-0 left-1/2 transform -translate-x-1/2 z-40 cursor-pointer"
+            onMouseEnter={() => {
+              setIsOpen(true);
+              setHasInteracted(true);
+            }}
+          >
+            <div className="px-4 py-2 bg-black/50 backdrop-blur-sm rounded-t-lg text-white/50 text-xs">
+              <span className="mr-1">⌄</span> 鼠标移到底部查看页脚
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* 抽屉式页脚 */}
+      <div
+        className="fixed bottom-0 left-0 right-0 z-50"
+        data-testid="footer-drawer"
+        onMouseEnter={() => {
+          setIsOpen(true);
+          setHasInteracted(true);
+        }}
+        onMouseLeave={() => setIsOpen(false)}
       >
-        {/* 上半部分：社交媒体 + 微信公众号 */}
-        <div
-          className="grid mb-8"
-          style={{ gap: FOOTER_CONFIG.layout.gap }}
-        >
-          <div className="col-span-3">
-            <SocialLinks links={FOOTER_CONFIG.socialLinks} />
-          </div>
-          <div className="col-span-1 flex justify-end">
-            <WeChatSection
-              name={FOOTER_CONFIG.wechat.name}
-              qrCode={FOOTER_CONFIG.wechat.qrCode}
-              size={FOOTER_CONFIG.wechat.size}
-            />
-          </div>
-        </div>
+        <AnimatePresence>
+          {isOpen && (
+            <motion.footer
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+              className={cn(
+                'bg-gradient-to-r from-[#0a0a0a] via-[#1a1a2e] to-[#0a0a0a] text-white shadow-2xl',
+                'border-t-2 border-secondary/30',
+                className
+              )}
+              role="contentinfo"
+              data-testid="footer"
+            >
+              <div
+                className="mx-auto"
+                style={{
+                  maxWidth: FOOTER_CONFIG.layout.maxWidth,
+                  padding: `${FOOTER_CONFIG.layout.paddingY} ${FOOTER_CONFIG.layout.paddingX}`,
+                }}
+              >
+                {/* 上半部分：社交媒体 + 微信公众号 */}
+                <div className="flex justify-between items-center mb-8">
+                  <div className="flex-1">
+                    <SocialLinks links={FOOTER_CONFIG.socialLinks} />
+                  </div>
+                  <div className="flex-shrink-0">
+                    <WeChatSection
+                      name={FOOTER_CONFIG.wechat.name}
+                      qrCode={FOOTER_CONFIG.wechat.qrCode}
+                      size={FOOTER_CONFIG.wechat.size}
+                    />
+                  </div>
+                </div>
 
-        {/* 分隔线 */}
-        <div className="h-[1px] bg-gold/50 mb-8" />
+                {/* 分隔线 */}
+                <div className="h-[1px] bg-white/20 mb-8" />
 
-        {/* 下半部分：联系信息 + 备案号 */}
-        <div className="flex justify-between items-center">
-          <ContactInfo email={FOOTER_CONFIG.contact.email} />
-          <ICPInfo number={FOOTER_CONFIG.icp.number} />
-        </div>
+                {/* 下半部分：联系信息 + 备案号 */}
+                <div className="flex justify-between items-center">
+                  <ContactInfo email={FOOTER_CONFIG.contact.email} />
+                  <ICPInfo number={FOOTER_CONFIG.icp.number} />
+                </div>
+              </div>
+            </motion.footer>
+          )}
+        </AnimatePresence>
       </div>
-    </footer>
+    </>
   );
 };
 

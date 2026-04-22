@@ -188,7 +188,7 @@ const TeamSection: React.FC = () => {
   }, []);
 
   return (
-    <section id="teams" className="min-h-screen flex flex-col bg-black relative">
+    <section id="teams" className="h-screen flex flex-col bg-black relative">
       <div className="container mx-auto px-4 flex-1 flex flex-col justify-center min-h-0 py-8">
         {/* 加载骨架屏 */}
         {loading && teams.length === 0 ? (

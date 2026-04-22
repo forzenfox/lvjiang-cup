@@ -54,19 +54,19 @@ export const FOOTER_CONFIG: FooterConfig = {
       platform: 'bilibili',
       name: '胡凯利_洞主',
       url: 'https://space.bilibili.com/393671271',
-      icon: 'https://cdn.baomitu.com/cdn-static/images/logos/bilibili.svg',
+      icon: 'https://ts3.tc.mm.bing.net/th/id/ODF.HcIfqnk4n-lbffGcaqDC2w?w=32&h=32&qlt=98&pcl=fffffa&o=6&pid=1.2',
     },
     {
       platform: 'douyin',
       name: '凯菇来啦',
       url: 'https://v.douyin.com/JKo-Lq5r86I/',
-      icon: 'https://cdn.baomitu.com/cdn-static/images/logos/douyin.svg',
+      icon: 'https://ts2.tc.mm.bing.net/th/id/ODF.6ZkCjv2hR5s6SR35yaulqQ?w=32&h=32&qlt=95&pcl=fffffa&o=6&pid=1.2',
     },
     {
       platform: 'douyin',
       name: '胡凯利_洞主',
       url: 'https://v.douyin.com/hErnCiyHPbg/',
-      icon: 'https://cdn.baomitu.com/cdn-static/images/logos/douyin.svg',
+      icon: 'https://ts2.tc.mm.bing.net/th/id/ODF.6ZkCjv2hR5s6SR35yaulqQ?w=32&h=32&qlt=95&pcl=fffffa&o=6&pid=1.2',
     },
   ],
   contact: {

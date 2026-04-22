@@ -4,6 +4,31 @@ import type { PlayerLevel } from '../../api/types';
 import { getLevelBadgeClasses, getCaptainBadgeClasses } from '../../utils/levelColors';
 import { getUploadUrl } from '@/utils/upload';
 import { ZIndexLayers } from '@/constants/zIndex';
+import {
+  TopIcon,
+  JungleIcon,
+  MidIcon,
+  AdcIcon,
+  SupportIcon,
+} from '@/components/icons/PositionIcons';
+import type { PositionType } from '@/types/position';
+
+const PositionIcon: React.FC<{ position: PositionType; size?: number }> = ({ position, size = 16 }) => {
+  switch (position) {
+    case 'TOP':
+      return <TopIcon style={{ width: size, height: size * 0.75 }} />;
+    case 'JUNGLE':
+      return <JungleIcon style={{ width: size, height: size * 0.75 }} />;
+    case 'MID':
+      return <MidIcon style={{ width: size, height: size * 0.75 }} />;
+    case 'ADC':
+      return <AdcIcon style={{ width: size, height: size * 0.75 }} />;
+    case 'SUPPORT':
+      return <SupportIcon style={{ width: size, height: size * 0.75 }} />;
+    default:
+      return null;
+  }
+};
 
 interface MemberCardProps {
   member: TeamMember;
@@ -23,12 +48,12 @@ export interface TeamMember {
   level?: PlayerLevel;
 }
 
-const POSITION_CONFIG = {
-  TOP: { label: '上单', icon: '/assets/positions/top.png' },
-  JUNGLE: { label: '打野', icon: '/assets/positions/jungle.png' },
-  MID: { label: '中单', icon: '/assets/positions/mid.png' },
-  ADC: { label: '射手', icon: '/assets/positions/adc.png' },
-  SUPPORT: { label: '辅助', icon: '/assets/positions/support.png' },
+const POSITION_CONFIG: Record<string, { label: string }> = {
+  TOP: { label: '上单' },
+  JUNGLE: { label: '打野' },
+  MID: { label: '中单' },
+  ADC: { label: '射手' },
+  SUPPORT: { label: '辅助' },
 };
 
 const StarRating: React.FC<{ rating: number }> = ({ rating }) => {
@@ -177,9 +202,7 @@ const MemberCard: React.FC<MemberCardProps> = ({ member }) => {
 
           {/* Position */}
           <div className="flex items-center gap-1.5 mb-2">
-            {positionConfig && (
-              <img src={positionConfig.icon} alt={positionConfig.label} className="w-4 h-4" />
-            )}
+            <PositionIcon position={member.position} size={16} />
             <span className="text-sm text-slate-400">{positionConfig?.label}</span>
           </div>
 

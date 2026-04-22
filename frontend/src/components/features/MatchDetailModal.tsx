@@ -4,6 +4,7 @@ import Modal from '@/components/ui/Modal';
 import { SWISS_THEME } from '@/constants/swissTheme';
 import { BarChart3 } from 'lucide-react';
 import { checkMatchDataExists } from '@/api/matchData';
+import { useSpriteUrl } from '@/components/icons/PositionIcons';
 
 interface MatchDetailModalProps {
   visible: boolean;
@@ -12,7 +13,6 @@ interface MatchDetailModalProps {
   teams: Team[];
 }
 
-// 获取状态显示文本
 const getStatusText = (status: MatchStatus): string => {
   switch (status) {
     case 'upcoming':
@@ -26,7 +26,6 @@ const getStatusText = (status: MatchStatus): string => {
   }
 };
 
-// 获取状态颜色
 const getStatusColor = (status: MatchStatus): string => {
   switch (status) {
     case 'upcoming':
@@ -40,7 +39,6 @@ const getStatusColor = (status: MatchStatus): string => {
   }
 };
 
-// 格式化日期时间显示
 const formatMatchDateTime = (startTime: string): string => {
   if (!startTime) return '待定';
   const date = new Date(startTime);
@@ -51,9 +49,6 @@ const formatMatchDateTime = (startTime: string): string => {
   const minutes = date.getMinutes().toString().padStart(2, '0');
   return `${year}年${month}月${day}日 ${hours}:${minutes}`;
 };
-
-// 位置图标样式
-const POSITION_ICON_BASE_URL = '//game.gtimg.cn/images/lpl/es/web201612/n-spr.png';
 
 interface PositionIconStyle {
   width: number;

@@ -213,7 +213,7 @@ const Home: React.FC = () => {
       <HeroSection />
       <section
         id="videos"
-        className="min-h-screen bg-gradient-to-b from-[#0a0a0a] to-[#1a1a2e] flex items-center justify-center"
+        className="h-screen bg-gradient-to-b from-[#0a0a0a] to-[#1a1a2e] flex items-center justify-center"
       >
         <div className="container mx-auto px-4 w-full h-full flex flex-col justify-center">
           {videos.length > 0 ? (

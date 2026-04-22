@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { Toaster } from 'sonner';
 import App from './App';
 import { ErrorBoundary } from '@/components/common/ErrorBoundary';
+import { SpriteProvider } from '@/components/icons/PositionIcons';
 import './index.css';
 
 const rootElement = document.getElementById('root');
@@ -13,7 +14,9 @@ if (!rootElement) {
 createRoot(rootElement).render(
   <StrictMode>
     <ErrorBoundary>
-      <App />
+      <SpriteProvider>
+        <App />
+      </SpriteProvider>
       <Toaster
         position="top-center"
         richColors

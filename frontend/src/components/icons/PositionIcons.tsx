@@ -1,9 +1,46 @@
-import React from 'react';
+import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 
-const POSITION_ICON_BASE_URL = '//game.gtimg.cn/images/lpl/es/web201612/n-spr.png';
+const CDN_SPRITE_URL = '//game.gtimg.cn/images/lpl/es/web201612/n-spr.png';
+const LOCAL_SPRITE_URL = '/assets/n-spr.webp';
+
+interface SpriteContextValue {
+  spriteUrl: string;
+}
+
+const SpriteContext = createContext<SpriteContextValue>({ spriteUrl: CDN_SPRITE_URL });
+
+/**
+ * 精灵图加载钩子：CDN 优先，失败降级本地
+ */
+function useSpriteLoader() {
+  const [spriteUrl, setSpriteUrl] = useState(CDN_SPRITE_URL);
+  const attempted = useRef(false);
+
+  useEffect(() => {
+    if (attempted.current) return;
+    attempted.current = true;
+
+    const img = new Image();
+    img.onload = () => setSpriteUrl(CDN_SPRITE_URL);
+    img.onerror = () => setSpriteUrl(LOCAL_SPRITE_URL);
+    img.src = CDN_SPRITE_URL;
+  }, []);
+
+  return spriteUrl;
+}
+
+export const SpriteProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const spriteUrl = useSpriteLoader();
+  return (
+    <SpriteContext.Provider value={{ spriteUrl }}>{children}</SpriteContext.Provider>
+  );
+};
+
+export const useSpriteUrl = () => useContext(SpriteContext).spriteUrl;
 
 interface IconProps {
   className?: string;
+  style?: React.CSSProperties;
 }
 
 const getPositionIconStyle = (position: string): React.CSSProperties => {
@@ -17,66 +54,76 @@ const getPositionIconStyle = (position: string): React.CSSProperties => {
   return styles[position] || { width: 32, height: 24 };
 };
 
-export const TopIcon: React.FC<IconProps> = ({ className }) => {
-  const style = getPositionIconStyle('TOP');
+export const TopIcon: React.FC<IconProps> = ({ className, style }) => {
+  const spriteUrl = useSpriteUrl();
+  const baseStyle = getPositionIconStyle('TOP');
   return (
     <div
       className={className}
       style={{
+        ...baseStyle,
+        backgroundImage: `url(${spriteUrl})`,
         ...style,
-        backgroundImage: `url(${POSITION_ICON_BASE_URL})`,
       }}
     />
   );
 };
 
-export const JungleIcon: React.FC<IconProps> = ({ className }) => {
-  const style = getPositionIconStyle('JUNGLE');
+export const JungleIcon: React.FC<IconProps> = ({ className, style }) => {
+  const spriteUrl = useSpriteUrl();
+  const baseStyle = getPositionIconStyle('JUNGLE');
   return (
     <div
       className={className}
       style={{
+        ...baseStyle,
+        backgroundImage: `url(${spriteUrl})`,
         ...style,
-        backgroundImage: `url(${POSITION_ICON_BASE_URL})`,
       }}
     />
   );
 };
 
-export const MidIcon: React.FC<IconProps> = ({ className }) => {
-  const style = getPositionIconStyle('MID');
+export const MidIcon: React.FC<IconProps> = ({ className, style }) => {
+  const spriteUrl = useSpriteUrl();
+  const baseStyle = getPositionIconStyle('MID');
   return (
     <div
       className={className}
       style={{
+        ...baseStyle,
+        backgroundImage: `url(${spriteUrl})`,
         ...style,
-        backgroundImage: `url(${POSITION_ICON_BASE_URL})`,
       }}
     />
   );
 };
 
-export const AdcIcon: React.FC<IconProps> = ({ className }) => {
-  const style = getPositionIconStyle('ADC');
+export const AdcIcon: React.FC<IconProps> = ({ className, style }) => {
+  const spriteUrl = useSpriteUrl();
+  const baseStyle = getPositionIconStyle('ADC');
   return (
     <div
       className={className}
       style={{
+        ...baseStyle,
+        backgroundImage: `url(${spriteUrl})`,
         ...style,
-        backgroundImage: `url(${POSITION_ICON_BASE_URL})`,
       }}
     />
   );
 };
 
-export const SupportIcon: React.FC<IconProps> = ({ className }) => {
-  const style = getPositionIconStyle('SUPPORT');
+export const SupportIcon: React.FC<IconProps> = ({ className, style }) => {
+  const spriteUrl = useSpriteUrl();
+  const baseStyle = getPositionIconStyle('SUPPORT');
   return (
     <div
       className={className}
       style={{
+        ...baseStyle,
+        backgroundImage: `url(${spriteUrl})`,
         ...style,
-        backgroundImage: `url(${POSITION_ICON_BASE_URL})`,
       }}
     />
   );

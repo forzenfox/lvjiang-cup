@@ -4,7 +4,7 @@ import { Trophy } from 'lucide-react';
 import { ZIndexLayers } from '../../constants/zIndex';
 import { Footer } from './Footer';
 
-// 隐藏滚动条的样式
+// 隐藏滚动条的样式 + 全屏滚动吸附
 const styles = `
   /* 隐藏垂直滚动条 */
   body::-webkit-scrollbar {
@@ -13,6 +13,16 @@ const styles = `
   body {
     scrollbar-width: none;
     -ms-overflow-style: none;
+  }
+  
+  /* 全屏滚动吸附样式 - 所有设备统一 */
+  html {
+    scroll-snap-type: y mandatory;
+    overflow-y: scroll;
+  }
+  section[id] {
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
   }
 `;
 
@@ -31,11 +41,16 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     if (element) {
       // 计算元素位置并减去导航栏高度，确保内容不被遮挡
       const elementPosition = element.getBoundingClientRect().top + window.scrollY;
-      const offsetPosition = elementPosition - NAVBAR_HEIGHT;
+      const isMobile = window.innerWidth < 768;
+      // 移动端无需偏移，桌面端和平板端减去导航栏高度
+      const offsetPosition = isMobile
+        ? elementPosition
+        : elementPosition - NAVBAR_HEIGHT;
 
       window.scrollTo({
         top: offsetPosition,
-        behavior: 'smooth',
+        // 所有设备都使用 instant，配合 CSS scroll snap 实现直接定位
+        behavior: 'instant',
       });
       setActiveSection(id);
     }
@@ -53,7 +68,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   // 添加键盘事件监听器，实现上下键切换模块
   useEffect(() => {
-    const sections = ['streamers', 'teams', 'schedule', 'videos'];
+    // 按页面实际渲染顺序：总览 → 视频 → 主播 → 战队 → 赛程
+    const sections = ['hero', 'videos', 'streamers', 'teams', 'schedule'];
     let currentIndex = 0;
 
     const handleKeyDown = (event: KeyboardEvent) => {

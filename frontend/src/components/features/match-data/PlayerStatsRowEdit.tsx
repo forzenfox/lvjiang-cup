@@ -1,7 +1,30 @@
 import React from 'react';
-import type { PlayerStat } from '@/types/matchData';
+import type { PlayerStat, PositionType } from '@/types/matchData';
 import { ChevronDown } from 'lucide-react';
-import PositionIcon from '@/components/common/PositionIcon';
+import {
+  TopIcon,
+  JungleIcon,
+  MidIcon,
+  AdcIcon,
+  SupportIcon,
+} from '@/components/icons/PositionIcons';
+
+const PositionIcon: React.FC<{ position: PositionType; size?: number }> = ({ position, size = 16 }) => {
+  switch (position) {
+    case 'TOP':
+      return <TopIcon style={{ width: size, height: size * 0.75 }} />;
+    case 'JUNGLE':
+      return <JungleIcon style={{ width: size, height: size * 0.75 }} />;
+    case 'MID':
+      return <MidIcon style={{ width: size, height: size * 0.75 }} />;
+    case 'ADC':
+      return <AdcIcon style={{ width: size, height: size * 0.75 }} />;
+    case 'SUPPORT':
+      return <SupportIcon style={{ width: size, height: size * 0.75 }} />;
+    default:
+      return null;
+  }
+};
 
 interface PlayerStatsRowEditProps {
   bluePlayer: PlayerStat;

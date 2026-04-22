@@ -155,7 +155,7 @@ const HeroSection: React.FC = () => {
       </div>
 
       {/* Scroll Indicator */}
-      <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2 animate-bounce text-white/50">
+      <div className="absolute bottom-24 md:bottom-10 left-1/2 transform -translate-x-1/2 animate-bounce text-white/50">
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
             strokeLinecap="round"
