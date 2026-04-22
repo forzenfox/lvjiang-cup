@@ -121,7 +121,7 @@ describe('MatchesService', () => {
       const result = await service.findOne('1');
 
       expect(result).toEqual(mockMatch);
-      expect(mockCacheService.get).toHaveBeenCalledWith('match:1');
+      expect(mockCacheService.get).toHaveBeenCalledWith('matches:1');
     });
 
     it('should return a match from database when cache is empty', async () => {
@@ -161,7 +161,7 @@ describe('MatchesService', () => {
 
       await service.findOne('1');
 
-      expect(mockCacheService.set).toHaveBeenCalledWith('match:1', expect.any(Object));
+      expect(mockCacheService.set).toHaveBeenCalledWith('matches:1', expect.any(Object));
     });
   });
 
@@ -186,7 +186,7 @@ describe('MatchesService', () => {
 
       expect(mockDatabaseService.run).toHaveBeenCalled();
       expect(mockCacheService.del).toHaveBeenCalledWith('matches:all');
-      expect(mockCacheService.del).toHaveBeenCalledWith('match:1');
+      expect(mockCacheService.del).toHaveBeenCalledWith('matches:1');
     });
 
     it('should update match teams successfully', async () => {
@@ -237,7 +237,7 @@ describe('MatchesService', () => {
         '1',
       ]);
       expect(mockCacheService.del).toHaveBeenCalledWith('matches:all');
-      expect(mockCacheService.del).toHaveBeenCalledWith('match:1');
+      expect(mockCacheService.del).toHaveBeenCalledWith('matches:1');
     });
 
     it('should throw NotFoundException for non-existent match', async () => {

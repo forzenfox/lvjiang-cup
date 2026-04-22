@@ -22,9 +22,7 @@ export class TrackingController {
   @ApiOperation({ summary: '接收前端跟踪事件' })
   handleTrackingEvent(@Body() event: TrackingEventDto): { success: boolean } {
     // 记录接收到的事件
-    this.logger.debug(
-      `Received tracking event: ${event.event}`,
-    );
+    this.logger.debug(`Received tracking event: ${event.event}`);
 
     // 转发给服务层处理
     this.trackingService.logEvent(event as TrackingEvent);

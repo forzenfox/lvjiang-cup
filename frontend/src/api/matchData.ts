@@ -36,9 +36,7 @@ export async function checkMatchDataExists(matchId: string): Promise<MatchDataCh
  * @returns 系列赛信息（含各局概要）
  */
 export async function getMatchSeries(matchId: string): Promise<MatchSeriesInfo> {
-  const response = await apiClient.get<ApiResponse<MatchSeriesInfo>>(
-    `/matches/${matchId}/series`
-  );
+  const response = await apiClient.get<ApiResponse<MatchSeriesInfo>>(`/matches/${matchId}/series`);
   const responseData = response.data;
 
   if (!responseData.success || !responseData.data) {

@@ -2,18 +2,13 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 
-/**
- * 对战数据详情页头部组件
- * 包含返回按钮和页面标题
- */
 interface MatchDataHeaderProps {
-  /** 返回按钮点击回调，默认使用路由返回 */
   onBack?: () => void;
-  /** 额外标题文本（可选） */
   subtitle?: string;
+  action?: React.ReactNode;
 }
 
-const MatchDataHeader: React.FC<MatchDataHeaderProps> = ({ onBack, subtitle }) => {
+const MatchDataHeader: React.FC<MatchDataHeaderProps> = ({ onBack, subtitle, action }) => {
   const navigate = useNavigate();
 
   const handleBack = () => {
@@ -34,7 +29,6 @@ const MatchDataHeader: React.FC<MatchDataHeaderProps> = ({ onBack, subtitle }) =
           className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-gray-300 transition-colors hover:bg-slate-800 hover:text-white"
           aria-label="返回上一页"
         >
-          {/* 返回箭头图标 */}
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 20 20"
@@ -52,11 +46,10 @@ const MatchDataHeader: React.FC<MatchDataHeaderProps> = ({ onBack, subtitle }) =
         <div className="h-5 w-px bg-slate-700" />
         <div>
           <h1 className="text-lg font-bold text-white md:text-xl">对战数据详情</h1>
-          {subtitle && (
-            <p className="mt-0.5 text-xs text-gray-400 md:text-sm">{subtitle}</p>
-          )}
+          {subtitle && <p className="mt-0.5 text-xs text-gray-400 md:text-sm">{subtitle}</p>}
         </div>
       </div>
+      {action && <div className="flex items-center gap-2">{action}</div>}
     </div>
   );
 };

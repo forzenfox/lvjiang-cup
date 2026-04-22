@@ -349,7 +349,10 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     );
 
     // match_games 表索引
-    await run(this.db, `CREATE INDEX IF NOT EXISTS idx_match_games_match_id ON match_games(match_id)`);
+    await run(
+      this.db,
+      `CREATE INDEX IF NOT EXISTS idx_match_games_match_id ON match_games(match_id)`,
+    );
     await run(this.db, `CREATE INDEX IF NOT EXISTS idx_match_games_status ON match_games(status)`);
 
     // player_match_stats 表（选手对战数据表）
@@ -386,10 +389,22 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     );
 
     // player_match_stats 表索引
-    await run(this.db, `CREATE INDEX IF NOT EXISTS idx_player_match_stats_match_game_id ON player_match_stats(match_game_id)`);
-    await run(this.db, `CREATE INDEX IF NOT EXISTS idx_player_match_stats_player_id ON player_match_stats(player_id)`);
-    await run(this.db, `CREATE INDEX IF NOT EXISTS idx_player_match_stats_team_id ON player_match_stats(team_id)`);
-    await run(this.db, `CREATE INDEX IF NOT EXISTS idx_player_match_stats_position ON player_match_stats(position)`);
+    await run(
+      this.db,
+      `CREATE INDEX IF NOT EXISTS idx_player_match_stats_match_game_id ON player_match_stats(match_game_id)`,
+    );
+    await run(
+      this.db,
+      `CREATE INDEX IF NOT EXISTS idx_player_match_stats_player_id ON player_match_stats(player_id)`,
+    );
+    await run(
+      this.db,
+      `CREATE INDEX IF NOT EXISTS idx_player_match_stats_team_id ON player_match_stats(team_id)`,
+    );
+    await run(
+      this.db,
+      `CREATE INDEX IF NOT EXISTS idx_player_match_stats_position ON player_match_stats(position)`,
+    );
 
     // file_hashes 表（图片去重）
     await run(

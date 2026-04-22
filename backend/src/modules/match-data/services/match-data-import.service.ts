@@ -80,7 +80,7 @@ export class MatchDataImportService {
     sheet.getColumn(4).width = 12; // 英雄名
 
     // ========== 第 1-2 行：MatchInfo（对战信息）==========
-    
+
     // 第 1 行：MatchInfo 表头
     const matchInfoHeaders = ['红方战队名', '蓝方战队名', '局数', '比赛时间', '游戏时长', '获胜方'];
     matchInfoHeaders.forEach((header, index) => {
@@ -116,7 +116,18 @@ export class MatchDataImportService {
     // ========== 第 3-5 行：TeamStats（战队数据）==========
 
     // 第 3 行：TeamStats 表头
-    const teamStatsHeaders = ['阵营', '战队名', '总击杀', '总死亡', '总助攻', '总经济', '推塔数', '控龙数', '控 Baron 数', '一血'];
+    const teamStatsHeaders = [
+      '阵营',
+      '战队名',
+      '总击杀',
+      '总死亡',
+      '总助攻',
+      '总经济',
+      '推塔数',
+      '控龙数',
+      '控 Baron 数',
+      '一血',
+    ];
     teamStatsHeaders.forEach((header, index) => {
       const cell = sheet.getCell(3, index + 1);
       cell.value = header;
@@ -154,7 +165,7 @@ export class MatchDataImportService {
     sheet.getCell('J5').value = 'no';
 
     // 为阵营和一血添加数据验证
-    [4, 5].forEach(row => {
+    [4, 5].forEach((row) => {
       // 阵营下拉列表
       sheet.getCell(row, 1).dataValidation = {
         type: 'list',
@@ -178,7 +189,24 @@ export class MatchDataImportService {
     // ========== 第 6-16 行：PlayerStats（选手数据）==========
 
     // 第 6 行：PlayerStats 表头
-    const playerStatsHeaders = ['阵营', '位置', '选手昵称', '英雄名', '击杀', '死亡', '助攻', '补刀', '经济', '伤害', '承伤', '等级', '视野得分', '插眼数', '排眼数', '是否 MVP'];
+    const playerStatsHeaders = [
+      '阵营',
+      '位置',
+      '选手昵称',
+      '英雄名',
+      '击杀',
+      '死亡',
+      '助攻',
+      '补刀',
+      '经济',
+      '伤害',
+      '承伤',
+      '等级',
+      '视野得分',
+      '插眼数',
+      '排眼数',
+      '是否 MVP',
+    ];
     playerStatsHeaders.forEach((header, index) => {
       const cell = sheet.getCell(6, index + 1);
       cell.value = header;
@@ -193,20 +221,170 @@ export class MatchDataImportService {
 
     // 红方选手示例数据（第 7-11 行）
     const redTeamPlayers = [
-      { position: 'TOP', nickname: 'Bin', champion: '格温', kills: 2, deaths: 2, assists: 11, cs: 349, gold: 17315, damage: 28500, taken: 32000, level: 18, vision: 45, wards: 12, mvp: 'no' },
-      { position: 'JUNGLE', nickname: 'Xun', champion: '潘森', kills: 4, deaths: 7, assists: 10, cs: 261, gold: 14855, damage: 22000, taken: 28000, level: 16, vision: 38, wards: 8, mvp: 'no' },
-      { position: 'MID', nickname: 'Knight', champion: '奎桑提', kills: 13, deaths: 0, assists: 11, cs: 339, gold: 19592, damage: 35000, taken: 18000, level: 18, vision: 42, wards: 6, mvp: 'yes' },
-      { position: 'ADC', nickname: 'Viper', champion: '艾希', kills: 7, deaths: 3, assists: 10, cs: 368, gold: 19385, damage: 32000, taken: 21000, level: 18, vision: 35, wards: 4, mvp: 'no' },
-      { position: 'SUPPORT', nickname: 'ON', champion: '萨勒芬妮', kills: 0, deaths: 3, assists: 22, cs: 47, gold: 11580, damage: 8500, taken: 15000, level: 15, vision: 78, wards: 18, mvp: 'no' },
+      {
+        position: 'TOP',
+        nickname: 'Bin',
+        champion: '格温',
+        kills: 2,
+        deaths: 2,
+        assists: 11,
+        cs: 349,
+        gold: 17315,
+        damage: 28500,
+        taken: 32000,
+        level: 18,
+        vision: 45,
+        wards: 12,
+        mvp: 'no',
+      },
+      {
+        position: 'JUNGLE',
+        nickname: 'Xun',
+        champion: '潘森',
+        kills: 4,
+        deaths: 7,
+        assists: 10,
+        cs: 261,
+        gold: 14855,
+        damage: 22000,
+        taken: 28000,
+        level: 16,
+        vision: 38,
+        wards: 8,
+        mvp: 'no',
+      },
+      {
+        position: 'MID',
+        nickname: 'Knight',
+        champion: '奎桑提',
+        kills: 13,
+        deaths: 0,
+        assists: 11,
+        cs: 339,
+        gold: 19592,
+        damage: 35000,
+        taken: 18000,
+        level: 18,
+        vision: 42,
+        wards: 6,
+        mvp: 'yes',
+      },
+      {
+        position: 'ADC',
+        nickname: 'Viper',
+        champion: '艾希',
+        kills: 7,
+        deaths: 3,
+        assists: 10,
+        cs: 368,
+        gold: 19385,
+        damage: 32000,
+        taken: 21000,
+        level: 18,
+        vision: 35,
+        wards: 4,
+        mvp: 'no',
+      },
+      {
+        position: 'SUPPORT',
+        nickname: 'ON',
+        champion: '萨勒芬妮',
+        kills: 0,
+        deaths: 3,
+        assists: 22,
+        cs: 47,
+        gold: 11580,
+        damage: 8500,
+        taken: 15000,
+        level: 15,
+        vision: 78,
+        wards: 18,
+        mvp: 'no',
+      },
     ];
 
     // 蓝方选手示例数据（第 12-16 行）
     const blueTeamPlayers = [
-      { position: 'TOP', nickname: 'TheShy', champion: '奎桑提', kills: 1, deaths: 3, assists: 8, cs: 289, gold: 15200, damage: 21000, taken: 35000, level: 17, vision: 42, wards: 10, mvp: 'no' },
-      { position: 'JUNGLE', nickname: 'Tian', champion: '蔚', kills: 3, deaths: 5, assists: 9, cs: 198, gold: 12500, damage: 18000, taken: 26000, level: 15, vision: 36, wards: 9, mvp: 'no' },
-      { position: 'MID', nickname: 'Rookie', champion: '阿狸', kills: 5, deaths: 6, assists: 7, cs: 312, gold: 16800, damage: 25000, taken: 19000, level: 17, vision: 38, wards: 5, mvp: 'no' },
-      { position: 'ADC', nickname: 'Hope', champion: '厄斐琉斯', kills: 6, deaths: 5, assists: 6, cs: 352, gold: 17500, damage: 28000, taken: 22000, level: 18, vision: 32, wards: 3, mvp: 'no' },
-      { position: 'SUPPORT', nickname: 'Crisp', champion: '烈娜塔', kills: 3, deaths: 6, assists: 5, cs: 38, gold: 9800, damage: 7500, taken: 18000, level: 14, vision: 82, wards: 20, mvp: 'no' },
+      {
+        position: 'TOP',
+        nickname: 'TheShy',
+        champion: '奎桑提',
+        kills: 1,
+        deaths: 3,
+        assists: 8,
+        cs: 289,
+        gold: 15200,
+        damage: 21000,
+        taken: 35000,
+        level: 17,
+        vision: 42,
+        wards: 10,
+        mvp: 'no',
+      },
+      {
+        position: 'JUNGLE',
+        nickname: 'Tian',
+        champion: '蔚',
+        kills: 3,
+        deaths: 5,
+        assists: 9,
+        cs: 198,
+        gold: 12500,
+        damage: 18000,
+        taken: 26000,
+        level: 15,
+        vision: 36,
+        wards: 9,
+        mvp: 'no',
+      },
+      {
+        position: 'MID',
+        nickname: 'Rookie',
+        champion: '阿狸',
+        kills: 5,
+        deaths: 6,
+        assists: 7,
+        cs: 312,
+        gold: 16800,
+        damage: 25000,
+        taken: 19000,
+        level: 17,
+        vision: 38,
+        wards: 5,
+        mvp: 'no',
+      },
+      {
+        position: 'ADC',
+        nickname: 'Hope',
+        champion: '厄斐琉斯',
+        kills: 6,
+        deaths: 5,
+        assists: 6,
+        cs: 352,
+        gold: 17500,
+        damage: 28000,
+        taken: 22000,
+        level: 18,
+        vision: 32,
+        wards: 3,
+        mvp: 'no',
+      },
+      {
+        position: 'SUPPORT',
+        nickname: 'Crisp',
+        champion: '烈娜塔',
+        kills: 3,
+        deaths: 6,
+        assists: 5,
+        cs: 38,
+        gold: 9800,
+        damage: 7500,
+        taken: 18000,
+        level: 14,
+        vision: 82,
+        wards: 20,
+        mvp: 'no',
+      },
     ];
 
     // 填充红方选手数据

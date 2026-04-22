@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { DatabaseService } from '../../database/database.service';
 import { CacheService } from '../../cache/cache.service';
+import { BaseCachedService } from '../../common/services/base-cached.service';
 
 export enum StreamerType {
   INTERNAL = 'internal',
@@ -53,16 +54,17 @@ interface StreamerRow {
 }
 
 @Injectable()
-export class StreamersService {
-  private readonly logger = new Logger(StreamersService.name);
-  private readonly CACHE_KEY_ALL = 'streamers:all';
-  private readonly CACHE_KEY_PREFIX = 'streamer:';
+export class StreamersService extends BaseCachedService<Streamer, string> {
+  private readonly streamerLogger = new Logger(StreamersService.name);
   private readonly TABLE_NAME = 'streamers';
 
-  constructor(
-    private readonly databaseService: DatabaseService,
-    private readonly cacheService: CacheService,
-  ) {}
+  constructor(databaseService: DatabaseService, cacheService: CacheService) {
+    super(databaseService, cacheService, 'StreamersService');
+  }
+
+  protected getCachePrefix(): string {
+    return 'streamers';
+  }
 
   private mapRowToStreamer(row: StreamerRow): Streamer {
     return {
@@ -78,40 +80,31 @@ export class StreamersService {
     };
   }
 
-  async findAll(): Promise<Streamer[]> {
-    const cached = this.cacheService.get<Streamer[]>(this.CACHE_KEY_ALL);
-    if (cached) {
-      return cached;
-    }
-
+  protected async findAllFromDb(): Promise<Streamer[]> {
     const rows = await this.databaseService.all<StreamerRow>(
       'SELECT * FROM streamers ORDER BY sort_order ASC, created_at DESC',
     );
-
-    const streamers = rows.map((row) => this.mapRowToStreamer(row));
-    this.cacheService.set(this.CACHE_KEY_ALL, streamers);
-    return streamers;
+    return rows.map((row) => this.mapRowToStreamer(row));
   }
 
-  async findOne(id: string): Promise<Streamer> {
-    const cacheKey = `${this.CACHE_KEY_PREFIX}${id}`;
-    const cached = this.cacheService.get<Streamer>(cacheKey);
-    if (cached) {
-      return cached;
-    }
-
+  protected async findOneFromDb(id: string): Promise<Streamer | undefined> {
     const row = await this.databaseService.get<StreamerRow>(
       'SELECT * FROM streamers WHERE id = ?',
       [id],
     );
+    return row ? this.mapRowToStreamer(row) : undefined;
+  }
 
-    if (!row) {
+  async findAll(): Promise<Streamer[]> {
+    return this.getOrSetAll();
+  }
+
+  async findOne(id: string): Promise<Streamer> {
+    try {
+      return await this.getOrSetOne(id);
+    } catch (error) {
       throw new NotFoundException(`主播不存在: ${id}`);
     }
-
-    const streamer = this.mapRowToStreamer(row);
-    this.cacheService.set(cacheKey, streamer);
-    return streamer;
   }
 
   async create(createStreamerDto: CreateStreamerDto): Promise<Streamer> {
@@ -133,7 +126,7 @@ export class StreamersService {
       ],
     );
 
-    this.invalidateCache();
+    this.clearAllCache();
 
     return {
       id,
@@ -186,7 +179,7 @@ export class StreamersService {
       );
     }
 
-    this.invalidateCache(id);
+    this.clearRelatedCache(id);
 
     return {
       ...existing,
@@ -198,7 +191,7 @@ export class StreamersService {
   async remove(id: string): Promise<void> {
     await this.findOne(id);
     await this.databaseService.run('DELETE FROM streamers WHERE id = ?', [id]);
-    this.invalidateCache(id);
+    this.clearRelatedCache(id);
   }
 
   async updateSort(updateStreamerSortDto: UpdateStreamerSortDto): Promise<void> {
@@ -211,13 +204,6 @@ export class StreamersService {
       );
     }
 
-    this.invalidateCache();
-  }
-
-  private invalidateCache(id?: string): void {
-    this.cacheService.del(this.CACHE_KEY_ALL);
-    if (id) {
-      this.cacheService.del(`${this.CACHE_KEY_PREFIX}${id}`);
-    }
+    this.clearAllCache();
   }
 }

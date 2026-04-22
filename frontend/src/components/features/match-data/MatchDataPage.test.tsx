@@ -47,9 +47,7 @@ describe('MatchDataPage', () => {
         teamA: { id: '1', name: 'Team A' },
         teamB: { id: '2', name: 'Team B' },
         format: 'BO3',
-        games: [
-          { gameNumber: 1, winnerTeamId: '1', gameDuration: '30:00', hasData: true },
-        ],
+        games: [{ gameNumber: 1, winnerTeamId: '1', gameDuration: '30:00', hasData: true }],
       });
 
       renderWithRouter('/match/123/games');
@@ -97,7 +95,7 @@ describe('MatchDataPage', () => {
   describe('Loading State', () => {
     it('should show loading state initially', async () => {
       vi.mocked(matchDataApi.getMatchSeries).mockImplementation(
-        () => new Promise((resolve) => setTimeout(resolve, 100))
+        () => new Promise(resolve => setTimeout(resolve, 100))
       );
 
       await act(async () => {
@@ -111,9 +109,7 @@ describe('MatchDataPage', () => {
 
   describe('Error Handling', () => {
     it('should handle API errors gracefully', async () => {
-      vi.mocked(matchDataApi.getMatchSeries).mockRejectedValue(
-        new Error('Failed to fetch series')
-      );
+      vi.mocked(matchDataApi.getMatchSeries).mockRejectedValue(new Error('Failed to fetch series'));
 
       await act(async () => {
         renderWithRouter('/match/123/games');

@@ -1,7 +1,12 @@
 import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
 import { DatabaseService } from '../../database/database.service';
 import { CacheService } from '../../cache/cache.service';
-import { parseMatchDataExcel, validateMatchInfo, validateTeamStats, validatePlayerStats } from '../utils/match-excel.util';
+import {
+  parseMatchDataExcel,
+  validateMatchInfo,
+  validateTeamStats,
+  validatePlayerStats,
+} from '../utils/match-excel.util';
 
 @Injectable()
 export class MatchDataService {
@@ -31,7 +36,7 @@ export class MatchDataService {
     // 清除所有与matchId相关的缓存
     const cacheKeys = this.cacheService.get<string[]>('match_data:keys');
     if (cacheKeys) {
-      cacheKeys.forEach(key => {
+      cacheKeys.forEach((key) => {
         if (key.includes(matchId)) {
           this.cacheService.del(key);
         }
@@ -63,10 +68,9 @@ export class MatchDataService {
     }
 
     // 检查比赛是否存在
-    const match = await this.databaseService.get<any>(
-      'SELECT id FROM matches WHERE id = ?',
-      [matchId]
-    );
+    const match = await this.databaseService.get<any>('SELECT id FROM matches WHERE id = ?', [
+      matchId,
+    ]);
 
     if (!match) {
       throw new NotFoundException(`Match with id ${matchId} not found`);
@@ -75,7 +79,7 @@ export class MatchDataService {
     // 查询数据条数
     const result = await this.databaseService.get<{ count: number }>(
       'SELECT COUNT(*) as count FROM match_games WHERE match_id = ? AND status = 1',
-      [matchId]
+      [matchId],
     );
 
     const response = {
@@ -104,7 +108,7 @@ export class MatchDataService {
     // 检查比赛是否存在并获取信息
     const match = await this.databaseService.get<any>(
       'SELECT id, team_a_id, team_b_id, bo_format FROM matches WHERE id = ?',
-      [matchId]
+      [matchId],
     );
 
     if (!match) {
@@ -112,15 +116,13 @@ export class MatchDataService {
     }
 
     // 获取战队信息
-    const teamA = await this.databaseService.get<any>(
-      'SELECT id, name FROM teams WHERE id = ?',
-      [match.team_a_id]
-    );
+    const teamA = await this.databaseService.get<any>('SELECT id, name FROM teams WHERE id = ?', [
+      match.team_a_id,
+    ]);
 
-    const teamB = await this.databaseService.get<any>(
-      'SELECT id, name FROM teams WHERE id = ?',
-      [match.team_b_id]
-    );
+    const teamB = await this.databaseService.get<any>('SELECT id, name FROM teams WHERE id = ?', [
+      match.team_b_id,
+    ]);
 
     // 获取所有game概要
     const games = await this.databaseService.all<any>(
@@ -128,7 +130,7 @@ export class MatchDataService {
        FROM match_games 
        WHERE match_id = ? 
        ORDER BY game_number ASC`,
-      [matchId]
+      [matchId],
     );
 
     // 计算预期的game数量
@@ -137,7 +139,7 @@ export class MatchDataService {
     // 构建games数组
     const gameSummaries = [];
     for (let i = 1; i <= maxGames; i++) {
-      const game = games.find(g => g.game_number === i);
+      const game = games.find((g) => g.game_number === i);
       gameSummaries.push({
         gameNumber: i,
         winnerTeamId: game?.winner_team_id || null,
@@ -175,7 +177,7 @@ export class MatchDataService {
     // 检查比赛是否存在
     const match = await this.databaseService.get<any>(
       'SELECT id, bo_format FROM matches WHERE id = ?',
-      [matchId]
+      [matchId],
     );
 
     if (!match) {
@@ -199,7 +201,7 @@ export class MatchDataService {
               red_kills, red_gold, red_towers, red_dragons, red_barons
        FROM match_games
        WHERE match_id = ? AND game_number = ? AND status = 1`,
-      [matchId, gameNumber]
+      [matchId, gameNumber],
     );
 
     if (!game) {
@@ -212,14 +214,13 @@ export class MatchDataService {
     // 获取蓝色方战队信息
     const blueTeam = await this.databaseService.get<any>(
       'SELECT id, name FROM teams WHERE id = ?',
-      [game.blue_team_id]
+      [game.blue_team_id],
     );
 
     // 获取红色方战队信息
-    const redTeam = await this.databaseService.get<any>(
-      'SELECT id, name FROM teams WHERE id = ?',
-      [game.red_team_id]
-    );
+    const redTeam = await this.databaseService.get<any>('SELECT id, name FROM teams WHERE id = ?', [
+      game.red_team_id,
+    ]);
 
     // 获取选手统计数据并按位置排序
     const playerStatsRaw = await this.databaseService.all<any>(
@@ -243,11 +244,11 @@ export class MatchDataService {
                   WHEN 'SUPPORT' THEN 5
                   ELSE 6
                 END`,
-      [game.id]
+      [game.id],
     );
 
     // 格式化选手统计数据
-    const playerStats = playerStatsRaw.map(ps => ({
+    const playerStats = playerStatsRaw.map((ps) => ({
       id: ps.id,
       playerId: ps.player_id,
       playerName: ps.player_name,
@@ -323,7 +324,7 @@ export class MatchDataService {
       // 检查比赛是否存在
       const match = await this.databaseService.get<any>(
         'SELECT id, team_a_id, team_b_id, bo_format FROM matches WHERE id = ?',
-        [matchId]
+        [matchId],
       );
 
       if (!match) {
@@ -394,11 +395,11 @@ export class MatchDataService {
           // 根据名称匹配
           const teamA = await this.databaseService.get<any>(
             'SELECT id, name FROM teams WHERE id = ?',
-            [match.team_a_id]
+            [match.team_a_id],
           );
           const teamB = await this.databaseService.get<any>(
             'SELECT id, name FROM teams WHERE id = ?',
-            [match.team_b_id]
+            [match.team_b_id],
           );
 
           if (teamA && this.normalizeTeamName(teamA.name) === blueTeamName) {
@@ -424,21 +425,15 @@ export class MatchDataService {
         // 检查是否已存在该game
         const existingGame = await this.databaseService.get<any>(
           'SELECT id FROM match_games WHERE match_id = ? AND game_number = ?',
-          [matchId, parsedData.matchInfo.gameNumber]
+          [matchId, parsedData.matchInfo.gameNumber],
         );
-
-        let gameId: number;
 
         if (existingGame) {
           // 删除旧数据（级联删除player_match_stats）
-          await this.databaseService.run(
-            'DELETE FROM player_match_stats WHERE match_game_id = ?',
-            [existingGame.id]
-          );
-          await this.databaseService.run(
-            'DELETE FROM match_games WHERE id = ?',
-            [existingGame.id]
-          );
+          await this.databaseService.run('DELETE FROM player_match_stats WHERE match_game_id = ?', [
+            existingGame.id,
+          ]);
+          await this.databaseService.run('DELETE FROM match_games WHERE id = ?', [existingGame.id]);
         }
 
         // 确定winner
@@ -478,10 +473,10 @@ export class MatchDataService {
             this.getTeamFieldForSide(parsedData.teamStats, 'dragons', 'red'),
             this.getTeamFieldForSide(parsedData.teamStats, 'barons', 'red'),
             adminId,
-          ]
+          ],
         );
 
-        gameId = gameResult.lastID;
+        const gameId = gameResult.lastID;
 
         // 插入player_match_stats
         let playerCount = 0;
@@ -520,7 +515,7 @@ export class MatchDataService {
               ps.level,
               0,
               ps.mvp ? 1 : 0,
-            ]
+            ],
           );
           playerCount++;
         }
@@ -530,7 +525,9 @@ export class MatchDataService {
         // 清除缓存
         this.clearMatchCache(matchId);
 
-        this.logger.log(`Imported match data: matchId=${matchId}, gameNumber=${parsedData.matchInfo.gameNumber}, players=${playerCount}`);
+        this.logger.log(
+          `Imported match data: matchId=${matchId}, gameNumber=${parsedData.matchInfo.gameNumber}, players=${playerCount}`,
+        );
 
         return {
           imported: true,
@@ -560,13 +557,13 @@ export class MatchDataService {
     matchId: string,
     gameId: number,
     data: any,
-    adminId: string,
+    _adminId: string,
   ): Promise<{ updated: boolean; gameId: number }> {
     try {
       // 检查比赛是否存在
       const match = await this.databaseService.get<any>(
         'SELECT id, bo_format FROM matches WHERE id = ?',
-        [matchId]
+        [matchId],
       );
 
       if (!match) {
@@ -576,7 +573,7 @@ export class MatchDataService {
       // 检查game是否存在
       const game = await this.databaseService.get<any>(
         'SELECT id, game_number, blue_team_id, red_team_id FROM match_games WHERE id = ? AND match_id = ? AND status = 1',
-        [gameId, matchId]
+        [gameId, matchId],
       );
 
       if (!game) {
@@ -616,12 +613,36 @@ export class MatchDataService {
           values.push(data.gameStartTime);
         }
         if (data.blueTeam) {
-          updates.push('blue_kills = ?', 'blue_gold = ?', 'blue_towers = ?', 'blue_dragons = ?', 'blue_barons = ?');
-          values.push(data.blueTeam.kills, data.blueTeam.gold, data.blueTeam.towers, data.blueTeam.dragons, data.blueTeam.barons);
+          updates.push(
+            'blue_kills = ?',
+            'blue_gold = ?',
+            'blue_towers = ?',
+            'blue_dragons = ?',
+            'blue_barons = ?',
+          );
+          values.push(
+            data.blueTeam.kills,
+            data.blueTeam.gold,
+            data.blueTeam.towers,
+            data.blueTeam.dragons,
+            data.blueTeam.barons,
+          );
         }
         if (data.redTeam) {
-          updates.push('red_kills = ?', 'red_gold = ?', 'red_towers = ?', 'red_dragons = ?', 'red_barons = ?');
-          values.push(data.redTeam.kills, data.redTeam.gold, data.redTeam.towers, data.redTeam.dragons, data.redTeam.barons);
+          updates.push(
+            'red_kills = ?',
+            'red_gold = ?',
+            'red_towers = ?',
+            'red_dragons = ?',
+            'red_barons = ?',
+          );
+          values.push(
+            data.redTeam.kills,
+            data.redTeam.gold,
+            data.redTeam.towers,
+            data.redTeam.dragons,
+            data.redTeam.barons,
+          );
         }
 
         if (updates.length > 0) {
@@ -630,17 +651,16 @@ export class MatchDataService {
 
           await this.databaseService.run(
             `UPDATE match_games SET ${updates.join(', ')} WHERE id = ?`,
-            values
+            values,
           );
         }
 
         // 更新或插入player_match_stats
         if (data.playerStats && Array.isArray(data.playerStats)) {
           // 删除旧数据
-          await this.databaseService.run(
-            'DELETE FROM player_match_stats WHERE match_game_id = ?',
-            [gameId]
-          );
+          await this.databaseService.run('DELETE FROM player_match_stats WHERE match_game_id = ?', [
+            gameId,
+          ]);
 
           // 插入新数据
           for (const ps of data.playerStats) {
@@ -668,7 +688,7 @@ export class MatchDataService {
                 ps.level,
                 ps.firstBlood ? 1 : 0,
                 ps.mvp ? 1 : 0,
-              ]
+              ],
             );
           }
         }
@@ -729,9 +749,7 @@ export class MatchDataService {
    * 匹配战队名称
    */
   private async matchTeamName(name: string): Promise<string | null> {
-    const teams = await this.databaseService.all<any>(
-      'SELECT id, name FROM teams'
-    );
+    const teams = await this.databaseService.all<any>('SELECT id, name FROM teams');
 
     const normalizedName = this.normalizeTeamName(name);
 
@@ -749,7 +767,7 @@ export class MatchDataService {
    */
   private async matchPlayerNickname(nickname: string): Promise<any | null> {
     const players = await this.databaseService.all<any>(
-      'SELECT id, nickname, team_id FROM team_members'
+      'SELECT id, nickname, team_id FROM team_members',
     );
 
     const normalizedNickname = nickname.trim().toLowerCase();
@@ -770,8 +788,10 @@ export class MatchDataService {
     const sideLower = side.toLowerCase();
     for (const ts of teamStats) {
       const tsSide = ts.side.toLowerCase();
-      if ((sideLower === 'blue' && (tsSide === 'blue' || tsSide === '蓝方')) ||
-          (sideLower === 'red' && (tsSide === 'red' || tsSide === '红方'))) {
+      if (
+        (sideLower === 'blue' && (tsSide === 'blue' || tsSide === '蓝方')) ||
+        (sideLower === 'red' && (tsSide === 'red' || tsSide === '红方'))
+      ) {
         return ts.kills;
       }
     }
@@ -785,8 +805,10 @@ export class MatchDataService {
     const sideLower = side.toLowerCase();
     for (const ts of teamStats) {
       const tsSide = ts.side.toLowerCase();
-      if ((sideLower === 'blue' && (tsSide === 'blue' || tsSide === '蓝方')) ||
-          (sideLower === 'red' && (tsSide === 'red' || tsSide === '红方'))) {
+      if (
+        (sideLower === 'blue' && (tsSide === 'blue' || tsSide === '蓝方')) ||
+        (sideLower === 'red' && (tsSide === 'red' || tsSide === '红方'))
+      ) {
         return ts[field] || 0;
       }
     }

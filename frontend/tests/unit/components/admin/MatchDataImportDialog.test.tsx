@@ -45,16 +45,16 @@ describe('MatchDataImportDialog', () => {
 
   it('shows file validation error for invalid file type', () => {
     render(<MatchDataImportDialog {...defaultProps} />);
-    
+
     const file = new File(['test'], 'test.pdf', { type: 'application/pdf' });
-    
+
     // Simulate file selection through input
     const dataTransfer = {
       files: [file],
       items: [],
       types: ['Files'],
     };
-    
+
     fireEvent.drop(screen.getByText(/拖拽文件到此处/i).parentElement!, {
       dataTransfer,
     });
@@ -64,11 +64,11 @@ describe('MatchDataImportDialog', () => {
 
   it('shows file validation error for file size over 10MB', () => {
     render(<MatchDataImportDialog {...defaultProps} />);
-    
-    const largeFile = new File([new ArrayBuffer(11 * 1024 * 1024)], 'test.xlsx', { 
-      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+
+    const largeFile = new File([new ArrayBuffer(11 * 1024 * 1024)], 'test.xlsx', {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     });
-    
+
     fireEvent.drop(screen.getByText(/拖拽文件到此处/i).parentElement!, {
       dataTransfer: {
         files: [largeFile],
@@ -82,11 +82,11 @@ describe('MatchDataImportDialog', () => {
 
   it('accepts valid xlsx file and shows file info', () => {
     render(<MatchDataImportDialog {...defaultProps} />);
-    
-    const validFile = new File(['test content'], 'match-data.xlsx', { 
-      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+
+    const validFile = new File(['test content'], 'match-data.xlsx', {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     });
-    
+
     const dropZone = screen.getByText(/拖拽文件到此处/i).parentElement!;
     fireEvent.drop(dropZone, {
       dataTransfer: {
@@ -101,11 +101,11 @@ describe('MatchDataImportDialog', () => {
 
   it('removes selected file when remove button is clicked', () => {
     render(<MatchDataImportDialog {...defaultProps} />);
-    
-    const validFile = new File(['test content'], 'match-data.xlsx', { 
-      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+
+    const validFile = new File(['test content'], 'match-data.xlsx', {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     });
-    
+
     const dropZone = screen.getByText(/拖拽文件到此处/i).parentElement!;
     fireEvent.drop(dropZone, {
       dataTransfer: {
@@ -127,15 +127,15 @@ describe('MatchDataImportDialog', () => {
       gameNumber: 1,
       playerCount: 10,
     };
-    
+
     vi.mocked(matchDataApi.importMatchData).mockResolvedValue(mockImportResult);
-    
+
     render(<MatchDataImportDialog {...defaultProps} />);
-    
-    const validFile = new File(['test content'], 'match-data.xlsx', { 
-      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+
+    const validFile = new File(['test content'], 'match-data.xlsx', {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     });
-    
+
     const dropZone = screen.getByText(/拖拽文件到此处/i).parentElement!;
     fireEvent.drop(dropZone, {
       dataTransfer: {
@@ -159,16 +159,16 @@ describe('MatchDataImportDialog', () => {
       gameNumber: 1,
       playerCount: 10,
     };
-    
+
     vi.mocked(matchDataApi.importMatchData).mockResolvedValue(mockImportResult);
-    
+
     const onSuccess = vi.fn();
     render(<MatchDataImportDialog {...defaultProps} onSuccess={onSuccess} />);
-    
-    const validFile = new File(['test content'], 'match-data.xlsx', { 
-      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+
+    const validFile = new File(['test content'], 'match-data.xlsx', {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     });
-    
+
     const dropZone = screen.getByText(/拖拽文件到此处/i).parentElement!;
     fireEvent.drop(dropZone, {
       dataTransfer: {
@@ -196,13 +196,13 @@ describe('MatchDataImportDialog', () => {
 
   it('shows error message when import fails', async () => {
     vi.mocked(matchDataApi.importMatchData).mockRejectedValue(new Error('导入失败'));
-    
+
     render(<MatchDataImportDialog {...defaultProps} />);
-    
-    const validFile = new File(['test content'], 'match-data.xlsx', { 
-      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+
+    const validFile = new File(['test content'], 'match-data.xlsx', {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     });
-    
+
     const dropZone = screen.getByText(/拖拽文件到此处/i).parentElement!;
     fireEvent.drop(dropZone, {
       dataTransfer: {
@@ -222,7 +222,7 @@ describe('MatchDataImportDialog', () => {
 
   it('calls onClose when cancel button is clicked', () => {
     render(<MatchDataImportDialog {...defaultProps} />);
-    
+
     const cancelButton = screen.getByText('取消');
     fireEvent.click(cancelButton);
 
@@ -231,12 +231,12 @@ describe('MatchDataImportDialog', () => {
 
   it('handles drag over and drag leave events', () => {
     render(<MatchDataImportDialog {...defaultProps} />);
-    
+
     const dropZone = screen.getByText(/拖拽文件到此处/i).parentElement!;
-    
+
     fireEvent.dragOver(dropZone);
     expect(dropZone).toHaveClass('border-blue-500');
-    
+
     fireEvent.dragLeave(dropZone);
     expect(dropZone).toHaveClass('border-gray-600');
   });

@@ -1,6 +1,5 @@
-import { ImportTeamDto } from '../dto/import';
-import { ImportErrorDto } from '../dto/import';
-import { parsePosition, parseLevel, REVERSE_POSITION_MAP } from './excel.util';
+import { ImportTeamDto, ImportErrorDto } from '../dto/import';
+import { REVERSE_POSITION_MAP } from './excel.util';
 import { validateChampionPool } from './champion-map.util';
 
 export interface ValidationResult {
@@ -18,7 +17,6 @@ const MIN_ROWS = 4; // 最少 1 支队伍×5 行 + 3 行表头 = 8 行，但允�
 const MAX_ROWS = 83; // 最多 16 支队伍×5 行 + 3 行表头 = 83 行
 const RATING_MIN = 0;
 const RATING_MAX = 100;
-const MAX_CHAMPIONS = 5;
 
 const FIELD_NAME_MAP: Record<string, string> = {
   teamName: '战队名称',

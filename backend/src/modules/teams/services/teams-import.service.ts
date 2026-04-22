@@ -1,18 +1,16 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import * as ExcelJS from 'exceljs';
 import * as fs from 'fs';
 import * as path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import { DatabaseService } from '../../../database/database.service';
 import { CacheService } from '../../../cache/cache.service';
-import { loadChampionMap, parseChampionPool } from '../utils/champion-map.util';
+import { loadChampionMap } from '../utils/champion-map.util';
 import {
   parseExcel,
   getExcelRowCount,
   validateExcelHeaders,
-  parsePosition,
   parseLiveUrl,
-  parseLevel,
 } from '../utils/excel.util';
 import { validateImportData } from '../utils/validate-import.util';
 import { ImportTeamDto, ImportResultDto, ImportErrorDto } from '../dto/import';

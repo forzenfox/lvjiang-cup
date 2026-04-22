@@ -4,9 +4,11 @@ import { AlertTriangle } from 'lucide-react';
 import { ZIndexLayers } from '../../constants/zIndex';
 
 interface ConfirmDialogProps {
-  isOpen: boolean;
+  open?: boolean;
+  isOpen?: boolean;
   title?: string;
-  message: string;
+  description?: string;
+  message?: string;
   confirmText?: string;
   cancelText?: string;
   onConfirm: () => void;
@@ -14,15 +16,20 @@ interface ConfirmDialogProps {
 }
 
 export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
+  open,
   isOpen,
   title = '确认操作',
+  description,
   message,
   confirmText = '确定',
   cancelText = '取消',
   onConfirm,
   onCancel,
 }) => {
-  if (!isOpen) return null;
+  const isDialogOpen = open ?? isOpen ?? false;
+  if (!isDialogOpen) return null;
+
+  const content = description || message || '';
 
   return (
     <div
@@ -46,7 +53,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
 
         {/* 消息内容 */}
         <div className="px-6 py-4">
-          <p className="text-gray-300 leading-relaxed">{message}</p>
+          <p className="text-gray-300 leading-relaxed">{content}</p>
         </div>
 
         {/* 按钮区域 */}

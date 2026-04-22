@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Match, Team, MatchStatus } from '@/types';
 import Modal from '@/components/ui/Modal';
 import { SWISS_THEME } from '@/constants/swissTheme';
+import { BarChart3 } from 'lucide-react';
+import { checkMatchDataExists } from '@/api/matchData';
 
 interface MatchDetailModalProps {
   visible: boolean;
@@ -94,6 +96,26 @@ const TeamLogo: React.FC<{ team?: Team; size?: number }> = ({ team, size = 48 })
 };
 
 const MatchDetailModal: React.FC<MatchDetailModalProps> = ({ visible, onClose, match, teams }) => {
+  const [hasMatchData, setHasMatchData] = useState(false);
+  const [checkingMatchData, setCheckingMatchData] = useState(false);
+
+  useEffect(() => {
+    if (visible && match && match.status === 'finished') {
+      setCheckingMatchData(true);
+      checkMatchDataExists(match.id)
+        .then(result => {
+          setHasMatchData(result.hasData);
+          setCheckingMatchData(false);
+        })
+        .catch(() => {
+          setHasMatchData(false);
+          setCheckingMatchData(false);
+        });
+    } else {
+      setHasMatchData(false);
+    }
+  }, [visible, match]);
+
   if (!match) return null;
 
   const teamA = teams.find(t => t.id === match.teamAId);
@@ -314,6 +336,22 @@ const MatchDetailModal: React.FC<MatchDetailModalProps> = ({ visible, onClose, m
               </span>
             </div>
           </div>
+        )}
+
+        {/* 对战数据按钮 */}
+        {hasMatchData && !checkingMatchData && (
+          <button
+            onClick={() => window.open(`/match/${match.id}/games`, '_blank')}
+            className="w-full h-11 mt-4 flex items-center justify-center gap-2
+                       bg-gradient-to-r from-yellow-400 to-yellow-600
+                       text-[#1E3A8A] font-bold text-base rounded-lg
+                       hover:shadow-[0_0_15px_rgba(250,204,21,0.5)]
+                       hover:brightness-110 active:scale-[0.98]
+                       transition-all duration-200 cursor-pointer"
+          >
+            <BarChart3 className="w-5 h-5" />
+            对战数据
+          </button>
         )}
       </div>
     </Modal>

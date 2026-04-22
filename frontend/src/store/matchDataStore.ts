@@ -1,9 +1,5 @@
 import { create } from 'zustand';
-import {
-  getMatchGameData,
-  getMatchSeries,
-  checkMatchDataExists,
-} from '@/api/matchData';
+import { getMatchGameData, getMatchSeries, checkMatchDataExists } from '@/api/matchData';
 import type { MatchGameData, MatchSeriesInfo } from '@/types/matchData';
 
 /**
@@ -57,7 +53,7 @@ const initialState = {
 /**
  * 对战数据状态管理
  */
-export const useMatchDataStore = create<MatchDataState>((set) => ({
+export const useMatchDataStore = create<MatchDataState>(set => ({
   ...initialState,
 
   /**
@@ -77,8 +73,7 @@ export const useMatchDataStore = create<MatchDataState>((set) => ({
         error: null,
       });
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : '获取对战数据失败';
+      const errorMessage = error instanceof Error ? error.message : '获取对战数据失败';
       set({
         gameData: null,
         loading: false,
@@ -103,8 +98,7 @@ export const useMatchDataStore = create<MatchDataState>((set) => ({
         error: null,
       });
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : '获取系列赛信息失败';
+      const errorMessage = error instanceof Error ? error.message : '获取系列赛信息失败';
       set({
         seriesInfo: null,
         loading: false,
@@ -128,8 +122,7 @@ export const useMatchDataStore = create<MatchDataState>((set) => ({
         error: null,
       });
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : '检查数据存在性失败';
+      const errorMessage = error instanceof Error ? error.message : '检查数据存在性失败';
       set({
         hasData: false,
         loading: false,
@@ -164,21 +157,21 @@ export const useMatchDataStore = create<MatchDataState>((set) => ({
   preloadAdjacentGame: (matchId: string, currentGame: number, maxGames: number) => {
     setTimeout(() => {
       const adjacentGames: number[] = [];
-      
+
       // 预加载前一局
       if (currentGame > 1) {
         adjacentGames.push(currentGame - 1);
       }
-      
+
       // 预加载后一局
       if (currentGame < maxGames) {
         adjacentGames.push(currentGame + 1);
       }
-      
+
       // 异步预加载，不阻塞主线程
-      adjacentGames.forEach((gameNumber) => {
+      adjacentGames.forEach(gameNumber => {
         getMatchGameData(matchId, gameNumber)
-          .then((data) => {
+          .then(() => {
             // 预加载数据存入缓存（通过浏览器缓存或zustand内部缓存）
             // 这里不更新state，仅利用API层缓存
           })

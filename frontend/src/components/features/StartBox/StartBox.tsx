@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { ZIndexLayers } from '@/constants/zIndex';
-import { COVER_BACKGROUNDS, ANIMATION_CONFIG } from './constants';
+import { COVER_IMAGES, ANIMATION_CONFIG } from './constants';
 import { BackgroundCarousel } from './BackgroundCarousel';
 import { ScrollTip } from './ScrollTip';
 import { useIsMobile } from '@/hooks/useMediaQuery';
@@ -14,7 +14,6 @@ interface StartBoxProps {
 export const StartBox: React.FC<StartBoxProps> = ({ onExit }) => {
   const [isVisible, setIsVisible] = useState(true);
   const [isExiting, setIsExiting] = useState(false);
-  const [hasImageError, setHasImageError] = useState(false);
   const isMobile = useIsMobile();
 
   const triggerExit = useCallback(() => {
@@ -71,9 +70,9 @@ export const StartBox: React.FC<StartBoxProps> = ({ onExit }) => {
     };
   }, [isVisible, isExiting, triggerExit]);
 
-  const backgrounds = isMobile ? COVER_BACKGROUNDS.mobile : COVER_BACKGROUNDS.pc;
+  const backgrounds = isMobile ? COVER_IMAGES.mobile : COVER_IMAGES.pc;
 
-  if (!isVisible || !backgrounds.length || hasImageError) return null;
+  if (!isVisible || !backgrounds.length) return null;
 
   return (
     <motion.div
@@ -84,8 +83,8 @@ export const StartBox: React.FC<StartBoxProps> = ({ onExit }) => {
     >
       <BackgroundCarousel
         isExiting={isExiting}
-        isMobile={isMobile}
-        onError={() => setHasImageError(true)}
+        onError={() => setIsVisible(false)}
+        backgrounds={backgrounds}
       />
       <ScrollTip isExiting={isExiting} />
     </motion.div>

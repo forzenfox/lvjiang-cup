@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { DatabaseService } from '../../database/database.service';
 import { CacheService } from '../../cache/cache.service';
+import { BaseCachedService } from '../../common/services/base-cached.service';
 import { CreateTeamDto } from './dto/create-team.dto';
 import { UpdateTeamDto } from './dto/update-team.dto';
 import { CreateMemberDto } from './dto/create-member.dto';
@@ -35,29 +36,25 @@ export interface Team {
 }
 
 @Injectable()
-export class TeamsService {
-  private readonly logger = new Logger(TeamsService.name);
-  private readonly CACHE_KEY_ALL = 'teams:all';
-  private readonly CACHE_KEY_PREFIX = 'team:';
+export class TeamsService extends BaseCachedService<Team, string> {
+  private readonly memberLogger = new Logger(TeamsService.name);
 
-  constructor(
-    private databaseService: DatabaseService,
-    private cacheService: CacheService,
-  ) {}
+  constructor(databaseService: DatabaseService, cacheService: CacheService) {
+    super(databaseService, cacheService, 'TeamsService');
+  }
 
-  async findAll(): Promise<Team[]> {
-    const cached = this.cacheService.get<Team[]>(this.CACHE_KEY_ALL);
-    if (cached) {
-      return cached;
-    }
+  protected getCachePrefix(): string {
+    return 'teams';
+  }
 
+  protected async findAllFromDb(): Promise<Team[]> {
     const teams = await this.databaseService.all<any>(
       'SELECT * FROM teams ORDER BY created_at DESC',
     );
 
     const members = await this.databaseService.all<any>('SELECT * FROM team_members');
 
-    const result: Team[] = teams.map((team) => ({
+    return teams.map((team) => ({
       id: team.id,
       name: team.name,
       logo: team.logo,
@@ -83,24 +80,13 @@ export class TeamsService {
           level: m.level,
         })),
     }));
-
-    this.cacheService.set(this.CACHE_KEY_ALL, result);
-
-    return result;
   }
 
-  async findOne(id: string): Promise<Team> {
-    const cacheKey = `${this.CACHE_KEY_PREFIX}${id}`;
-
-    const cached = this.cacheService.get<Team>(cacheKey);
-    if (cached) {
-      return cached;
-    }
-
+  protected async findOneFromDb(id: string): Promise<Team | undefined> {
     const team = await this.databaseService.get<any>('SELECT * FROM teams WHERE id = ?', [id]);
 
     if (!team) {
-      throw new NotFoundException(`Team with id ${id} not found`);
+      return undefined;
     }
 
     const members = await this.databaseService.all<any>(
@@ -108,7 +94,7 @@ export class TeamsService {
       [id],
     );
 
-    const result: Team = {
+    return {
       id: team.id,
       name: team.name,
       logo: team.logo,
@@ -132,10 +118,18 @@ export class TeamsService {
         level: m.level,
       })),
     };
+  }
 
-    this.cacheService.set(cacheKey, result);
+  async findAll(): Promise<Team[]> {
+    return this.getOrSetAll();
+  }
 
-    return result;
+  async findOne(id: string): Promise<Team> {
+    try {
+      return await this.getOrSetOne(id);
+    } catch (error) {
+      throw new NotFoundException(`Team with id ${id} not found`);
+    }
   }
 
   async create(createTeamDto: CreateTeamDto): Promise<Team> {
@@ -163,12 +157,12 @@ export class TeamsService {
       { pos: 'SUPPORT', name: '辅助' },
     ];
 
-    this.logger.log(`Creating 5 default members for team ${teamId}`);
+    this.memberLogger.log(`Creating 5 default members for team ${teamId}`);
 
     for (let i = 0; i < defaultPositions.length; i++) {
       const { pos, name } = defaultPositions[i];
       const memberId = uuidv4(); // 队员ID也使用UUID
-      this.logger.log(`Creating member ${memberId} with nickname ${name}`);
+      this.memberLogger.log(`Creating member ${memberId} with nickname ${name}`);
 
       await this.databaseService.run(
         `INSERT INTO team_members (id, nickname, position, team_id, rating, is_captain, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`,
@@ -182,12 +176,12 @@ export class TeamsService {
         ],
       );
 
-      this.logger.log(`Member ${memberId} created successfully`);
+      this.memberLogger.log(`Member ${memberId} created successfully`);
     }
 
-    this.logger.log(`Team created: ${teamId}`);
+    this.memberLogger.log(`Team created: ${teamId}`);
 
-    this.cacheService.del(this.CACHE_KEY_ALL);
+    this.clearAllCache();
 
     return this.findOne(teamId);
   }
@@ -256,10 +250,9 @@ export class TeamsService {
       }
     }
 
-    this.logger.log(`Team updated: ${id}`);
+    this.memberLogger.log(`Team updated: ${id}`);
 
-    this.cacheService.del(this.CACHE_KEY_ALL);
-    this.cacheService.del(`${this.CACHE_KEY_PREFIX}${id}`);
+    this.clearRelatedCache(id);
 
     return this.findOne(id);
   }
@@ -272,10 +265,9 @@ export class TeamsService {
 
     await this.databaseService.run('DELETE FROM teams WHERE id = ?', [id]);
 
-    this.logger.log(`Team deleted: ${id}`);
+    this.memberLogger.log(`Team deleted: ${id}`);
 
-    this.cacheService.del(this.CACHE_KEY_ALL);
-    this.cacheService.del(`${this.CACHE_KEY_PREFIX}${id}`);
+    this.clearRelatedCache(id);
   }
 
   // ==================== 队员管理方法 ====================
@@ -351,11 +343,10 @@ export class TeamsService {
       ],
     );
 
-    this.logger.log(`Member created: ${memberId} for team ${teamId}`);
+    this.memberLogger.log(`Member created: ${memberId} for team ${teamId}`);
 
     // 清除战队缓存
-    this.cacheService.del(this.CACHE_KEY_ALL);
-    this.cacheService.del(`${this.CACHE_KEY_PREFIX}${teamId}`);
+    this.clearRelatedCache(teamId);
 
     return this.findMemberById(memberId);
   }
@@ -441,11 +432,10 @@ export class TeamsService {
       );
     }
 
-    this.logger.log(`Member updated: ${id}`);
+    this.memberLogger.log(`Member updated: ${id}`);
 
     // 清除缓存
-    this.cacheService.del(this.CACHE_KEY_ALL);
-    this.cacheService.del(`${this.CACHE_KEY_PREFIX}${existing.team_id}`);
+    this.clearRelatedCache(existing.team_id);
 
     return this.findMemberById(id);
   }
@@ -464,11 +454,10 @@ export class TeamsService {
 
     await this.databaseService.run('DELETE FROM team_members WHERE id = ?', [id]);
 
-    this.logger.log(`Member deleted: ${id}`);
+    this.memberLogger.log(`Member deleted: ${id}`);
 
     // 清除缓存
-    this.cacheService.del(this.CACHE_KEY_ALL);
-    this.cacheService.del(`${this.CACHE_KEY_PREFIX}${existing.team_id}`);
+    this.clearRelatedCache(existing.team_id);
   }
 
   /**
@@ -500,11 +489,10 @@ export class TeamsService {
       [memberId],
     );
 
-    this.logger.log(`Captain updated: ${memberId} for team ${teamId}`);
+    this.memberLogger.log(`Captain updated: ${memberId} for team ${teamId}`);
 
     // 清除缓存
-    this.cacheService.del(this.CACHE_KEY_ALL);
-    this.cacheService.del(`${this.CACHE_KEY_PREFIX}${teamId}`);
+    this.clearRelatedCache(teamId);
 
     return this.findMemberById(memberId);
   }

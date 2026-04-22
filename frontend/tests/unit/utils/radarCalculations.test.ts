@@ -137,12 +137,7 @@ describe('雷达图计算工具函数', () => {
   describe('calculateRadarDimension', () => {
     describe('TOP 位置', () => {
       it('应该正确计算 TOP 位置的雷达维度', () => {
-        const dimensions = calculateRadarDimension(
-          mockPlayer,
-          'TOP',
-          mockTeamStats,
-          '32:45',
-        );
+        const dimensions = calculateRadarDimension(mockPlayer, 'TOP', mockTeamStats, '32:45');
 
         expect(dimensions).toHaveLength(6);
 
@@ -163,7 +158,7 @@ describe('雷达图计算工具函数', () => {
           playerWithNoDeaths,
           'TOP',
           mockTeamStats,
-          '30:00',
+          '30:00'
         );
 
         // KDA = kills + assists = 5 + 3 = 8
@@ -173,12 +168,7 @@ describe('雷达图计算工具函数', () => {
 
     describe('MID/ADC 位置', () => {
       it('应该正确计算 MID 位置的雷达维度', () => {
-        const dimensions = calculateRadarDimension(
-          mockPlayer,
-          'MID',
-          mockTeamStats,
-          '30:00',
-        );
+        const dimensions = calculateRadarDimension(mockPlayer, 'MID', mockTeamStats, '30:00');
 
         expect(dimensions).toHaveLength(6);
 
@@ -190,12 +180,7 @@ describe('雷达图计算工具函数', () => {
       });
 
       it('应该正确计算 ADC 位置的雷达维度', () => {
-        const dimensions = calculateRadarDimension(
-          mockPlayer,
-          'ADC',
-          mockTeamStats,
-          '30:00',
-        );
+        const dimensions = calculateRadarDimension(mockPlayer, 'ADC', mockTeamStats, '30:00');
 
         expect(dimensions).toHaveLength(6);
         expect(dimensions[2]).toBeCloseTo(400, 1);
@@ -204,12 +189,7 @@ describe('雷达图计算工具函数', () => {
 
     describe('JUNGLE 位置', () => {
       it('应该正确计算 JUNGLE 位置的雷达维度', () => {
-        const dimensions = calculateRadarDimension(
-          mockPlayer,
-          'JUNGLE',
-          mockTeamStats,
-          '30:00',
-        );
+        const dimensions = calculateRadarDimension(mockPlayer, 'JUNGLE', mockTeamStats, '30:00');
 
         expect(dimensions).toHaveLength(6);
 
@@ -223,12 +203,7 @@ describe('雷达图计算工具函数', () => {
 
     describe('SUPPORT 位置', () => {
       it('应该正确计算 SUPPORT 位置的雷达维度', () => {
-        const dimensions = calculateRadarDimension(
-          mockPlayer,
-          'SUPPORT',
-          mockTeamStats,
-          '30:00',
-        );
+        const dimensions = calculateRadarDimension(mockPlayer, 'SUPPORT', mockTeamStats, '30:00');
 
         expect(dimensions).toHaveLength(6);
 
@@ -248,7 +223,7 @@ describe('雷达图计算工具函数', () => {
           playerWithNoDeaths,
           'SUPPORT',
           mockTeamStats,
-          '30:00',
+          '30:00'
         );
 
         // 每死承伤 = damageTaken (当 deaths === 0)
@@ -258,24 +233,14 @@ describe('雷达图计算工具函数', () => {
 
     describe('边界情况', () => {
       it('应该处理游戏时长为 0 的情况', () => {
-        const dimensions = calculateRadarDimension(
-          mockPlayer,
-          'TOP',
-          mockTeamStats,
-          '00:00',
-        );
+        const dimensions = calculateRadarDimension(mockPlayer, 'TOP', mockTeamStats, '00:00');
 
         // 游戏时长为 0 时，分均数据应该为 0
         expect(dimensions[0]).toBe(0);
       });
 
       it('应该处理无效游戏时长', () => {
-        const dimensions = calculateRadarDimension(
-          mockPlayer,
-          'TOP',
-          mockTeamStats,
-          'invalid',
-        );
+        const dimensions = calculateRadarDimension(mockPlayer, 'TOP', mockTeamStats, 'invalid');
 
         expect(dimensions).toHaveLength(6);
       });

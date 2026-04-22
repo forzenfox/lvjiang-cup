@@ -1,6 +1,7 @@
 import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
 import { DatabaseService } from '../../database/database.service';
 import { CacheService } from '../../cache/cache.service';
+import { BaseCachedService } from '../../common/services/base-cached.service';
 import { UpdateVideoDto } from './dto/update-video.dto';
 import { CreateVideoDto } from './dto/create-video.dto';
 import { VideoPaginationDto, PaginatedResult } from './dto/pagination.dto';
@@ -43,17 +44,18 @@ interface BilibiliMeta {
 }
 
 @Injectable()
-export class VideosService {
-  private readonly logger = new Logger(VideosService.name);
-  private readonly CACHE_KEY_ALL = 'videos:all';
-  private readonly CACHE_KEY_LIST = 'videos:list';
+export class VideosService extends BaseCachedService<Video, string> {
+  private readonly videoLogger = new Logger(VideosService.name);
   private readonly MAX_VIDEOS = 10;
   private readonly BILIBILI_API_BASE = 'https://api.bilibili.com/x/web-interface/view';
 
-  constructor(
-    private databaseService: DatabaseService,
-    private cacheService: CacheService,
-  ) {}
+  constructor(databaseService: DatabaseService, cacheService: CacheService) {
+    super(databaseService, cacheService, 'VideosService');
+  }
+
+  protected getCachePrefix(): string {
+    return 'videos';
+  }
 
   private httpGet(url: string): Promise<{ data: string; statusCode: number }> {
     return new Promise((resolve, reject) => {
@@ -101,7 +103,7 @@ export class VideosService {
       if (error instanceof BadRequestException) {
         throw error;
       }
-      this.logger.error(`Failed to fetch Bilibili meta for ${bvid}: ${error.message}`);
+      this.videoLogger.error(`Failed to fetch Bilibili meta for ${bvid}: ${error.message}`);
       throw new BadRequestException(`获取B站视频信息失败: ${error.message}`);
     }
   }
@@ -156,7 +158,7 @@ export class VideosService {
 
     const existing = await this.databaseService.findFileByHash(hash);
     if (existing) {
-      this.logger.log(
+      this.videoLogger.log(
         `Cover already exists for ${bvid}, reusing: ${existing.file_path} (hash: ${hash})`,
       );
       return path.basename(existing.file_path);
@@ -168,7 +170,7 @@ export class VideosService {
 
     await this.databaseService.recordFileHash(hash, coverPath, 'cover');
 
-    this.logger.log(`Cover downloaded for ${bvid}: ${filename} (hash: ${hash})`);
+    this.videoLogger.log(`Cover downloaded for ${bvid}: ${filename} (hash: ${hash})`);
     return filename;
   }
 
@@ -180,10 +182,10 @@ export class VideosService {
       if (fs.existsSync(coverPath)) {
         fs.unlinkSync(coverPath);
         await this.databaseService.deleteFileHashByPath(coverPath);
-        this.logger.log(`Cover deleted: ${coverFilename}`);
+        this.videoLogger.log(`Cover deleted: ${coverFilename}`);
       }
     } catch (error) {
-      this.logger.error(`Failed to delete cover ${coverFilename}: ${error.message}`);
+      this.videoLogger.error(`Failed to delete cover ${coverFilename}: ${error.message}`);
     }
   }
 
@@ -236,22 +238,35 @@ export class VideosService {
     };
   }
 
+  protected async findAllFromDb(): Promise<Video[]> {
+    const results = await this.databaseService.all<any>(
+      'SELECT * FROM videos WHERE status = \'enabled\' ORDER BY "order" ASC',
+    );
+    return results.map((row) => this.rowToVideo(row));
+  }
+
+  protected async findOneFromDb(id: string): Promise<Video | undefined> {
+    const result = await this.databaseService.get<any>('SELECT * FROM videos WHERE id = ?', [id]);
+    return result ? this.rowToVideo(result) : undefined;
+  }
+
   async findAll(includeDisabled = false): Promise<Video[]> {
-    const cacheKey = includeDisabled ? `${this.CACHE_KEY_ALL}:all` : this.CACHE_KEY_LIST;
-    const cached = this.cacheService.get<Video[]>(cacheKey);
-    if (cached) {
-      return cached;
+    if (includeDisabled) {
+      const cacheKey = `${this.getAllCacheKey()}:all`;
+      const cached = this.cacheService.get<Video[]>(cacheKey);
+      if (cached) {
+        return cached;
+      }
+
+      const results = await this.databaseService.all<any>(
+        'SELECT * FROM videos ORDER BY "order" ASC',
+      );
+      const videos = results.map((row) => this.rowToVideo(row));
+      this.cacheService.set(cacheKey, videos);
+      return videos;
     }
 
-    const sql = includeDisabled
-      ? 'SELECT * FROM videos ORDER BY "order" ASC'
-      : 'SELECT * FROM videos WHERE status = \'enabled\' ORDER BY "order" ASC';
-
-    const results = await this.databaseService.all<any>(sql);
-    const videos = results.map((row) => this.rowToVideo(row));
-
-    this.cacheService.set(cacheKey, videos);
-    return videos;
+    return this.getOrSetAll();
   }
 
   async findAllAdmin(): Promise<Video[]> {
@@ -307,13 +322,11 @@ export class VideosService {
   }
 
   async findById(id: string): Promise<Video> {
-    const result = await this.databaseService.get<any>('SELECT * FROM videos WHERE id = ?', [id]);
-
-    if (!result) {
+    try {
+      return await this.getOrSetOne(id);
+    } catch (error) {
       throw new NotFoundException(`视频不存在: ${id}`);
     }
-
-    return this.rowToVideo(result);
   }
 
   async create(createVideoDto: CreateVideoDto, createdBy?: string): Promise<Video> {
@@ -364,9 +377,9 @@ export class VideosService {
       ],
     );
 
-    this.logger.log(`Video created with id: ${id}, bvid: ${bvid}, order: ${newOrder}`);
+    this.videoLogger.log(`Video created with id: ${id}, bvid: ${bvid}, order: ${newOrder}`);
 
-    this.clearCache();
+    this.clearAllVideoCache();
 
     return this.findById(id);
   }
@@ -452,10 +465,10 @@ export class VideosService {
         this.deleteCover(oldCoverFilename);
       }
 
-      this.logger.log(`Video updated: ${id}`);
+      this.videoLogger.log(`Video updated: ${id}`);
     }
 
-    this.clearCache();
+    this.clearAllVideoCache();
 
     return this.findById(id);
   }
@@ -474,9 +487,9 @@ export class VideosService {
       this.deleteCover(coverFilename);
     }
 
-    this.logger.log(`Video deleted: ${id}`);
+    this.videoLogger.log(`Video deleted: ${id}`);
 
-    this.clearCache();
+    this.clearAllVideoCache();
   }
 
   async sort(sortItems: SortItem[]): Promise<Video[]> {
@@ -487,16 +500,15 @@ export class VideosService {
       );
     }
 
-    this.logger.log(`Videos sorted: ${sortItems.length} items`);
+    this.videoLogger.log(`Videos sorted: ${sortItems.length} items`);
 
-    this.clearCache();
+    this.clearAllVideoCache();
 
     return this.findAllAdmin();
   }
 
-  private clearCache(): void {
-    this.cacheService.del(this.CACHE_KEY_ALL);
-    this.cacheService.del(`${this.CACHE_KEY_ALL}:all`);
-    this.cacheService.del(this.CACHE_KEY_LIST);
+  private clearAllVideoCache(): void {
+    this.clearAllCache();
+    this.cacheService.del(`${this.getAllCacheKey()}:all`);
   }
 }

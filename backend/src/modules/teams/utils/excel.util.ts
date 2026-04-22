@@ -1,5 +1,4 @@
 import * as ExcelJS from 'exceljs';
-import { parseChampionPool } from './champion-map.util';
 import { ImportTeamDto, ImportMemberDto } from '../dto/import';
 
 export interface ParsedRow {

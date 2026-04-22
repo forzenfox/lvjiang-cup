@@ -1,0 +1,870 @@
+import {
+  parseMatchDataExcel,
+  validatePlayerStats,
+  isValidDurationFormat,
+  isValidPosition,
+  PlayerStatsData,
+} from '../../src/modules/utils/match-excel.util';
+import * as xlsx from 'xlsx';
+
+describe('MatchExcelUtil', () => {
+  describe('parseMatchDataExcel', () => {
+    it('应正确解析包含完整16列表头格式的选手数据（第7行有效数据）', () => {
+      const aoa = [
+        ['红方战队名', '蓝方战队名', '局数', '比赛时间', '游戏时长', '获胜方'],
+        ['BLG', 'WBG', 1, '2026-04-16 14:00', '32:45', 'red'],
+        [
+          '阵营',
+          '战队名',
+          '总击杀',
+          '总死亡',
+          '总助攻',
+          '总经济',
+          '推塔数',
+          '控龙数',
+          '控 Baron 数',
+          '一血',
+        ],
+        ['red', 'BLG', 25, 18, 47, 65000, 9, 3, 1, 'yes'],
+        ['blue', 'WBG', 18, 25, 35, 58000, 3, 1, 0, 'no'],
+        [
+          '阵营',
+          '位置',
+          '选手昵称',
+          '英雄名',
+          '击杀',
+          '死亡',
+          '助攻',
+          '补刀',
+          '经济',
+          '伤害',
+          '承伤',
+          '等级',
+          '视野得分',
+          '插眼数',
+          '排眼数',
+          '是否 MVP',
+        ],
+        ['red', 'TOP', 'Bin', '格温', 2, 2, 11, 349, 17315, 28500, 32000, 18, 45, 12, 5, 'yes'],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+        ],
+      ];
+
+      const sheet = xlsx.utils.aoa_to_sheet(aoa);
+      const workbook = { SheetNames: ['Sheet1'], Sheets: { Sheet1: sheet } };
+      const buffer = xlsx.write(workbook, { type: 'buffer', bookType: 'xlsx' });
+
+      const result = parseMatchDataExcel(buffer);
+
+      expect(result.playerStats).toHaveLength(10);
+      expect(result.playerStats[0].mvp).toBe(true);
+      expect(result.playerStats[0].wardsCleared).toBe(5);
+      expect(result.playerStats[0].side).toBe('red');
+      expect(result.playerStats[0].position).toBe('TOP');
+      expect(result.playerStats[0].nickname).toBe('Bin');
+      expect(result.playerStats[1].side).toBe('');
+    });
+
+    it('应正确解析MVP为no的情况', () => {
+      const aoa = [
+        ['红方战队名', '蓝方战队名', '局数', '比赛时间', '游戏时长', '获胜方'],
+        ['BLG', 'WBG', 1, '2026-04-16 14:00', '32:45', 'red'],
+        [
+          '阵营',
+          '战队名',
+          '总击杀',
+          '总死亡',
+          '总助攻',
+          '总经济',
+          '推塔数',
+          '控龙数',
+          '控 Baron 数',
+          '一血',
+        ],
+        ['red', 'BLG', 25, 18, 47, 65000, 9, 3, 1, 'yes'],
+        ['blue', 'WBG', 18, 25, 35, 58000, 3, 1, 0, 'no'],
+        [
+          '阵营',
+          '位置',
+          '选手昵称',
+          '英雄名',
+          '击杀',
+          '死亡',
+          '助攻',
+          '补刀',
+          '经济',
+          '伤害',
+          '承伤',
+          '等级',
+          '视野得分',
+          '插眼数',
+          '排眼数',
+          '是否 MVP',
+        ],
+        ['blue', 'ADC', 'Viper', '艾希', 7, 3, 10, 368, 19385, 32000, 21000, 18, 35, 4, 2, 'no'],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+        ],
+      ];
+
+      const sheet = xlsx.utils.aoa_to_sheet(aoa);
+      const workbook = { SheetNames: ['Sheet1'], Sheets: { Sheet1: sheet } };
+      const buffer = xlsx.write(workbook, { type: 'buffer', bookType: 'xlsx' });
+
+      const result = parseMatchDataExcel(buffer);
+
+      expect(result.playerStats[0].mvp).toBe(false);
+      expect(result.playerStats[0].wardsCleared).toBe(2);
+      expect(result.playerStats[0].side).toBe('blue');
+      expect(result.playerStats[0].position).toBe('ADC');
+    });
+
+    it('应正确解析包含10名选手的完整Excel文件', () => {
+      const redTeamPlayers = [
+        ['red', 'TOP', 'Bin', '格温', 2, 2, 11, 349, 17315, 28500, 32000, 18, 45, 12, 5, 'no'],
+        ['red', 'JUNGLE', 'Xun', '潘森', 4, 7, 10, 261, 14855, 22000, 28000, 16, 38, 8, 4, 'no'],
+        [
+          'red',
+          'MID',
+          'Knight',
+          '奎桑提',
+          13,
+          0,
+          11,
+          339,
+          19592,
+          35000,
+          18000,
+          18,
+          42,
+          6,
+          3,
+          'yes',
+        ],
+        ['red', 'ADC', 'Viper', '艾希', 7, 3, 10, 368, 19385, 32000, 21000, 18, 35, 4, 2, 'no'],
+        ['red', 'SUPPORT', 'ON', '萨勒芬妮', 0, 3, 22, 47, 11580, 8500, 15000, 15, 78, 18, 6, 'no'],
+      ];
+
+      const blueTeamPlayers = [
+        ['blue', 'TOP', 'TheShy', '奎桑提', 1, 3, 8, 289, 15200, 21000, 35000, 17, 42, 10, 5, 'no'],
+        ['blue', 'JUNGLE', 'Tian', '蔚', 3, 5, 9, 198, 12500, 18000, 26000, 15, 36, 9, 3, 'no'],
+        ['blue', 'MID', 'Rookie', '阿狸', 5, 6, 7, 312, 16800, 25000, 19000, 17, 38, 5, 2, 'no'],
+        ['blue', 'ADC', 'Hope', '厄斐琉斯', 6, 5, 6, 352, 17500, 28000, 22000, 18, 32, 3, 1, 'no'],
+        ['blue', 'SUPPORT', 'Crisp', '烈娜塔', 3, 6, 5, 38, 9800, 7500, 18000, 14, 82, 20, 8, 'no'],
+      ];
+
+      const emptyRows = Array(9).fill([
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+      ]);
+
+      const aoa = [
+        ['红方战队名', '蓝方战队名', '局数', '比赛时间', '游戏时长', '获胜方'],
+        ['BLG', 'WBG', 1, '2026-04-16 14:00', '32:45', 'red'],
+        [
+          '阵营',
+          '战队名',
+          '总击杀',
+          '总死亡',
+          '总助攻',
+          '总经济',
+          '推塔数',
+          '控龙数',
+          '控 Baron 数',
+          '一血',
+        ],
+        ['red', 'BLG', 25, 18, 47, 65000, 9, 3, 1, 'yes'],
+        ['blue', 'WBG', 18, 25, 35, 58000, 3, 1, 0, 'no'],
+        [
+          '阵营',
+          '位置',
+          '选手昵称',
+          '英雄名',
+          '击杀',
+          '死亡',
+          '助攻',
+          '补刀',
+          '经济',
+          '伤害',
+          '承伤',
+          '等级',
+          '视野得分',
+          '插眼数',
+          '排眼数',
+          '是否 MVP',
+        ],
+        ...redTeamPlayers,
+        ...blueTeamPlayers,
+        ...emptyRows,
+      ];
+
+      const sheet = xlsx.utils.aoa_to_sheet(aoa);
+      const workbook = { SheetNames: ['Sheet1'], Sheets: { Sheet1: sheet } };
+      const buffer = xlsx.write(workbook, { type: 'buffer', bookType: 'xlsx' });
+
+      const result = parseMatchDataExcel(buffer);
+
+      expect(result.playerStats).toHaveLength(10);
+      expect(result.playerStats[0].mvp).toBe(false);
+      expect(result.playerStats[2].mvp).toBe(true);
+      expect(result.playerStats[2].wardsCleared).toBe(3);
+    });
+
+    it('当MVP列不存在时应返回false（向后兼容15列表格）', () => {
+      const aoa = [
+        ['红方战队名', '蓝方战队名', '局数', '比赛时间', '游戏时长', '获胜方'],
+        ['BLG', 'WBG', 1, '2026-04-16 14:00', '32:45', 'red'],
+        [
+          '阵营',
+          '战队名',
+          '总击杀',
+          '总死亡',
+          '总助攻',
+          '总经济',
+          '推塔数',
+          '控龙数',
+          '控 Baron 数',
+          '一血',
+        ],
+        ['red', 'BLG', 25, 18, 47, 65000, 9, 3, 1, 'yes'],
+        ['blue', 'WBG', 18, 25, 35, 58000, 3, 1, 0, 'no'],
+        [
+          '阵营',
+          '位置',
+          '选手昵称',
+          '英雄名',
+          '击杀',
+          '死亡',
+          '助攻',
+          '补刀',
+          '经济',
+          '伤害',
+          '承伤',
+          '等级',
+          '视野得分',
+          '插眼数',
+          '是否 MVP',
+        ],
+        ['red', 'TOP', 'Bin', '格温', 2, 2, 11, 349, 17315, 28500, 32000, 18, 45, 12, 'no'],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+        ],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+        ],
+      ];
+
+      const sheet = xlsx.utils.aoa_to_sheet(aoa);
+      const workbook = { SheetNames: ['Sheet1'], Sheets: { Sheet1: sheet } };
+      const buffer = xlsx.write(workbook, { type: 'buffer', bookType: 'xlsx' });
+
+      const result = parseMatchDataExcel(buffer);
+
+      expect(result.playerStats[0].mvp).toBe(false);
+    });
+  });
+
+  describe('validatePlayerStats', () => {
+    it('应验证有效的选手数据', () => {
+      const data: PlayerStatsData = {
+        side: 'red',
+        position: 'TOP',
+        nickname: 'Bin',
+        championName: '格温',
+        kills: 2,
+        deaths: 2,
+        assists: 11,
+        cs: 349,
+        gold: 17315,
+        damageDealt: 28500,
+        damageTaken: 32000,
+        level: 18,
+        visionScore: 45,
+        wardsPlaced: 12,
+        wardsCleared: 5,
+        mvp: true,
+      };
+
+      const result = validatePlayerStats(data, 7);
+      expect(result.valid).toBe(true);
+      expect(result.errors).toHaveLength(0);
+    });
+
+    it('应验证排眼数为负数的情况', () => {
+      const data: PlayerStatsData = {
+        side: 'red',
+        position: 'TOP',
+        nickname: 'Bin',
+        championName: '格温',
+        kills: 2,
+        deaths: 2,
+        assists: 11,
+        cs: 349,
+        gold: 17315,
+        damageDealt: 28500,
+        damageTaken: 32000,
+        level: 18,
+        visionScore: 45,
+        wardsPlaced: 12,
+        wardsCleared: -1,
+        mvp: false,
+      };
+
+      const result = validatePlayerStats(data, 7);
+      expect(result.valid).toBe(false);
+      expect(result.errors).toContain('第7行: 排眼数不能为负数');
+    });
+
+    it('应验证位置无效的情况', () => {
+      const data: PlayerStatsData = {
+        side: 'red',
+        position: 'INVALID',
+        nickname: 'Bin',
+        championName: '格温',
+        kills: 2,
+        deaths: 2,
+        assists: 11,
+        cs: 349,
+        gold: 17315,
+        damageDealt: 28500,
+        damageTaken: 32000,
+        level: 18,
+        visionScore: 45,
+        wardsPlaced: 12,
+        wardsCleared: 5,
+        mvp: false,
+      };
+
+      const result = validatePlayerStats(data, 7);
+      expect(result.valid).toBe(false);
+      expect(result.errors.some((e) => e.includes('位置必须是 TOP/JUNGLE/MID/ADC/SUPPORT'))).toBe(
+        true,
+      );
+    });
+  });
+
+  describe('isValidDurationFormat', () => {
+    it('应验证有效的时长格式', () => {
+      expect(isValidDurationFormat('32:45')).toBe(true);
+      expect(isValidDurationFormat('0:00')).toBe(true);
+      expect(isValidDurationFormat('59:59')).toBe(true);
+      expect(isValidDurationFormat('60:00')).toBe(true);
+    });
+
+    it('应拒绝无效的时长格式', () => {
+      expect(isValidDurationFormat('32:45:00')).toBe(false);
+      expect(isValidDurationFormat('abc')).toBe(false);
+      expect(isValidDurationFormat('')).toBe(false);
+      expect(isValidDurationFormat('60:60')).toBe(false);
+    });
+  });
+
+  describe('isValidPosition', () => {
+    it('应验证有效的位置', () => {
+      expect(isValidPosition('TOP')).toBe(true);
+      expect(isValidPosition('JUNGLE')).toBe(true);
+      expect(isValidPosition('MID')).toBe(true);
+      expect(isValidPosition('ADC')).toBe(true);
+      expect(isValidPosition('SUPPORT')).toBe(true);
+    });
+
+    it('应接受小写位置', () => {
+      expect(isValidPosition('top')).toBe(true);
+      expect(isValidPosition('adc')).toBe(true);
+    });
+
+    it('应拒绝无效的位置', () => {
+      expect(isValidPosition('INVALID')).toBe(false);
+      expect(isValidPosition('')).toBe(false);
+    });
+  });
+});

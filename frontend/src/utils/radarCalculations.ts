@@ -1,6 +1,4 @@
-import type { PlayerStat, TeamGameData } from '@/types/matchData';
-import type { PositionType } from '@/types/position';
-import type { RadarDimension } from '@/types/matchData';
+import type { PlayerStat, TeamGameData, PositionType, RadarDimension } from '@/types/matchData';
 
 /**
  * 解析游戏时长字符串 "MM:SS" 为分钟数
@@ -81,29 +79,30 @@ export function getRadarDimensionConfig(position: PositionType): RadarDimension[
 function calculateBaseMetrics(
   player: PlayerStat,
   teamStats: TeamGameData,
-  gameDurationMinutes: number,
+  gameDurationMinutes: number
 ) {
   // 基础计算
   const csPerMin = gameDurationMinutes > 0 ? player.cs / gameDurationMinutes : 0;
-  const damageShare = teamStats.gold > 0
-    ? (player.damageDealt / (teamStats.gold * 1.5)) * 100 // 近似估算伤害占比
-    : 0;
-  const damageTakenShare = teamStats.gold > 0
-    ? (player.damageTaken / (teamStats.gold * 1.2)) * 100 // 近似估算承伤占比
-    : 0;
-  const killParticipation = teamStats.kills > 0
-    ? ((player.kills + player.assists) / teamStats.kills) * 100
-    : 0;
+  const damageShare =
+    teamStats.gold > 0
+      ? (player.damageDealt / (teamStats.gold * 1.5)) * 100 // 近似估算伤害占比
+      : 0;
+  const damageTakenShare =
+    teamStats.gold > 0
+      ? (player.damageTaken / (teamStats.gold * 1.2)) * 100 // 近似估算承伤占比
+      : 0;
+  const killParticipation =
+    teamStats.kills > 0 ? ((player.kills + player.assists) / teamStats.kills) * 100 : 0;
   const damagePerGold = player.gold > 0 ? (player.damageDealt / player.gold) * 100 : 0;
-  const kda = player.deaths === 0
-    ? player.kills + player.assists
-    : (player.kills + player.assists) / player.deaths;
+  const kda =
+    player.deaths === 0
+      ? player.kills + player.assists
+      : (player.kills + player.assists) / player.deaths;
   const goldPerMin = gameDurationMinutes > 0 ? player.gold / gameDurationMinutes : 0;
   const damagePerMin = gameDurationMinutes > 0 ? player.damageDealt / gameDurationMinutes : 0;
   const wardsPerMin = gameDurationMinutes > 0 ? player.wardsPlaced / gameDurationMinutes : 0;
-  const damageTakenPerDeath = player.deaths === 0
-    ? player.damageTaken
-    : player.damageTaken / player.deaths;
+  const damageTakenPerDeath =
+    player.deaths === 0 ? player.damageTaken : player.damageTaken / player.deaths;
 
   return {
     csPerMin,
@@ -127,13 +126,13 @@ export function calculateRadarDimension(
   player: PlayerStat,
   position: PositionType,
   teamStats: TeamGameData,
-  gameDuration: string,
+  gameDuration: string
 ): number[] {
   const gameDurationMinutes = parseGameDuration(gameDuration);
   const metrics = calculateBaseMetrics(player, teamStats, gameDurationMinutes);
   const config = getRadarDimensionConfig(position);
 
-  return config.map((dimension) => {
+  return config.map(dimension => {
     const value = metrics[dimension.key as keyof typeof metrics];
     return typeof value === 'number' ? value : 0;
   });

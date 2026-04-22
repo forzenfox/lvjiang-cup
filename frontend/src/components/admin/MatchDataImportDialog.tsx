@@ -17,11 +17,11 @@ interface MatchDataImportDialogProps {
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const ALLOWED_EXTENSIONS = ['xlsx', 'xls'];
 
-const MatchDataImportDialog: React.FC<MatchDataImportDialogProps> = ({ 
-  open, 
-  onClose, 
+const MatchDataImportDialog: React.FC<MatchDataImportDialogProps> = ({
+  open,
+  onClose,
   onSuccess,
-  matchId 
+  matchId,
 }) => {
   const [file, setFile] = useState<File | null>(null);
   const [dragging, setDragging] = useState(false);
@@ -94,7 +94,7 @@ const MatchDataImportDialog: React.FC<MatchDataImportDialogProps> = ({
       const result = await importMatchData(matchId, file);
       setPreview(result);
       toast.success('数据导入成功，请预览确认', { id: toastId });
-      
+
       // 跟踪导入成功事件
       trackAdminImportSuccess(matchId, result.gameNumber, result.playerCount);
     } catch (err) {
@@ -141,9 +141,7 @@ const MatchDataImportDialog: React.FC<MatchDataImportDialogProps> = ({
         {!preview && (
           <div
             className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-              dragging 
-                ? 'border-blue-500 bg-blue-500/10' 
-                : 'border-gray-600 hover:border-gray-500'
+              dragging ? 'border-blue-500 bg-blue-500/10' : 'border-gray-600 hover:border-gray-500'
             }`}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
@@ -154,12 +152,13 @@ const MatchDataImportDialog: React.FC<MatchDataImportDialogProps> = ({
                 <FileText className="w-8 h-8 text-blue-400" />
                 <div className="text-left">
                   <p className="text-white font-medium">{file.name}</p>
-                  <p className="text-gray-400 text-sm">
-                    {(file.size / 1024 / 1024).toFixed(2)} MB
-                  </p>
+                  <p className="text-gray-400 text-sm">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
                 </div>
-                <button 
-                  onClick={() => { setFile(null); setPreview(null); }} 
+                <button
+                  onClick={() => {
+                    setFile(null);
+                    setPreview(null);
+                  }}
                   className="p-1 hover:bg-white/10 rounded"
                   aria-label="移除文件"
                 >
@@ -181,9 +180,7 @@ const MatchDataImportDialog: React.FC<MatchDataImportDialogProps> = ({
                     />
                   </label>
                 </p>
-                <p className="text-gray-500 text-sm">
-                  支持 .xlsx/.xls 格式，大小不超过 10MB
-                </p>
+                <p className="text-gray-500 text-sm">支持 .xlsx/.xls 格式，大小不超过 10MB</p>
               </>
             )}
           </div>

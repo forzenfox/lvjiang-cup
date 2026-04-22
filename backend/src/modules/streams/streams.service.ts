@@ -1,6 +1,7 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { DatabaseService, RunResult } from '../../database/database.service';
 import { CacheService } from '../../cache/cache.service';
+import { BaseCachedService } from '../../common/services/base-cached.service';
 import { UpdateStreamDto } from './dto/update-stream.dto';
 import { CreateStreamDto } from './dto/create-stream.dto';
 import { Stream } from './entities/stream.entity';
@@ -12,19 +13,53 @@ export interface StreamInfo {
 }
 
 @Injectable()
-export class StreamsService {
-  private readonly logger = new Logger(StreamsService.name);
-  private readonly CACHE_KEY = 'stream:info';
-  private readonly CACHE_KEY_ALL = 'streams:all';
+export class StreamsService extends BaseCachedService<Stream, string> {
+  private readonly streamLogger = new Logger(StreamsService.name);
+  private readonly CACHE_KEY_INFO = 'stream:info';
 
-  constructor(
-    private databaseService: DatabaseService,
-    private cacheService: CacheService,
-  ) {}
+  constructor(databaseService: DatabaseService, cacheService: CacheService) {
+    super(databaseService, cacheService, 'StreamsService');
+  }
+
+  protected getCachePrefix(): string {
+    return 'streams';
+  }
+
+  protected async findAllFromDb(): Promise<Stream[]> {
+    const results = await this.databaseService.all<any>('SELECT * FROM stream_info ORDER BY id');
+
+    return results.map((row) => ({
+      id: String(row.id),
+      title: row.title || '',
+      url: row.url || '',
+      isLive: row.is_live === 1,
+      createdAt: row.created_at || new Date().toISOString(),
+      updatedAt: row.updated_at || new Date().toISOString(),
+    }));
+  }
+
+  protected async findOneFromDb(id: string): Promise<Stream | undefined> {
+    const result = await this.databaseService.get<any>('SELECT * FROM stream_info WHERE id = ?', [
+      id,
+    ]);
+
+    if (!result) {
+      return undefined;
+    }
+
+    return {
+      id: String(result.id),
+      title: result.title || '',
+      url: result.url || '',
+      isLive: result.is_live === 1,
+      createdAt: result.created_at || new Date().toISOString(),
+      updatedAt: result.updated_at || new Date().toISOString(),
+    };
+  }
 
   async findOne(): Promise<StreamInfo> {
     // 尝试从缓存获取
-    const cached = this.cacheService.get<StreamInfo>(this.CACHE_KEY);
+    const cached = this.cacheService.get<StreamInfo>(this.CACHE_KEY_INFO);
     if (cached) {
       return cached;
     }
@@ -38,52 +73,21 @@ export class StreamsService {
     };
 
     // 写入缓存
-    this.cacheService.set(this.CACHE_KEY, streamInfo);
+    this.cacheService.set(this.CACHE_KEY_INFO, streamInfo);
 
     return streamInfo;
   }
 
   async findAll(): Promise<Stream[]> {
-    // 尝试从缓存获取
-    const cached = this.cacheService.get<Stream[]>(this.CACHE_KEY_ALL);
-    if (cached) {
-      return cached;
-    }
-
-    const results = await this.databaseService.all<any>('SELECT * FROM stream_info ORDER BY id');
-
-    const streams: Stream[] = results.map((row) => ({
-      id: String(row.id),
-      title: row.title || '',
-      url: row.url || '',
-      isLive: row.is_live === 1,
-      createdAt: row.created_at || new Date().toISOString(),
-      updatedAt: row.updated_at || new Date().toISOString(),
-    }));
-
-    // 写入缓存
-    this.cacheService.set(this.CACHE_KEY_ALL, streams);
-
-    return streams;
+    return this.getOrSetAll();
   }
 
   async findById(id: string): Promise<Stream> {
-    const result = await this.databaseService.get<any>('SELECT * FROM stream_info WHERE id = ?', [
-      id,
-    ]);
-
-    if (!result) {
+    try {
+      return await this.getOrSetOne(id);
+    } catch (error) {
       throw new NotFoundException(`直播信息不存在: ${id}`);
     }
-
-    return {
-      id: String(result.id),
-      title: result.title || '',
-      url: result.url || '',
-      isLive: result.is_live === 1,
-      createdAt: result.created_at || new Date().toISOString(),
-      updatedAt: result.updated_at || new Date().toISOString(),
-    };
   }
 
   async findActive(): Promise<Stream> {
@@ -97,10 +101,10 @@ export class StreamsService {
       [createStreamDto.title, createStreamDto.url, createStreamDto.isLive ? 1 : 0],
     );
 
-    this.logger.log(`Stream created with id: ${result.lastID}`);
+    this.streamLogger.log(`Stream created with id: ${result.lastID}`);
 
     // 清除缓存
-    this.cacheService.del(this.CACHE_KEY_ALL);
+    this.clearAllCache();
 
     return this.findById(String(result.lastID));
   }
@@ -137,11 +141,11 @@ export class StreamsService {
       );
     }
 
-    this.logger.log(`Stream info updated: ${id}`);
+    this.streamLogger.log(`Stream info updated: ${id}`);
 
     // 清除缓存
-    this.cacheService.del(this.CACHE_KEY);
-    this.cacheService.del(this.CACHE_KEY_ALL);
+    this.cacheService.del(this.CACHE_KEY_INFO);
+    this.clearAllCache();
 
     return this.findById(id);
   }
@@ -154,10 +158,10 @@ export class StreamsService {
 
     await this.databaseService.run('DELETE FROM stream_info WHERE id = ?', [id]);
 
-    this.logger.log(`Stream deleted: ${id}`);
+    this.streamLogger.log(`Stream deleted: ${id}`);
 
     // 清除缓存
-    this.cacheService.del(this.CACHE_KEY);
-    this.cacheService.del(this.CACHE_KEY_ALL);
+    this.cacheService.del(this.CACHE_KEY_INFO);
+    this.clearAllCache();
   }
 }

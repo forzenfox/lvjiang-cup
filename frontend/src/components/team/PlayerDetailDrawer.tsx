@@ -11,11 +11,7 @@ export interface PlayerDetailDrawerProps {
   isMobile: boolean;
 }
 
-const PlayerDetailDrawer: React.FC<PlayerDetailDrawerProps> = ({
-  player,
-  onClose,
-  isMobile,
-}) => {
+const PlayerDetailDrawer: React.FC<PlayerDetailDrawerProps> = ({ player, onClose, isMobile }) => {
   if (!player) return null;
 
   const handleOverlayClick = (e: React.MouseEvent) => {

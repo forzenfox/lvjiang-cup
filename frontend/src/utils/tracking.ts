@@ -16,7 +16,7 @@ function getTrackingUrl(): string {
 /**
  * 发送跟踪事件到后端
  * 优先使用 navigator.sendBeacon，否则使用 fetch with keepalive
- * 
+ *
  * @param payload - 事件数据
  */
 function sendTrackingData(payload: TrackEventProperties): void {
@@ -28,7 +28,7 @@ function sendTrackingData(payload: TrackEventProperties): void {
     try {
       const blob = new Blob([jsonPayload], { type: 'application/json' });
       const success = navigator.sendBeacon(url, blob);
-      
+
       if (!success) {
         // sendBeacon 失败（通常是队列满），降级到 fetch
         console.warn('[Tracking] sendBeacon 队列已满，使用 fetch 降级');
@@ -47,7 +47,7 @@ function sendTrackingData(payload: TrackEventProperties): void {
 
 /**
  * 使用 fetch with keepalive 发送跟踪数据
- * 
+ *
  * @param url - 跟踪端点
  * @param jsonPayload - JSON 格式的事件数据
  */
@@ -60,7 +60,7 @@ function sendViaFetch(url: string, jsonPayload: string): void {
       },
       body: jsonPayload,
       keepalive: true, // 允许页面关闭后继续发送
-    }).catch((error) => {
+    }).catch(error => {
       // 静默处理错误，不影响用户体验
       console.error('[Tracking] fetch 发送失败:', error);
     });
@@ -72,17 +72,14 @@ function sendViaFetch(url: string, jsonPayload: string): void {
 
 /**
  * 跟踪自定义事件
- * 
+ *
  * @param event - 事件名称
  * @param properties - 事件属性（可选）
- * 
+ *
  * @example
  * trackEvent('button_click', { buttonId: 'submit', page: 'login' });
  */
-export function trackEvent(
-  event: string,
-  properties?: Record<string, unknown>,
-): void {
+export function trackEvent(event: string, properties?: Record<string, unknown>): void {
   try {
     const payload: TrackEventProperties = {
       event,
@@ -99,17 +96,14 @@ export function trackEvent(
 
 /**
  * 跟踪页面浏览事件
- * 
+ *
  * @param page - 页面路径/名称
  * @param properties - 额外属性（可选）
- * 
+ *
  * @example
  * trackPageView('/match-data/123', { matchId: '123' });
  */
-export function trackPageView(
-  page: string,
-  properties?: Record<string, unknown>,
-): void {
+export function trackPageView(page: string, properties?: Record<string, unknown>): void {
   try {
     const payload: TrackEventProperties = {
       event: 'page_view',
@@ -127,9 +121,9 @@ export function trackPageView(
 
 /**
  * 跟踪对战数据页面浏览事件
- * 
+ *
  * @param matchId - 比赛 ID
- * 
+ *
  * @example
  * trackMatchDataPageView('match_123');
  */
@@ -142,19 +136,15 @@ export function trackMatchDataPageView(matchId: string): void {
 
 /**
  * 跟踪游戏切换事件
- * 
+ *
  * @param matchId - 比赛 ID
  * @param fromGame - 从哪局切换
  * @param toGame - 切换到哪局
- * 
+ *
  * @example
  * trackGameSwitch('match_123', 1, 2);
  */
-export function trackGameSwitch(
-  matchId: string,
-  fromGame: number,
-  toGame: number,
-): void {
+export function trackGameSwitch(matchId: string, fromGame: number, toGame: number): void {
   trackEvent('game_switch', {
     matchId,
     fromGame,
@@ -165,12 +155,12 @@ export function trackGameSwitch(
 
 /**
  * 跟踪玩家行点击事件
- * 
+ *
  * @param matchId - 比赛 ID
  * @param gameNumber - 当前局数
  * @param playerId - 玩家 ID
  * @param playerName - 玩家名称
- * 
+ *
  * @example
  * trackPlayerRowClick('match_123', 1, 'player_456', '张三');
  */
@@ -178,7 +168,7 @@ export function trackPlayerRowClick(
   matchId: string,
   gameNumber: number,
   playerId: string,
-  playerName: string,
+  playerName: string
 ): void {
   trackEvent('player_row_click', {
     matchId,
@@ -190,12 +180,12 @@ export function trackPlayerRowClick(
 
 /**
  * 跟踪雷达图展开事件
- * 
+ *
  * @param matchId - 比赛 ID
  * @param gameNumber - 当前局数
  * @param player1Name - 玩家 1 名称
  * @param player2Name - 玩家 2 名称
- * 
+ *
  * @example
  * trackRadarChartExpand('match_123', 1, '张三', '李四');
  */
@@ -203,7 +193,7 @@ export function trackRadarChartExpand(
   matchId: string,
   gameNumber: number,
   player1Name: string,
-  player2Name: string,
+  player2Name: string
 ): void {
   trackEvent('radar_chart_expand', {
     matchId,
@@ -215,12 +205,12 @@ export function trackRadarChartExpand(
 
 /**
  * 跟踪雷达图折叠事件
- * 
+ *
  * @param matchId - 比赛 ID
  * @param gameNumber - 当前局数
  * @param player1Name - 玩家 1 名称
  * @param player2Name - 玩家 2 名称
- * 
+ *
  * @example
  * trackRadarChartCollapse('match_123', 1, '张三', '李四');
  */
@@ -228,7 +218,7 @@ export function trackRadarChartCollapse(
   matchId: string,
   gameNumber: number,
   player1Name: string,
-  player2Name: string,
+  player2Name: string
 ): void {
   trackEvent('radar_chart_collapse', {
     matchId,
@@ -240,10 +230,10 @@ export function trackRadarChartCollapse(
 
 /**
  * 跟踪管理员导入开始事件
- * 
+ *
  * @param matchId - 比赛 ID
  * @param fileName - 文件名
- * 
+ *
  * @example
  * trackAdminImportStart('match_123', 'data.xlsx');
  */
@@ -256,18 +246,18 @@ export function trackAdminImportStart(matchId: string, fileName: string): void {
 
 /**
  * 跟踪管理员导入成功事件
- * 
+ *
  * @param matchId - 比赛 ID
  * @param gameNumber - 导入局数
  * @param playerCount - 选手数据条数
- * 
+ *
  * @example
  * trackAdminImportSuccess('match_123', 1, 10);
  */
 export function trackAdminImportSuccess(
   matchId: string,
   gameNumber: number,
-  playerCount: number,
+  playerCount: number
 ): void {
   trackEvent('admin_import_success', {
     matchId,
@@ -278,10 +268,10 @@ export function trackAdminImportSuccess(
 
 /**
  * 跟踪管理员编辑打开事件
- * 
+ *
  * @param matchId - 比赛 ID
  * @param gameNumber - 局数
- * 
+ *
  * @example
  * trackAdminEditOpen('match_123', 1);
  */
@@ -294,10 +284,10 @@ export function trackAdminEditOpen(matchId: string, gameNumber: number): void {
 
 /**
  * 跟踪管理员编辑保存事件
- * 
+ *
  * @param matchId - 比赛 ID
  * @param gameNumber - 局数
- * 
+ *
  * @example
  * trackAdminEditSave('match_123', 1);
  */

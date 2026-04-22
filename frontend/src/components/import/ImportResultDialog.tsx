@@ -2,8 +2,7 @@ import React from 'react';
 import { CheckCircle, XCircle, AlertTriangle, Download, ExternalLink } from 'lucide-react';
 import { Button } from '../ui/button';
 import Modal from '../ui/Modal';
-import { downloadErrorReport } from '@/api/teams-import';
-import type { ImportResult } from '@/api/teams-import';
+import { downloadErrorReport, type ImportResult } from '@/api/teams-import';
 
 interface ImportResultDialogProps {
   open: boolean;

@@ -185,7 +185,7 @@ describe('MatchDataEditDialog', () => {
   it('allows editing game duration', () => {
     render(<MatchDataEditDialog {...defaultProps} />);
     const durationInput = screen.getByLabelText(/游戏时长/i) as HTMLInputElement;
-    
+
     fireEvent.change(durationInput, { target: { value: '35:20' } });
     expect(durationInput.value).toBe('35:20');
   });
@@ -193,7 +193,7 @@ describe('MatchDataEditDialog', () => {
   it('allows editing team kills', () => {
     render(<MatchDataEditDialog {...defaultProps} />);
     const killsInputs = screen.getAllByLabelText(/击杀/i);
-    
+
     // First one should be blue team
     fireEvent.change(killsInputs[0], { target: { value: '20' } });
     expect((killsInputs[0] as HTMLInputElement).value).toBe('20');

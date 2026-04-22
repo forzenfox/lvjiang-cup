@@ -175,7 +175,8 @@ const StreamerSection: React.FC<StreamerSectionProps> = ({ refreshInterval = 300
     setCurrentIndex(0);
   }, [activeTab]);
 
-  const getPrevIndex = () => (currentIndex - 1 + filteredStreamers.length) % filteredStreamers.length;
+  const getPrevIndex = () =>
+    (currentIndex - 1 + filteredStreamers.length) % filteredStreamers.length;
   const getNextIndex = () => (currentIndex + 1) % filteredStreamers.length;
 
   const showControls = filteredStreamers.length > 2;

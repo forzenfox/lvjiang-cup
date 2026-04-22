@@ -2,8 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { Upload, X, FileText, AlertCircle } from 'lucide-react';
 import { Button } from '../ui/button';
 import Modal from '../ui/Modal';
-import { importTeams } from '@/api/teams-import';
-import type { ImportResult } from '@/api/teams-import';
+import { importTeams, type ImportResult } from '@/api/teams-import';
 
 interface ImportDialogProps {
   open: boolean;

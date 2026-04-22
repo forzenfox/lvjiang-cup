@@ -1,6 +1,7 @@
 /**
  * 对战数据相关类型定义
  */
+export type { PositionType } from './position';
 import type { PositionType } from './position';
 
 /**

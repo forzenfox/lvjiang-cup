@@ -24,9 +24,8 @@ import { PositionType } from '@/types/position';
 import HeroSelector from '@/components/team/HeroSelector';
 import { getLevelBadgeClasses, getCaptainBadgeClasses } from '@/utils/levelColors';
 import { getChampionTitleByEn } from '@/utils/championUtils';
-import { ImportDialog, ImportResultDialog } from '@/components/import';
+import { ImportDialog, ImportResultDialog, type ImportResult } from '@/components/import';
 import { downloadTemplate } from '@/api/teams-import';
-import type { ImportResult } from '@/components/import';
 
 interface MemberFormData {
   avatarUrl?: string;

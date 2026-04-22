@@ -1,36 +1,43 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { COVER_BACKGROUNDS, ANIMATION_CONFIG } from './constants';
+import { CoverImage, ANIMATION_CONFIG } from './constants';
+import { useImageWithFallback } from '@/hooks';
 
 interface BackgroundCarouselProps {
   isExiting: boolean;
-  isMobile: boolean;
   onError: () => void;
+  backgrounds: readonly CoverImage[];
 }
 
-export const BackgroundCarousel: React.FC<BackgroundCarouselProps> = ({ isExiting, isMobile, onError }) => {
+export const BackgroundCarousel: React.FC<BackgroundCarouselProps> = ({
+  isExiting,
+  onError,
+  backgrounds,
+}) => {
+  const availableBackgrounds = useImageWithFallback(backgrounds);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [hasError, setHasError] = useState(false);
 
-  const backgrounds = isMobile ? COVER_BACKGROUNDS.mobile : COVER_BACKGROUNDS.pc;
-  const shouldCarousel = backgrounds.length >= 2;
+  const shouldCarousel = availableBackgrounds.length >= 2;
 
   useEffect(() => {
     if (!shouldCarousel || hasError) return;
 
     const interval = setInterval(() => {
-      setCurrentIndex(prev => (prev + 1) % backgrounds.length);
+      setCurrentIndex(prev => (prev + 1) % availableBackgrounds.length);
     }, ANIMATION_CONFIG.carouselInterval);
 
     return () => clearInterval(interval);
-  }, [shouldCarousel, backgrounds.length, hasError]);
+  }, [shouldCarousel, availableBackgrounds.length, hasError]);
 
   const handleImageError = () => {
-    setHasError(true);
-    onError();
+    if (!hasError) {
+      setHasError(true);
+      onError();
+    }
   };
 
-  if (hasError || !backgrounds.length) {
+  if (hasError || !availableBackgrounds.length) {
     return null;
   }
 
@@ -42,21 +49,21 @@ export const BackgroundCarousel: React.FC<BackgroundCarouselProps> = ({ isExitin
       transition={{ duration: ANIMATION_CONFIG.exitDuration / 1000 }}
     >
       <div className="absolute inset-0">
-        {backgrounds.map((bg, index) => (
+        {availableBackgrounds.map((bg, index) => (
           <div
-            key={bg}
+            key={bg.cdn}
             className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-opacity duration-1000"
             style={{
-              backgroundImage: `url(${bg})`,
+              backgroundImage: `url(${bg.cdn})`,
               opacity: shouldCarousel ? (index === currentIndex ? 1 : 0) : 1,
             }}
           />
         ))}
       </div>
-      {backgrounds.map((bg) => (
+      {availableBackgrounds.map(bg => (
         <img
-          key={`error-check-${bg}`}
-          src={bg}
+          key={`error-check-${bg.cdn}`}
+          src={bg.cdn}
           className="hidden"
           onError={handleImageError}
           alt=""

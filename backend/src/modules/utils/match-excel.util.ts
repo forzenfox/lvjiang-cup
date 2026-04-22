@@ -40,6 +40,7 @@ export interface PlayerStatsData {
   level: number;
   visionScore: number;
   wardsPlaced: number;
+  wardsCleared: number;
   mvp: boolean;
 }
 
@@ -208,6 +209,9 @@ export function validatePlayerStats(data: PlayerStatsData, rowIndex: number): Va
   if (data.wardsPlaced < 0) {
     errors.push(`第${rowIndex}行: 插眼数不能为负数`);
   }
+  if (data.wardsCleared < 0) {
+    errors.push(`第${rowIndex}行: 排眼数不能为负数`);
+  }
 
   return { valid: errors.length === 0, errors };
 }
@@ -319,7 +323,7 @@ function parseMatchInfoRow(row: any[]): MatchInfoData {
   };
 }
 
-function parseTeamStatsRow(row: any[], rowIndex: number): TeamStatsData {
+function parseTeamStatsRow(row: any[], _rowIndex: number): TeamStatsData {
   return {
     side: extractCellValue(row[0]),
     teamName: extractCellValue(row[1]),
@@ -334,7 +338,7 @@ function parseTeamStatsRow(row: any[], rowIndex: number): TeamStatsData {
   };
 }
 
-function parsePlayerStatsRow(row: any[], rowIndex: number): PlayerStatsData {
+function parsePlayerStatsRow(row: any[], _rowIndex: number): PlayerStatsData {
   return {
     side: extractCellValue(row[0]),
     position: extractCellValue(row[1]).toUpperCase(),
@@ -350,6 +354,7 @@ function parsePlayerStatsRow(row: any[], rowIndex: number): PlayerStatsData {
     level: extractNumericValue(row[11]),
     visionScore: extractNumericValue(row[12]),
     wardsPlaced: extractNumericValue(row[13]),
-    mvp: extractBooleanValue(row[14]),
+    wardsCleared: extractNumericValue(row[14]),
+    mvp: extractBooleanValue(row[15]),
   };
 }

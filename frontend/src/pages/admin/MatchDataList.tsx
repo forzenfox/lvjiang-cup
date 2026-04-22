@@ -3,24 +3,30 @@ import { useNavigate } from 'react-router-dom';
 import AdminLayout from '../../components/layout/AdminLayout';
 import { matchService } from '@/services/matchService';
 import { teamService } from '@/services/teamService';
-import type { Match, MatchStatus } from '@/types';
+import type { Match } from '@/types';
 import type { Team } from '@/api/types';
-import { Trophy, Search } from 'lucide-react';
+import { Trophy, Search, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/Input';
+import { toast } from 'sonner';
+import { checkMatchDataExists, downloadMatchDataTemplate } from '@/api/matchData';
+import MatchDataImportDialog from '@/components/admin/MatchDataImportDialog';
 
 interface MatchWithTeams extends Match {
   teamAName?: string;
   teamBName?: string;
   hasMatchData?: boolean;
+  checkingMatchData?: boolean;
 }
 
 const MatchDataList: React.FC = () => {
   const navigate = useNavigate();
   const [matches, setMatches] = useState<MatchWithTeams[]>([]);
-  const [teams, setTeams] = useState<Record<string, Team>>({});
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [templateLoading, setTemplateLoading] = useState(false);
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
+  const [currentMatchId, setCurrentMatchId] = useState<string | null>(null);
 
   useEffect(() => {
     loadData();
@@ -38,7 +44,6 @@ const MatchDataList: React.FC = () => {
       teamsResult.forEach(t => {
         teamsMap[t.id] = t;
       });
-      setTeams(teamsMap);
 
       const mappedMatches: MatchWithTeams[] = backendMatches.map(m => ({
         id: m.id,
@@ -58,12 +63,31 @@ const MatchDataList: React.FC = () => {
         boFormat: m.boFormat,
         eliminationBracket: m.eliminationBracket,
         hasMatchData: false,
+        checkingMatchData: true,
       }));
 
-      // 仅显示已结束的对战记录（PRD 2.2.6 要求）
       const finishedMatches = mappedMatches.filter(m => m.status === 'finished');
 
       setMatches(finishedMatches);
+
+      finishedMatches.forEach(async match => {
+        try {
+          const result = await checkMatchDataExists(match.id);
+          setMatches(prev =>
+            prev.map(m =>
+              m.id === match.id
+                ? { ...m, hasMatchData: result.hasData, checkingMatchData: false }
+                : m
+            )
+          );
+        } catch {
+          setMatches(prev =>
+            prev.map(m =>
+              m.id === match.id ? { ...m, hasMatchData: false, checkingMatchData: false } : m
+            )
+          );
+        }
+      });
     } catch (error) {
       console.error('加载数据失败:', error);
     } finally {
@@ -74,25 +98,13 @@ const MatchDataList: React.FC = () => {
   const filteredMatches = matches.filter(match => {
     const searchLower = searchTerm.toLowerCase();
     return (
-      (match.teamAName?.toLowerCase().includes(searchLower) || false) ||
-      (match.teamBName?.toLowerCase().includes(searchLower) || false) ||
+      match.teamAName?.toLowerCase().includes(searchLower) ||
+      false ||
+      match.teamBName?.toLowerCase().includes(searchLower) ||
+      false ||
       match.id.toLowerCase().includes(searchLower)
     );
   });
-
-  const getStatusBadge = (status: MatchStatus) => {
-    const statusMap = {
-      upcoming: { label: '未开始', class: 'bg-gray-500/20 text-gray-400' },
-      ongoing: { label: '进行中', class: 'bg-green-500/20 text-green-400' },
-      finished: { label: '已结束', class: 'bg-blue-500/20 text-blue-400' },
-    };
-    const config = statusMap[status] || statusMap.upcoming;
-    return (
-      <span className={`px-2 py-1 rounded text-xs font-medium ${config.class}`}>
-        {config.label}
-      </span>
-    );
-  };
 
   const getBoFormatBadge = (boFormat: string) => {
     const boMap: Record<string, string> = {
@@ -109,6 +121,39 @@ const MatchDataList: React.FC = () => {
 
   const handleManageMatchData = (matchId: string) => {
     navigate(`/admin/matches/${matchId}/games`);
+  };
+
+  const handleDownloadTemplate = async () => {
+    setTemplateLoading(true);
+    try {
+      const blob = await downloadMatchDataTemplate();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `驴酱杯_对战数据导入模板_${new Date().toISOString().slice(0, 10).replace(/-/g, '')}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      toast.success('模板下载成功');
+    } catch (error) {
+      console.error('Failed to download template:', error);
+      toast.error('模板下载失败');
+    } finally {
+      setTemplateLoading(false);
+    }
+  };
+
+  const handleImportClick = (matchId: string) => {
+    setCurrentMatchId(matchId);
+    setImportDialogOpen(true);
+  };
+
+  const handleImportSuccess = () => {
+    toast.success('数据导入成功');
+    setImportDialogOpen(false);
+    setCurrentMatchId(null);
+    loadData();
   };
 
   if (loading) {
@@ -137,8 +182,19 @@ const MatchDataList: React.FC = () => {
             placeholder="搜索战队名称..."
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
-            className="pl-10 bg-gray-800 border-gray-700 text-white placeholder:text-gray-400"
+            className="pl-10 pr-32 bg-gray-800 border-gray-700 text-white placeholder:text-gray-400 w-full max-w-md"
           />
+          <Button
+            data-testid="download-template-button"
+            variant="outline"
+            size="sm"
+            onClick={handleDownloadTemplate}
+            disabled={templateLoading}
+            className="absolute right-1 top-1/2 -translate-y-1/2 border-blue-600 text-blue-400 hover:bg-blue-900/30"
+          >
+            <Download className={`w-4 h-4 mr-1 ${templateLoading ? 'animate-spin' : ''}`} />
+            {templateLoading ? '下载中...' : '下载模板'}
+          </Button>
         </div>
 
         <div className="bg-gray-800 rounded-lg border border-gray-700 overflow-hidden">
@@ -172,9 +228,7 @@ const MatchDataList: React.FC = () => {
                         </div>
                       </div>
                     </td>
-                    <td className="px-4 py-4">
-                      {getBoFormatBadge(match.boFormat)}
-                    </td>
+                    <td className="px-4 py-4">{getBoFormatBadge(match.boFormat)}</td>
                     <td className="px-4 py-4">
                       <span className="text-gray-400 text-sm">
                         {match.startTime ? new Date(match.startTime).toLocaleString('zh-CN') : '-'}
@@ -185,15 +239,27 @@ const MatchDataList: React.FC = () => {
                         {match.scoreA} - {match.scoreB}
                       </span>
                     </td>
-                    <td className="px-4 py-4 text-right">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="border-secondary text-secondary hover:bg-secondary/20"
-                        onClick={() => handleManageMatchData(match.id)}
-                      >
-                        管理数据
-                      </Button>
+                    <td className="px-4 py-4">
+                      <div className="flex items-center justify-end gap-2">
+                        {!match.checkingMatchData && match.hasMatchData && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="border-secondary text-secondary hover:bg-secondary/20"
+                            onClick={() => handleManageMatchData(match.id)}
+                          >
+                            管理数据
+                          </Button>
+                        )}
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="border-blue-600 text-blue-400 hover:bg-blue-900/30"
+                          onClick={() => handleImportClick(match.id)}
+                        >
+                          导入数据
+                        </Button>
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -202,6 +268,18 @@ const MatchDataList: React.FC = () => {
           </table>
         </div>
       </div>
+
+      {currentMatchId && (
+        <MatchDataImportDialog
+          open={importDialogOpen}
+          onClose={() => {
+            setImportDialogOpen(false);
+            setCurrentMatchId(null);
+          }}
+          onSuccess={handleImportSuccess}
+          matchId={currentMatchId}
+        />
+      )}
     </AdminLayout>
   );
 };

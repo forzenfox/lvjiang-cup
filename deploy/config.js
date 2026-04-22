@@ -26,6 +26,23 @@ window.APP_CONFIG = {
   // GitHub CDN 基础地址 (用于加载 assets/ 目录下的图片资源)
   // 默认使用 JSDMirror (国内加速)，可随时切换为其他 CDN 源
   GITHUB_CDN_BASE: 'https://cdn.jsdmirror.com/gh/forzenfox/lvjiang-cup@main',
+
+  // 封面图片配置
+  // - 支持 pc 和 mobile 两个平台
+  // - 只需填写 assets/ 目录下的图片文件名，代码会自动拼接 CDN 和本地路径
+  // - 可配置多张图片实现轮播效果
+  // - 建议使用 WebP 格式以提升加载性能
+  COVER_IMAGES: {
+    pc: [
+      'cover_01.webp', 
+      'cover_02.webp', 
+      'cover_03.webp', 
+      'cover_04.webp'
+    ],
+    mobile: [
+      'mobile_cover_01.webp'
+    ],
+  },
 };
 
 console.log('[Config] 生产环境配置已加载:', window.APP_CONFIG);

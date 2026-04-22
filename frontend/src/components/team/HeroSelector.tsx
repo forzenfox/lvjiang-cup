@@ -49,7 +49,9 @@ const HeroSelector: React.FC<HeroSelectorProps> = ({
       const loadChampions = async () => {
         try {
           const { champions } = await getChampionList();
-          const championList = Object.values(champions).sort((a, b) => a.name.localeCompare(b.name));
+          const championList = Object.values(champions).sort((a, b) =>
+            a.name.localeCompare(b.name)
+          );
           setChampionData(championList);
         } catch (error) {
           console.error('加载英雄数据失败:', error);
@@ -61,9 +63,7 @@ const HeroSelector: React.FC<HeroSelectorProps> = ({
   }, [visible]);
 
   const toggleTag = (tag: string) => {
-    setSelectedTags(prev =>
-      prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]
-    );
+    setSelectedTags(prev => (prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]));
   };
 
   const filteredHeroes = useMemo(() => {
@@ -230,7 +230,9 @@ const HeroSelector: React.FC<HeroSelectorProps> = ({
                   <span className="truncate font-medium">{hero.name}</span>
                   <span className="mx-1 text-[#475569]">·</span>
                   <span className="truncate text-xs text-amber-400/80">{hero.title}</span>
-                  {isSelected && <Check className="w-3.5 h-3.5 text-blue-400 flex-shrink-0 absolute top-1 right-1" />}
+                  {isSelected && (
+                    <Check className="w-3.5 h-3.5 text-blue-400 flex-shrink-0 absolute top-1 right-1" />
+                  )}
                 </button>
               );
             })}

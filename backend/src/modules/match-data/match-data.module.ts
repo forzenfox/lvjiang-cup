@@ -36,12 +36,7 @@ const multerConfig = {
 };
 
 @Module({
-  imports: [
-    DatabaseModule,
-    CacheModule,
-    AuthModule,
-    MulterModule.register(multerConfig),
-  ],
+  imports: [DatabaseModule, CacheModule, AuthModule, MulterModule.register(multerConfig)],
   controllers: [MatchDataController, MatchDataAdminController],
   providers: [MatchDataService, MatchDataImportService, AdminRoleGuard],
   exports: [MatchDataService],

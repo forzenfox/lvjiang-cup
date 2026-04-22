@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Trophy } from 'lucide-react';
 import { ZIndexLayers } from '../../constants/zIndex';
+import { Footer } from './Footer';
 
 // 隐藏滚动条的样式
 const styles = `
@@ -199,14 +200,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 onClick={() => scrollToSection(item.id)}
                 className={`
                   flex flex-col items-center justify-center flex-1 py-2 px-1 text-xs font-medium transition-all duration-200 rounded-lg mx-0.5
-                  ${
-                    isActive
-                      ? 'text-secondary bg-secondary/10'
-                      : 'text-gray-400 hover:text-white'
-                  }
+                  ${isActive ? 'text-secondary bg-secondary/10' : 'text-gray-400 hover:text-white'}
                 `}
               >
-                <span className={`text-base mb-0.5 transition-transform duration-200 ${isActive ? 'scale-110' : ''}`}>
+                <span
+                  className={`text-base mb-0.5 transition-transform duration-200 ${isActive ? 'scale-110' : ''}`}
+                >
                   {item.label === '总览' && '🏠'}
                   {item.label === '视频' && '📺'}
                   {item.label === '主播' && '🎙️'}
@@ -221,12 +220,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       </nav>
 
       {/* PC端页脚 */}
-      <footer className="hidden md:block bg-black/50 py-8 border-t border-white/10">
-        <div className="container mx-auto px-4 text-center text-gray-400">
-          <p>&copy; 2026 驴酱公会. 保留所有权利.</p>
-          <p className="text-sm mt-2">粉丝自制项目</p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 };

@@ -1,10 +1,7 @@
-import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import * as echarts from 'echarts/core';
 import { RadarChart } from 'echarts/charts';
-import {
-  TooltipComponent,
-  GridComponent,
-} from 'echarts/components';
+import { TooltipComponent, GridComponent } from 'echarts/components';
 import { CanvasRenderer } from 'echarts/renderers';
 import type { EChartsType } from 'echarts/core';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -12,7 +9,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import type { PlayerStat, TeamGameData, RadarDimension } from '@/types/matchData';
 import type { PositionType } from '@/types/position';
 import {
-  parseGameDuration,
   normalizeRadarValue,
   calculateRadarDimension,
   getRadarDimensionConfig,
@@ -70,7 +66,7 @@ const RadarChartInner: React.FC<RadarChartProps> = ({
     (player: PlayerStat): 'red' | 'blue' => {
       return player.teamId === redTeamStats.teamId ? 'red' : 'blue';
     },
-    [redTeamStats.teamId],
+    [redTeamStats.teamId]
   );
 
   // 获取队伍统计数据
@@ -78,7 +74,7 @@ const RadarChartInner: React.FC<RadarChartProps> = ({
     (player: PlayerStat): TeamGameData => {
       return player.teamId === redTeamStats.teamId ? redTeamStats : blueTeamStats;
     },
-    [redTeamStats, blueTeamStats],
+    [redTeamStats, blueTeamStats]
   );
 
   // 计算雷达图数据
@@ -92,23 +88,11 @@ const RadarChartInner: React.FC<RadarChartProps> = ({
     const teamStats1 = getTeamStats(player1);
     const teamStats2 = getTeamStats(player2);
 
-    const rawValues1 = calculateRadarDimension(
-      player1,
-      position,
-      teamStats1,
-      gameDuration,
-    );
-    const rawValues2 = calculateRadarDimension(
-      player2,
-      position,
-      teamStats2,
-      gameDuration,
-    );
+    const rawValues1 = calculateRadarDimension(player1, position, teamStats1, gameDuration);
+    const rawValues2 = calculateRadarDimension(player2, position, teamStats2, gameDuration);
 
     // 计算每个维度的最大值用于归一化
-    const maxValues = config.map((_, index) =>
-      Math.max(rawValues1[index], rawValues2[index]),
-    );
+    const maxValues = config.map((_, index) => Math.max(rawValues1[index], rawValues2[index]));
 
     // 归一化数据
     const normalized1: NormalizedPlayerData = {
@@ -128,15 +112,7 @@ const RadarChartInner: React.FC<RadarChartProps> = ({
     };
 
     setNormalizedData([normalized1, normalized2]);
-  }, [
-    player1,
-    player2,
-    gameDuration,
-    redTeamStats,
-    blueTeamStats,
-    getPlayerSide,
-    getTeamStats,
-  ]);
+  }, [player1, player2, gameDuration, redTeamStats, blueTeamStats, getPlayerSide, getTeamStats]);
 
   // 初始化图表
   useEffect(() => {
@@ -171,12 +147,12 @@ const RadarChartInner: React.FC<RadarChartProps> = ({
       return;
     }
 
-    const indicator = dimensions.map((dim) => ({
+    const indicator = dimensions.map(dim => ({
       name: dim.label,
       max: 1,
     }));
 
-    const seriesData = normalizedData.map((player) => ({
+    const seriesData = normalizedData.map(player => ({
       name: `${player.name} (${player.teamName})`,
       value: player.values,
       lineStyle: {
@@ -195,9 +171,7 @@ const RadarChartInner: React.FC<RadarChartProps> = ({
       tooltip: {
         trigger: 'item' as const,
         formatter: (params: { name: string; value: number[] }) => {
-          const playerData = normalizedData.find((d) =>
-            `${d.name} (${d.teamName})` === params.name,
-          );
+          const playerData = normalizedData.find(d => `${d.name} (${d.teamName})` === params.name);
           if (!playerData) return '';
 
           const tooltipLines = [`<strong>${params.name}</strong>`, ''];

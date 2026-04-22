@@ -6,7 +6,10 @@ interface StreamerThumbnailCardProps {
   onClick: () => void;
 }
 
-export const StreamerThumbnailCard: React.FC<StreamerThumbnailCardProps> = ({ streamer, onClick }) => {
+export const StreamerThumbnailCard: React.FC<StreamerThumbnailCardProps> = ({
+  streamer,
+  onClick,
+}) => {
   return (
     <button
       onClick={onClick}

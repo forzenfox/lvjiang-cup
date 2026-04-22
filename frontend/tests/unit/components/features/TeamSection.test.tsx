@@ -14,7 +14,7 @@ vi.mock('@/services', () => ({
 
 // Mock getUploadUrl
 vi.mock('@/utils/upload', () => ({
-  getUploadUrl: vi.fn((url) => url),
+  getUploadUrl: vi.fn(url => url),
 }));
 
 // Mock level colors
@@ -25,36 +25,30 @@ vi.mock('@/utils/levelColors', () => ({
 
 // Mock position utils
 vi.mock('@/utils/position', () => ({
-  getPositionLabel: vi.fn((pos) => pos),
+  getPositionLabel: vi.fn(pos => pos),
 }));
 
 // Mock TeamMemberModal
 vi.mock('@/components/team/TeamMemberModal', () => ({
-  TeamMemberModal: vi.fn(
-    ({ team, isOpen, onClose, onPlayerClick, loading }: any) => {
-      if (!isOpen) return null;
-      return (
-        <div data-testid="team-member-modal" role="dialog">
-          <div data-testid="modal-overlay" onClick={onClose} />
-          <div data-testid="modal-content">
-            <h2 data-testid="modal-title">{team.name}</h2>
-            <button data-testid="close-modal-button" onClick={onClose}>
-              关闭
-            </button>
-            {(team.members || []).map((player: Player) => (
-              <div
-                key={player.id}
-                data-testid="member-row"
-                onClick={() => onPlayerClick(player)}
-              >
-                <span data-testid="member-name">{player.nickname}</span>
-              </div>
-            ))}
-          </div>
+  TeamMemberModal: vi.fn(({ team, isOpen, onClose, onPlayerClick, loading }: any) => {
+    if (!isOpen) return null;
+    return (
+      <div data-testid="team-member-modal" role="dialog">
+        <div data-testid="modal-overlay" onClick={onClose} />
+        <div data-testid="modal-content">
+          <h2 data-testid="modal-title">{team.name}</h2>
+          <button data-testid="close-modal-button" onClick={onClose}>
+            关闭
+          </button>
+          {(team.members || []).map((player: Player) => (
+            <div key={player.id} data-testid="member-row" onClick={() => onPlayerClick(player)}>
+              <span data-testid="member-name">{player.nickname}</span>
+            </div>
+          ))}
         </div>
-      );
-    }
-  ),
+      </div>
+    );
+  }),
 }));
 
 // Mock PlayerDetailDrawer
@@ -452,7 +446,7 @@ describe('TeamSection 组件', () => {
     it('加载时应该显示精简的骨架屏（不含队员列表骨架）', async () => {
       // 模拟延迟加载
       vi.mocked(teamService.getAll).mockImplementation(
-        () => new Promise((resolve) => setTimeout(() => resolve(mockApiTeams), 100))
+        () => new Promise(resolve => setTimeout(() => resolve(mockApiTeams), 100))
       );
 
       render(<TeamSection />);

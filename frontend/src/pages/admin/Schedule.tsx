@@ -9,13 +9,11 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../components/ui/ta
 import SwissStageVisualEditor from './SwissStageVisualEditor';
 import EliminationStage from '@/components/features/EliminationStage';
 import { useAdvancementStore, calculateAdvancement } from '@/store/advancementStore';
-import { RefreshCw, Trophy, Calendar, Plus, Download } from 'lucide-react';
+import { RefreshCw, Trophy, Calendar, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { initSlots } from '@/api/admin';
 import { getUploadUrl } from '@/utils/upload';
-import { downloadMatchDataTemplate } from '@/api/matchData';
-import MatchDataImportDialog from '@/components/admin/MatchDataImportDialog';
 
 // 将前端 Match 转换为 API UpdateMatchRequest
 const toUpdateMatchRequest = (match: Match): UpdateMatchRequest => ({
@@ -76,11 +74,6 @@ const AdminSchedule: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [initSlotsLoading, setInitSlotsLoading] = useState(false);
   const [showInitConfirm, setShowInitConfirm] = useState(false);
-  const [templateLoading, setTemplateLoading] = useState(false);
-
-  // 导入对话框状态
-  const [importDialogOpen, setImportDialogOpen] = useState(false);
-  const [currentMatchId, setCurrentMatchId] = useState<string | null>(null);
 
   const advancement = useAdvancementStore(state => state.advancement);
   const setAdvancement = useAdvancementStore(state => state.setAdvancement);
@@ -215,42 +208,6 @@ const AdminSchedule: React.FC = () => {
   const swissMatches = matches.filter(m => m.stage === 'swiss');
   const eliminationMatches = matches.filter(m => m.stage === 'elimination');
 
-  // 下载模板
-  const handleDownloadTemplate = async () => {
-    setTemplateLoading(true);
-    try {
-      const blob = await downloadMatchDataTemplate();
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `驴酱杯_对战数据导入模板_${new Date().toISOString().slice(0, 10).replace(/-/g, '')}.xlsx`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-      toast.success('模板下载成功');
-    } catch (error) {
-      console.error('Failed to download template:', error);
-      toast.error('模板下载失败');
-    } finally {
-      setTemplateLoading(false);
-    }
-  };
-
-  // 打开导入对话框
-  const handleImportClick = (matchId: string) => {
-    setCurrentMatchId(matchId);
-    setImportDialogOpen(true);
-  };
-
-  // 导入成功回调
-  const handleImportSuccess = () => {
-    toast.success('数据导入成功');
-    setImportDialogOpen(false);
-    setCurrentMatchId(null);
-    loadData();
-  };
-
   return (
     <AdminLayout>
       <Toaster position="top-right" theme="dark" />
@@ -290,16 +247,6 @@ const AdminSchedule: React.FC = () => {
                   {initSlotsLoading ? '初始化中...' : '初始化比赛槽位'}
                 </Button>
               )}
-            <Button
-              data-testid="download-template-button"
-              variant="outline"
-              onClick={handleDownloadTemplate}
-              disabled={templateLoading}
-              className="border-blue-600 text-blue-400 hover:bg-blue-900/30"
-            >
-              <Download className={`w-4 h-4 mr-2 ${templateLoading ? 'animate-spin' : ''}`} />
-              {templateLoading ? '下载中...' : '下载导入模板'}
-            </Button>
             <Button
               data-testid="refresh-schedule-button"
               variant="outline"
@@ -383,7 +330,6 @@ const AdminSchedule: React.FC = () => {
                       advancement={advancement}
                       onMatchUpdate={handleMatchUpdate}
                       onMatchCreate={handleMatchCreate}
-                      onImportClick={handleImportClick}
                     />
                   </>
                 )}
@@ -410,7 +356,6 @@ const AdminSchedule: React.FC = () => {
                     teams={teams}
                     editable={true}
                     onMatchUpdate={handleMatchUpdate}
-                    onImportClick={handleImportClick}
                   />
                 )}
               </TabsContent>
@@ -418,19 +363,6 @@ const AdminSchedule: React.FC = () => {
           )}
         </div>
       </div>
-
-      {/* Import Dialog */}
-      {currentMatchId && (
-        <MatchDataImportDialog
-          open={importDialogOpen}
-          onClose={() => {
-            setImportDialogOpen(false);
-            setCurrentMatchId(null);
-          }}
-          onSuccess={handleImportSuccess}
-          matchId={currentMatchId}
-        />
-      )}
     </AdminLayout>
   );
 };

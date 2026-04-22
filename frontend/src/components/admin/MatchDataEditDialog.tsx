@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { X, Save, Loader2, AlertCircle } from 'lucide-react';
+import { Save, Loader2, AlertCircle } from 'lucide-react';
 import { Button } from '../ui/button';
 import Modal from '../ui/Modal';
 import { updateMatchGameData } from '@/api/matchData';
-import type { MatchGameData, TeamGameData, PlayerStat } from '@/types/matchData';
+import type { MatchGameData, PlayerStat } from '@/types/matchData';
 import { toast } from 'sonner';
 import { getPositionLabel } from '@/utils/position';
-import { trackAdminEditOpen, trackAdminEditSave } from '@/utils/tracking';
+import { trackAdminEditOpen } from '@/utils/tracking';
 
 interface MatchDataEditDialogProps {
   open: boolean;
@@ -192,11 +192,7 @@ const MatchDataEditDialog: React.FC<MatchDataEditDialogProps> = ({
           isBlue ? 'bg-blue-500/5 border-blue-500/20' : 'bg-red-500/5 border-red-500/20'
         }`}
       >
-        <h4
-          className={`text-sm font-medium mb-3 ${
-            isBlue ? 'text-blue-400' : 'text-red-400'
-          }`}
-        >
+        <h4 className={`text-sm font-medium mb-3 ${isBlue ? 'text-blue-400' : 'text-red-400'}`}>
           {isBlue ? '蓝色方' : '红色方'} - {team.teamName}
         </h4>
 

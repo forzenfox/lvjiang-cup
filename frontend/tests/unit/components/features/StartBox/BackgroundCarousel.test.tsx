@@ -1,12 +1,13 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render } from '@testing-library/react';
 import { BackgroundCarousel } from '@/components/features/StartBox/BackgroundCarousel';
+import type { CoverImage } from '@/components/features/StartBox/constants';
+
+vi.mock('@/hooks', () => ({
+  useImageWithFallback: (sources: readonly CoverImage[]) => sources,
+}));
 
 vi.mock('@/components/features/StartBox/constants', () => ({
-  COVER_BACKGROUNDS: {
-    pc: ['/test-pc-bg.png'],
-    mobile: ['/test-mobile-bg.png'],
-  },
   ANIMATION_CONFIG: {
     carouselInterval: 3000,
     exitDuration: 900,
@@ -27,38 +28,38 @@ describe('BackgroundCarousel 组件', () => {
     vi.useRealTimers();
   });
 
+  const pcBackgrounds: readonly CoverImage[] = [
+    { cdn: '/test-pc-bg.png', local: '/assets/test-pc-bg.png' },
+  ];
+
+  const mobileBackgrounds: readonly CoverImage[] = [
+    { cdn: '/test-mobile-bg.png', local: '/assets/test-mobile-bg.png' },
+  ];
+
   describe('渲染背景图', () => {
     it('应该渲染背景图片', () => {
       render(
-        <BackgroundCarousel
-          isExiting={false}
-          isMobile={false}
-          onError={mockOnError}
-        />
+        <BackgroundCarousel isExiting={false} onError={mockOnError} backgrounds={pcBackgrounds} />
       );
 
       expect(document.querySelectorAll('.bg-cover').length).toBeGreaterThan(0);
     });
 
-    it('PC端应该使用PC背景图', () => {
+    it('应该使用传入的 PC 背景图', () => {
       render(
-        <BackgroundCarousel
-          isExiting={false}
-          isMobile={false}
-          onError={mockOnError}
-        />
+        <BackgroundCarousel isExiting={false} onError={mockOnError} backgrounds={pcBackgrounds} />
       );
 
       const bgElement = document.querySelector('[style*="/test-pc-bg.png"]');
       expect(bgElement).toBeInTheDocument();
     });
 
-    it('移动端应该使用移动端背景图', () => {
+    it('应该使用传入的移动端背景图', () => {
       render(
         <BackgroundCarousel
           isExiting={false}
-          isMobile={true}
           onError={mockOnError}
+          backgrounds={mobileBackgrounds}
         />
       );
 
@@ -72,11 +73,7 @@ describe('BackgroundCarousel 组件', () => {
       const setIntervalSpy = vi.spyOn(global, 'setInterval');
 
       render(
-        <BackgroundCarousel
-          isExiting={false}
-          isMobile={false}
-          onError={mockOnError}
-        />
+        <BackgroundCarousel isExiting={false} onError={mockOnError} backgrounds={pcBackgrounds} />
       );
 
       expect(setIntervalSpy).not.toHaveBeenCalled();
@@ -85,14 +82,8 @@ describe('BackgroundCarousel 组件', () => {
 
   describe('图片加载失败处理', () => {
     it('图片加载失败时应该调用 onError 回调', () => {
-      const mockSetHasError = vi.fn();
-      
       render(
-        <BackgroundCarousel
-          isExiting={false}
-          isMobile={false}
-          onError={mockOnError}
-        />
+        <BackgroundCarousel isExiting={false} onError={mockOnError} backgrounds={pcBackgrounds} />
       );
 
       const imgElement = document.querySelector('img.hidden');
@@ -107,11 +98,7 @@ describe('BackgroundCarousel 组件', () => {
   describe('退出动画', () => {
     it('isExiting=true 时应该触发淡出动画', () => {
       const { container } = render(
-        <BackgroundCarousel
-          isExiting={true}
-          isMobile={false}
-          onError={mockOnError}
-        />
+        <BackgroundCarousel isExiting={true} onError={mockOnError} backgrounds={pcBackgrounds} />
       );
 
       const carouselElement = container.firstChild;
@@ -120,11 +107,7 @@ describe('BackgroundCarousel 组件', () => {
 
     it('isExiting=false 时应该保持可见', () => {
       const { container } = render(
-        <BackgroundCarousel
-          isExiting={false}
-          isMobile={false}
-          onError={mockOnError}
-        />
+        <BackgroundCarousel isExiting={false} onError={mockOnError} backgrounds={pcBackgrounds} />
       );
 
       const carouselElement = container.firstChild;

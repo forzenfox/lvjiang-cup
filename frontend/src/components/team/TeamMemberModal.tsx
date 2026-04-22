@@ -2,7 +2,13 @@ import React, { useEffect } from 'react';
 import { X, Crown } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Team, Player } from '@/api/types';
-import { TopIcon, JungleIcon, MidIcon, AdcIcon, SupportIcon } from '@/components/icons/PositionIcons';
+import {
+  TopIcon,
+  JungleIcon,
+  MidIcon,
+  AdcIcon,
+  SupportIcon,
+} from '@/components/icons/PositionIcons';
 import { PositionType } from '@/types/position';
 import { ZIndexLayers } from '@/constants/zIndex';
 import { getLevelBadgeClasses } from '@/utils/levelColors';
@@ -131,10 +137,7 @@ export const TeamMemberModal: React.FC<TeamMemberModalProps> = ({
                   data-testid="team-logo"
                 />
               )}
-              <h2
-                id="team-member-modal-title"
-                className="text-xl font-bold text-white"
-              >
+              <h2 id="team-member-modal-title" className="text-xl font-bold text-white">
                 {team.name}
               </h2>
               <button
@@ -150,9 +153,7 @@ export const TeamMemberModal: React.FC<TeamMemberModalProps> = ({
             {/* 参赛宣言 */}
             {team.battleCry && (
               <div className="px-6 py-2 border-b border-gray-700">
-                <p className="text-sm text-gray-400 text-center">
-                  {team.battleCry}
-                </p>
+                <p className="text-sm text-gray-400 text-center">{team.battleCry}</p>
               </div>
             )}
 
@@ -182,7 +183,10 @@ export const TeamMemberModal: React.FC<TeamMemberModalProps> = ({
                       <div className="flex items-center gap-2 min-w-0 flex-1">
                         <span className="text-white font-medium truncate">{player.nickname}</span>
                         {player.isCaptain && (
-                          <div className="flex items-center gap-1 text-amber-400 flex-shrink-0" title="队长">
+                          <div
+                            className="flex items-center gap-1 text-amber-400 flex-shrink-0"
+                            title="队长"
+                          >
                             <Crown className="w-4 h-4" />
                             <span className="text-xs">队长</span>
                           </div>
@@ -197,10 +201,7 @@ export const TeamMemberModal: React.FC<TeamMemberModalProps> = ({
                             {player.level}
                           </span>
                         )}
-                        <div
-                          data-testid="member-position-icon"
-                          className="text-gray-400"
-                        >
+                        <div data-testid="member-position-icon" className="text-gray-400">
                           <PositionIcon position={player.position} />
                         </div>
                       </div>

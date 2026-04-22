@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { DatabaseService } from '../../database/database.service';
 import { CacheService } from '../../cache/cache.service';
+import { BaseCachedService } from '../../common/services/base-cached.service';
 import { UpdateMatchDto } from './dto/update-match.dto';
 import { Team } from '../teams/teams.service';
 
@@ -25,43 +26,27 @@ export interface Match {
 }
 
 @Injectable()
-export class MatchesService {
-  private readonly logger = new Logger(MatchesService.name);
-  private readonly CACHE_KEY_ALL = 'matches:all';
-  private readonly CACHE_KEY_PREFIX = 'match:';
+export class MatchesService extends BaseCachedService<Match, string> {
+  private readonly matchLogger = new Logger(MatchesService.name);
 
-  constructor(
-    private databaseService: DatabaseService,
-    private cacheService: CacheService,
-  ) {}
+  constructor(databaseService: DatabaseService, cacheService: CacheService) {
+    super(databaseService, cacheService, 'MatchesService');
+  }
 
-  async findAll(stage?: string): Promise<Match[]> {
-    const cacheKey = stage ? `${this.CACHE_KEY_ALL}:${stage}` : this.CACHE_KEY_ALL;
+  protected getCachePrefix(): string {
+    return 'matches';
+  }
 
-    // 尝试从缓存获取
-    const cached = this.cacheService.get<Match[]>(cacheKey);
-    if (cached) {
-      return cached;
-    }
-
-    // 构建查询
-    let query = 'SELECT * FROM matches';
-    const params: any[] = [];
-
-    if (stage) {
-      query += ' WHERE stage = ?';
-      params.push(stage);
-    }
-
-    query += ' ORDER BY created_at ASC';
-
-    const matches = await this.databaseService.all<any>(query, params);
+  protected async findAllFromDb(): Promise<Match[]> {
+    const matches = await this.databaseService.all<any>(
+      'SELECT * FROM matches ORDER BY created_at ASC',
+    );
 
     // 获取所有战队信息用于关联
     const teams = await this.databaseService.all<any>('SELECT id, name, logo FROM teams');
     const teamsMap = new Map(teams.map((t) => [t.id, t]));
 
-    const result: Match[] = matches.map((match) => ({
+    return matches.map((match) => ({
       id: match.id,
       teamAId: match.team_a_id,
       teamBId: match.team_b_id,
@@ -80,27 +65,13 @@ export class MatchesService {
       eliminationBracket: match.elimination_bracket,
       eliminationGameNumber: match.elimination_game_number,
     }));
-
-    // 写入缓存
-    this.cacheService.set(cacheKey, result);
-
-    return result;
   }
 
-  async findOne(id: string): Promise<Match> {
-    const cacheKey = `${this.CACHE_KEY_PREFIX}${id}`;
-
-    // 尝试从缓存获取
-    const cached = this.cacheService.get<Match>(cacheKey);
-    if (cached) {
-      return cached;
-    }
-
-    // 获取比赛
+  protected async findOneFromDb(id: string): Promise<Match | undefined> {
     const match = await this.databaseService.get<any>('SELECT * FROM matches WHERE id = ?', [id]);
 
     if (!match) {
-      throw new NotFoundException(`Match with id ${id} not found`);
+      return undefined;
     }
 
     // 获取战队信息
@@ -116,7 +87,7 @@ export class MatchesService {
       ]);
     }
 
-    const result: Match = {
+    return {
       id: match.id,
       teamAId: match.team_a_id,
       teamBId: match.team_b_id,
@@ -135,11 +106,32 @@ export class MatchesService {
       eliminationBracket: match.elimination_bracket,
       eliminationGameNumber: match.elimination_game_number,
     };
+  }
 
-    // 写入缓存
-    this.cacheService.set(cacheKey, result);
+  async findAll(stage?: string): Promise<Match[]> {
+    if (stage) {
+      // 如果有 stage 参数，需要特殊处理缓存键
+      const cacheKey = `${this.getAllCacheKey()}:${stage}`;
+      const cached = this.cacheService.get<Match[]>(cacheKey);
+      if (cached) {
+        return cached;
+      }
 
-    return result;
+      const allMatches = await this.getOrSetAll();
+      const filtered = allMatches.filter((match) => match.stage === stage);
+      this.cacheService.set(cacheKey, filtered);
+      return filtered;
+    }
+
+    return this.getOrSetAll();
+  }
+
+  async findOne(id: string): Promise<Match> {
+    try {
+      return await this.getOrSetOne(id);
+    } catch (error) {
+      throw new NotFoundException(`Match with id ${id} not found`);
+    }
   }
 
   async update(id: string, updateMatchDto: UpdateMatchDto): Promise<Match> {
@@ -202,11 +194,10 @@ export class MatchesService {
       );
     }
 
-    this.logger.log(`Match updated: ${id}`);
+    this.matchLogger.log(`Match updated: ${id}`);
 
     // 清除缓存
-    this.cacheService.del(this.CACHE_KEY_ALL);
-    this.cacheService.del(`${this.CACHE_KEY_PREFIX}${id}`);
+    this.clearRelatedCache(id);
 
     return this.findOne(id);
   }
@@ -226,11 +217,10 @@ export class MatchesService {
       [id],
     );
 
-    this.logger.log(`Match scores cleared: ${id}`);
+    this.matchLogger.log(`Match scores cleared: ${id}`);
 
     // 清除缓存
-    this.cacheService.del(this.CACHE_KEY_ALL);
-    this.cacheService.del(`${this.CACHE_KEY_PREFIX}${id}`);
+    this.clearRelatedCache(id);
 
     return this.findOne(id);
   }
@@ -242,7 +232,7 @@ export class MatchesService {
     );
 
     if (result.count > 0) {
-      this.logger.log('Match slots already initialized');
+      this.matchLogger.log('Match slots already initialized');
       return;
     }
 
@@ -620,9 +610,9 @@ export class MatchesService {
       );
     }
 
-    this.logger.log(`Initialized ${swissSlots.length + eliminationSlots.length} match slots`);
+    this.matchLogger.log(`Initialized ${swissSlots.length + eliminationSlots.length} match slots`);
 
     // 清除缓存
-    this.cacheService.del(this.CACHE_KEY_ALL);
+    this.clearAllCache();
   }
 }

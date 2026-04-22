@@ -42,10 +42,7 @@ const StarRating: React.FC<{ rating: number }> = ({ rating }) => {
   );
 };
 
-const ChampionIcon: React.FC<{ championId: string; index: number }> = ({
-  championId,
-  index,
-}) => {
+const ChampionIcon: React.FC<{ championId: string; index: number }> = ({ championId, index }) => {
   const iconUrl = getChampionIconByEn(championId);
   const championTitle = getChampionTitleByEn(championId);
 
@@ -84,9 +81,7 @@ const PlayerDetailContent: React.FC<PlayerDetailContentProps> = ({ player }) => 
         <div
           className="w-28 h-28 rounded-full border-4 overflow-hidden mb-4"
           style={{
-            borderColor: player.isCaptain
-              ? 'rgba(251, 191, 36, 0.5)'
-              : 'rgba(255, 255, 255, 0.1)',
+            borderColor: player.isCaptain ? 'rgba(251, 191, 36, 0.5)' : 'rgba(255, 255, 255, 0.1)',
             boxShadow: player.isCaptain
               ? '0 0 20px rgba(251, 191, 36, 0.3)'
               : '0 4px 12px rgba(0, 0, 0, 0.3)',
@@ -104,9 +99,7 @@ const PlayerDetailContent: React.FC<PlayerDetailContentProps> = ({ player }) => 
               className="w-full h-full bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center"
               data-testid="player-avatar"
             >
-              <span className="text-3xl font-bold text-slate-400">
-                {player.nickname.charAt(0)}
-              </span>
+              <span className="text-3xl font-bold text-slate-400">{player.nickname.charAt(0)}</span>
             </div>
           )}
         </div>
@@ -166,9 +159,7 @@ const PlayerDetailContent: React.FC<PlayerDetailContentProps> = ({ player }) => 
             <h4 className="text-sm font-medium text-slate-300">评分</h4>
             <div className="flex items-center gap-2">
               <StarRating rating={(player.rating / 100) * 5} />
-              <span className="text-sm text-amber-500 font-medium">
-                {player.rating.toFixed(1)}
-              </span>
+              <span className="text-sm text-amber-500 font-medium">{player.rating.toFixed(1)}</span>
             </div>
           </div>
         </div>

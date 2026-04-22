@@ -5,7 +5,7 @@ import { Button } from '../../components/ui/button';
 import { teamService } from '@/services/teamService';
 import { matchService } from '@/services/matchService';
 import { streamService } from '@/services/streamService';
-import { Users, Trophy, Radio, Activity, User, Video, BarChart3 } from 'lucide-react';
+import { Users, Trophy, Radio, Activity, BarChart3 } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface DashboardStats {

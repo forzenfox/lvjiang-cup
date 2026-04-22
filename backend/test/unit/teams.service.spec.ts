@@ -44,9 +44,26 @@ describe('TeamsService', () => {
     jest.clearAllMocks();
   });
 
+  describe('基类集成', () => {
+    it('应该继承 BaseCachedService', () => {
+      // 验证服务继承了基类方法
+      expect(service['getCachePrefix']).toBeDefined();
+      expect(service['findAllFromDb']).toBeDefined();
+      expect(service['findOneFromDb']).toBeDefined();
+      expect(service['getOrSetAll']).toBeDefined();
+      expect(service['getOrSetOne']).toBeDefined();
+      expect(service['clearAllCache']).toBeDefined();
+      expect(service['clearRelatedCache']).toBeDefined();
+    });
+
+    it('应该使用正确的缓存前缀', () => {
+      expect(service['getCachePrefix']()).toBe('teams');
+    });
+  });
+
   describe('findAll', () => {
     it('should return teams from cache', async () => {
-      const mockTeams = [{ id: '1', name: 'Team 1', players: [] }];
+      const mockTeams = [{ id: '1', name: 'Team 1', members: [] }];
       mockCacheService.get.mockReturnValue(mockTeams);
 
       const result = await service.findAll();
@@ -81,13 +98,13 @@ describe('TeamsService', () => {
 
   describe('findOne', () => {
     it('should return a team from cache', async () => {
-      const mockTeam = { id: '1', name: 'Team 1', players: [] };
+      const mockTeam = { id: '1', name: 'Team 1', members: [] };
       mockCacheService.get.mockReturnValue(mockTeam);
 
       const result = await service.findOne('1');
 
       expect(result).toEqual(mockTeam);
-      expect(mockCacheService.get).toHaveBeenCalledWith('team:1');
+      expect(mockCacheService.get).toHaveBeenCalledWith('teams:1');
     });
 
     it('should return a team from database when cache is empty', async () => {
@@ -108,7 +125,7 @@ describe('TeamsService', () => {
 
       await service.findOne('1');
 
-      expect(mockCacheService.set).toHaveBeenCalledWith('team:1', expect.any(Object));
+      expect(mockCacheService.set).toHaveBeenCalledWith('teams:1', expect.any(Object));
     });
 
     it('should throw NotFoundException for non-existent team', async () => {
@@ -223,7 +240,7 @@ describe('TeamsService', () => {
       await service.update('1', { name: 'Updated' });
 
       expect(mockCacheService.del).toHaveBeenCalledWith('teams:all');
-      expect(mockCacheService.del).toHaveBeenCalledWith('team:1');
+      expect(mockCacheService.del).toHaveBeenCalledWith('teams:1');
     });
 
     it('should throw NotFoundException for non-existent team', async () => {
@@ -269,7 +286,7 @@ describe('TeamsService', () => {
       await service.remove('1');
 
       expect(mockCacheService.del).toHaveBeenCalledWith('teams:all');
-      expect(mockCacheService.del).toHaveBeenCalledWith('team:1');
+      expect(mockCacheService.del).toHaveBeenCalledWith('teams:1');
     });
 
     it('should throw NotFoundException for non-existent team', async () => {
@@ -370,7 +387,7 @@ describe('TeamsService', () => {
       await service.createMember('team1', { nickname: 'Player', position: 'MID' });
 
       expect(mockCacheService.del).toHaveBeenCalledWith('teams:all');
-      expect(mockCacheService.del).toHaveBeenCalledWith('team:team1');
+      expect(mockCacheService.del).toHaveBeenCalledWith('teams:team1');
     });
   });
 

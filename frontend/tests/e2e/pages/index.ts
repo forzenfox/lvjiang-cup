@@ -14,3 +14,4 @@ export { VideosPage } from './VideosPage';
 export { AdvancementPage } from './AdvancementPage';
 export { SwissStageEditorPage } from './SwissStageEditorPage';
 export { MatchDataPage } from './MatchDataPage';
+export { MatchDataListPage } from './MatchDataListPage';

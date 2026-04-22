@@ -2,7 +2,6 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { Users, Loader2, AlertCircle } from 'lucide-react';
 import { teamService } from '../../services';
 import type { Team as ApiTeam, Player } from '../../api/types';
-import { Card, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { PlayerDetailModal } from '../team/PlayerDetailModal';
 import { TeamMemberModal } from '../team/TeamMemberModal';
@@ -210,10 +209,7 @@ const TeamSection: React.FC = () => {
           </div>
         ) : (
           /* 正常数据展示（4行4列正方形卡片布局，队标队名占比更大） */
-          <div
-            className="grid grid-cols-4 gap-4 max-w-3xl mx-auto w-full"
-            data-testid="teams-grid"
-          >
+          <div className="grid grid-cols-4 gap-4 max-w-3xl mx-auto w-full" data-testid="teams-grid">
             {teams.map(team => (
               <div
                 key={team.id}

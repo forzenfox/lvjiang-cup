@@ -29,3 +29,6 @@ export {
   useWorker,
   useMeasureRender,
 } from './usePerformance';
+
+// Image loading hooks
+export { useImageWithFallback } from './useImageWithFallback';

@@ -31,7 +31,7 @@ export const routes: RouteObject[] = [
     path: '/match/:id/games',
     element: <MatchDataPage />,
   },
-  
+
   // 受保护的管理后台路由
   {
     path: '/admin/dashboard',

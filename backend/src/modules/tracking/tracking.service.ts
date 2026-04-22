@@ -11,7 +11,7 @@ export interface TrackingEvent {
 
 /**
  * 跟踪服务 - 用于接收和记录前端发送的跟踪事件
- * 
+ *
  * 当前实现：仅日志记录，不持久化存储
  */
 @Injectable()
@@ -20,14 +20,12 @@ export class TrackingService {
 
   /**
    * 记录跟踪事件
-   * 
+   *
    * @param event - 跟踪事件数据
    */
   logEvent(event: TrackingEvent): void {
     // 记录事件日志，便于开发和调试
-    this.logger.log(
-      `Tracking Event: ${event.event} | ${JSON.stringify(event)}`,
-    );
+    this.logger.log(`Tracking Event: ${event.event} | ${JSON.stringify(event)}`);
 
     // 当前仅记录到控制台，未来可扩展为：
     // - 写入数据库

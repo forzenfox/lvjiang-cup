@@ -41,24 +41,14 @@ describe('TeamMemberModal 组件', () => {
   describe('弹框渲染测试', () => {
     it('isOpen=true 时应该显示弹框', () => {
       render(
-        <TeamMemberModal
-          team={mockTeam}
-          isOpen={true}
-          onClose={vi.fn()}
-          onPlayerClick={vi.fn()}
-        />
+        <TeamMemberModal team={mockTeam} isOpen={true} onClose={vi.fn()} onPlayerClick={vi.fn()} />
       );
       expect(screen.getByTestId('team-member-modal')).toBeInTheDocument();
     });
 
     it('isOpen=false 时不应该显示弹框', () => {
       render(
-        <TeamMemberModal
-          team={mockTeam}
-          isOpen={false}
-          onClose={vi.fn()}
-          onPlayerClick={vi.fn()}
-        />
+        <TeamMemberModal team={mockTeam} isOpen={false} onClose={vi.fn()} onPlayerClick={vi.fn()} />
       );
       expect(screen.queryByTestId('team-member-modal')).not.toBeInTheDocument();
     });
@@ -67,12 +57,7 @@ describe('TeamMemberModal 组件', () => {
   describe('弹框头部测试', () => {
     it('应该正确显示战队Logo', () => {
       render(
-        <TeamMemberModal
-          team={mockTeam}
-          isOpen={true}
-          onClose={vi.fn()}
-          onPlayerClick={vi.fn()}
-        />
+        <TeamMemberModal team={mockTeam} isOpen={true} onClose={vi.fn()} onPlayerClick={vi.fn()} />
       );
       const logo = screen.getByTestId('team-logo');
       expect(logo).toBeInTheDocument();
@@ -81,12 +66,7 @@ describe('TeamMemberModal 组件', () => {
 
     it('应该正确显示队名', () => {
       render(
-        <TeamMemberModal
-          team={mockTeam}
-          isOpen={true}
-          onClose={vi.fn()}
-          onPlayerClick={vi.fn()}
-        />
+        <TeamMemberModal team={mockTeam} isOpen={true} onClose={vi.fn()} onPlayerClick={vi.fn()} />
       );
       expect(screen.getByText('IG战队')).toBeInTheDocument();
     });
@@ -95,12 +75,7 @@ describe('TeamMemberModal 组件', () => {
   describe('成员列表渲染测试', () => {
     it('应该渲染所有成员', () => {
       render(
-        <TeamMemberModal
-          team={mockTeam}
-          isOpen={true}
-          onClose={vi.fn()}
-          onPlayerClick={vi.fn()}
-        />
+        <TeamMemberModal team={mockTeam} isOpen={true} onClose={vi.fn()} onPlayerClick={vi.fn()} />
       );
       const memberRows = screen.getAllByTestId('member-row');
       expect(memberRows).toHaveLength(2);
@@ -108,12 +83,7 @@ describe('TeamMemberModal 组件', () => {
 
     it('成员行应该显示选手ID（昵称）', () => {
       render(
-        <TeamMemberModal
-          team={mockTeam}
-          isOpen={true}
-          onClose={vi.fn()}
-          onPlayerClick={vi.fn()}
-        />
+        <TeamMemberModal team={mockTeam} isOpen={true} onClose={vi.fn()} onPlayerClick={vi.fn()} />
       );
       expect(screen.getByText('亚索')).toBeInTheDocument();
       expect(screen.getByText('盲僧')).toBeInTheDocument();
@@ -121,12 +91,7 @@ describe('TeamMemberModal 组件', () => {
 
     it('成员行应该显示位置图标', () => {
       render(
-        <TeamMemberModal
-          team={mockTeam}
-          isOpen={true}
-          onClose={vi.fn()}
-          onPlayerClick={vi.fn()}
-        />
+        <TeamMemberModal team={mockTeam} isOpen={true} onClose={vi.fn()} onPlayerClick={vi.fn()} />
       );
       const positionIcons = screen.getAllByTestId('member-position-icon');
       expect(positionIcons).toHaveLength(2);
@@ -134,12 +99,7 @@ describe('TeamMemberModal 组件', () => {
 
     it('成员行不应该显示照片', () => {
       render(
-        <TeamMemberModal
-          team={mockTeam}
-          isOpen={true}
-          onClose={vi.fn()}
-          onPlayerClick={vi.fn()}
-        />
+        <TeamMemberModal team={mockTeam} isOpen={true} onClose={vi.fn()} onPlayerClick={vi.fn()} />
       );
       // 检查没有成员头像元素
       const memberAvatars = screen.queryAllByTestId('member-avatar');
@@ -185,12 +145,7 @@ describe('TeamMemberModal 组件', () => {
     it('点击遮罩层应该调用 onClose', () => {
       const onClose = vi.fn();
       render(
-        <TeamMemberModal
-          team={mockTeam}
-          isOpen={true}
-          onClose={onClose}
-          onPlayerClick={vi.fn()}
-        />
+        <TeamMemberModal team={mockTeam} isOpen={true} onClose={onClose} onPlayerClick={vi.fn()} />
       );
       const overlay = screen.getByTestId('modal-overlay');
       fireEvent.click(overlay);
@@ -200,12 +155,7 @@ describe('TeamMemberModal 组件', () => {
     it('点击关闭按钮应该调用 onClose', () => {
       const onClose = vi.fn();
       render(
-        <TeamMemberModal
-          team={mockTeam}
-          isOpen={true}
-          onClose={onClose}
-          onPlayerClick={vi.fn()}
-        />
+        <TeamMemberModal team={mockTeam} isOpen={true} onClose={onClose} onPlayerClick={vi.fn()} />
       );
       const closeButton = screen.getByTestId('close-modal-button');
       fireEvent.click(closeButton);
@@ -215,12 +165,7 @@ describe('TeamMemberModal 组件', () => {
     it('按下 ESC 键应该调用 onClose', () => {
       const onClose = vi.fn();
       render(
-        <TeamMemberModal
-          team={mockTeam}
-          isOpen={true}
-          onClose={onClose}
-          onPlayerClick={vi.fn()}
-        />
+        <TeamMemberModal team={mockTeam} isOpen={true} onClose={onClose} onPlayerClick={vi.fn()} />
       );
       fireEvent.keyDown(document, { key: 'Escape' });
       expect(onClose).toHaveBeenCalledTimes(1);
@@ -283,12 +228,7 @@ describe('TeamMemberModal 组件', () => {
 
     it('loading 未传时不应该显示骨架屏（默认 false）', () => {
       render(
-        <TeamMemberModal
-          team={mockTeam}
-          isOpen={true}
-          onClose={vi.fn()}
-          onPlayerClick={vi.fn()}
-        />
+        <TeamMemberModal team={mockTeam} isOpen={true} onClose={vi.fn()} onPlayerClick={vi.fn()} />
       );
       expect(screen.queryByTestId('skeleton-line')).not.toBeInTheDocument();
     });
@@ -297,12 +237,7 @@ describe('TeamMemberModal 组件', () => {
   describe('z-index 层级测试', () => {
     it('遮罩层应该使用 NESTED_MODAL: 120 层级', () => {
       render(
-        <TeamMemberModal
-          team={mockTeam}
-          isOpen={true}
-          onClose={vi.fn()}
-          onPlayerClick={vi.fn()}
-        />
+        <TeamMemberModal team={mockTeam} isOpen={true} onClose={vi.fn()} onPlayerClick={vi.fn()} />
       );
       const modal = screen.getByTestId('team-member-modal');
       const zIndexStyle = modal.style.zIndex;
@@ -313,12 +248,7 @@ describe('TeamMemberModal 组件', () => {
   describe('可访问性测试', () => {
     it('弹框应该有 role="dialog" 属性', () => {
       render(
-        <TeamMemberModal
-          team={mockTeam}
-          isOpen={true}
-          onClose={vi.fn()}
-          onPlayerClick={vi.fn()}
-        />
+        <TeamMemberModal team={mockTeam} isOpen={true} onClose={vi.fn()} onPlayerClick={vi.fn()} />
       );
       const modal = screen.getByTestId('team-member-modal');
       expect(modal).toHaveAttribute('role', 'dialog');
@@ -327,12 +257,7 @@ describe('TeamMemberModal 组件', () => {
 
     it('关闭按钮应该有 aria-label', () => {
       render(
-        <TeamMemberModal
-          team={mockTeam}
-          isOpen={true}
-          onClose={vi.fn()}
-          onPlayerClick={vi.fn()}
-        />
+        <TeamMemberModal team={mockTeam} isOpen={true} onClose={vi.fn()} onPlayerClick={vi.fn()} />
       );
       const closeButton = screen.getByTestId('close-modal-button');
       expect(closeButton).toHaveAttribute('aria-label');

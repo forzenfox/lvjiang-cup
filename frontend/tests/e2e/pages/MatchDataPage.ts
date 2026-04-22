@@ -69,7 +69,9 @@ export class MatchDataPage extends BasePage {
    * 导航到对战数据页面
    */
   async goto(matchId: string, gameNumber?: number) {
-    const url = gameNumber ? `/match/${matchId}/games?game=${gameNumber}` : `/match/${matchId}/games`;
+    const url = gameNumber
+      ? `/match/${matchId}/games?game=${gameNumber}`
+      : `/match/${matchId}/games`;
     await super.goto(url);
     await this.waitForLoad();
   }

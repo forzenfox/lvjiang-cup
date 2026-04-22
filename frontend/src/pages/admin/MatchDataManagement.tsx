@@ -4,14 +4,11 @@ import AdminLayout from '../../components/layout/AdminLayout';
 import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
-import { Upload, Edit2, Trash2, RefreshCw, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { Edit2, Trash2, RefreshCw, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import MatchDataImportDialog from '../../components/admin/MatchDataImportDialog';
 import MatchDataEditDialog from '../../components/admin/MatchDataEditDialog';
-import {
-  getMatchSeries,
-  getMatchGameData,
-} from '@/api/matchData';
+import { getMatchSeries, getMatchGameData } from '@/api/matchData';
 import type { MatchSeriesInfo, GameSummary, MatchGameData } from '@/types/matchData';
 
 interface GameStatus {
@@ -149,16 +146,10 @@ const MatchDataManagement: React.FC = () => {
   const getGameStatusBadge = (game: GameSummary): React.ReactNode => {
     if (game.hasData) {
       return (
-        <span className="px-2 py-0.5 bg-green-500/20 text-green-400 text-xs rounded">
-          已有数据
-        </span>
+        <span className="px-2 py-0.5 bg-green-500/20 text-green-400 text-xs rounded">已有数据</span>
       );
     }
-    return (
-      <span className="px-2 py-0.5 bg-gray-500/20 text-gray-400 text-xs rounded">
-        无数据
-      </span>
-    );
+    return <span className="px-2 py-0.5 bg-gray-500/20 text-gray-400 text-xs rounded">无数据</span>;
   };
 
   if (!matchId) {
@@ -192,13 +183,6 @@ const MatchDataManagement: React.FC = () => {
             <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
             刷新
           </Button>
-          <Button
-            onClick={() => setImportDialogOpen(true)}
-            className="bg-gradient-to-r from-yellow-400 to-yellow-600 text-black border-yellow-300 hover:shadow-[0_0_15px_rgba(250,204,21,0.5)]"
-          >
-            <Upload className="w-4 h-4 mr-2" />
-            导入数据
-          </Button>
         </div>
       </div>
 
@@ -219,10 +203,7 @@ const MatchDataManagement: React.FC = () => {
             const hasData = game?.hasData ?? false;
 
             return (
-              <Card
-                key={gameNumber}
-                className="bg-[#0F172A] border-white/10"
-              >
+              <Card key={gameNumber} className="bg-[#0F172A] border-white/10">
                 <div className="flex items-center justify-between p-4">
                   <div className="flex items-center space-x-4">
                     <div
@@ -237,7 +218,14 @@ const MatchDataManagement: React.FC = () => {
                     <div>
                       <div className="flex items-center gap-2">
                         <h3 className="text-white font-semibold">第 {gameNumber} 局</h3>
-                        {getGameStatusBadge(game ?? { gameNumber, winnerTeamId: null, gameDuration: null, hasData: false })}
+                        {getGameStatusBadge(
+                          game ?? {
+                            gameNumber,
+                            winnerTeamId: null,
+                            gameDuration: null,
+                            hasData: false,
+                          }
+                        )}
                       </div>
                       {hasData && game && (
                         <div className="text-sm text-gray-400 mt-1">
@@ -255,9 +243,7 @@ const MatchDataManagement: React.FC = () => {
                     <button
                       onClick={() => toggleGameEnabled(gameNumber)}
                       className={`p-2 rounded-lg transition-colors ${
-                        isEnabled
-                          ? 'bg-green-500/20 text-green-400'
-                          : 'bg-gray-700 text-gray-400'
+                        isEnabled ? 'bg-green-500/20 text-green-400' : 'bg-gray-700 text-gray-400'
                       }`}
                       title={isEnabled ? '禁用此局' : '启用此局'}
                     >
