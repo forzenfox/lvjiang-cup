@@ -3,6 +3,7 @@ import { ApiTags, ApiOperation, ApiBearerAuth, ApiParam } from '@nestjs/swagger'
 import { VideosService, SortItem } from './videos.service';
 import { UpdateVideoDto } from './dto/update-video.dto';
 import { CreateVideoDto } from './dto/create-video.dto';
+import { SortVideosDto } from './dto/sort-videos.dto';
 import { Video } from './entities/video.entity';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
@@ -55,8 +56,8 @@ export class VideosController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: '批量排序视频（需认证）' })
-  async sort(@Body('orderedIds') orderedIds: string[]): Promise<Video[]> {
-    const sortItems: SortItem[] = orderedIds.map((id, index) => ({
+  async sort(@Body() sortDto: SortVideosDto): Promise<Video[]> {
+    const sortItems: SortItem[] = sortDto.orderedIds.map((id, index) => ({
       id,
       order: index,
     }));

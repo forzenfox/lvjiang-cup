@@ -17,9 +17,12 @@ class MockIntersectionObserver {
   }
 }
 
-global.IntersectionObserver = MockIntersectionObserver as unknown as typeof IntersectionObserver;
-
 describe('ThanksSection', () => {
+  beforeEach(() => {
+    global.IntersectionObserver =
+      MockIntersectionObserver as unknown as typeof IntersectionObserver;
+  });
+
   it('应该渲染主标题', () => {
     render(<ThanksSection />);
 

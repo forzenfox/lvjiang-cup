@@ -1,6 +1,19 @@
 import '@testing-library/jest-dom/vitest';
 import { cleanup } from '@testing-library/react';
-import { afterEach, beforeEach } from 'vitest';
+import { afterEach, beforeEach, vi } from 'vitest';
+import type { ThanksData } from '@/data/types';
+
+vi.hoisted(() => {
+  const mockThanksData: ThanksData = {
+    sponsors: [{ name: 'Test Sponsor', tier: 'gold' }],
+    staff: [{ name: 'Test Staff', role: 'Organizer' }],
+  };
+  Object.defineProperty(window, 'THANKS_DATA', {
+    value: mockThanksData,
+    writable: true,
+    configurable: true,
+  });
+});
 
 beforeEach(() => {
   window.APP_CONFIG = {

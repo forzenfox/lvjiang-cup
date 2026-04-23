@@ -436,7 +436,7 @@ describe('Videos API Integration Tests', () => {
         .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
 
-      const videos = adminResponse.body;
+      const videos = adminResponse.body.data;
       expect(videos.length).toBe(3);
 
       const orderedIds = videos.map((v: any) => v.id);

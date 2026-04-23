@@ -117,7 +117,7 @@ describe('VideosController', () => {
     });
 
     it('PUT /api/admin/videos/sort需要认证', async () => {
-      const sortDto = ['1', '2'];
+      const sortDto = { orderedIds: ['1', '2'] };
       const sortedVideos: Video[] = [
         { ...mockVideo, id: '1', order: 0 },
         { ...mockVideo, id: '2', order: 1 },
@@ -224,7 +224,7 @@ describe('VideosController', () => {
 
   describe('PUT /api/admin/videos/sort - 批量排序视频', () => {
     it('应该批量排序视频并返回排序后的视频列表', async () => {
-      const sortDto = ['2', '1'];
+      const sortDto = { orderedIds: ['2', '1'] };
       const sortedVideos: Video[] = [
         { ...mockVideo, id: '2', order: 0 },
         { ...mockVideo, id: '1', order: 1 },

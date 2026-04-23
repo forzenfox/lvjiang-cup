@@ -3,6 +3,12 @@ import { render } from '@testing-library/react';
 import { BackgroundCarousel } from '@/components/features/StartBox/BackgroundCarousel';
 import type { CoverImage } from '@/components/features/StartBox/constants';
 
+vi.mock('framer-motion', () => ({
+  motion: {
+    div: ({ children, ...props }: any) => <div {...props}>{children}</div>,
+  },
+}));
+
 vi.mock('@/hooks', () => ({
   useImageWithFallback: (sources: readonly CoverImage[]) => sources,
 }));
