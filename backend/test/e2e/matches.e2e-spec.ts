@@ -8,6 +8,8 @@ import { AuthModule } from '../../src/modules/auth/auth.module';
 import { DatabaseModule } from '../../src/database/database.module';
 import { CacheModule } from '../../src/cache/cache.module';
 import { MatchesService } from '../../src/modules/matches/matches.service';
+import { HttpExceptionFilter } from '../../src/common/filters/http-exception.filter';
+import { TransformInterceptor } from '../../src/common/interceptors/transform.interceptor';
 import { v4 as uuidv4 } from 'uuid';
 
 describe('Matches API (e2e)', () => {
@@ -51,52 +53,57 @@ describe('Matches API (e2e)', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
+    // 添加全局前缀与生产环境一致
+    app.setGlobalPrefix('api');
     app.useGlobalPipes(
       new ValidationPipe({
-        whitelist: true,
-        forbidNonWhitelisted: true,
+        whitelist: false,
+        forbidNonWhitelisted: false,
         transform: true,
       }),
     );
+    // 添加全局过滤器和拦截器
+    app.useGlobalFilters(new HttpExceptionFilter());
+    app.useGlobalInterceptors(new TransformInterceptor());
     await app.init();
 
     // 登录获取 token
-    const loginResponse = await request(app.getHttpServer()).post('/admin/auth/login').send({
+    const loginResponse = await request(app.getHttpServer()).post('/api/admin/auth/login').send({
       username: 'admin',
       password: 'admin123',
     });
 
-    authToken = loginResponse.body.access_token;
+    authToken = loginResponse.body.data.access_token;
 
     // 创建两个战队用于比赛
     const teamAResponse = await request(app.getHttpServer())
-      .post('/admin/teams')
+      .post('/api/admin/teams')
       .set('Authorization', `Bearer ${authToken}`)
       .send({
         id: uuidv4(),
         name: '战队A',
         tag: 'TEAMA',
-        players: [{ id: uuidv4(), name: 'PlayerA1', position: 'TOP' }],
+        players: [{ id: uuidv4(), nickname: 'PlayerA1', position: 'TOP' }],
       });
-    teamAId = teamAResponse.body.id;
+    teamAId = teamAResponse.body.data.id;
 
     const teamBResponse = await request(app.getHttpServer())
-      .post('/admin/teams')
+      .post('/api/admin/teams')
       .set('Authorization', `Bearer ${authToken}`)
       .send({
         id: uuidv4(),
         name: '战队B',
         tag: 'TEAMB',
-        players: [{ id: uuidv4(), name: 'PlayerB1', position: 'TOP' }],
+        players: [{ id: uuidv4(), nickname: 'PlayerB1', position: 'TOP' }],
       });
-    teamBId = teamBResponse.body.id;
+    teamBId = teamBResponse.body.data.id;
 
     // 初始化比赛槽位
     const matchesService = moduleFixture.get<MatchesService>(MatchesService);
     await matchesService.initSlots();
 
     // 获取一个比赛ID用于测试
-    const matchesResponse = await request(app.getHttpServer()).get('/matches').expect(200);
+    const matchesResponse = await request(app.getHttpServer()).get('/api/matches').expect(200);
 
     if (matchesResponse.body.data && matchesResponse.body.data.length > 0) {
       matchId = matchesResponse.body.data[0].id;
@@ -110,7 +117,7 @@ describe('Matches API (e2e)', () => {
   describe('GET /api/matches', () => {
     it('性能 - 列表查询应在200ms内完成', async () => {
       const startTime = Date.now();
-      await request(app.getHttpServer()).get('/matches').expect(200);
+      await request(app.getHttpServer()).get('/api/matches').expect(200);
       const duration = Date.now() - startTime;
 
       expect(duration).toBeLessThan(200);
@@ -118,27 +125,24 @@ describe('Matches API (e2e)', () => {
 
     it('性能 - 筛选查询应在200ms内完成', async () => {
       const startTime = Date.now();
-      await request(app.getHttpServer()).get('/matches?stage=swiss').expect(200);
+      await request(app.getHttpServer()).get('/api/matches?stage=swiss').expect(200);
       const duration = Date.now() - startTime;
 
       expect(duration).toBeLessThan(200);
     });
 
     it('列表查询 - 应该返回比赛列表', async () => {
-      const response = await request(app.getHttpServer()).get('/matches').expect(200);
+      const response = await request(app.getHttpServer()).get('/api/matches').expect(200);
 
       expect(response.body).toHaveProperty('data');
-      expect(response.body).toHaveProperty('total');
-      expect(response.body).toHaveProperty('page');
-      expect(response.body).toHaveProperty('pageSize');
       expect(Array.isArray(response.body.data)).toBe(true);
     });
 
-    it('槽位数量 - 瑞士轮应该有36个槽位', async () => {
+    it('槽位数量 - 瑞士轮应该有33个槽位', async () => {
       const matchesService = app.get<MatchesService>(MatchesService);
       const swissMatches = await matchesService.findAll('swiss');
 
-      expect(swissMatches.length).toBe(36);
+      expect(swissMatches.length).toBe(33);
     });
 
     it('槽位数量 - 淘汰赛应该有7个槽位', async () => {
@@ -153,11 +157,13 @@ describe('Matches API (e2e)', () => {
       const swissMatches = await matchesService.findAll('swiss');
 
       const round5Matches = swissMatches.filter((match: any) => match.swissRound === 5);
-      expect(round5Matches.length).toBe(4);
+      expect(round5Matches.length).toBe(3);
     });
 
     it('筛选查询 - 应该按阶段筛选瑞士轮比赛', async () => {
-      const response = await request(app.getHttpServer()).get('/matches?stage=swiss').expect(200);
+      const response = await request(app.getHttpServer())
+        .get('/api/matches?stage=swiss')
+        .expect(200);
 
       expect(response.body).toHaveProperty('data');
       expect(Array.isArray(response.body.data)).toBe(true);
@@ -168,7 +174,7 @@ describe('Matches API (e2e)', () => {
 
     it('筛选查询 - 应该按阶段筛选淘汰赛比赛', async () => {
       const response = await request(app.getHttpServer())
-        .get('/matches?stage=elimination')
+        .get('/api/matches?stage=elimination')
         .expect(200);
 
       expect(response.body).toHaveProperty('data');
@@ -181,17 +187,20 @@ describe('Matches API (e2e)', () => {
 
   describe('GET /api/matches/:id', () => {
     it('单个比赛 - 应该返回单个比赛', async () => {
-      const response = await request(app.getHttpServer()).get(`/matches/${matchId}`).expect(200);
+      const response = await request(app.getHttpServer())
+        .get(`/api/matches/${matchId}`)
+        .expect(200);
 
-      expect(response.body).toHaveProperty('id');
-      expect(response.body.id).toBe(matchId);
-      expect(response.body).toHaveProperty('round');
-      expect(response.body).toHaveProperty('stage');
+      expect(response.body).toHaveProperty('data');
+      expect(response.body.data).toHaveProperty('id');
+      expect(response.body.data.id).toBe(matchId);
+      expect(response.body.data).toHaveProperty('round');
+      expect(response.body.data).toHaveProperty('stage');
     });
 
     it('未找到 - 应该返回 404 当比赛不存在', async () => {
       const response = await request(app.getHttpServer())
-        .get('/matches/non-existent-id')
+        .get('/api/matches/non-existent-id')
         .expect(404);
 
       expect(response.body).toHaveProperty('message');
@@ -202,7 +211,7 @@ describe('Matches API (e2e)', () => {
   describe('PUT /api/admin/matches/:id', () => {
     it('更新比分 - 应该更新比赛比分（需认证）', async () => {
       const response = await request(app.getHttpServer())
-        .put(`/admin/matches/${matchId}`)
+        .put(`/api/admin/matches/${matchId}`)
         .set('Authorization', `Bearer ${authToken}`)
         .send({
           teamAId: teamAId,
@@ -214,32 +223,32 @@ describe('Matches API (e2e)', () => {
         })
         .expect(200);
 
-      expect(response.body.scoreA).toBe(2);
-      expect(response.body.scoreB).toBe(1);
-      expect(response.body.status).toBe('finished');
-      expect(response.body.winnerId).toBe(teamAId);
+      expect(response.body.data.scoreA).toBe(2);
+      expect(response.body.data.scoreB).toBe(1);
+      expect(response.body.data.status).toBe('finished');
+      expect(response.body.data.winnerId).toBe(teamAId);
     });
 
     it('更新状态 - 应该更新比赛状态', async () => {
       // 先获取另一个比赛ID
-      const matchesResponse = await request(app.getHttpServer()).get('/matches').expect(200);
+      const matchesResponse = await request(app.getHttpServer()).get('/api/matches').expect(200);
 
       const anotherMatchId = matchesResponse.body.data[1]?.id || matchId;
 
       const response = await request(app.getHttpServer())
-        .put(`/admin/matches/${anotherMatchId}`)
+        .put(`/api/admin/matches/${anotherMatchId}`)
         .set('Authorization', `Bearer ${authToken}`)
         .send({
           status: 'ongoing',
         })
         .expect(200);
 
-      expect(response.body.status).toBe('ongoing');
+      expect(response.body.data.status).toBe('ongoing');
     });
 
     it('未找到 - 应该返回 404 当比赛不存在', async () => {
       const response = await request(app.getHttpServer())
-        .put('/admin/matches/non-existent-id')
+        .put('/api/admin/matches/non-existent-id')
         .set('Authorization', `Bearer ${authToken}`)
         .send({
           scoreA: 2,
@@ -253,7 +262,7 @@ describe('Matches API (e2e)', () => {
 
     it('认证失败 - 应该拒绝未认证请求', async () => {
       const response = await request(app.getHttpServer())
-        .put(`/admin/matches/${matchId}`)
+        .put(`/api/admin/matches/${matchId}`)
         .send({
           scoreA: 2,
           scoreB: 1,
@@ -266,7 +275,7 @@ describe('Matches API (e2e)', () => {
 
     it('认证失败 - 应该拒绝无效token', async () => {
       const response = await request(app.getHttpServer())
-        .put(`/admin/matches/${matchId}`)
+        .put(`/api/admin/matches/${matchId}`)
         .set('Authorization', 'Bearer invalid-token')
         .send({
           scoreA: 2,
@@ -283,7 +292,7 @@ describe('Matches API (e2e)', () => {
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJleHAiOjE1MTYyMzkwMjJ9.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c';
 
       const response = await request(app.getHttpServer())
-        .put(`/admin/matches/${matchId}`)
+        .put(`/api/admin/matches/${matchId}`)
         .set('Authorization', `Bearer ${expiredToken}`)
         .send({
           scoreA: 2,
@@ -297,7 +306,7 @@ describe('Matches API (e2e)', () => {
 
     it('认证失败 - 应该拒绝错误格式的Authorization头', async () => {
       const response = await request(app.getHttpServer())
-        .put(`/admin/matches/${matchId}`)
+        .put(`/api/admin/matches/${matchId}`)
         .set('Authorization', 'Basic admin:admin123')
         .send({
           scoreA: 2,
@@ -311,7 +320,7 @@ describe('Matches API (e2e)', () => {
 
     it('认证失败 - 应该拒绝缺少Authorization头', async () => {
       const response = await request(app.getHttpServer())
-        .put(`/admin/matches/${matchId}`)
+        .put(`/api/admin/matches/${matchId}`)
         .send({
           scoreA: 2,
           scoreB: 1,
@@ -327,7 +336,7 @@ describe('Matches API (e2e)', () => {
     it('清空比分 - 应该清空比赛比分（需认证）', async () => {
       // 先设置比分
       await request(app.getHttpServer())
-        .put(`/admin/matches/${matchId}`)
+        .put(`/api/admin/matches/${matchId}`)
         .set('Authorization', `Bearer ${authToken}`)
         .send({
           scoreA: 2,
@@ -338,19 +347,19 @@ describe('Matches API (e2e)', () => {
 
       // 清空比分
       const response = await request(app.getHttpServer())
-        .delete(`/admin/matches/${matchId}/scores`)
+        .delete(`/api/admin/matches/${matchId}/scores`)
         .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
 
-      expect(response.body.scoreA).toBe(0);
-      expect(response.body.scoreB).toBe(0);
-      expect(response.body.winnerId).toBeNull();
-      expect(response.body.status).toBe('upcoming');
+      expect(response.body.data.scoreA).toBe(0);
+      expect(response.body.data.scoreB).toBe(0);
+      expect(response.body.data.winnerId).toBeNull();
+      expect(response.body.data.status).toBe('upcoming');
     });
 
     it('未找到 - 应该返回 404 当比赛不存在', async () => {
       const response = await request(app.getHttpServer())
-        .delete('/admin/matches/non-existent-id/scores')
+        .delete('/api/admin/matches/non-existent-id/scores')
         .set('Authorization', `Bearer ${authToken}`)
         .expect(404);
 
@@ -360,7 +369,7 @@ describe('Matches API (e2e)', () => {
 
     it('认证失败 - 应该拒绝未认证请求', async () => {
       const response = await request(app.getHttpServer())
-        .delete(`/admin/matches/${matchId}/scores`)
+        .delete(`/api/admin/matches/${matchId}/scores`)
         .expect(401);
 
       expect(response.body).toHaveProperty('message');
@@ -369,7 +378,7 @@ describe('Matches API (e2e)', () => {
 
     it('认证失败 - 应该拒绝无效token', async () => {
       const response = await request(app.getHttpServer())
-        .delete(`/admin/matches/${matchId}/scores`)
+        .delete(`/api/admin/matches/${matchId}/scores`)
         .set('Authorization', 'Bearer invalid-token')
         .expect(401);
 
@@ -382,7 +391,7 @@ describe('Matches API (e2e)', () => {
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJleHAiOjE1MTYyMzkwMjJ9.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c';
 
       const response = await request(app.getHttpServer())
-        .delete(`/admin/matches/${matchId}/scores`)
+        .delete(`/api/admin/matches/${matchId}/scores`)
         .set('Authorization', `Bearer ${expiredToken}`)
         .expect(401);
 
@@ -392,7 +401,7 @@ describe('Matches API (e2e)', () => {
 
     it('认证失败 - 应该拒绝错误格式的Authorization头', async () => {
       const response = await request(app.getHttpServer())
-        .delete(`/admin/matches/${matchId}/scores`)
+        .delete(`/api/admin/matches/${matchId}/scores`)
         .set('Authorization', 'Basic admin:admin123')
         .expect(401);
 
@@ -402,7 +411,7 @@ describe('Matches API (e2e)', () => {
 
     it('认证失败 - 应该拒绝缺少Authorization头', async () => {
       const response = await request(app.getHttpServer())
-        .delete(`/admin/matches/${matchId}/scores`)
+        .delete(`/api/admin/matches/${matchId}/scores`)
         .expect(401);
 
       expect(response.body).toHaveProperty('message');

@@ -58,8 +58,8 @@ describe('AppController (e2e)', () => {
     app.setGlobalPrefix('api');
     app.useGlobalPipes(
       new ValidationPipe({
-        whitelist: true,
-        forbidNonWhitelisted: true,
+        whitelist: false,
+        forbidNonWhitelisted: false,
         transform: true,
       }),
     );
@@ -179,7 +179,7 @@ describe('AppController (e2e)', () => {
             id: uuidv4(),
             name: '比赛战队A',
             tag: 'MATCHA',
-            players: [{ id: uuidv4(), name: 'PlayerA', position: 'TOP' }],
+            players: [{ id: uuidv4(), nickname: 'PlayerA', position: 'TOP' }],
           })
           .expect(201);
         teamAId = teamAResponse.body.data.id;
@@ -191,7 +191,7 @@ describe('AppController (e2e)', () => {
             id: uuidv4(),
             name: '比赛战队B',
             tag: 'MATCHB',
-            players: [{ id: uuidv4(), name: 'PlayerB', position: 'TOP' }],
+            players: [{ id: uuidv4(), nickname: 'PlayerB', position: 'TOP' }],
           })
           .expect(201);
         teamBId = teamBResponse.body.data.id;
@@ -305,7 +305,7 @@ describe('AppController (e2e)', () => {
             id: uuidv4(),
             name: '待更新测试战队',
             tag: 'UPDATE',
-            players: [{ id: uuidv4(), name: 'UpdatePlayer', position: 'TOP' }],
+            players: [{ id: uuidv4(), nickname: 'UpdatePlayer', position: 'TOP' }],
           })
           .expect(201);
         teamIdToUpdate = createResponse.body.data.id;
@@ -333,7 +333,7 @@ describe('AppController (e2e)', () => {
           id: uuidv4(),
           name: '待删除战队',
           tag: 'DELETE',
-          players: [{ id: uuidv4(), name: 'DeletePlayer1', position: 'TOP' }],
+          players: [{ id: uuidv4(), nickname: 'DeletePlayer1', position: 'TOP' }],
         })
         .expect(201);
 

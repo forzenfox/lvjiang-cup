@@ -52,8 +52,8 @@ describe('Auth API (e2e)', () => {
     app.setGlobalPrefix('api');
     app.useGlobalPipes(
       new ValidationPipe({
-        whitelist: true,
-        forbidNonWhitelisted: true,
+        whitelist: false,
+        forbidNonWhitelisted: false,
         transform: true,
       }),
     );

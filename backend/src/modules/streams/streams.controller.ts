@@ -11,10 +11,23 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 export class StreamsController {
   constructor(private readonly streamsService: StreamsService) {}
 
+  // 保留旧接口以兼容 - 静态路由必须在参数化路由之前
+  @Get('stream')
+  @ApiOperation({ summary: '获取直播信息（兼容旧接口）' })
+  async findOne(): Promise<StreamInfo> {
+    return this.streamsService.findOne();
+  }
+
   @Get('active')
   @ApiOperation({ summary: '获取当前活跃直播' })
   async findActive(): Promise<Stream> {
     return this.streamsService.findActive();
+  }
+
+  @Get()
+  @ApiOperation({ summary: '获取所有直播列表' })
+  async findAll(): Promise<Stream[]> {
+    return this.streamsService.findAll();
   }
 
   @Get(':id')
@@ -22,12 +35,6 @@ export class StreamsController {
   @ApiParam({ name: 'id', description: '直播ID' })
   async findById(@Param('id') id: string): Promise<Stream> {
     return this.streamsService.findById(id);
-  }
-
-  @Get()
-  @ApiOperation({ summary: '获取所有直播列表' })
-  async findAll(): Promise<Stream[]> {
-    return this.streamsService.findAll();
   }
 
   @Post()
@@ -54,12 +61,5 @@ export class StreamsController {
   @ApiParam({ name: 'id', description: '直播ID' })
   async remove(@Param('id') id: string): Promise<void> {
     return this.streamsService.remove(id);
-  }
-
-  // 保留旧接口以兼容
-  @Get('stream')
-  @ApiOperation({ summary: '获取直播信息（兼容旧接口）' })
-  async findOne(): Promise<StreamInfo> {
-    return this.streamsService.findOne();
   }
 }

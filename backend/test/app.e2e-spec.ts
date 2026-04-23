@@ -8,7 +8,7 @@ import { TransformInterceptor } from './../src/common/interceptors/transform.int
 describe('AppController (e2e)', () => {
   let app: INestApplication;
 
-  beforeEach(async () => {
+  beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();
@@ -55,9 +55,9 @@ describe('AppController (e2e)', () => {
       });
   });
 
-  it('/api/stream (GET) - should return stream info', () => {
+  it('/api/streams/stream (GET) - should return stream info', () => {
     return request(app.getHttpServer())
-      .get('/api/stream')
+      .get('/api/streams/stream')
       .expect(200)
       .expect((res) => {
         expect(res.body).toHaveProperty('data');

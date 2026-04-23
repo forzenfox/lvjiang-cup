@@ -34,6 +34,18 @@ export class VideosController {
     return this.videosService.create(createVideoDto);
   }
 
+  @Put('admin/videos/sort')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '批量排序视频（需认证）' })
+  async sort(@Body() sortDto: SortVideosDto): Promise<Video[]> {
+    const sortItems: SortItem[] = sortDto.orderedIds.map((id, index) => ({
+      id,
+      order: index,
+    }));
+    return this.videosService.sort(sortItems);
+  }
+
   @Put('admin/videos/:id')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
@@ -50,17 +62,5 @@ export class VideosController {
   @ApiParam({ name: 'id', description: '视频ID' })
   async remove(@Param('id') id: string): Promise<void> {
     return this.videosService.remove(id);
-  }
-
-  @Put('admin/videos/sort')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: '批量排序视频（需认证）' })
-  async sort(@Body() sortDto: SortVideosDto): Promise<Video[]> {
-    const sortItems: SortItem[] = sortDto.orderedIds.map((id, index) => ({
-      id,
-      order: index,
-    }));
-    return this.videosService.sort(sortItems);
   }
 }
