@@ -31,9 +31,7 @@ function useSpriteLoader() {
 
 export const SpriteProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const spriteUrl = useSpriteLoader();
-  return (
-    <SpriteContext.Provider value={{ spriteUrl }}>{children}</SpriteContext.Provider>
-  );
+  return <SpriteContext.Provider value={{ spriteUrl }}>{children}</SpriteContext.Provider>;
 };
 
 export const useSpriteUrl = () => useContext(SpriteContext).spriteUrl;
@@ -50,7 +48,6 @@ const getPositionIconStyle = (position: string): React.CSSProperties => {
     MID: { width: 32, height: 24, backgroundPosition: '-384px -4px' },
     ADC: { width: 32, height: 24, backgroundPosition: '-384px -32px' },
     SUPPORT: { width: 32, height: 24, backgroundPosition: '-456px -4px' },
-
   };
   return styles[position] || { width: 32, height: 24 };
 };

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { matchService, teamService, advancementService } from '@/services';
@@ -240,51 +240,54 @@ const ScheduleSection: React.FC = () => {
               className="w-full"
               data-testid="schedule-tabs"
             >
-            <TabsList className="w-full max-w-md mx-auto mb-8 flex" data-testid="schedule-tab-list">
-              <TabsTrigger value="swiss" className="flex-1" data-testid="home-swiss-tab">
-                瑞士轮
-              </TabsTrigger>
-              <TabsTrigger
-                value="elimination"
-                className="flex-1"
-                data-testid="home-elimination-tab"
+              <TabsList
+                className="w-full max-w-md mx-auto mb-8 flex"
+                data-testid="schedule-tab-list"
               >
-                淘汰赛
-              </TabsTrigger>
-            </TabsList>
+                <TabsTrigger value="swiss" className="flex-1" data-testid="home-swiss-tab">
+                  瑞士轮
+                </TabsTrigger>
+                <TabsTrigger
+                  value="elimination"
+                  className="flex-1"
+                  data-testid="home-elimination-tab"
+                >
+                  淘汰赛
+                </TabsTrigger>
+              </TabsList>
 
-            <TabsContent value="swiss" className="mt-0" data-testid="swiss-content">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3 }}
-                data-testid="swiss-stage-display"
-              >
-                {swissMatches.length === 0 ? (
-                  <SwissEmptyState message="暂无赛程信息，赛程信息将在比赛开始前公布" />
-                ) : (
-                  <SwissStage matches={swissMatches} teams={teams} advancement={advancement} />
-                )}
-              </motion.div>
-            </TabsContent>
+              <TabsContent value="swiss" className="mt-0" data-testid="swiss-content">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3 }}
+                  data-testid="swiss-stage-display"
+                >
+                  {swissMatches.length === 0 ? (
+                    <SwissEmptyState message="暂无赛程信息，赛程信息将在比赛开始前公布" />
+                  ) : (
+                    <SwissStage matches={swissMatches} teams={teams} advancement={advancement} />
+                  )}
+                </motion.div>
+              </TabsContent>
 
-            <TabsContent value="elimination" className="mt-0" data-testid="elimination-content">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3 }}
-                data-testid="elimination-stage-display"
-              >
-                {eliminationMatches.length === 0 ? (
-                  <SwissEmptyState message="暂无淘汰赛信息" />
-                ) : (
-                  <EliminationStage matches={eliminationMatches} teams={teams} />
-                )}
-              </motion.div>
-            </TabsContent>
-          </Tabs>
-        </div>
-      )}
+              <TabsContent value="elimination" className="mt-0" data-testid="elimination-content">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3 }}
+                  data-testid="elimination-stage-display"
+                >
+                  {eliminationMatches.length === 0 ? (
+                    <SwissEmptyState message="暂无淘汰赛信息" />
+                  ) : (
+                    <EliminationStage matches={eliminationMatches} teams={teams} />
+                  )}
+                </motion.div>
+              </TabsContent>
+            </Tabs>
+          </div>
+        )}
 
         {/* 刷新指示器 */}
         {loading && matches.length > 0 && (

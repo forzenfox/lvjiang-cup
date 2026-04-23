@@ -22,15 +22,20 @@ export const StaffThanks: React.FC<StaffThanksProps> = ({ staff }) => {
     >
       {/* CRT 扫描线效果 */}
       <div className="absolute inset-0 pointer-events-none opacity-5">
-        <div className="w-full h-full" style={{
-          background: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(202, 138, 4, 0.03) 2px, rgba(202, 138, 4, 0.03) 4px)'
-        }} />
+        <div
+          className="w-full h-full"
+          style={{
+            background:
+              'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(202, 138, 4, 0.03) 2px, rgba(202, 138, 4, 0.03) 4px)',
+          }}
+        />
       </div>
 
       {/* 霓虹光晕边框 */}
-      <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+      <div
+        className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
         style={{
-          boxShadow: 'inset 0 0 30px rgba(251, 191, 36, 0.1), 0 0 40px rgba(251, 191, 36, 0.1)'
+          boxShadow: 'inset 0 0 30px rgba(251, 191, 36, 0.1), 0 0 40px rgba(251, 191, 36, 0.1)',
         }}
       />
 
@@ -89,7 +94,10 @@ export const StaffThanks: React.FC<StaffThanksProps> = ({ staff }) => {
       {/* 底部装饰 */}
       <div className="relative mt-5 flex items-center justify-center gap-2">
         <div className="h-px flex-1 bg-gradient-to-r from-transparent via-amber-500/30 to-transparent" />
-        <span className="text-amber-500/40 text-xs tracking-widest" style={{ fontFamily: 'Chakra Petch, sans-serif' }}>
+        <span
+          className="text-amber-500/40 text-xs tracking-widest"
+          style={{ fontFamily: 'Chakra Petch, sans-serif' }}
+        >
           THANK YOU
         </span>
         <div className="h-px flex-1 bg-gradient-to-r from-transparent via-amber-500/30 to-transparent" />

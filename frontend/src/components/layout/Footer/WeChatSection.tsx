@@ -5,14 +5,9 @@ import { QrCode } from 'lucide-react';
 interface WeChatSectionProps {
   name: string;
   qrCode: string;
-  size: number;
 }
 
-export const WeChatSection: React.FC<WeChatSectionProps> = ({
-  name,
-  qrCode,
-  size,
-}) => {
+export const WeChatSection: React.FC<WeChatSectionProps> = ({ name, qrCode }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [displaySrc, setDisplaySrc] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);

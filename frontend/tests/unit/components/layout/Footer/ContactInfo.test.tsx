@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { ContactInfo } from '../ContactInfo';
+import { ContactInfo } from '@/components/layout/Footer/ContactInfo';
 
 describe('ContactInfo', () => {
   it('应该正确显示邮箱', () => {

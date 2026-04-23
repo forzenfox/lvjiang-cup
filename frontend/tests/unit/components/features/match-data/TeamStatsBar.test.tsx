@@ -38,12 +38,14 @@ describe('TeamStatsBar', () => {
       expect(killText.closest('.text-4xl')).toBeInTheDocument();
     });
 
-    it('应该显示骷髅图标表示击杀', () => {
+    it('应该显示 Swords 图标表示击杀', () => {
       const blueTeam = createMockTeamData({ teamName: 'BLG', side: 'blue', kills: 25 });
       const redTeam = createMockTeamData({ teamName: 'WBG', side: 'red', kills: 18 });
-      render(<TeamStatsBar blueTeam={blueTeam} redTeam={redTeam} />);
+      const { container } = render(<TeamStatsBar blueTeam={blueTeam} redTeam={redTeam} />);
 
-      expect(screen.getByText('⚔')).toBeInTheDocument();
+      // 检查是否存在 Swords SVG 图标
+      const swordsIcon = container.querySelector('.lucide-swords');
+      expect(swordsIcon).toBeInTheDocument();
     });
   });
 

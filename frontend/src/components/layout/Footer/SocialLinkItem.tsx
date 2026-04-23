@@ -21,12 +21,7 @@ const getFallbackIcon = (platform: string): string => {
   }
 };
 
-export const SocialLinkItem: React.FC<SocialLinkItemProps> = ({
-  platform,
-  name,
-  url,
-  icon,
-}) => {
+export const SocialLinkItem: React.FC<SocialLinkItemProps> = ({ platform, name, url, icon }) => {
   const [hasError, setHasError] = useState(false);
 
   return (

@@ -14,10 +14,9 @@ export const MarqueeBanner: React.FC<MarqueeBannerProps> = ({ sponsors }) => {
 
   // 视口检测
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => setInViewport(entry.isIntersecting),
-      { threshold: 0.1 }
-    );
+    const observer = new IntersectionObserver(([entry]) => setInViewport(entry.isIntersecting), {
+      threshold: 0.1,
+    });
 
     if (containerRef.current) observer.observe(containerRef.current);
     return () => observer.disconnect();
@@ -51,11 +50,18 @@ export const MarqueeBanner: React.FC<MarqueeBannerProps> = ({ sponsors }) => {
       >
         {/* CRT 扫描线效果 */}
         <div className="absolute inset-0 pointer-events-none opacity-20">
-          <div className="w-full h-full" style={{
-            background: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(219, 39, 119, 0.03) 2px, rgba(219, 39, 119, 0.03) 4px)'
-          }} />
+          <div
+            className="w-full h-full"
+            style={{
+              background:
+                'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(219, 39, 119, 0.03) 2px, rgba(219, 39, 119, 0.03) 4px)',
+            }}
+          />
         </div>
-        <p className="relative z-10 text-amber-400 text-[14px] md:text-lg font-medium tracking-wide" style={{ fontFamily: 'Chakra Petch, sans-serif' }}>
+        <p
+          className="relative z-10 text-amber-400 text-[14px] md:text-lg font-medium tracking-wide"
+          style={{ fontFamily: 'Chakra Petch, sans-serif' }}
+        >
           感谢所有支持驴酱杯的朋友们
         </p>
       </div>
@@ -63,17 +69,15 @@ export const MarqueeBanner: React.FC<MarqueeBannerProps> = ({ sponsors }) => {
   }
 
   const marqueeContent = (
-    <div
-      ref={contentRef}
-      className="flex items-center gap-12 md:gap-16 px-6 md:px-8"
-    >
-      {sponsors.map((sponsor) => (
+    <div ref={contentRef} className="flex items-center gap-12 md:gap-16 px-6 md:px-8">
+      {sponsors.map(sponsor => (
         <span
           key={sponsor.id}
           className="text-amber-400 text-[14px] md:text-lg font-medium whitespace-nowrap tracking-wide drop-shadow-[0_0_8px_rgba(251,191,36,0.5)] hover:text-pink-400 hover:drop-shadow-[0_0_12px_rgba(244,114,182,0.8)] transition-all duration-300 cursor-default"
           style={{ fontFamily: 'Chakra Petch, sans-serif' }}
         >
-          ✦ 感谢老板<span className="text-pink-400 font-semibold">{sponsor.sponsorName}</span>赞助的<span className="text-amber-300">{sponsor.sponsorContent}</span>，老板大气 ✦
+          ✦ 感谢老板<span className="text-pink-400 font-semibold">{sponsor.sponsorName}</span>赞助的
+          <span className="text-amber-300">{sponsor.sponsorContent}</span>，老板大气 ✦
         </span>
       ))}
     </div>
@@ -91,15 +95,20 @@ export const MarqueeBanner: React.FC<MarqueeBannerProps> = ({ sponsors }) => {
     >
       {/* CRT 扫描线效果 */}
       <div className="absolute inset-0 pointer-events-none opacity-10 group-hover:opacity-20 transition-opacity duration-500">
-        <div className="w-full h-full" style={{
-          background: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(219, 39, 119, 0.05) 2px, rgba(219, 39, 119, 0.05) 4px)'
-        }} />
+        <div
+          className="w-full h-full"
+          style={{
+            background:
+              'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(219, 39, 119, 0.05) 2px, rgba(219, 39, 119, 0.05) 4px)',
+          }}
+        />
       </div>
 
       {/* 霓虹光晕边框 */}
-      <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+      <div
+        className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
         style={{
-          boxShadow: 'inset 0 0 20px rgba(251, 191, 36, 0.2), 0 0 30px rgba(219, 39, 119, 0.15)'
+          boxShadow: 'inset 0 0 20px rgba(251, 191, 36, 0.2), 0 0 30px rgba(219, 39, 119, 0.15)',
         }}
       />
 

@@ -20,7 +20,10 @@ import MatchDataSkeleton from './MatchDataSkeleton';
 const POSITION_ORDER: PositionType[] = ['TOP', 'JUNGLE', 'MID', 'ADC', 'SUPPORT'];
 
 const MatchDataEditPage: React.FC = () => {
-  const { id: matchId, gameNumber: routeGameNumber } = useParams<{ id: string; gameNumber: string }>();
+  const { id: matchId, gameNumber: routeGameNumber } = useParams<{
+    id: string;
+    gameNumber: string;
+  }>();
   const navigate = useNavigate();
 
   const [seriesInfo, setSeriesInfo] = useState<MatchSeriesInfo | null>(null);

@@ -45,9 +45,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       const elementPosition = element.getBoundingClientRect().top + window.scrollY;
       const isMobile = window.innerWidth < 768;
       // 移动端无需偏移，桌面端和平板端减去导航栏高度
-      const offsetPosition = isMobile
-        ? elementPosition
-        : elementPosition - NAVBAR_HEIGHT;
+      const offsetPosition = isMobile ? elementPosition : elementPosition - NAVBAR_HEIGHT;
 
       window.scrollTo({
         top: offsetPosition,

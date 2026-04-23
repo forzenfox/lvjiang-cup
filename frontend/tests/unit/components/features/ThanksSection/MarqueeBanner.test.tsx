@@ -1,9 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { MarqueeBanner } from '../MarqueeBanner';
+import { MarqueeBanner } from '@/components/features/ThanksSection/MarqueeBanner';
 import type { SponsorConfig } from '@/data/types';
 
-// Mock IntersectionObserver
 class MockIntersectionObserver {
   observe = vi.fn();
   disconnect = vi.fn();
@@ -51,8 +50,7 @@ describe('MarqueeBanner', () => {
     it('应该渲染所有赞助信息', () => {
       render(<MarqueeBanner sponsors={mockSponsors} />);
 
-      // 检查每个赞助商的名称是否渲染（使用 getAllByText 因为内容重复两次）
-      mockSponsors.forEach((sponsor) => {
+      mockSponsors.forEach(sponsor => {
         const nameElements = screen.getAllByText(sponsor.sponsorName);
         expect(nameElements.length).toBeGreaterThanOrEqual(1);
         const contentElements = screen.getAllByText(sponsor.sponsorContent);
@@ -64,7 +62,6 @@ describe('MarqueeBanner', () => {
       render(<MarqueeBanner sponsors={mockSponsors} />);
 
       const firstSponsor = mockSponsors[0];
-      // 检查赞助商名称出现至少两次（原始 + 复制）
       const elements = screen.getAllByText(firstSponsor.sponsorName);
       expect(elements.length).toBeGreaterThanOrEqual(2);
     });
@@ -77,16 +74,12 @@ describe('MarqueeBanner', () => {
       const container = screen.getByTestId('marquee-container');
       const content = screen.getByTestId('marquee-content');
 
-      // 初始状态是 paused（因为不在视口内）
       expect(content).toHaveStyle({ animationPlayState: 'paused' });
 
-      // 鼠标悬停
       fireEvent.mouseEnter(container);
       expect(content).toHaveStyle({ animationPlayState: 'paused' });
 
-      // 鼠标离开
       fireEvent.mouseLeave(container);
-      // 离开后仍然是 paused（因为不在视口内）
       expect(content).toHaveStyle({ animationPlayState: 'paused' });
     });
   });
@@ -104,7 +97,6 @@ describe('MarqueeBanner', () => {
       render(<MarqueeBanner sponsors={mockSponsors} />);
 
       const container = screen.getByTestId('marquee-container');
-      // 更新为新的样式类
       expect(container.className).toContain('border');
       expect(container.className).toContain('border-amber-500/30');
       expect(container.className).toContain('rounded-xl');
@@ -114,7 +106,6 @@ describe('MarqueeBanner', () => {
       render(<MarqueeBanner sponsors={mockSponsors} />);
 
       const container = screen.getByTestId('marquee-container');
-      // 更新为新的渐变背景
       expect(container.className).toContain('bg-gradient-to-r');
       expect(container.className).toContain('from-pink-900/30');
       expect(container.className).toContain('backdrop-blur-sm');

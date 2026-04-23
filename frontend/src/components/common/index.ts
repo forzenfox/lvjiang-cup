@@ -11,5 +11,3 @@ export {
   MatchCardSkeleton,
   SwissTableSkeleton,
 } from './Skeleton';
-
-

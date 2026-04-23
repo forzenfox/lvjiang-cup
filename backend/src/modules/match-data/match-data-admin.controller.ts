@@ -106,10 +106,7 @@ export class MatchDataAdminController {
 
     const fileName = `对战数据导入错误报告_${new Date().toISOString().slice(0, 10).replace(/-/g, '')}.txt`;
 
-    res.setHeader(
-      'Content-Type',
-      'text/plain; charset=utf-8',
-    );
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
     res.setHeader(
       'Content-Disposition',
       `attachment; filename*=UTF-8''${encodeURIComponent(fileName)}`,

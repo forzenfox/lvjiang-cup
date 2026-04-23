@@ -10,7 +10,10 @@ import {
 } from '@/components/icons/PositionIcons';
 import { getChampionIconUrl } from '@/utils/championUtils';
 
-const PositionIcon: React.FC<{ position: PositionType; size?: number }> = ({ position, size = 16 }) => {
+const PositionIcon: React.FC<{ position: PositionType; size?: number }> = ({
+  position,
+  size = 16,
+}) => {
   switch (position) {
     case 'TOP':
       return <TopIcon style={{ width: size, height: size * 0.75 }} />;
@@ -86,7 +89,7 @@ const PlayerStatsRowEdit: React.FC<PlayerStatsRowEditProps> = ({
               src={getChampionIconUrl(redPlayer.championName)}
               alt={redPlayer.championName}
               className="w-full h-full object-cover"
-              onError={(e) => {
+              onError={e => {
                 (e.target as HTMLImageElement).style.display = 'none';
                 (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden');
               }}
@@ -208,7 +211,7 @@ const PlayerStatsRowEdit: React.FC<PlayerStatsRowEditProps> = ({
               src={getChampionIconUrl(bluePlayer.championName)}
               alt={bluePlayer.championName}
               className="w-full h-full object-cover"
-              onError={(e) => {
+              onError={e => {
                 (e.target as HTMLImageElement).style.display = 'none';
                 (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden');
               }}

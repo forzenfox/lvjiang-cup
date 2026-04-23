@@ -6,10 +6,7 @@ interface ICPInfoProps {
 
 export const ICPInfo: React.FC<ICPInfoProps> = ({ number }) => {
   return (
-    <div
-      className="flex items-center gap-2 text-gray-300 text-sm"
-      data-testid="icp-info"
-    >
+    <div className="flex items-center gap-2 text-gray-300 text-sm" data-testid="icp-info">
       <svg
         className="w-4 h-4 text-gray-400"
         fill="none"

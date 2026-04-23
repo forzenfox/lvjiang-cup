@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { FOOTER_CONFIG } from '../footer';
+import { FOOTER_CONFIG } from '@/config/footer';
 
 describe('FOOTER_CONFIG', () => {
   it('应该包含所有必要的配置项', () => {
@@ -38,16 +38,12 @@ describe('FOOTER_CONFIG', () => {
   });
 
   it('socialLinks 应该包含正确的平台信息', () => {
-    const bilibiliLink = FOOTER_CONFIG.socialLinks.find(
-      link => link.platform === 'bilibili'
-    );
+    const bilibiliLink = FOOTER_CONFIG.socialLinks.find(link => link.platform === 'bilibili');
     expect(bilibiliLink).toBeDefined();
     expect(bilibiliLink?.name).toBe('胡凯利_洞主');
     expect(bilibiliLink?.url).toBe('https://space.bilibili.com/393671271');
 
-    const douyinLinks = FOOTER_CONFIG.socialLinks.filter(
-      link => link.platform === 'douyin'
-    );
+    const douyinLinks = FOOTER_CONFIG.socialLinks.filter(link => link.platform === 'douyin');
     expect(douyinLinks).toHaveLength(2);
   });
 });

@@ -218,9 +218,10 @@ export class MatchDataService {
     );
 
     // 获取红色方战队信息
-    const redTeam = await this.databaseService.get<any>('SELECT id, name, logo_url FROM teams WHERE id = ?', [
-      game.red_team_id,
-    ]);
+    const redTeam = await this.databaseService.get<any>(
+      'SELECT id, name, logo_url FROM teams WHERE id = ?',
+      [game.red_team_id],
+    );
 
     // 获取选手统计数据并按位置排序
     const playerStatsRaw = await this.databaseService.all<any>(
@@ -321,7 +322,19 @@ export class MatchDataService {
     matchId: string,
     file: Express.Multer.File,
     adminId: string,
-  ): Promise<{ imported: boolean; gameNumber: number; playerCount: number; failedCount: number; failedPlayers?: Array<{ row: number; nickname: string; side: string; type: string; message: string }> }> {
+  ): Promise<{
+    imported: boolean;
+    gameNumber: number;
+    playerCount: number;
+    failedCount: number;
+    failedPlayers?: Array<{
+      row: number;
+      nickname: string;
+      side: string;
+      type: string;
+      message: string;
+    }>;
+  }> {
     try {
       // 检查比赛是否存在
       const match = await this.databaseService.get<any>(
@@ -489,19 +502,21 @@ export class MatchDataService {
           type: 'player_not_found' | 'team_mismatch' | 'data_validation' | 'parse_error';
           message: string;
         }> = [];
-        
+
         // 从MatchInfo获取MVP选手昵称和一血阵营
         const mvpNickname = parsedData.matchInfo.mvp;
         const firstBloodSide = parsedData.matchInfo.firstBlood;
-        
+
         for (let i = 0; i < parsedData.playerStats.length; i++) {
           const ps = parsedData.playerStats[i];
           // Excel行号 = 表头(6) + 索引(从0开始) + 1 = 7 + i
           const excelRow = 7 + i;
 
           // 根据阵营确定战队ID
-          const expectedTeamId = this.normalizeTeamName(ps.side).includes('red') ? redTeamId : blueTeamId;
-          
+          const expectedTeamId = this.normalizeTeamName(ps.side).includes('red')
+            ? redTeamId
+            : blueTeamId;
+
           // 匹配选手，增加战队关联验证
           const player = await this.matchPlayerNicknameWithTeam(ps.nickname, expectedTeamId);
           if (!player) {
@@ -574,7 +589,10 @@ export class MatchDataService {
         }
 
         if (failedPlayers.length > 0) {
-          this.logger.warn(`导入完成，但${failedPlayers.length}个选手匹配失败:`, JSON.stringify(failedPlayers));
+          this.logger.warn(
+            `导入完成，但${failedPlayers.length}个选手匹配失败:`,
+            JSON.stringify(failedPlayers),
+          );
         }
 
         await this.databaseService.commit();
@@ -843,7 +861,10 @@ export class MatchDataService {
   /**
    * 匹配选手昵称（带战队关联验证）
    */
-  private async matchPlayerNicknameWithTeam(nickname: string, expectedTeamId: string): Promise<any | null> {
+  private async matchPlayerNicknameWithTeam(
+    nickname: string,
+    expectedTeamId: string,
+  ): Promise<any | null> {
     const players = await this.databaseService.all<any>(
       'SELECT id, nickname, team_id FROM team_members WHERE team_id = ?',
       [expectedTeamId],

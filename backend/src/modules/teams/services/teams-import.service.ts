@@ -365,7 +365,9 @@ export class TeamsImportService {
   }
 
   private async updateTeamWithMembers(teamId: string, team: ImportTeamDto): Promise<void> {
-    const existing = await this.databaseService.get<any>('SELECT * FROM teams WHERE id = ?', [teamId]);
+    const existing = await this.databaseService.get<any>('SELECT * FROM teams WHERE id = ?', [
+      teamId,
+    ]);
 
     if (existing.logo_url && existing.logo_url !== team.logoUrl) {
       await this.deleteTeamFile(existing.logo_url);

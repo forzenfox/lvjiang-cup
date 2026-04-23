@@ -17,17 +17,52 @@ describe('match-excel.util', () => {
     const workbook = xlsx.utils.book_new();
 
     // MatchInfo 表头和数据（新增一血和MVP字段）
-    const matchInfoHeaders = ['红方战队名', '蓝方战队名', '局数', '比赛时间', '游戏时长', '获胜方', '一血', 'MVP'];
+    const matchInfoHeaders = [
+      '红方战队名',
+      '蓝方战队名',
+      '局数',
+      '比赛时间',
+      '游戏时长',
+      '获胜方',
+      '一血',
+      'MVP',
+    ];
     const matchInfoData = ['BLG', 'WBG', 1, '2026-04-16 14:00', '32:45', 'red', 'red', 'Knight'];
 
     // TeamStats 表头和数据（移除一血字段）
-    const teamStatsHeaders = ['阵营', '战队名', '总击杀', '总死亡', '总助攻', '总经济', '推塔数', '控龙数', '控 Baron 数'];
+    const teamStatsHeaders = [
+      '阵营',
+      '战队名',
+      '总击杀',
+      '总死亡',
+      '总助攻',
+      '总经济',
+      '推塔数',
+      '控龙数',
+      '控 Baron 数',
+    ];
     const redTeamStats = ['red', 'BLG', 25, 18, 47, 65000, 9, 3, 1];
     const blueTeamStats = ['blue', 'WBG', 18, 25, 35, 58000, 3, 1, 0];
 
     // PlayerStats 表头和数据（移除是否MVP字段）
-    const playerStatsHeaders = ['阵营', '位置', '选手昵称', '英雄名', '击杀', '死亡', '助攻', '补刀', '经济', '伤害', '承伤', '等级', '视野得分', '插眼数', '排眼数'];
-    
+    const playerStatsHeaders = [
+      '阵营',
+      '位置',
+      '选手昵称',
+      '英雄名',
+      '击杀',
+      '死亡',
+      '助攻',
+      '补刀',
+      '经济',
+      '伤害',
+      '承伤',
+      '等级',
+      '视野得分',
+      '插眼数',
+      '排眼数',
+    ];
+
     const redPlayers = [
       ['red', 'TOP', 'Bin', '格温', 2, 2, 11, 349, 17315, 28500, 32000, 18, 45, 12, 12],
       ['red', 'JUNGLE', 'Xun', '潘森', 4, 7, 10, 261, 14855, 22000, 28000, 16, 38, 8, 8],
@@ -91,7 +126,7 @@ describe('match-excel.util', () => {
       const result = parseMatchDataExcel(validExcelBuffer);
 
       expect(result.teamStats).toHaveLength(2);
-      
+
       // 红方数据
       expect(result.teamStats[0].side).toBe('red');
       expect(result.teamStats[0].teamName).toBe('BLG');
@@ -126,7 +161,7 @@ describe('match-excel.util', () => {
     it('应该将位置转换为大写', () => {
       const result = parseMatchDataExcel(validExcelBuffer);
 
-      result.playerStats.forEach(player => {
+      result.playerStats.forEach((player) => {
         expect(player.position).toBe(player.position.toUpperCase());
       });
     });
@@ -134,13 +169,7 @@ describe('match-excel.util', () => {
     it('当Excel行数不足时应抛出错误', () => {
       // 创建一个只有5行的无效Excel
       const workbook = xlsx.utils.book_new();
-      const data = [
-        ['表头'],
-        ['数据1'],
-        ['数据2'],
-        ['数据3'],
-        ['数据4'],
-      ];
+      const data = [['表头'], ['数据1'], ['数据2'], ['数据3'], ['数据4']];
       const worksheet = xlsx.utils.aoa_to_sheet(data);
       xlsx.utils.book_append_sheet(workbook, worksheet, 'MatchData');
       const invalidBuffer = xlsx.write(workbook, { type: 'buffer', bookType: 'xlsx' }) as Buffer;
@@ -151,14 +180,49 @@ describe('match-excel.util', () => {
     it('当选手数据不完整时应抛出错误', () => {
       // 创建只有5个选手的Excel（应该有10个）
       const workbook = xlsx.utils.book_new();
-      
-      const matchInfoHeaders = ['红方战队名', '蓝方战队名', '局数', '比赛时间', '游戏时长', '获胜方', '一血', 'MVP'];
+
+      const matchInfoHeaders = [
+        '红方战队名',
+        '蓝方战队名',
+        '局数',
+        '比赛时间',
+        '游戏时长',
+        '获胜方',
+        '一血',
+        'MVP',
+      ];
       const matchInfoData = ['BLG', 'WBG', 1, '2026-04-16 14:00', '32:45', 'red', 'red', 'Knight'];
-      const teamStatsHeaders = ['阵营', '战队名', '总击杀', '总死亡', '总助攻', '总经济', '推塔数', '控龙数', '控 Baron 数'];
+      const teamStatsHeaders = [
+        '阵营',
+        '战队名',
+        '总击杀',
+        '总死亡',
+        '总助攻',
+        '总经济',
+        '推塔数',
+        '控龙数',
+        '控 Baron 数',
+      ];
       const redTeamStats = ['red', 'BLG', 25, 18, 47, 65000, 9, 3, 1];
       const blueTeamStats = ['blue', 'WBG', 18, 25, 35, 58000, 3, 1, 0];
-      const playerStatsHeaders = ['阵营', '位置', '选手昵称', '英雄名', '击杀', '死亡', '助攻', '补刀', '经济', '伤害', '承伤', '等级', '视野得分', '插眼数', '排眼数'];
-      
+      const playerStatsHeaders = [
+        '阵营',
+        '位置',
+        '选手昵称',
+        '英雄名',
+        '击杀',
+        '死亡',
+        '助攻',
+        '补刀',
+        '经济',
+        '伤害',
+        '承伤',
+        '等级',
+        '视野得分',
+        '插眼数',
+        '排眼数',
+      ];
+
       // 只添加5个选手
       const incompletePlayers = [
         ['red', 'TOP', 'Bin', '格温', 2, 2, 11, 349, 17315, 28500, 32000, 18, 45, 12, 12],
@@ -193,13 +257,48 @@ describe('match-excel.util', () => {
 
     it('当战队数据不完整时应抛出错误', () => {
       const workbook = xlsx.utils.book_new();
-      
-      const matchInfoHeaders = ['红方战队名', '蓝方战队名', '局数', '比赛时间', '游戏时长', '获胜方', '一血', 'MVP'];
+
+      const matchInfoHeaders = [
+        '红方战队名',
+        '蓝方战队名',
+        '局数',
+        '比赛时间',
+        '游戏时长',
+        '获胜方',
+        '一血',
+        'MVP',
+      ];
       const matchInfoData = ['BLG', 'WBG', 1, '2026-04-16 14:00', '32:45', 'red', 'red', 'Knight'];
-      const teamStatsHeaders = ['阵营', '战队名', '总击杀', '总死亡', '总助攻', '总经济', '推塔数', '控龙数', '控 Baron 数'];
+      const teamStatsHeaders = [
+        '阵营',
+        '战队名',
+        '总击杀',
+        '总死亡',
+        '总助攻',
+        '总经济',
+        '推塔数',
+        '控龙数',
+        '控 Baron 数',
+      ];
       const redTeamStats = ['red', 'BLG', 25, 18, 47, 65000, 9, 3, 1];
-      const playerStatsHeaders = ['阵营', '位置', '选手昵称', '英雄名', '击杀', '死亡', '助攻', '补刀', '经济', '伤害', '承伤', '等级', '视野得分', '插眼数', '排眼数'];
-      
+      const playerStatsHeaders = [
+        '阵营',
+        '位置',
+        '选手昵称',
+        '英雄名',
+        '击杀',
+        '死亡',
+        '助攻',
+        '补刀',
+        '经济',
+        '伤害',
+        '承伤',
+        '等级',
+        '视野得分',
+        '插眼数',
+        '排眼数',
+      ];
+
       // 只添加1个战队数据（应该有2个）
       const redPlayers = [
         ['red', 'TOP', 'Bin', '格温', 2, 2, 11, 349, 17315, 28500, 32000, 18, 45, 12, 12],

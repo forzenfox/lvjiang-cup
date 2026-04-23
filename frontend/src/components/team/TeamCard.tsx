@@ -10,7 +10,10 @@ import {
 import { getUploadUrl } from '@/utils/upload';
 import type { PositionType } from '@/types/position';
 
-const PositionIcon: React.FC<{ position: PositionType; size?: number }> = ({ position, size = 24 }) => {
+const PositionIcon: React.FC<{ position: PositionType; size?: number }> = ({
+  position,
+  size = 24,
+}) => {
   switch (position) {
     case 'TOP':
       return <TopIcon style={{ width: size, height: size * 0.75 }} />;

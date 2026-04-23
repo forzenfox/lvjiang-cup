@@ -91,24 +91,27 @@ const MatchDataPage: React.FC = () => {
     [currentGameNumber, setSearchParams, preloadAdjacentGame]
   );
 
-  const loadGameData = useCallback(async (mId: string, gameNum: number) => {
-    const cacheKey = matchDataCache.getGameDataKey(mId, gameNum);
-    const cached = matchDataCache.get<MatchGameData>(cacheKey);
+  const loadGameData = useCallback(
+    async (mId: string, gameNum: number) => {
+      const cacheKey = matchDataCache.getGameDataKey(mId, gameNum);
+      const cached = matchDataCache.get<MatchGameData>(cacheKey);
 
-    if (cached) {
-      setGameData(cached);
-      return;
-    }
+      if (cached) {
+        setGameData(cached);
+        return;
+      }
 
-    try {
-      const data = await loadGameDataWithRetry(mId, gameNum);
-      setGameData(data);
-      matchDataCache.set(cacheKey, data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : '获取游戏数据失败');
-      console.error('[MatchDataPage] 游戏数据加载失败:', err);
-    }
-  }, [loadGameDataWithRetry]);
+      try {
+        const data = await loadGameDataWithRetry(mId, gameNum);
+        setGameData(data);
+        matchDataCache.set(cacheKey, data);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : '获取游戏数据失败');
+        console.error('[MatchDataPage] 游戏数据加载失败:', err);
+      }
+    },
+    [loadGameDataWithRetry]
+  );
 
   const handleRetry = useCallback(() => {
     if (matchId) {

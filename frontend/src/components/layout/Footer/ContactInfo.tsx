@@ -6,10 +6,7 @@ interface ContactInfoProps {
 
 export const ContactInfo: React.FC<ContactInfoProps> = ({ email }) => {
   return (
-    <div
-      className="flex items-center gap-2 text-gray-300 text-sm"
-      data-testid="contact-info"
-    >
+    <div className="flex items-center gap-2 text-gray-300 text-sm" data-testid="contact-info">
       <svg
         className="w-4 h-4 text-blue-400"
         fill="none"

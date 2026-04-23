@@ -2,9 +2,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import type { Player } from '@/api/types';
 import { PositionType } from '@/types/position';
-import PlayerDetailContent from './PlayerDetailContent';
+import PlayerDetailContent from '@/components/team/PlayerDetailContent';
 
-// Mock utility functions
 vi.mock('@/utils/championUtils', () => ({
   getChampionIconByEn: vi.fn((id: string) => (id ? `https://example.com/${id}.png` : '')),
   getChampionTitleByEn: vi.fn((id: string) => (id ? `${id} Title` : '')),
@@ -30,7 +29,6 @@ vi.mock('@/utils/upload', () => ({
   getUploadUrl: vi.fn((url: string) => `https://cdn.example.com/${url}`),
 }));
 
-// Helper function to create mock player
 const createMockPlayer = (overrides: Partial<Player> = {}): Player => ({
   id: 'player-1',
   nickname: 'TestPlayer',
@@ -104,7 +102,6 @@ describe('PlayerDetailContent', () => {
 
       const avatar = screen.getByTestId('player-avatar');
       expect(avatar).toBeInTheDocument();
-      // 应该显示昵称首字母 T
       expect(avatar).toHaveTextContent('T');
     });
 

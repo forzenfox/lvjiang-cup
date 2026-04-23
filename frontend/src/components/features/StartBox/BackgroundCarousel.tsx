@@ -35,7 +35,7 @@ export const BackgroundCarousel: React.FC<BackgroundCarouselProps> = ({
   useEffect(() => {
     if (!availableBackgrounds.length) return;
 
-    availableBackgrounds.forEach((bg) => {
+    availableBackgrounds.forEach(bg => {
       if (loadedImages.has(bg.cdn)) return;
 
       const img = new Image();
@@ -73,7 +73,7 @@ export const BackgroundCarousel: React.FC<BackgroundCarouselProps> = ({
       <div className="absolute inset-0 flex items-center justify-center">
         {availableBackgrounds.map((bg, index) => {
           const imageUrl = loadedImages.has(bg.cdn) ? bg.cdn : null;
-          
+
           if (!imageUrl) return null;
 
           return (

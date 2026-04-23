@@ -82,17 +82,6 @@ function extractNumericValue(cellValue: any): number {
   return isNaN(num) ? 0 : num;
 }
 
-function extractBooleanValue(cellValue: any): boolean {
-  if (cellValue === null || cellValue === undefined || cellValue === '') {
-    return false;
-  }
-  if (typeof cellValue === 'boolean') {
-    return cellValue;
-  }
-  const strValue = String(cellValue).trim().toLowerCase();
-  return strValue === 'true' || strValue === '是' || strValue === '1' || strValue === 'yes';
-}
-
 // ============= 数据验证函数 =============
 
 export function validateMatchInfo(data: MatchInfoData): ValidationResult {
@@ -293,7 +282,10 @@ export function parseMatchDataExcel(buffer: Buffer): ParsedMatchData {
     // 解析第4-5行: TeamStats数据
     const teamStats: TeamStatsData[] = [];
     for (let i = 3; i <= 4; i++) {
-      if (jsonData[i] && jsonData[i].some(cell => cell !== null && cell !== undefined && cell !== '')) {
+      if (
+        jsonData[i] &&
+        jsonData[i].some((cell) => cell !== null && cell !== undefined && cell !== '')
+      ) {
         teamStats.push(parseTeamStatsRow(jsonData[i], i + 1));
       } else {
         throw new Error(`第${i + 1}行（战队数据行）为空或格式错误`);
@@ -307,7 +299,10 @@ export function parseMatchDataExcel(buffer: Buffer): ParsedMatchData {
     // 解析第7-16行: PlayerStats数据
     const playerStats: PlayerStatsData[] = [];
     for (let i = 6; i <= 15; i++) {
-      if (jsonData[i] && jsonData[i].some(cell => cell !== null && cell !== undefined && cell !== '')) {
+      if (
+        jsonData[i] &&
+        jsonData[i].some((cell) => cell !== null && cell !== undefined && cell !== '')
+      ) {
         playerStats.push(parsePlayerStatsRow(jsonData[i], i + 1));
       } else {
         throw new Error(`第${i + 1}行（选手数据行）为空或格式错误`);

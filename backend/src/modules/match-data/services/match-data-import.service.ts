@@ -76,7 +76,7 @@ export class MatchDataImportService {
 
     // 错误类型统计
     const typeCount: Record<string, number> = {};
-    errors.forEach(e => {
+    errors.forEach((e) => {
       typeCount[e.type] = (typeCount[e.type] || 0) + 1;
     });
 
@@ -94,7 +94,7 @@ export class MatchDataImportService {
     errors.forEach((error, index) => {
       const sideText = error.side === 'red' ? '红方' : '蓝方';
       const typeText = this.getErrorTypeText(error.type);
-      
+
       lines.push(`[${index + 1}] 第 ${error.row} 行`);
       lines.push(`    选手昵称：${error.nickname}`);
       lines.push(`    阵营：${sideText}`);
@@ -116,10 +116,10 @@ export class MatchDataImportService {
    */
   private getErrorTypeText(type: string): string {
     const typeMap: Record<string, string> = {
-      'player_not_found': '选手未找到',
-      'team_mismatch': '战队不匹配',
-      'data_validation': '数据验证失败',
-      'parse_error': '解析错误',
+      player_not_found: '选手未找到',
+      team_mismatch: '战队不匹配',
+      data_validation: '数据验证失败',
+      parse_error: '解析错误',
     };
     return typeMap[type] || type;
   }
@@ -154,7 +154,16 @@ export class MatchDataImportService {
     // ========== 第 1-2 行：MatchInfo（对战信息）==========
 
     // 第 1 行：MatchInfo 表头
-    const matchInfoHeaders = ['红方战队名', '蓝方战队名', '局数', '比赛时间', '游戏时长', '获胜方', '一血', 'MVP'];
+    const matchInfoHeaders = [
+      '红方战队名',
+      '蓝方战队名',
+      '局数',
+      '比赛时间',
+      '游戏时长',
+      '获胜方',
+      '一血',
+      'MVP',
+    ];
     matchInfoHeaders.forEach((header, index) => {
       const cell = sheet.getCell(1, index + 1);
       cell.value = header;

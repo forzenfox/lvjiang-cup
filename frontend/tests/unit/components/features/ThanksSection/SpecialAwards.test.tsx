@@ -1,9 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { SpecialAwards } from '../SpecialAwards';
+import { SpecialAwards } from '@/components/features/ThanksSection/SpecialAwards';
 import type { SponsorConfig } from '@/data/types';
 
-// Mock window.innerWidth
 Object.defineProperty(window, 'innerWidth', {
   writable: true,
   configurable: true,
@@ -19,7 +18,12 @@ describe('SpecialAwards', () => {
   const mockSponsorsWithAwards: SponsorConfig[] = [
     { id: 1, sponsorName: '斗鱼官方', sponsorContent: '7W' },
     { id: 2, sponsorName: '为何如此衰', sponsorContent: '8K', specialAward: '8强每个队伍1K' },
-    { id: 3, sponsorName: '董B登', sponsorContent: '1K', specialAward: '冠军每人750g蓝莓果干+250g参片' },
+    {
+      id: 3,
+      sponsorName: '董B登',
+      sponsorContent: '1K',
+      specialAward: '冠军每人750g蓝莓果干+250g参片',
+    },
     { id: 4, sponsorName: 'MT', sponsorContent: '2K', specialAward: '4强每人一份贡菜千层肚' },
   ];
 
@@ -44,8 +48,7 @@ describe('SpecialAwards', () => {
     it('应该渲染标题', () => {
       render(<SpecialAwards sponsors={mockSponsorsWithAwards} />);
 
-      // 标题现在包含装饰符号
-      expect(screen.getByText((content) => content.includes('特殊奖项'))).toBeInTheDocument();
+      expect(screen.getByText(content => content.includes('特殊奖项'))).toBeInTheDocument();
     });
 
     it('应该渲染所有有特殊奖项的赞助商', () => {
@@ -59,15 +62,13 @@ describe('SpecialAwards', () => {
 
       expectedAwards.forEach(({ name, award }) => {
         expect(screen.getByText(name)).toBeInTheDocument();
-        // 使用函数匹配器来处理文本可能被分割的情况
-        expect(screen.getByText((content) => content.includes(award))).toBeInTheDocument();
+        expect(screen.getByText(content => content.includes(award))).toBeInTheDocument();
       });
     });
 
     it('不应该渲染没有特殊奖项的赞助商', () => {
       render(<SpecialAwards sponsors={mockSponsorsWithAwards} />);
 
-      // 斗鱼官方没有 specialAward，不应该出现在列表中
       const sponsorName = screen.queryByText('斗鱼官方');
       expect(sponsorName).not.toBeInTheDocument();
     });
@@ -76,7 +77,6 @@ describe('SpecialAwards', () => {
       render(<SpecialAwards sponsors={mockSponsorsWithAwards} />);
 
       const container = screen.getByTestId('special-awards-container');
-      // 更新为新的样式类
       expect(container.className).toContain('rounded-2xl');
       expect(container.className).toContain('border');
       expect(container.className).toContain('border-pink-500/20');
@@ -87,7 +87,6 @@ describe('SpecialAwards', () => {
       render(<SpecialAwards sponsors={mockSponsorsWithAwards} />);
 
       const title = screen.getByTestId('special-awards-title');
-      // 标题现在使用渐变文字
       expect(title.className).toContain('font-bold');
       expect(title.className).toContain('tracking-wide');
     });
@@ -123,15 +122,12 @@ describe('SpecialAwards', () => {
 
       render(<SpecialAwards sponsors={manyAwards} />);
 
-      // 初始只显示3个
       expect(screen.getByText('赞助1')).toBeInTheDocument();
       expect(screen.queryByText('赞助4')).not.toBeInTheDocument();
 
-      // 点击展开
       const button = screen.getByTestId('expand-button');
       fireEvent.click(button);
 
-      // 现在应该显示所有4个
       expect(screen.getByText('赞助4')).toBeInTheDocument();
       expect(button.textContent).toContain('收起');
     });

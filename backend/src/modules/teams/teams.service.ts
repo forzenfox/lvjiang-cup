@@ -214,7 +214,10 @@ export class TeamsService extends BaseCachedService<Team, string> {
       values.push(updateTeamDto.logoUrl);
     }
     if (updateTeamDto.logoThumbnailUrl !== undefined) {
-      if (existing.logo_thumbnail_url && existing.logo_thumbnail_url !== updateTeamDto.logoThumbnailUrl) {
+      if (
+        existing.logo_thumbnail_url &&
+        existing.logo_thumbnail_url !== updateTeamDto.logoThumbnailUrl
+      ) {
         await this.deleteFile(existing.logo_thumbnail_url);
       }
       updates.push('logo_thumbnail_url = ?');
@@ -307,7 +310,10 @@ export class TeamsService extends BaseCachedService<Team, string> {
         filePath = getTeamLogoPath(filename);
         thumbnailPath = getTeamLogoThumbnailPath(filename);
       } else if (fileUrl.includes('/members/')) {
-        filePath = path.join(path.dirname(getTeamLogoPath('placeholder')).replace('teams', 'members'), filename);
+        filePath = path.join(
+          path.dirname(getTeamLogoPath('placeholder')).replace('teams', 'members'),
+          filename,
+        );
       } else {
         return;
       }

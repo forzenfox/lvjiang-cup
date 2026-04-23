@@ -114,7 +114,9 @@ export const VideoCarousel: React.FC<VideoCarouselProps> = ({ videos }) => {
           <div
             className={`flex-1 relative h-full flex flex-col justify-center ${showThumbnails ? 'max-w-[60%]' : isSmallVideoCount ? 'max-w-4xl' : 'max-w-full'}`}
           >
-            <div className={`w-full bg-gray-900 ${isSmallVideoCount ? 'max-h-[70vh]' : 'aspect-video'}`}>
+            <div
+              className={`w-full bg-gray-900 ${isSmallVideoCount ? 'max-h-[70vh]' : 'aspect-video'}`}
+            >
               <VideoPlayer video={currentVideo} autoplay={false} isVisible={isCarouselVisible} />
             </div>
             {showControls && (

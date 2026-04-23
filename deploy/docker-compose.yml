@@ -14,6 +14,7 @@ version: '3.8'
 # - 所有容器端口仅内部访问，不映射到主机
 # - 需要先部署 Nginx Proxy Manager
 # - 前端配置通过 volume 挂载，修改 config.js 后重启容器即可生效
+# - 鸣谢模块数据通过 THANKS_DATA 配置在 config.js 中
 # - 日志配置：使用 json-file 驱动，单文件最大 100MB，最多保留 3 个文件
 
 # 全局日志配置（所有服务共享）
@@ -68,7 +69,7 @@ services:
     environment:
       - PORT=3001
     volumes:
-      # 挂载前端运行时配置文件
+      # 挂载前端运行时配置文件（包含 THANKS_DATA 鸣谢模块数据）
       - ./config.js:/app/dist/config.js:ro
     networks:
       - npm-network

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { ICPInfo } from '../ICPInfo';
+import { ICPInfo } from '@/components/layout/Footer/ICPInfo';
 
 describe('ICPInfo', () => {
   it('应该正确显示备案号', () => {

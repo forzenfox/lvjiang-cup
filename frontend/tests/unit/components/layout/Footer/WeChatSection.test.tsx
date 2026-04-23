@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { WeChatSection } from '../WeChatSection';
+import { WeChatSection } from '@/components/layout/Footer/WeChatSection';
 
 describe('WeChatSection', () => {
   const mockProps = {
@@ -23,7 +23,6 @@ describe('WeChatSection', () => {
     render(<WeChatSection {...mockProps} />);
     expect(screen.getByText('微信公众号：驴驴电竞')).toBeInTheDocument();
     expect(screen.queryByAltText('微信公众号二维码')).not.toBeInTheDocument();
-    // 验证使用了 QrCode 图标
     const qrIcon = document.querySelector('svg');
     expect(qrIcon).toBeInTheDocument();
   });

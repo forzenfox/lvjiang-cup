@@ -13,7 +13,10 @@ import {
 } from '@/components/icons/PositionIcons';
 import type { PositionType } from '@/types/position';
 
-const PositionIcon: React.FC<{ position: PositionType; size?: number }> = ({ position, size = 16 }) => {
+const PositionIcon: React.FC<{ position: PositionType; size?: number }> = ({
+  position,
+  size = 16,
+}) => {
   switch (position) {
     case 'TOP':
       return <TopIcon style={{ width: size, height: size * 0.75 }} />;

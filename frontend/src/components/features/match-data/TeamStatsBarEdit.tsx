@@ -14,10 +14,6 @@ const TeamStatsBarEdit: React.FC<TeamStatsBarEditProps> = ({
   modifiedFields,
   onFieldChange,
 }) => {
-  const formatGold = (gold: number): string => {
-    return `${(gold / 1000).toFixed(1)}k`;
-  };
-
   const renderEditableField = (
     team: 'blue' | 'red',
     field: string,

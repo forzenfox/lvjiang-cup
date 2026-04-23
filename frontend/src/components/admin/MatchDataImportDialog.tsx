@@ -3,7 +3,7 @@ import { Upload, X, FileText, AlertCircle, Loader2, Download } from 'lucide-reac
 import { Button } from '../ui/button';
 import Modal from '../ui/Modal';
 import { importMatchData, downloadMatchDataErrorReport } from '@/api/matchData';
-import type { ImportMatchDataResponse, MatchDataImportError } from '@/types/matchData';
+import type { ImportMatchDataResponse } from '@/types/matchData';
 import { toast } from 'sonner';
 import { trackAdminImportStart, trackAdminImportSuccess } from '@/utils/tracking';
 
@@ -120,14 +120,14 @@ const MatchDataImportDialog: React.FC<MatchDataImportDialogProps> = ({
     try {
       const result = await importMatchData(matchId, file);
       setPreview(result);
-      
+
       if (result.failedCount && result.failedCount > 0) {
         const errors = parseErrorDetails(result);
         setErrorDetails(errors);
-        toast.warning(
-          `数据已导入，但 ${result.failedCount} 个选手匹配失败，请查看详情`,
-          { id: toastId, duration: 5000 }
-        );
+        toast.warning(`数据已导入，但 ${result.failedCount} 个选手匹配失败，请查看详情`, {
+          id: toastId,
+          duration: 5000,
+        });
       } else {
         toast.success('数据导入成功，请预览确认', { id: toastId });
       }
@@ -138,7 +138,7 @@ const MatchDataImportDialog: React.FC<MatchDataImportDialogProps> = ({
       // Try to extract error details from the response
       const responseDetails = err.response?.data;
       let errorMessage = err.message || '导入失败，请重试';
-      
+
       if (responseDetails) {
         const details = parseErrorDetails(responseDetails);
         if (details.length > 0) {
@@ -148,7 +148,7 @@ const MatchDataImportDialog: React.FC<MatchDataImportDialogProps> = ({
           errorMessage = responseDetails.message;
         }
       }
-      
+
       setError(errorMessage);
       toast.error('数据导入失败', { id: toastId });
     } finally {
@@ -277,7 +277,9 @@ const MatchDataImportDialog: React.FC<MatchDataImportDialogProps> = ({
               </div>
               <div>
                 <span className="text-gray-400">失败数:</span>
-                <span className={preview.failedCount ? 'text-yellow-400 ml-2' : 'text-green-400 ml-2'}>
+                <span
+                  className={preview.failedCount ? 'text-yellow-400 ml-2' : 'text-green-400 ml-2'}
+                >
                   {preview.failedCount || 0} 条
                 </span>
               </div>

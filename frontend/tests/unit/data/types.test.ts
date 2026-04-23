@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import type { SponsorConfig, StaffConfig, ThanksData } from '../types';
-import thanksData from '../thanks-data.json';
+import type { SponsorConfig, StaffConfig, ThanksData } from '@/data/types';
+import thanksData from '@/data/thanks-data.json';
 
 describe('类型定义测试', () => {
   describe('SponsorConfig 接口', () => {
@@ -83,7 +83,7 @@ describe('thanks-data.json 数据验证', () => {
   });
 
   it('每个赞助商应该有正确的字段类型', () => {
-    thanksData.sponsors.forEach((sponsor) => {
+    thanksData.sponsors.forEach(sponsor => {
       expect(typeof sponsor.id).toBe('number');
       expect(typeof sponsor.sponsorName).toBe('string');
       expect(typeof sponsor.sponsorContent).toBe('string');
@@ -94,7 +94,7 @@ describe('thanks-data.json 数据验证', () => {
   });
 
   it('每个工作人员应该有正确的字段类型', () => {
-    thanksData.staff.forEach((staff) => {
+    thanksData.staff.forEach(staff => {
       expect(typeof staff.id).toBe('number');
       expect(typeof staff.name).toBe('string');
       expect(typeof staff.role).toBe('string');
@@ -102,13 +102,13 @@ describe('thanks-data.json 数据验证', () => {
   });
 
   it('赞助商 ID 应该是唯一的', () => {
-    const ids = thanksData.sponsors.map((s) => s.id);
+    const ids = thanksData.sponsors.map(s => s.id);
     const uniqueIds = new Set(ids);
     expect(uniqueIds.size).toBe(ids.length);
   });
 
   it('工作人员 ID 应该是唯一的', () => {
-    const ids = thanksData.staff.map((s) => s.id);
+    const ids = thanksData.staff.map(s => s.id);
     const uniqueIds = new Set(ids);
     expect(uniqueIds.size).toBe(ids.length);
   });
@@ -118,7 +118,7 @@ describe('thanks-data.json 数据验证', () => {
   });
 
   it('部分赞助商应该有 specialAward 字段', () => {
-    const sponsorsWithAward = thanksData.sponsors.filter((s) => s.specialAward);
+    const sponsorsWithAward = thanksData.sponsors.filter(s => s.specialAward);
     expect(sponsorsWithAward.length).toBeGreaterThan(0);
   });
 });

@@ -21,7 +21,7 @@ export const SpecialAwards: React.FC<SpecialAwardsProps> = ({ sponsors }) => {
   }, []);
 
   // 筛选有特殊奖项的赞助商
-  const awards = sponsors.filter((s) => s.specialAward);
+  const awards = sponsors.filter(s => s.specialAward);
 
   // 如果没有特殊奖项，返回 null
   if (awards.length === 0) return null;
@@ -37,15 +37,20 @@ export const SpecialAwards: React.FC<SpecialAwardsProps> = ({ sponsors }) => {
     >
       {/* CRT 扫描线效果 */}
       <div className="absolute inset-0 pointer-events-none opacity-5">
-        <div className="w-full h-full" style={{
-          background: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(219, 39, 119, 0.03) 2px, rgba(219, 39, 119, 0.03) 4px)'
-        }} />
+        <div
+          className="w-full h-full"
+          style={{
+            background:
+              'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(219, 39, 119, 0.03) 2px, rgba(219, 39, 119, 0.03) 4px)',
+          }}
+        />
       </div>
 
       {/* 霓虹光晕边框 */}
-      <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+      <div
+        className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
         style={{
-          boxShadow: 'inset 0 0 30px rgba(219, 39, 119, 0.1), 0 0 40px rgba(219, 39, 119, 0.1)'
+          boxShadow: 'inset 0 0 30px rgba(219, 39, 119, 0.1), 0 0 40px rgba(219, 39, 119, 0.1)',
         }}
       />
 
@@ -108,14 +113,24 @@ export const SpecialAwards: React.FC<SpecialAwardsProps> = ({ sponsors }) => {
             {isExpanded ? (
               <>
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M5 15l7-7 7 7"
+                  />
                 </svg>
                 收起
               </>
             ) : (
               <>
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
+                  />
                 </svg>
                 查看更多 ({awards.length - 3} 条)
               </>

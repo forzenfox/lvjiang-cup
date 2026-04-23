@@ -1,5 +1,6 @@
 import React from 'react';
 import type { TeamGameData } from '@/types/matchData';
+import { Swords } from 'lucide-react';
 
 interface TeamStatsBarProps {
   blueTeam: TeamGameData;
@@ -14,19 +15,23 @@ const TeamStatsBar: React.FC<TeamStatsBarProps> = ({ blueTeam, redTeam }) => {
   return (
     <div className="bg-[#2d2d2d] rounded-lg p-4 max-w-5xl mx-auto mt-4">
       <div className="flex items-center justify-between">
-        <div className="flex flex-col items-center gap-4">
+        <div className="flex flex-col items-center gap-2">
           <span className="text-lg font-bold text-[#f44336]">{redTeam.teamName}</span>
-          <div className="text-4xl font-bold text-[#f44336] font-mono">{redTeam.kills}</div>
+          <div className="text-4xl font-bold text-[#f44336] font-mono neon-glow-red">
+            {redTeam.kills}
+          </div>
           <span className="text-xs text-gray-400">击杀</span>
         </div>
 
-        <div className="flex flex-col items-center gap-1 text-gray-600">
-          <span className="text-2xl">⚔</span>
+        <div className="flex flex-col items-center gap-1">
+          <Swords className="w-8 h-8 text-gray-500" strokeWidth={1.5} />
         </div>
 
-        <div className="flex flex-col items-center gap-4">
+        <div className="flex flex-col items-center gap-2">
           <span className="text-lg font-bold text-[#00bcd4]">{blueTeam.teamName}</span>
-          <div className="text-4xl font-bold text-[#00bcd4] font-mono">{blueTeam.kills}</div>
+          <div className="text-4xl font-bold text-[#00bcd4] font-mono neon-glow-blue">
+            {blueTeam.kills}
+          </div>
           <span className="text-xs text-gray-400">击杀</span>
         </div>
       </div>

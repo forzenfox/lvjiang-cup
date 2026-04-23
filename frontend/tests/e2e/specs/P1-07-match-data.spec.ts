@@ -1648,7 +1648,11 @@ test.describe('【P1】对战数据展示 - 空状态与重试', () => {
     await page.route('**/api/matches/*/games/check', async route => {
       await route.fulfill({
         status: 200,
-        body: JSON.stringify({ success: true, code: 20000, data: { hasData: false, gameCount: 0 } }),
+        body: JSON.stringify({
+          success: true,
+          code: 20000,
+          data: { hasData: false, gameCount: 0 },
+        }),
       });
     });
 
@@ -1796,4 +1800,3 @@ test.describe('【P1】对战数据展示 - 空状态与重试', () => {
     console.log('✅ 自动重试机制正常，第3次请求成功');
   });
 });
-

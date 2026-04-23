@@ -22,12 +22,10 @@ const MatchDataEmptyState: React.FC<MatchDataEmptyStateProps> = ({ matchId }) =>
       <div className="w-24 h-24 mb-6 text-gray-600">
         <Database className="w-full h-full" />
       </div>
-      
+
       <h2 className="text-2xl font-bold text-white mb-3">暂无对战数据</h2>
-      
-      <p className="text-gray-400 text-center max-w-md mb-8">
-        管理员尚未上传该对战的详细数据
-      </p>
+
+      <p className="text-gray-400 text-center max-w-md mb-8">管理员尚未上传该对战的详细数据</p>
 
       <button
         onClick={handleBack}

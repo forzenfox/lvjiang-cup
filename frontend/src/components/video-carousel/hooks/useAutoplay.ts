@@ -38,7 +38,7 @@ export const useAutoplay = ({
   // 开始自动切换
   const startAutoplay = useCallback(() => {
     if (!enabled || videoCount <= 1 || isMobile) return;
-    
+
     clearAutoplayInterval();
     intervalRef.current = setInterval(() => {
       onAutoplay();
@@ -78,8 +78,8 @@ export const useAutoplay = ({
 
     // 创建 Intersection Observer
     const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
+      entries => {
+        entries.forEach(entry => {
           if (entry.isIntersecting && entry.intersectionRatio >= 0.5) {
             // 当视频模块可见度超过50%时，开始自动切换
             startAutoplay();

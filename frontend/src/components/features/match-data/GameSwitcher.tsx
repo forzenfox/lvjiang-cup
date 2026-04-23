@@ -31,11 +31,11 @@ const GameSwitcher: React.FC<GameSwitcherProps> = ({
               onClick={() => !isDisabled && onChange(game.gameNumber)}
               disabled={isDisabled}
               className={`
-                px-6 py-4 text-base border-t-3 transition-all duration-200
+                px-6 py-4 text-base border-t-[3px] transition-all duration-200
                 ${
                   isActive
-                    ? 'text-[#c49f58] font-bold border-[#c49f58] bg-[#2d2d2d]'
-                    : 'text-[#727272] border-transparent hover:text-[#c49f58] hover:bg-[#2d2d2d]'
+                    ? 'text-[#c49f58] font-bold border-t-[#c49f58] bg-[#2d2d2d]'
+                    : 'text-[#727272] border-t-transparent hover:text-[#c49f58] hover:bg-[#2d2d2d]'
                 }
                 ${isDisabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
               `}

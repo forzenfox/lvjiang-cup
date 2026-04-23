@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { SocialLinks } from '../SocialLinks';
+import { SocialLinks } from '@/components/layout/Footer/SocialLinks';
 import type { SocialLinkConfig } from '@/config/footer';
 
 describe('SocialLinks', () => {
@@ -32,7 +32,6 @@ describe('SocialLinks', () => {
 
   it('应该正确传递 props 给子组件', () => {
     render(<SocialLinks links={mockLinks} />);
-    // 使用 getAllByText 因为有多个同名链接
     expect(screen.getAllByText('胡凯利_洞主')).toHaveLength(2);
     expect(screen.getByText('凯菇来啦')).toBeInTheDocument();
   });

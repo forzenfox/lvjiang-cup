@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { SocialLinkItem } from '../SocialLinkItem';
+import { SocialLinkItem } from '@/components/layout/Footer/SocialLinkItem';
 
 describe('SocialLinkItem', () => {
   const mockProps = {

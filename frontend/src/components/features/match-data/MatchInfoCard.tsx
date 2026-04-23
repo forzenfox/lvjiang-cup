@@ -34,15 +34,20 @@ const MatchInfoCard: React.FC<MatchInfoCardProps> = ({ gameData }) => {
         <div className="flex flex-col items-center gap-3 min-w-[120px]">
           <div className="w-20 h-20 rounded-full border-2 border-[#f44336] bg-[#1a1a2e] flex items-center justify-center overflow-hidden">
             <img
-              src={getUploadUrl(redTeam.logoUrl) || `https://api.dicebear.com/7.x/identicon/svg?seed=${redTeam.teamId}`}
+              src={
+                getUploadUrl(redTeam.logoUrl) ||
+                `https://api.dicebear.com/7.x/identicon/svg?seed=${redTeam.teamId}`
+              }
               alt={redTeam.teamName}
               className="w-full h-full object-cover"
-              onError={(e) => {
+              onError={e => {
                 (e.target as HTMLImageElement).style.display = 'none';
                 (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden');
               }}
             />
-            <span className="hidden text-2xl font-bold text-[#f44336]">{redTeam.teamName.charAt(0)}</span>
+            <span className="hidden text-2xl font-bold text-[#f44336]">
+              {redTeam.teamName.charAt(0)}
+            </span>
           </div>
           <span className="text-xl font-bold text-white">{redTeam.teamName}</span>
           <span className="text-xs text-[#f44336] bg-[#f44336]/20 px-2 py-0.5 rounded-full">
@@ -61,15 +66,20 @@ const MatchInfoCard: React.FC<MatchInfoCardProps> = ({ gameData }) => {
         <div className="flex flex-col items-center gap-3 min-w-[120px]">
           <div className="w-20 h-20 rounded-full border-2 border-[#00bcd4] bg-[#1a1a2e] flex items-center justify-center overflow-hidden">
             <img
-              src={getUploadUrl(blueTeam.logoUrl) || `https://api.dicebear.com/7.x/identicon/svg?seed=${blueTeam.teamId}`}
+              src={
+                getUploadUrl(blueTeam.logoUrl) ||
+                `https://api.dicebear.com/7.x/identicon/svg?seed=${blueTeam.teamId}`
+              }
               alt={blueTeam.teamName}
               className="w-full h-full object-cover"
-              onError={(e) => {
+              onError={e => {
                 (e.target as HTMLImageElement).style.display = 'none';
                 (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden');
               }}
             />
-            <span className="hidden text-2xl font-bold text-[#00bcd4]">{blueTeam.teamName.charAt(0)}</span>
+            <span className="hidden text-2xl font-bold text-[#00bcd4]">
+              {blueTeam.teamName.charAt(0)}
+            </span>
           </div>
           <span className="text-xl font-bold text-white">{blueTeam.teamName}</span>
           <span className="text-xs text-[#00bcd4] bg-[#00bcd4]/20 px-2 py-0.5 rounded-full">

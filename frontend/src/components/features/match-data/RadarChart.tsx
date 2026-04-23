@@ -240,14 +240,7 @@ const RadarChartInner: React.FC<RadarChartProps> = ({
           transition={{ duration: 0.3, ease: 'easeInOut' }}
           style={{ overflow: 'hidden' }}
         >
-          <div
-            ref={chartRef}
-            style={{
-              width: '100%',
-              height: '400px',
-              minHeight: '300px',
-            }}
-          />
+          <div ref={chartRef} className="w-full h-[280px] sm:h-[320px] md:h-[360px] lg:h-[400px]" />
         </motion.div>
       )}
     </AnimatePresence>

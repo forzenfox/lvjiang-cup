@@ -30,8 +30,8 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
     if (!container) return;
 
     const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
+      entries => {
+        entries.forEach(entry => {
           // 当视频容器可见度超过 30% 时，才加载 iframe
           if (entry.isIntersecting && entry.intersectionRatio >= 0.3) {
             setIsInViewport(true);
@@ -110,11 +110,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
       ) : (
         <div className="w-full h-full bg-gray-900 flex items-center justify-center">
           {video.cover ? (
-            <img
-              src={video.cover}
-              alt={video.title}
-              className="w-full h-full object-cover"
-            />
+            <img src={video.cover} alt={video.title} className="w-full h-full object-cover" />
           ) : (
             <div className="text-gray-400 text-center">
               <div className="text-4xl mb-2">▶</div>
