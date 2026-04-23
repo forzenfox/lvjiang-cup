@@ -9,9 +9,9 @@ import AdminSchedule from '../pages/admin/Schedule';
 import AdminStreamers from '../pages/admin/Streamers';
 import Videos from '../pages/admin/Videos';
 import ProtectedRoute from '../components/layout/ProtectedRoute';
-import MatchDataPage from '../components/features/match-data/MatchDataPage';
-import MatchDataManagement from '../pages/admin/MatchDataManagement';
 import MatchDataList from '../pages/admin/MatchDataList';
+import MatchDataManagement from '../pages/admin/MatchDataManagement';
+import MatchDataEditPage from '../components/features/match-data/MatchDataEditPage';
 
 /**
  * 路由配置
@@ -26,10 +26,6 @@ export const routes: RouteObject[] = [
   {
     path: '/admin/login',
     element: <AdminLogin />,
-  },
-  {
-    path: '/match/:id/games',
-    element: <MatchDataPage />,
   },
 
   // 受保护的管理后台路由
@@ -86,6 +82,14 @@ export const routes: RouteObject[] = [
     element: (
       <ProtectedRoute>
         <MatchDataList />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/admin/matches/:matchId/games/:gameNumber/edit',
+    element: (
+      <ProtectedRoute>
+        <MatchDataEditPage />
       </ProtectedRoute>
     ),
   },

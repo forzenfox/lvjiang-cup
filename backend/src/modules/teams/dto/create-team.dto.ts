@@ -5,12 +5,14 @@ import {
   ValidateNested,
   IsNumber,
   IsBoolean,
+  IsNotEmpty,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 class CreateMemberDto {
   @ApiProperty({ description: '成员ID' })
+  @IsNotEmpty()
   @IsString()
   id: string;
 
@@ -29,6 +31,7 @@ class CreateMemberDto {
   avatarUrl?: string;
 
   @ApiProperty({ description: '位置', enum: ['TOP', 'JUNGLE', 'MID', 'ADC', 'SUPPORT'] })
+  @IsNotEmpty()
   @IsString()
   position: 'TOP' | 'JUNGLE' | 'MID' | 'ADC' | 'SUPPORT';
 

@@ -6,15 +6,18 @@ import {
   IsBoolean,
   IsArray,
   ValidateNested,
+  IsNotEmpty,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class TeamStatsDto {
   @ApiProperty({ description: '战队ID' })
+  @IsNotEmpty()
   @IsString()
   teamId: string;
 
   @ApiProperty({ description: '阵营 (blue/red)' })
+  @IsNotEmpty()
   @IsString()
   side: string;
 
@@ -45,26 +48,26 @@ export class TeamStatsDto {
   @ApiProperty({ description: '控Baron数' })
   @IsNumber()
   barons: number;
-
-  @ApiProperty({ description: '是否一血' })
-  @IsBoolean()
-  firstBlood: boolean;
 }
 
 export class PlayerStatsDto {
   @ApiProperty({ description: '选手ID' })
+  @IsNotEmpty()
   @IsString()
   playerId: string;
 
   @ApiProperty({ description: '战队ID' })
+  @IsNotEmpty()
   @IsString()
   teamId: string;
 
   @ApiProperty({ description: '位置 (TOP/JUNGLE/MID/ADC/SUPPORT)' })
+  @IsNotEmpty()
   @IsString()
   position: string;
 
   @ApiProperty({ description: '使用英雄' })
+  @IsNotEmpty()
   @IsString()
   championName: string;
 
@@ -107,16 +110,6 @@ export class PlayerStatsDto {
   @ApiProperty({ description: '等级' })
   @IsNumber()
   level: number;
-
-  @ApiPropertyOptional({ description: '是否一血' })
-  @IsOptional()
-  @IsBoolean()
-  firstBlood?: boolean;
-
-  @ApiPropertyOptional({ description: '是否MVP' })
-  @IsOptional()
-  @IsBoolean()
-  mvp?: boolean;
 }
 
 export class UpdateMatchDataDto {

@@ -7,6 +7,9 @@ import { UpdateTeamDto } from './dto/update-team.dto';
 import { CreateMemberDto } from './dto/create-member.dto';
 import { UpdateMemberDto } from './dto/update-member.dto';
 import { v4 as uuidv4 } from 'uuid';
+import * as fs from 'fs';
+import * as path from 'path';
+import { getTeamLogoPath, getTeamLogoThumbnailPath } from '../../common/utils/path.util';
 
 export interface TeamMember {
   id: string;
@@ -187,7 +190,7 @@ export class TeamsService extends BaseCachedService<Team, string> {
   }
 
   async update(id: string, updateTeamDto: UpdateTeamDto): Promise<Team> {
-    const existing = await this.databaseService.get<any>('SELECT id FROM teams WHERE id = ?', [id]);
+    const existing = await this.databaseService.get<any>('SELECT * FROM teams WHERE id = ?', [id]);
     if (!existing) {
       throw new NotFoundException(`Team with id ${id} not found`);
     }
@@ -204,10 +207,16 @@ export class TeamsService extends BaseCachedService<Team, string> {
       values.push(updateTeamDto.logo);
     }
     if (updateTeamDto.logoUrl !== undefined) {
+      if (existing.logo_url && existing.logo_url !== updateTeamDto.logoUrl) {
+        await this.deleteFile(existing.logo_url);
+      }
       updates.push('logo_url = ?');
       values.push(updateTeamDto.logoUrl);
     }
     if (updateTeamDto.logoThumbnailUrl !== undefined) {
+      if (existing.logo_thumbnail_url && existing.logo_thumbnail_url !== updateTeamDto.logoThumbnailUrl) {
+        await this.deleteFile(existing.logo_thumbnail_url);
+      }
       updates.push('logo_thumbnail_url = ?');
       values.push(updateTeamDto.logoThumbnailUrl);
     }
@@ -224,6 +233,15 @@ export class TeamsService extends BaseCachedService<Team, string> {
     }
 
     if (updateTeamDto.members !== undefined) {
+      const oldMembers = await this.databaseService.all<any>(
+        'SELECT avatar_url FROM team_members WHERE team_id = ?',
+        [id],
+      );
+      for (const member of oldMembers) {
+        if (member.avatar_url) {
+          await this.deleteFile(member.avatar_url);
+        }
+      }
       await this.databaseService.run('DELETE FROM team_members WHERE team_id = ?', [id]);
 
       if (updateTeamDto.members.length > 0) {
@@ -258,16 +276,55 @@ export class TeamsService extends BaseCachedService<Team, string> {
   }
 
   async remove(id: string): Promise<void> {
-    const existing = await this.databaseService.get<any>('SELECT id FROM teams WHERE id = ?', [id]);
+    const existing = await this.databaseService.get<any>('SELECT * FROM teams WHERE id = ?', [id]);
     if (!existing) {
       throw new NotFoundException(`Team with id ${id} not found`);
     }
 
     await this.databaseService.run('DELETE FROM teams WHERE id = ?', [id]);
 
+    if (existing.logo_url) {
+      await this.deleteFile(existing.logo_url);
+    }
+    if (existing.logo_thumbnail_url) {
+      await this.deleteFile(existing.logo_thumbnail_url);
+    }
+
     this.memberLogger.log(`Team deleted: ${id}`);
 
     this.clearRelatedCache(id);
+  }
+
+  private async deleteFile(fileUrl: string): Promise<void> {
+    if (!fileUrl) return;
+    if (fileUrl.startsWith('http')) return;
+    try {
+      const filename = path.basename(fileUrl);
+      let filePath: string;
+      let thumbnailPath: string;
+
+      if (fileUrl.includes('/teams/')) {
+        filePath = getTeamLogoPath(filename);
+        thumbnailPath = getTeamLogoThumbnailPath(filename);
+      } else if (fileUrl.includes('/members/')) {
+        filePath = path.join(path.dirname(getTeamLogoPath('placeholder')).replace('teams', 'members'), filename);
+      } else {
+        return;
+      }
+
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+        await this.databaseService.deleteFileHashByPath(filePath);
+        this.memberLogger.log(`File deleted: ${filePath}`);
+      }
+      if (fs.existsSync(thumbnailPath)) {
+        fs.unlinkSync(thumbnailPath);
+        await this.databaseService.deleteFileHashByPath(thumbnailPath);
+        this.memberLogger.log(`Thumbnail deleted: ${thumbnailPath}`);
+      }
+    } catch (error) {
+      this.memberLogger.error(`Failed to delete file ${fileUrl}: ${error.message}`);
+    }
   }
 
   // ==================== 队员管理方法 ====================
@@ -453,6 +510,10 @@ export class TeamsService extends BaseCachedService<Team, string> {
     }
 
     await this.databaseService.run('DELETE FROM team_members WHERE id = ?', [id]);
+
+    if (existing.avatar_url) {
+      await this.deleteFile(existing.avatar_url);
+    }
 
     this.memberLogger.log(`Member deleted: ${id}`);
 

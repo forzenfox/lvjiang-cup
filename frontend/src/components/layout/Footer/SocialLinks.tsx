@@ -8,7 +8,7 @@ interface SocialLinksProps {
 
 export const SocialLinks: React.FC<SocialLinksProps> = ({ links }) => {
   return (
-    <div className="flex items-center gap-10" data-testid="social-links">
+    <div className="flex items-center gap-6" data-testid="social-links">
       {links.map((link, index) => (
         <SocialLinkItem key={`${link.platform}-${index}`} {...link} />
       ))}

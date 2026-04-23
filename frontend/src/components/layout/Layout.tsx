@@ -14,7 +14,7 @@ const styles = `
     scrollbar-width: none;
     -ms-overflow-style: none;
   }
-  
+
   /* 全屏滚动吸附样式 - 所有设备统一 */
   html {
     scroll-snap-type: y mandatory;
@@ -23,6 +23,8 @@ const styles = `
   section[id] {
     scroll-snap-align: start;
     scroll-snap-stop: always;
+    /* 为PC端固定导航栏预留空间，防止内容被遮挡 */
+    scroll-margin-top: 96px;
   }
 `;
 
@@ -68,8 +70,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   // 添加键盘事件监听器，实现上下键切换模块
   useEffect(() => {
-    // 按页面实际渲染顺序：总览 → 视频 → 主播 → 战队 → 赛程
-    const sections = ['hero', 'videos', 'streamers', 'teams', 'schedule'];
+    // 按页面实际渲染顺序：总览 → 视频 → 主播 → 战队 → 赛程 → 鸣谢
+    const sections = ['hero', 'videos', 'streamers', 'teams', 'schedule', 'thanks'];
     let currentIndex = 0;
 
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -95,7 +97,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   // 监听滚动，更新当前激活的section
   useEffect(() => {
     const handleScroll = () => {
-      const sections = ['hero', 'streamers', 'teams', 'schedule', 'videos'];
+      const sections = ['hero', 'streamers', 'teams', 'schedule', 'videos', 'thanks'];
       // 使用导航栏高度作为偏移量，确保判断更准确
       const scrollPosition = window.scrollY + NAVBAR_HEIGHT + 20;
 
@@ -123,6 +125,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     { id: 'streamers', label: '主播' },
     { id: 'teams', label: '战队' },
     { id: 'schedule', label: '赛程' },
+    { id: 'thanks', label: '鸣谢' },
   ];
 
   return (
@@ -227,6 +230,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   {item.label === '主播' && '🎙️'}
                   {item.label === '战队' && '⚔️'}
                   {item.label === '赛程' && '📅'}
+                  {item.label === '鸣谢' && '🙏'}
                 </span>
                 <span className="relative z-10">{item.label}</span>
               </button>

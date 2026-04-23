@@ -146,6 +146,7 @@ export class StreamsService extends BaseCachedService<Stream, string> {
     // 清除缓存
     this.cacheService.del(this.CACHE_KEY_INFO);
     this.clearAllCache();
+    this.cacheService.del(this.getOneCacheKey(id));
 
     return this.findById(id);
   }
@@ -163,5 +164,6 @@ export class StreamsService extends BaseCachedService<Stream, string> {
     // 清除缓存
     this.cacheService.del(this.CACHE_KEY_INFO);
     this.clearAllCache();
+    this.cacheService.del(this.getOneCacheKey(id));
   }
 }

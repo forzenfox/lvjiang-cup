@@ -46,6 +46,7 @@ services:
       - ../data:/app/data
       - ../backup:/app/backup
       - ../uploads:/app/uploads
+      - ../templates:/app/templates
     networks:
       - npm-network
     logging: *default-logging

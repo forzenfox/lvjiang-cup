@@ -2,6 +2,9 @@ import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { DatabaseService } from '../../database/database.service';
 import { CacheService } from '../../cache/cache.service';
 import { BaseCachedService } from '../../common/services/base-cached.service';
+import * as fs from 'fs';
+import * as path from 'path';
+import { getStreamerPosterPath } from '../../common/utils/path.util';
 
 export enum StreamerType {
   INTERNAL = 'internal',
@@ -148,6 +151,9 @@ export class StreamersService extends BaseCachedService<Streamer, string> {
       params.push(updateStreamerDto.nickname);
     }
     if (updateStreamerDto.posterUrl !== undefined) {
+      if (existing.posterUrl && existing.posterUrl !== updateStreamerDto.posterUrl) {
+        await this.deletePoster(existing.posterUrl);
+      }
       updates.push('poster_url = ?');
       params.push(updateStreamerDto.posterUrl);
     }
@@ -181,17 +187,34 @@ export class StreamersService extends BaseCachedService<Streamer, string> {
 
     this.clearRelatedCache(id);
 
-    return {
-      ...existing,
-      ...updateStreamerDto,
-      updatedAt: new Date(),
-    };
+    return this.findOne(id);
   }
 
   async remove(id: string): Promise<void> {
-    await this.findOne(id);
+    const existing = await this.findOne(id);
     await this.databaseService.run('DELETE FROM streamers WHERE id = ?', [id]);
+
+    if (existing.posterUrl) {
+      await this.deletePoster(existing.posterUrl);
+    }
+
     this.clearRelatedCache(id);
+  }
+
+  private async deletePoster(posterUrl: string): Promise<void> {
+    if (!posterUrl) return;
+    if (posterUrl.startsWith('http')) return;
+    try {
+      const filename = path.basename(posterUrl);
+      const posterPath = getStreamerPosterPath(filename);
+      if (fs.existsSync(posterPath)) {
+        fs.unlinkSync(posterPath);
+        await this.databaseService.deleteFileHashByPath(posterPath);
+        this.streamerLogger.log(`Poster deleted: ${posterPath}`);
+      }
+    } catch (error) {
+      this.streamerLogger.error(`Failed to delete poster ${posterUrl}: ${error.message}`);
+    }
   }
 
   async updateSort(updateStreamerSortDto: UpdateStreamerSortDto): Promise<void> {

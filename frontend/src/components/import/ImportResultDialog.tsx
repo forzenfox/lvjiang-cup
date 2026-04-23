@@ -27,7 +27,7 @@ export const ImportResultDialog: React.FC<ImportResultDialogProps> = ({
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `驴酱杯_导入错误报告_${new Date().toISOString().slice(0, 10).replace(/-/g, '')}.xlsx`;
+      a.download = `驴酱杯_导入错误报告_${new Date().toISOString().slice(0, 10).replace(/-/g, '')}.txt`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);

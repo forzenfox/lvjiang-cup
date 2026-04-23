@@ -70,21 +70,21 @@ export const BackgroundCarousel: React.FC<BackgroundCarouselProps> = ({
       animate={isExiting ? { opacity: 0 } : { opacity: 1 }}
       transition={{ duration: ANIMATION_CONFIG.exitDuration / 1000 }}
     >
-      <div className="absolute inset-0">
+      <div className="absolute inset-0 flex items-center justify-center">
         {availableBackgrounds.map((bg, index) => {
-          // 使用已加载的图片 URL
           const imageUrl = loadedImages.has(bg.cdn) ? bg.cdn : null;
           
           if (!imageUrl) return null;
 
           return (
-            <div
+            <img
               key={bg.cdn}
-              className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-opacity duration-1000"
+              src={imageUrl}
+              className="absolute inset-0 w-full h-full object-contain transition-opacity duration-1000"
               style={{
-                backgroundImage: `url(${imageUrl})`,
                 opacity: shouldCarousel ? (index === currentIndex ? 1 : 0) : 1,
               }}
+              alt=""
             />
           );
         })}

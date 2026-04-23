@@ -9,7 +9,7 @@ interface IndicatorProps {
 
 export const Indicator: React.FC<IndicatorProps> = ({ videos, currentIndex, onSelect }) => {
   return (
-    <div className="flex justify-center gap-2 p-4" data-testid="indicator">
+    <div className="flex justify-center gap-2 pt-1" data-testid="indicator">
       {videos.map((video, index) => (
         <button
           key={video.bvid}

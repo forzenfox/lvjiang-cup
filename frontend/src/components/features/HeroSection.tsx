@@ -40,7 +40,7 @@ const HeroSection: React.FC = () => {
     return (
       <section
         id="hero"
-        className="relative h-screen flex items-center justify-center overflow-hidden"
+        className="relative h-[calc(100vh-96px)] flex items-center justify-center overflow-hidden"
       >
         {/* Background Image with Overlay */}
         <div className="absolute inset-0 z-0">
@@ -68,7 +68,7 @@ const HeroSection: React.FC = () => {
     return (
       <section
         id="hero"
-        className="relative h-screen flex items-center justify-center overflow-hidden"
+        className="relative h-[calc(100vh-96px)] flex items-center justify-center overflow-hidden"
       >
         {/* Background Image with Overlay */}
         <div className="absolute inset-0 z-0">
@@ -101,7 +101,7 @@ const HeroSection: React.FC = () => {
   return (
     <section
       id="hero"
-      className="relative h-screen flex items-center justify-center overflow-hidden"
+      className="relative h-[calc(100vh-96px)] flex items-center justify-center overflow-hidden"
     >
       {/* Background Image with Overlay */}
       <div className="absolute inset-0 z-0">

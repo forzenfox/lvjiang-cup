@@ -130,6 +130,22 @@ export async function downloadMatchDataTemplate(): Promise<Blob> {
   return response.data;
 }
 
+/**
+ * 下载对战数据导入错误报告
+ * @param errors 错误列表
+ * @returns 错误报告文件 Blob
+ */
+export async function downloadMatchDataErrorReport(errors: any[]): Promise<Blob> {
+  const response = await apiClient.post<Blob>(
+    '/admin/matches/import/error-report',
+    { errors },
+    {
+      responseType: 'blob',
+    }
+  );
+  return response.data;
+}
+
 export default {
   checkMatchDataExists,
   getMatchSeries,
@@ -137,4 +153,5 @@ export default {
   importMatchData,
   updateMatchGameData,
   downloadMatchDataTemplate,
+  downloadMatchDataErrorReport,
 };

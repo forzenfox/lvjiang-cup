@@ -14,6 +14,7 @@ import {
 } from '../utils/excel.util';
 import { validateImportData } from '../utils/validate-import.util';
 import { ImportTeamDto, ImportResultDto, ImportErrorDto } from '../dto/import';
+import { getTeamLogoPath, getTeamLogoThumbnailPath } from '../../../common/utils/path.util';
 
 @Injectable()
 export class TeamsImportService {
@@ -364,11 +365,26 @@ export class TeamsImportService {
   }
 
   private async updateTeamWithMembers(teamId: string, team: ImportTeamDto): Promise<void> {
+    const existing = await this.databaseService.get<any>('SELECT * FROM teams WHERE id = ?', [teamId]);
+
+    if (existing.logo_url && existing.logo_url !== team.logoUrl) {
+      await this.deleteTeamFile(existing.logo_url);
+    }
+
     await this.databaseService.run(
       `UPDATE teams SET name = ?, logo_url = ?, battle_cry = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
       [team.name, team.logoUrl || null, team.battleCry || null, teamId],
     );
 
+    const oldMembers = await this.databaseService.all<any>(
+      'SELECT avatar_url FROM team_members WHERE team_id = ?',
+      [teamId],
+    );
+    for (const member of oldMembers) {
+      if (member.avatar_url) {
+        await this.deleteMemberFile(member.avatar_url);
+      }
+    }
     await this.databaseService.run(`DELETE FROM team_members WHERE team_id = ?`, [teamId]);
 
     for (const member of team.members) {
@@ -395,51 +411,75 @@ export class TeamsImportService {
     }
   }
 
-  async generateErrorReport(errors: ImportErrorDto[]): Promise<string> {
-    const workbook = new ExcelJS.Workbook();
-    const sheet = workbook.addWorksheet('导入错误报告');
+  private async deleteTeamFile(fileUrl: string): Promise<void> {
+    if (!fileUrl || fileUrl.startsWith('http')) return;
+    try {
+      const filename = path.basename(fileUrl);
+      const filePath = getTeamLogoPath(filename);
+      const thumbnailPath = getTeamLogoThumbnailPath(filename);
 
-    sheet.getCell('A1').value = '导入错误报告';
-    sheet.getCell('A1').font = { size: 14, bold: true };
-
-    sheet.getCell('A3').value = '行号';
-    sheet.getCell('B3').value = '战队名称';
-    sheet.getCell('C3').value = '位置';
-    sheet.getCell('D3').value = '错误字段';
-    sheet.getCell('E3').value = '错误信息';
-
-    const headerRow = sheet.getRow(3);
-    headerRow.font = { bold: true };
-    headerRow.fill = {
-      type: 'pattern',
-      pattern: 'solid',
-      fgColor: { argb: 'FFFFCCCC' },
-    };
-
-    let row = 4;
-    for (const error of errors) {
-      sheet.getCell(`A${row}`).value = error.row;
-      sheet.getCell(`B${row}`).value = error.teamName;
-      sheet.getCell(`C${row}`).value = error.position;
-      sheet.getCell(`D${row}`).value = error.field;
-      sheet.getCell(`E${row}`).value = error.message;
-      row++;
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+        await this.databaseService.deleteFileHashByPath(filePath);
+        this.logger.log(`Team file deleted: ${filePath}`);
+      }
+      if (fs.existsSync(thumbnailPath)) {
+        fs.unlinkSync(thumbnailPath);
+        await this.databaseService.deleteFileHashByPath(thumbnailPath);
+        this.logger.log(`Team thumbnail deleted: ${thumbnailPath}`);
+      }
+    } catch (error) {
+      this.logger.error(`Failed to delete team file ${fileUrl}: ${error.message}`);
     }
+  }
 
-    sheet.getColumn(1).width = 10;
-    sheet.getColumn(2).width = 20;
-    sheet.getColumn(3).width = 15;
-    sheet.getColumn(4).width = 15;
-    sheet.getColumn(5).width = 40;
+  private async deleteMemberFile(fileUrl: string): Promise<void> {
+    if (!fileUrl || fileUrl.startsWith('http')) return;
+    try {
+      const filename = path.basename(fileUrl);
+      const avatarDir = path.dirname(getTeamLogoPath('placeholder')).replace('teams', 'members');
+      const filePath = path.join(avatarDir, filename);
 
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
-    const fileName = `驴酱杯_导入错误报告_${timestamp}.xlsx`;
-    const filePath = path.join(this.TEMPLATE_DIR, fileName);
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+        await this.databaseService.deleteFileHashByPath(filePath);
+        this.logger.log(`Member avatar deleted: ${filePath}`);
+      }
+    } catch (error) {
+      this.logger.error(`Failed to delete member avatar ${fileUrl}: ${error.message}`);
+    }
+  }
 
-    await this.ensureTemplateDir();
-    await workbook.xlsx.writeFile(filePath);
+  async generateErrorReport(errors: ImportErrorDto[]): Promise<Buffer> {
+    const lines: string[] = [];
 
-    return filePath;
+    // 标题
+    lines.push('========================================');
+    lines.push('       战队信息导入错误报告');
+    lines.push('========================================');
+    lines.push(`生成时间：${new Date().toLocaleString('zh-CN')}`);
+    lines.push(`错误总数：${errors.length}`);
+    lines.push('');
+
+    // 错误详情
+    lines.push('------ 错误详情 ------');
+    lines.push('');
+
+    errors.forEach((error, index) => {
+      lines.push(`[${index + 1}] 第 ${error.row} 行`);
+      lines.push(`    战队名称：${error.teamName || '未知'}`);
+      lines.push(`    位置：${error.position || '未知'}`);
+      lines.push(`    错误字段：${error.field || '未知'}`);
+      lines.push(`    错误信息：${error.message}`);
+      lines.push('');
+    });
+
+    lines.push('========================================');
+    lines.push('              报告结束');
+    lines.push('========================================');
+
+    const content = lines.join('\n');
+    return Buffer.from(content, 'utf-8');
   }
 
   private cleanupTempFile(filePath: string): void {

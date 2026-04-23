@@ -149,12 +149,12 @@ EOF
 fi
 
 # 创建数据目录（包括上传文件目录）
-mkdir -p $PROJECT_DIR/data $PROJECT_DIR/backup $PROJECT_DIR/uploads
+mkdir -p $PROJECT_DIR/data $PROJECT_DIR/backup $PROJECT_DIR/uploads $PROJECT_DIR/templates
 
 # 设置目录权限（UID 1001 对应容器内的 nodejs 用户）
 echo "${YELLOW}🔐 设置目录权限...${NC}"
-chown -R 1001:1001 $PROJECT_DIR/data $PROJECT_DIR/backup $PROJECT_DIR/uploads
-chmod -R 755 $PROJECT_DIR/data $PROJECT_DIR/backup $PROJECT_DIR/uploads
+chown -R 1001:1001 $PROJECT_DIR/data $PROJECT_DIR/backup $PROJECT_DIR/uploads $PROJECT_DIR/templates
+chmod -R 755 $PROJECT_DIR/data $PROJECT_DIR/backup $PROJECT_DIR/uploads $PROJECT_DIR/templates
 echo "${GREEN}✅ 权限设置完成${NC}"
 echo ""
 

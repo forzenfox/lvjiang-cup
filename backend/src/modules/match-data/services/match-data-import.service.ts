@@ -3,6 +3,14 @@ import * as ExcelJS from 'exceljs';
 import * as fs from 'fs';
 import * as path from 'path';
 
+export interface MatchDataImportError {
+  row: number;
+  nickname: string;
+  side: string;
+  type: 'player_not_found' | 'team_mismatch' | 'data_validation' | 'parse_error';
+  message: string;
+}
+
 @Injectable()
 export class MatchDataImportService {
   private readonly logger = new Logger(MatchDataImportService.name);
@@ -52,6 +60,70 @@ export class MatchDataImportService {
     return this.generateTemplate();
   }
 
+  /**
+   * 生成错误报告文件（TXT格式）
+   */
+  async generateErrorReport(errors: MatchDataImportError[]): Promise<Buffer> {
+    const lines: string[] = [];
+
+    // 标题
+    lines.push('========================================');
+    lines.push('       对战数据导入错误报告');
+    lines.push('========================================');
+    lines.push(`生成时间：${new Date().toLocaleString('zh-CN')}`);
+    lines.push(`错误总数：${errors.length}`);
+    lines.push('');
+
+    // 错误类型统计
+    const typeCount: Record<string, number> = {};
+    errors.forEach(e => {
+      typeCount[e.type] = (typeCount[e.type] || 0) + 1;
+    });
+
+    lines.push('------ 错误类型统计 ------');
+    lines.push(`选手未找到：${typeCount['player_not_found'] || 0} 条`);
+    lines.push(`战队不匹配：${typeCount['team_mismatch'] || 0} 条`);
+    lines.push(`数据验证失败：${typeCount['data_validation'] || 0} 条`);
+    lines.push(`解析错误：${typeCount['parse_error'] || 0} 条`);
+    lines.push('');
+
+    // 错误详情
+    lines.push('------ 错误详情 ------');
+    lines.push('');
+
+    errors.forEach((error, index) => {
+      const sideText = error.side === 'red' ? '红方' : '蓝方';
+      const typeText = this.getErrorTypeText(error.type);
+      
+      lines.push(`[${index + 1}] 第 ${error.row} 行`);
+      lines.push(`    选手昵称：${error.nickname}`);
+      lines.push(`    阵营：${sideText}`);
+      lines.push(`    错误类型：${typeText}`);
+      lines.push(`    错误信息：${error.message}`);
+      lines.push('');
+    });
+
+    lines.push('========================================');
+    lines.push('              报告结束');
+    lines.push('========================================');
+
+    const content = lines.join('\n');
+    return Buffer.from(content, 'utf-8');
+  }
+
+  /**
+   * 获取错误类型的中文描述
+   */
+  private getErrorTypeText(type: string): string {
+    const typeMap: Record<string, string> = {
+      'player_not_found': '选手未找到',
+      'team_mismatch': '战队不匹配',
+      'data_validation': '数据验证失败',
+      'parse_error': '解析错误',
+    };
+    return typeMap[type] || type;
+  }
+
   private async ensureTemplateDir(): Promise<void> {
     if (!fs.existsSync(this.TEMPLATE_DIR)) {
       fs.mkdirSync(this.TEMPLATE_DIR, { recursive: true });
@@ -82,7 +154,7 @@ export class MatchDataImportService {
     // ========== 第 1-2 行：MatchInfo（对战信息）==========
 
     // 第 1 行：MatchInfo 表头
-    const matchInfoHeaders = ['红方战队名', '蓝方战队名', '局数', '比赛时间', '游戏时长', '获胜方'];
+    const matchInfoHeaders = ['红方战队名', '蓝方战队名', '局数', '比赛时间', '游戏时长', '获胜方', '一血', 'MVP'];
     matchInfoHeaders.forEach((header, index) => {
       const cell = sheet.getCell(1, index + 1);
       cell.value = header;
@@ -102,16 +174,20 @@ export class MatchDataImportService {
     sheet.getCell('D2').value = '2026-04-16 14:00';
     sheet.getCell('E2').value = '32:45';
     sheet.getCell('F2').value = 'red';
+    sheet.getCell('G2').value = 'red';
+    sheet.getCell('H2').value = 'Knight';
 
-    // 为获胜方添加数据验证（下拉列表）
-    sheet.getCell('F2').dataValidation = {
-      type: 'list',
-      allowBlank: false,
-      formulae: ['"red,blue"'],
-      showErrorMessage: true,
-      errorTitle: '无效值',
-      error: '获胜方必须是 red 或 blue',
-    };
+    // 为获胜方和一血添加数据验证（下拉列表）
+    ['F2', 'G2'].forEach((cellAddr) => {
+      sheet.getCell(cellAddr).dataValidation = {
+        type: 'list',
+        allowBlank: false,
+        formulae: ['"red,blue"'],
+        showErrorMessage: true,
+        errorTitle: '无效值',
+        error: '必须是 red 或 blue',
+      };
+    });
 
     // ========== 第 3-5 行：TeamStats（战队数据）==========
 
@@ -126,7 +202,6 @@ export class MatchDataImportService {
       '推塔数',
       '控龙数',
       '控 Baron 数',
-      '一血',
     ];
     teamStatsHeaders.forEach((header, index) => {
       const cell = sheet.getCell(3, index + 1);
@@ -150,7 +225,6 @@ export class MatchDataImportService {
     sheet.getCell('G4').value = 9;
     sheet.getCell('H4').value = 3;
     sheet.getCell('I4').value = 1;
-    sheet.getCell('J4').value = 'yes';
 
     // 第 5 行：TeamStats 蓝方数据
     sheet.getCell('A5').value = 'blue';
@@ -162,9 +236,8 @@ export class MatchDataImportService {
     sheet.getCell('G5').value = 3;
     sheet.getCell('H5').value = 1;
     sheet.getCell('I5').value = 0;
-    sheet.getCell('J5').value = 'no';
 
-    // 为阵营和一血添加数据验证
+    // 为阵营添加数据验证
     [4, 5].forEach((row) => {
       // 阵营下拉列表
       sheet.getCell(row, 1).dataValidation = {
@@ -174,15 +247,6 @@ export class MatchDataImportService {
         showErrorMessage: true,
         errorTitle: '无效值',
         error: '阵营必须是 red 或 blue',
-      };
-      // 一血下拉列表
-      sheet.getCell(row, 10).dataValidation = {
-        type: 'list',
-        allowBlank: false,
-        formulae: ['"yes,no"'],
-        showErrorMessage: true,
-        errorTitle: '无效值',
-        error: '一血必须是 yes 或 no',
       };
     });
 
@@ -205,7 +269,6 @@ export class MatchDataImportService {
       '视野得分',
       '插眼数',
       '排眼数',
-      '是否 MVP',
     ];
     playerStatsHeaders.forEach((header, index) => {
       const cell = sheet.getCell(6, index + 1);
@@ -235,7 +298,6 @@ export class MatchDataImportService {
         level: 18,
         vision: 45,
         wards: 12,
-        mvp: 'no',
       },
       {
         position: 'JUNGLE',
@@ -251,7 +313,6 @@ export class MatchDataImportService {
         level: 16,
         vision: 38,
         wards: 8,
-        mvp: 'no',
       },
       {
         position: 'MID',
@@ -267,7 +328,6 @@ export class MatchDataImportService {
         level: 18,
         vision: 42,
         wards: 6,
-        mvp: 'yes',
       },
       {
         position: 'ADC',
@@ -283,7 +343,6 @@ export class MatchDataImportService {
         level: 18,
         vision: 35,
         wards: 4,
-        mvp: 'no',
       },
       {
         position: 'SUPPORT',
@@ -299,7 +358,6 @@ export class MatchDataImportService {
         level: 15,
         vision: 78,
         wards: 18,
-        mvp: 'no',
       },
     ];
 
@@ -319,7 +377,6 @@ export class MatchDataImportService {
         level: 17,
         vision: 42,
         wards: 10,
-        mvp: 'no',
       },
       {
         position: 'JUNGLE',
@@ -335,7 +392,6 @@ export class MatchDataImportService {
         level: 15,
         vision: 36,
         wards: 9,
-        mvp: 'no',
       },
       {
         position: 'MID',
@@ -351,7 +407,6 @@ export class MatchDataImportService {
         level: 17,
         vision: 38,
         wards: 5,
-        mvp: 'no',
       },
       {
         position: 'ADC',
@@ -367,7 +422,6 @@ export class MatchDataImportService {
         level: 18,
         vision: 32,
         wards: 3,
-        mvp: 'no',
       },
       {
         position: 'SUPPORT',
@@ -383,7 +437,6 @@ export class MatchDataImportService {
         level: 14,
         vision: 82,
         wards: 20,
-        mvp: 'no',
       },
     ];
 
@@ -405,7 +458,6 @@ export class MatchDataImportService {
       sheet.getCell(row, 13).value = player.vision;
       sheet.getCell(row, 14).value = player.wards;
       sheet.getCell(row, 15).value = player.wards; // 排眼数（示例使用相同值）
-      sheet.getCell(row, 16).value = player.mvp;
     });
 
     // 填充蓝方选手数据
@@ -426,7 +478,6 @@ export class MatchDataImportService {
       sheet.getCell(row, 13).value = player.vision;
       sheet.getCell(row, 14).value = player.wards;
       sheet.getCell(row, 15).value = player.wards;
-      sheet.getCell(row, 16).value = player.mvp;
     });
 
     // 为选手数据添加数据验证（第 7-16 行）
@@ -448,15 +499,6 @@ export class MatchDataImportService {
         showErrorMessage: true,
         errorTitle: '无效值',
         error: '位置必须是 TOP/JUNGLE/MID/ADC/SUPPORT 之一',
-      };
-      // MVP 下拉列表
-      sheet.getCell(row, 16).dataValidation = {
-        type: 'list',
-        allowBlank: false,
-        formulae: ['"yes,no"'],
-        showErrorMessage: true,
-        errorTitle: '无效值',
-        error: 'MVP 必须是 yes 或 no',
       };
     }
   }

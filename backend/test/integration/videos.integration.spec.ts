@@ -1,3 +1,4 @@
+import 'reflect-metadata';
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import * as request from 'supertest';
@@ -423,17 +424,13 @@ describe('Videos API Integration Tests', () => {
     it('需要JWT认证', async () => {
       const response = await request(app.getHttpServer())
         .put('/api/admin/videos/sort')
-        .send([
-          { id: 'video-0', order: 2 },
-          { id: 'video-1', order: 0 },
-          { id: 'video-2', order: 1 },
-        ])
+        .send({ orderedIds: ['video-0', 'video-1', 'video-2'] })
         .expect(401);
 
       expect(response.body.statusCode).toBe(401);
     });
 
-    it('批量排序需要有效的视频ID', async () => {
+    it('批量排序成功', async () => {
       const adminResponse = await request(app.getHttpServer())
         .get('/api/admin/videos')
         .set('Authorization', `Bearer ${authToken}`)
@@ -442,15 +439,14 @@ describe('Videos API Integration Tests', () => {
       const videos = adminResponse.body;
       expect(videos.length).toBe(3);
 
-      const validVideoId = videos[0].id;
-      const sortItems = [{ id: validVideoId, order: 99 }];
+      const orderedIds = videos.map((v: any) => v.id);
 
       const response = await request(app.getHttpServer())
         .put('/api/admin/videos/sort')
         .set('Authorization', `Bearer ${authToken}`)
-        .send(sortItems);
+        .send({ orderedIds });
 
-      expect([200, 400]).toContain(response.status);
-    });
+      expect(response.status).toBe(200);
+    }, 30000);
   });
 });

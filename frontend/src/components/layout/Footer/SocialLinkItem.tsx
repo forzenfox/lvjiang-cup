@@ -34,33 +34,33 @@ export const SocialLinkItem: React.FC<SocialLinkItemProps> = ({
       href={url}
       target="_blank"
       rel="noopener noreferrer"
-      className="flex flex-col items-center gap-3 text-white group"
-      whileHover={{ scale: 1.05, y: -4 }}
+      className="flex items-center gap-2 text-white group"
+      whileHover={{ scale: 1.02 }}
       transition={{ duration: 0.2, ease: 'easeOut' }}
       data-testid="social-link-item"
     >
       <div
-        className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center
+        className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center
         group-hover:bg-white/20 transition-colors duration-200
         border border-white/5 group-hover:border-white/15"
       >
         {hasError ? (
-          <div className="w-8 h-8 flex items-center justify-center text-2xl">
+          <div className="w-5 h-5 flex items-center justify-center text-sm">
             {getFallbackIcon(platform)}
           </div>
         ) : (
           <img
             src={icon}
             alt={`${platform} 图标`}
-            className="w-8 h-8 object-contain"
+            className="w-5 h-5 object-contain"
             loading="lazy"
             onError={() => setHasError(true)}
           />
         )}
       </div>
       <span
-        className="text-sm text-gray-300 group-hover:text-white
-        transition-colors duration-200"
+        className="text-xs text-gray-300 group-hover:text-white
+        transition-colors duration-200 whitespace-nowrap"
       >
         {name}
       </span>

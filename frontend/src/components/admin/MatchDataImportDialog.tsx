@@ -1,9 +1,9 @@
 import React, { useState, useCallback } from 'react';
-import { Upload, X, FileText, AlertCircle, Loader2 } from 'lucide-react';
+import { Upload, X, FileText, AlertCircle, Loader2, Download } from 'lucide-react';
 import { Button } from '../ui/button';
 import Modal from '../ui/Modal';
-import { importMatchData } from '@/api/matchData';
-import type { ImportMatchDataResponse } from '@/types/matchData';
+import { importMatchData, downloadMatchDataErrorReport } from '@/api/matchData';
+import type { ImportMatchDataResponse, MatchDataImportError } from '@/types/matchData';
 import { toast } from 'sonner';
 import { trackAdminImportStart, trackAdminImportSuccess } from '@/utils/tracking';
 
@@ -12,6 +12,14 @@ interface MatchDataImportDialogProps {
   onClose: () => void;
   onSuccess: (result: ImportMatchDataResponse) => void;
   matchId: string;
+}
+
+interface ImportErrorDetail {
+  row: number;
+  nickname: string;
+  side: string;
+  type: string;
+  message: string;
 }
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
@@ -27,7 +35,9 @@ const MatchDataImportDialog: React.FC<MatchDataImportDialogProps> = ({
   const [dragging, setDragging] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [errorDetails, setErrorDetails] = useState<ImportErrorDetail[]>([]);
   const [preview, setPreview] = useState<ImportMatchDataResponse | null>(null);
+  const [downloadingReport, setDownloadingReport] = useState(false);
 
   const validateFile = (file: File): string | null => {
     const extension = file.name.split('.').pop()?.toLowerCase();
@@ -46,11 +56,13 @@ const MatchDataImportDialog: React.FC<MatchDataImportDialogProps> = ({
       const validationError = validateFile(selectedFile);
       if (validationError) {
         setError(validationError);
+        setErrorDetails([]);
         return;
       }
       setFile(selectedFile);
       setPreview(null);
       setError(null);
+      setErrorDetails([]);
     }
   };
 
@@ -72,13 +84,27 @@ const MatchDataImportDialog: React.FC<MatchDataImportDialogProps> = ({
       const validationError = validateFile(droppedFile);
       if (validationError) {
         setError(validationError);
+        setErrorDetails([]);
         return;
       }
       setFile(droppedFile);
       setPreview(null);
       setError(null);
+      setErrorDetails([]);
     }
   }, []);
+
+  const parseErrorDetails = (err: any): ImportErrorDetail[] => {
+    // Try to extract error details from different response formats
+    const details = err.details?.failedPlayers || err.failedPlayers || [];
+    return details.map((d: any) => ({
+      row: d.row || 0,
+      nickname: d.nickname || '未知选手',
+      side: d.side || 'unknown',
+      type: d.type || 'parse_error',
+      message: d.message || d.reason || '未知错误',
+    }));
+  };
 
   const handleImport = async () => {
     if (!file) return;
@@ -88,20 +114,67 @@ const MatchDataImportDialog: React.FC<MatchDataImportDialogProps> = ({
 
     setUploading(true);
     setError(null);
+    setErrorDetails([]);
     const toastId = toast.loading('正在解析并导入比赛数据...');
 
     try {
       const result = await importMatchData(matchId, file);
       setPreview(result);
-      toast.success('数据导入成功，请预览确认', { id: toastId });
+      
+      if (result.failedCount && result.failedCount > 0) {
+        const errors = parseErrorDetails(result);
+        setErrorDetails(errors);
+        toast.warning(
+          `数据已导入，但 ${result.failedCount} 个选手匹配失败，请查看详情`,
+          { id: toastId, duration: 5000 }
+        );
+      } else {
+        toast.success('数据导入成功，请预览确认', { id: toastId });
+      }
 
       // 跟踪导入成功事件
       trackAdminImportSuccess(matchId, result.gameNumber, result.playerCount);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : '导入失败，请重试');
+    } catch (err: any) {
+      // Try to extract error details from the response
+      const responseDetails = err.response?.data;
+      let errorMessage = err.message || '导入失败，请重试';
+      
+      if (responseDetails) {
+        const details = parseErrorDetails(responseDetails);
+        if (details.length > 0) {
+          setErrorDetails(details);
+          errorMessage = responseDetails.message || `导入失败：${details.length} 个错误`;
+        } else if (responseDetails.message) {
+          errorMessage = responseDetails.message;
+        }
+      }
+      
+      setError(errorMessage);
       toast.error('数据导入失败', { id: toastId });
     } finally {
       setUploading(false);
+    }
+  };
+
+  const handleDownloadErrorReport = async () => {
+    if (errorDetails.length === 0) return;
+
+    setDownloadingReport(true);
+    try {
+      const blob = await downloadMatchDataErrorReport(errorDetails);
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `对战数据导入错误报告_${new Date().toISOString().slice(0, 10).replace(/-/g, '')}.txt`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      toast.success('错误报告已下载');
+    } catch {
+      toast.error('下载错误报告失败');
+    } finally {
+      setDownloadingReport(false);
     }
   };
 
@@ -115,10 +188,13 @@ const MatchDataImportDialog: React.FC<MatchDataImportDialogProps> = ({
   const handleClose = () => {
     setFile(null);
     setError(null);
+    setErrorDetails([]);
     setDragging(false);
     setPreview(null);
     onClose();
   };
+
+  const hasErrors = errorDetails.length > 0;
 
   return (
     <Modal visible={open} onClose={handleClose} title="导入比赛数据" className="max-w-2xl">
@@ -138,7 +214,7 @@ const MatchDataImportDialog: React.FC<MatchDataImportDialogProps> = ({
           </div>
         </div>
 
-        {!preview && (
+        {!preview && !hasErrors && (
           <div
             className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
               dragging ? 'border-blue-500 bg-blue-500/10' : 'border-gray-600 hover:border-gray-500'
@@ -158,6 +234,7 @@ const MatchDataImportDialog: React.FC<MatchDataImportDialogProps> = ({
                   onClick={() => {
                     setFile(null);
                     setPreview(null);
+                    setErrorDetails([]);
                   }}
                   className="p-1 hover:bg-white/10 rounded"
                   aria-label="移除文件"
@@ -199,14 +276,74 @@ const MatchDataImportDialog: React.FC<MatchDataImportDialogProps> = ({
                 <span className="text-white ml-2">{preview.playerCount} 条</span>
               </div>
               <div>
-                <span className="text-gray-400">状态:</span>
-                <span className="text-green-400 ml-2">成功</span>
+                <span className="text-gray-400">失败数:</span>
+                <span className={preview.failedCount ? 'text-yellow-400 ml-2' : 'text-green-400 ml-2'}>
+                  {preview.failedCount || 0} 条
+                </span>
               </div>
             </div>
           </div>
         )}
 
-        {error && (
+        {hasErrors && (
+          <div className="border border-red-500/30 rounded-lg">
+            <div className="p-4 bg-red-500/10 border-b border-red-500/20 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <AlertCircle className="w-5 h-5 text-red-400" />
+                <span className="text-red-400 font-medium">
+                  导入失败：{errorDetails.length} 个错误
+                </span>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleDownloadErrorReport}
+                disabled={downloadingReport}
+                className="border-red-500/30 text-red-400 hover:bg-red-500/10"
+              >
+                <Download className="w-4 h-4 mr-2" />
+                {downloadingReport ? '下载中...' : '下载错误报告'}
+              </Button>
+            </div>
+            <div className="max-h-64 overflow-y-auto p-4">
+              <table className="w-full text-sm">
+                <thead className="text-gray-400 border-b border-gray-700">
+                  <tr>
+                    <th className="text-left py-2 px-2">行号</th>
+                    <th className="text-left py-2 px-2">选手昵称</th>
+                    <th className="text-left py-2 px-2">阵营</th>
+                    <th className="text-left py-2 px-2">错误类型</th>
+                    <th className="text-left py-2 px-2">错误信息</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {errorDetails.map((err, index) => (
+                    <tr key={index} className="border-b border-gray-800 hover:bg-white/5">
+                      <td className="py-2 px-2 text-gray-400">{err.row}</td>
+                      <td className="py-2 px-2 text-white">{err.nickname}</td>
+                      <td className="py-2 px-2">
+                        <span className={err.side === 'red' ? 'text-red-400' : 'text-blue-400'}>
+                          {err.side === 'red' ? '红方' : '蓝方'}
+                        </span>
+                      </td>
+                      <td className="py-2 px-2">
+                        <span className="text-yellow-400">
+                          {err.type === 'player_not_found' && '选手未找到'}
+                          {err.type === 'team_mismatch' && '战队不匹配'}
+                          {err.type === 'data_validation' && '数据验证失败'}
+                          {err.type === 'parse_error' && '解析错误'}
+                        </span>
+                      </td>
+                      <td className="py-2 px-2 text-gray-300">{err.message}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {error && !hasErrors && (
           <div className="flex items-center gap-2 text-red-400 text-sm">
             <AlertCircle className="w-4 h-4" />
             {error}
@@ -217,7 +354,14 @@ const MatchDataImportDialog: React.FC<MatchDataImportDialogProps> = ({
           <Button variant="ghost" onClick={handleClose} disabled={uploading}>
             取消
           </Button>
-          {preview ? (
+          {hasErrors ? (
+            <Button
+              onClick={handleClose}
+              className="bg-gradient-to-r from-gray-600 to-gray-700 text-white"
+            >
+              关闭
+            </Button>
+          ) : preview ? (
             <Button
               onClick={handleConfirm}
               className="bg-gradient-to-r from-green-500 to-green-600 text-white"

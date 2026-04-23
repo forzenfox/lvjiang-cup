@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsNumber, IsBoolean, IsArray } from 'class-validator';
+import { IsString, IsOptional, IsNumber, IsBoolean, IsArray, IsNotEmpty } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateMemberDto {
@@ -13,6 +13,7 @@ export class CreateMemberDto {
   userId?: number;
 
   @ApiProperty({ description: '昵称' })
+  @IsNotEmpty()
   @IsString()
   nickname: string;
 

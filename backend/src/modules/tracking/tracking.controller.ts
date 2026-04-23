@@ -1,13 +1,20 @@
 import { Controller, Post, Body, Logger } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
+import { IsString, IsNotEmpty } from 'class-validator';
 import { TrackingService, TrackingEvent } from './tracking.service';
 
 /**
  * 跟踪事件请求体 DTO
  */
 class TrackingEventDto {
+  @IsNotEmpty()
+  @IsString()
   event: string;
+
+  @IsNotEmpty()
+  @IsString()
   timestamp: string;
+
   [key: string]: unknown;
 }
 

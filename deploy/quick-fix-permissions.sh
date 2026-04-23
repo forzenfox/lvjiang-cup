@@ -23,12 +23,14 @@ echo "📁 检查目录..."
 mkdir -p "$DATA_DIR"
 mkdir -p "$PROJECT_DIR/backup"
 mkdir -p "$PROJECT_DIR/uploads"
+mkdir -p "$PROJECT_DIR/templates"
 
 # 2. 设置权限
 echo "🔐 设置权限..."
 chown -R 1001:1001 "$DATA_DIR"
 chown -R 1001:1001 "$PROJECT_DIR/backup"
 chown -R 1001:1001 "$PROJECT_DIR/uploads"
+chown -R 1001:1001 "$PROJECT_DIR/templates"
 chmod -R 755 "$DATA_DIR"
 echo "✅ 权限设置完成 (所有者：1001:1001)"
 

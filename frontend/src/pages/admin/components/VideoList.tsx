@@ -2,13 +2,14 @@ import React, { useState, useEffect, useCallback } from 'react';
 import * as videoApi from '@/api/videos';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import { Edit, Trash2, Eye, EyeOff, GripVertical, Search, X, RefreshCw } from 'lucide-react';
+import { Edit, Trash2, Eye, EyeOff, GripVertical, Search, X, RefreshCw, Plus } from 'lucide-react';
 
 interface VideoListProps {
   onEdit: (video: videoApi.Video) => void;
+  onAdd: () => void;
 }
 
-const VideoList: React.FC<VideoListProps> = ({ onEdit }) => {
+const VideoList: React.FC<VideoListProps> = ({ onEdit, onAdd }) => {
   const [videos, setVideos] = useState<videoApi.Video[]>([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState('');
@@ -147,16 +148,26 @@ const VideoList: React.FC<VideoListProps> = ({ onEdit }) => {
             <option value="false">已禁用</option>
           </select>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={fetchVideos}
-          disabled={loading}
-          className="border-gray-600 text-gray-300 hover:bg-gray-700"
-        >
-          <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-          刷新
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            onClick={onAdd}
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+            data-testid="add-video-button"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            添加视频
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={fetchVideos}
+            disabled={loading}
+            className="border-gray-600 text-gray-300 hover:bg-gray-700"
+          >
+            <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+            刷新
+          </Button>
+        </div>
       </div>
 
       {loading && videos.length === 0 ? (

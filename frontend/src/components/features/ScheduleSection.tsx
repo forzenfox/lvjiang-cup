@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { matchService, teamService, advancementService } from '@/services';
@@ -133,6 +133,8 @@ const ScheduleSection: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<string>('swiss');
   const { advancement, setAdvancement } = useAdvancementStore();
+  const [scale, setScale] = useState(1);
+  const contentRef = useRef<HTMLDivElement>(null);
 
   // 加载数据
   const loadData = useCallback(
@@ -191,6 +193,29 @@ const ScheduleSection: React.FC = () => {
     loadData();
   }, [loadData]);
 
+  // 动态计算缩放比例
+  useEffect(() => {
+    const calculateScale = () => {
+      const viewportHeight = window.innerHeight;
+      const headerHeight = 98;
+      const availableHeight = viewportHeight - headerHeight;
+
+      if (contentRef.current) {
+        const contentHeight = contentRef.current.scrollHeight || 886;
+        const newScale = Math.min(1, availableHeight / contentHeight);
+        setScale(newScale);
+      } else {
+        const contentHeight = 886;
+        const newScale = Math.min(1, availableHeight / contentHeight);
+        setScale(newScale);
+      }
+    };
+
+    calculateScale();
+    window.addEventListener('resize', calculateScale);
+    return () => window.removeEventListener('resize', calculateScale);
+  }, [activeTab]);
+
   return (
     <section id="schedule" className="h-screen flex flex-col bg-black">
       <div className="max-w-7xl mx-auto px-4 flex-1 flex flex-col justify-center min-h-0">
@@ -201,12 +226,20 @@ const ScheduleSection: React.FC = () => {
           // 错误状态
           <ErrorState message={error} onRetry={loadData} />
         ) : (
-          <Tabs
-            value={activeTab}
-            onValueChange={handleTabChange}
-            className="w-full"
-            data-testid="schedule-tabs"
+          <div
+            ref={contentRef}
+            style={{
+              transform: `scale(${scale})`,
+              transformOrigin: 'top center',
+              width: '100%',
+            }}
           >
+            <Tabs
+              value={activeTab}
+              onValueChange={handleTabChange}
+              className="w-full"
+              data-testid="schedule-tabs"
+            >
             <TabsList className="w-full max-w-md mx-auto mb-8 flex" data-testid="schedule-tab-list">
               <TabsTrigger value="swiss" className="flex-1" data-testid="home-swiss-tab">
                 瑞士轮
@@ -250,7 +283,8 @@ const ScheduleSection: React.FC = () => {
               </motion.div>
             </TabsContent>
           </Tabs>
-        )}
+        </div>
+      )}
 
         {/* 刷新指示器 */}
         {loading && matches.length > 0 && (

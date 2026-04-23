@@ -164,11 +164,8 @@ const StreamerSection: React.FC<StreamerSectionProps> = ({ refreshInterval = 300
       }
     };
 
-    const carouselElement = document.querySelector('[data-testid="streamer-carousel"]');
-    if (carouselElement) {
-      carouselElement.addEventListener('keydown', handleKeyDown);
-      return () => carouselElement.removeEventListener('keydown', handleKeyDown);
-    }
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
   }, [goToNext, goToPrev]);
 
   useEffect(() => {
@@ -179,12 +176,12 @@ const StreamerSection: React.FC<StreamerSectionProps> = ({ refreshInterval = 300
     (currentIndex - 1 + filteredStreamers.length) % filteredStreamers.length;
   const getNextIndex = () => (currentIndex + 1) % filteredStreamers.length;
 
-  const showControls = filteredStreamers.length > 2;
+  const showControls = filteredStreamers.length > 1;
 
   return (
     <section
       id="streamers"
-      className="h-screen flex flex-col bg-gradient-to-b from-background via-[#0f1420] to-black relative"
+      className="h-[calc(100vh-96px)] flex flex-col bg-gradient-to-b from-background via-[#0f1420] to-black relative"
     >
       <div className="container mx-auto px-6 flex-1 flex flex-col justify-center min-h-0 py-16">
         <div className="flex justify-center mb-12">

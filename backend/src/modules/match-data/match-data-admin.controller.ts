@@ -98,4 +98,23 @@ export class MatchDataAdminController {
     const fileStream = fs.createReadStream(templatePath);
     fileStream.pipe(res);
   }
+
+  @Post('import/error-report')
+  @ApiOperation({ summary: '下载对战数据导入错误报告' })
+  async downloadErrorReport(@Body() body: { errors: any[] }, @Res() res: Response) {
+    const buffer = await this.matchDataImportService.generateErrorReport(body.errors);
+
+    const fileName = `对战数据导入错误报告_${new Date().toISOString().slice(0, 10).replace(/-/g, '')}.txt`;
+
+    res.setHeader(
+      'Content-Type',
+      'text/plain; charset=utf-8',
+    );
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename*=UTF-8''${encodeURIComponent(fileName)}`,
+    );
+    res.setHeader('Content-Length', buffer.length.toString());
+    res.send(buffer);
+  }
 }

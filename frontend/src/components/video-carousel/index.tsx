@@ -27,11 +27,14 @@ export const VideoCarousel: React.FC<VideoCarouselProps> = ({ videos }) => {
     setCurrentIndex(prev => (prev - 1 + videos.length) % videos.length);
   }, [videos.length]);
 
+  const [isCarouselVisible, setIsCarouselVisible] = useState(true);
+
   const { pause: pauseAutoplay } = useAutoplay({
-    enabled: isPC && videos.length > 2,
+    enabled: isPC && videos.length > 1,
     onAutoplay: goToNext,
     videoCount: videos.length,
     isMobile,
+    onVisibilityChange: setIsCarouselVisible,
   });
 
   const handleUserInteraction = useCallback(() => {
@@ -73,6 +76,7 @@ export const VideoCarousel: React.FC<VideoCarouselProps> = ({ videos }) => {
   const currentVideo = videos[currentIndex];
   const showThumbnails = videos.length > 2;
   const showControls = videos.length > 1;
+  const isSmallVideoCount = videos.length <= 2;
 
   const getPrevIndex = () => (currentIndex - 1 + videos.length) % videos.length;
   const getNextIndex = () => (currentIndex + 1) % videos.length;
@@ -108,10 +112,10 @@ export const VideoCarousel: React.FC<VideoCarouselProps> = ({ videos }) => {
           )}
 
           <div
-            className={`flex-1 relative h-full flex items-center ${showThumbnails ? 'max-w-[60%]' : 'max-w-full'}`}
+            className={`flex-1 relative h-full flex flex-col justify-center ${showThumbnails ? 'max-w-[60%]' : isSmallVideoCount ? 'max-w-4xl' : 'max-w-full'}`}
           >
-            <div className="w-full aspect-video bg-gray-900">
-              <VideoPlayer video={currentVideo} autoplay />
+            <div className={`w-full bg-gray-900 ${isSmallVideoCount ? 'max-h-[70vh]' : 'aspect-video'}`}>
+              <VideoPlayer video={currentVideo} autoplay={false} isVisible={isCarouselVisible} />
             </div>
             {showControls && (
               <ControlArrows
@@ -120,6 +124,11 @@ export const VideoCarousel: React.FC<VideoCarouselProps> = ({ videos }) => {
                 canPrev={videos.length > 1}
                 canNext={videos.length > 1}
               />
+            )}
+            {showControls && (
+              <div className="mt-1">
+                <Indicator videos={videos} currentIndex={currentIndex} onSelect={setCurrentIndex} />
+              </div>
             )}
           </div>
 
@@ -134,9 +143,6 @@ export const VideoCarousel: React.FC<VideoCarouselProps> = ({ videos }) => {
             </div>
           )}
         </div>
-      )}
-      {showControls && !isMobile && (
-        <Indicator videos={videos} currentIndex={currentIndex} onSelect={setCurrentIndex} />
       )}
     </div>
   );

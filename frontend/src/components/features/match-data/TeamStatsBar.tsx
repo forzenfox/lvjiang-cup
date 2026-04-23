@@ -15,8 +15,8 @@ const TeamStatsBar: React.FC<TeamStatsBarProps> = ({ blueTeam, redTeam }) => {
     <div className="bg-[#2d2d2d] rounded-lg p-4 max-w-5xl mx-auto mt-4">
       <div className="flex items-center justify-between">
         <div className="flex flex-col items-center gap-4">
-          <span className="text-lg font-bold text-[#00bcd4]">{blueTeam.teamName}</span>
-          <div className="text-4xl font-bold text-[#00bcd4] font-mono">{blueTeam.kills}</div>
+          <span className="text-lg font-bold text-[#f44336]">{redTeam.teamName}</span>
+          <div className="text-4xl font-bold text-[#f44336] font-mono">{redTeam.kills}</div>
           <span className="text-xs text-gray-400">击杀</span>
         </div>
 
@@ -25,8 +25,8 @@ const TeamStatsBar: React.FC<TeamStatsBarProps> = ({ blueTeam, redTeam }) => {
         </div>
 
         <div className="flex flex-col items-center gap-4">
-          <span className="text-lg font-bold text-[#f44336]">{redTeam.teamName}</span>
-          <div className="text-4xl font-bold text-[#f44336] font-mono">{redTeam.kills}</div>
+          <span className="text-lg font-bold text-[#00bcd4]">{blueTeam.teamName}</span>
+          <div className="text-4xl font-bold text-[#00bcd4] font-mono">{blueTeam.kills}</div>
           <span className="text-xs text-gray-400">击杀</span>
         </div>
       </div>
@@ -35,12 +35,12 @@ const TeamStatsBar: React.FC<TeamStatsBarProps> = ({ blueTeam, redTeam }) => {
         <div className="flex flex-col items-center">
           <span className="text-xs text-gray-400">经济</span>
           <div className="flex items-center gap-1">
-            <span className="text-lg font-bold text-[#00bcd4] font-mono">
-              {formatGold(blueTeam.gold)}
-            </span>
-            <span className="text-gray-600">:</span>
             <span className="text-lg font-bold text-[#f44336] font-mono">
               {formatGold(redTeam.gold)}
+            </span>
+            <span className="text-gray-600">:</span>
+            <span className="text-lg font-bold text-[#00bcd4] font-mono">
+              {formatGold(blueTeam.gold)}
             </span>
           </div>
         </div>
@@ -48,27 +48,27 @@ const TeamStatsBar: React.FC<TeamStatsBarProps> = ({ blueTeam, redTeam }) => {
         <div className="flex flex-col items-center">
           <span className="text-xs text-gray-400">推塔</span>
           <div className="flex items-center gap-1">
-            <span className="text-lg font-bold text-[#00bcd4] font-mono">{blueTeam.towers}</span>
-            <span className="text-gray-600">:</span>
             <span className="text-lg font-bold text-[#f44336] font-mono">{redTeam.towers}</span>
+            <span className="text-gray-600">:</span>
+            <span className="text-lg font-bold text-[#00bcd4] font-mono">{blueTeam.towers}</span>
           </div>
         </div>
 
         <div className="flex flex-col items-center">
           <span className="text-xs text-gray-400">龙</span>
           <div className="flex items-center gap-1">
-            <span className="text-lg font-bold text-[#00bcd4] font-mono">{blueTeam.dragons}</span>
-            <span className="text-gray-600">:</span>
             <span className="text-lg font-bold text-[#f44336] font-mono">{redTeam.dragons}</span>
+            <span className="text-gray-600">:</span>
+            <span className="text-lg font-bold text-[#00bcd4] font-mono">{blueTeam.dragons}</span>
           </div>
         </div>
 
         <div className="flex flex-col items-center">
           <span className="text-xs text-gray-400">男爵</span>
           <div className="flex items-center gap-1">
-            <span className="text-lg font-bold text-[#00bcd4] font-mono">{blueTeam.barons}</span>
-            <span className="text-gray-600">:</span>
             <span className="text-lg font-bold text-[#f44336] font-mono">{redTeam.barons}</span>
+            <span className="text-gray-600">:</span>
+            <span className="text-lg font-bold text-[#00bcd4] font-mono">{blueTeam.barons}</span>
           </div>
         </div>
       </div>

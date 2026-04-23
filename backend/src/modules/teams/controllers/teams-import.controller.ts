@@ -108,20 +108,18 @@ export class TeamsImportController {
       throw new Error('没有错误信息可以生成报告');
     }
 
-    const reportPath = await this.teamsImportService.generateErrorReport(errors);
-    const reportName = `驴酱杯_导入错误报告_${new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)}.xlsx`;
+    const buffer = await this.teamsImportService.generateErrorReport(errors);
+    const reportName = `驴酱杯_导入错误报告_${new Date().toISOString().slice(0, 10).replace(/-/g, '')}.txt`;
 
     res.setHeader(
       'Content-Type',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'text/plain; charset=utf-8',
     );
     res.setHeader(
       'Content-Disposition',
       `attachment; filename*=UTF-8''${encodeURIComponent(reportName)}`,
     );
-    res.setHeader('Content-Length', fs.statSync(reportPath).size.toString());
-
-    const fileStream = fs.createReadStream(reportPath);
-    fileStream.pipe(res);
+    res.setHeader('Content-Length', buffer.length.toString());
+    res.send(buffer);
   }
 }

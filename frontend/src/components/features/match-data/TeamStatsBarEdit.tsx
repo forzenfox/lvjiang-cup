@@ -93,13 +93,21 @@ const TeamStatsBarEdit: React.FC<TeamStatsBarEditProps> = ({
         <div className="flex flex-col items-center">
           <span className="text-xs text-gray-400">经济</span>
           <div className="flex items-center gap-1">
-            <span className="text-lg font-bold text-[#00bcd4] font-mono">
-              {formatGold(blueTeam.gold)}
-            </span>
+            {renderEditableField(
+              'blue',
+              'gold',
+              blueTeam.gold,
+              String(blueTeam.gold),
+              'text-[#00bcd4]'
+            )}
             <span className="text-gray-600">:</span>
-            <span className="text-lg font-bold text-[#f44336] font-mono">
-              {formatGold(redTeam.gold)}
-            </span>
+            {renderEditableField(
+              'red',
+              'gold',
+              redTeam.gold,
+              String(redTeam.gold),
+              'text-[#f44336]'
+            )}
           </div>
         </div>
 

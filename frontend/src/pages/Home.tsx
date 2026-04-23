@@ -6,6 +6,7 @@ import HeroSection from '../components/features/HeroSection';
 import ScheduleSection from '../components/features/ScheduleSection';
 import TeamSection from '../components/features/TeamSection';
 import StreamerSection from '../components/features/StreamerSection';
+import { ThanksSection } from '../components/features/ThanksSection';
 import { VideoCarousel, VideoItem } from '../components/video-carousel';
 import { streamService, teamService, matchService, advancementService } from '../services';
 import * as videoApi from '../api/videos';
@@ -213,7 +214,7 @@ const Home: React.FC = () => {
       <HeroSection />
       <section
         id="videos"
-        className="h-screen bg-gradient-to-b from-[#0a0a0a] to-[#1a1a2e] flex items-center justify-center"
+        className="h-[calc(100vh-96px)] bg-gradient-to-b from-[#0a0a0a] to-[#1a1a2e] flex items-center justify-center"
       >
         <div className="container mx-auto px-4 w-full h-full flex flex-col justify-center">
           {videos.length > 0 ? (
@@ -230,6 +231,7 @@ const Home: React.FC = () => {
       <StreamerSection />
       <TeamSection />
       <ScheduleSection />
+      <ThanksSection />
     </Layout>
   );
 };

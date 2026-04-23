@@ -10,6 +10,8 @@ export interface MatchInfoData {
   gameStartTime: string;
   gameDuration: string;
   winner: string;
+  firstBlood: string;
+  mvp: string;
 }
 
 export interface TeamStatsData {
@@ -22,7 +24,6 @@ export interface TeamStatsData {
   towers: number;
   dragons: number;
   barons: number;
-  firstBlood: boolean;
 }
 
 export interface PlayerStatsData {
@@ -41,7 +42,6 @@ export interface PlayerStatsData {
   visionScore: number;
   wardsPlaced: number;
   wardsCleared: number;
-  mvp: boolean;
 }
 
 export interface ParsedMatchData {
@@ -277,30 +277,45 @@ export function parseMatchDataExcel(buffer: Buffer): ParsedMatchData {
     }
 
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
-    const jsonData = xlsx.utils.sheet_to_json<any[]>(sheet, { header: 1 });
+    const jsonData = xlsx.utils.sheet_to_json<any[]>(sheet, { header: 1, defval: null });
 
     if (jsonData.length < 16) {
-      throw new Error('Excel文件行数不足，应为16行');
+      throw new Error(`Excel文件行数不足，当前${jsonData.length}行，应为16行`);
     }
 
     // 解析第2行: MatchInfo数据
     const matchInfoRow = jsonData[1];
+    if (!matchInfoRow || matchInfoRow.length === 0) {
+      throw new Error('第2行（对战信息数据行）为空或格式错误');
+    }
     const matchInfo = parseMatchInfoRow(matchInfoRow);
 
     // 解析第4-5行: TeamStats数据
     const teamStats: TeamStatsData[] = [];
     for (let i = 3; i <= 4; i++) {
-      if (jsonData[i]) {
+      if (jsonData[i] && jsonData[i].some(cell => cell !== null && cell !== undefined && cell !== '')) {
         teamStats.push(parseTeamStatsRow(jsonData[i], i + 1));
+      } else {
+        throw new Error(`第${i + 1}行（战队数据行）为空或格式错误`);
       }
+    }
+
+    if (teamStats.length !== 2) {
+      throw new Error(`战队数据不完整，应为2行，实际${teamStats.length}行`);
     }
 
     // 解析第7-16行: PlayerStats数据
     const playerStats: PlayerStatsData[] = [];
     for (let i = 6; i <= 15; i++) {
-      if (jsonData[i]) {
+      if (jsonData[i] && jsonData[i].some(cell => cell !== null && cell !== undefined && cell !== '')) {
         playerStats.push(parsePlayerStatsRow(jsonData[i], i + 1));
+      } else {
+        throw new Error(`第${i + 1}行（选手数据行）为空或格式错误`);
       }
+    }
+
+    if (playerStats.length !== 10) {
+      throw new Error(`选手数据不完整，应为10行，实际${playerStats.length}行`);
     }
 
     return { matchInfo, teamStats, playerStats };
@@ -320,6 +335,8 @@ function parseMatchInfoRow(row: any[]): MatchInfoData {
     gameStartTime: extractCellValue(row[3]),
     gameDuration: extractCellValue(row[4]),
     winner: extractCellValue(row[5]),
+    firstBlood: extractCellValue(row[6]),
+    mvp: extractCellValue(row[7]),
   };
 }
 
@@ -334,7 +351,6 @@ function parseTeamStatsRow(row: any[], _rowIndex: number): TeamStatsData {
     towers: extractNumericValue(row[6]),
     dragons: extractNumericValue(row[7]),
     barons: extractNumericValue(row[8]),
-    firstBlood: extractBooleanValue(row[9]),
   };
 }
 
@@ -355,6 +371,5 @@ function parsePlayerStatsRow(row: any[], _rowIndex: number): PlayerStatsData {
     visionScore: extractNumericValue(row[12]),
     wardsPlaced: extractNumericValue(row[13]),
     wardsCleared: extractNumericValue(row[14]),
-    mvp: extractBooleanValue(row[15]),
   };
 }

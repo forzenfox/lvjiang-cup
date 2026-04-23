@@ -1,5 +1,6 @@
 import React from 'react';
 import type { MatchGameData } from '@/types/matchData';
+import { getUploadUrl } from '@/utils/upload';
 
 interface MatchInfoCardProps {
   gameData: MatchGameData;
@@ -29,15 +30,25 @@ const MatchInfoCard: React.FC<MatchInfoCardProps> = ({ gameData }) => {
   return (
     <div className="bg-[rgba(255,255,255,0.05)] border border-white/10 rounded-xl p-6 max-w-5xl mx-auto mt-6">
       <div className="flex items-center justify-between">
+        {/* 左侧：红色方 */}
         <div className="flex flex-col items-center gap-3 min-w-[120px]">
-          <div className="w-20 h-20 rounded-full border-2 border-[#00bcd4] bg-[#1a1a2e] flex items-center justify-center overflow-hidden">
-            {blueTeam.teamName.charAt(0)}
+          <div className="w-20 h-20 rounded-full border-2 border-[#f44336] bg-[#1a1a2e] flex items-center justify-center overflow-hidden">
+            <img
+              src={getUploadUrl(redTeam.logoUrl) || `https://api.dicebear.com/7.x/identicon/svg?seed=${redTeam.teamId}`}
+              alt={redTeam.teamName}
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                (e.target as HTMLImageElement).style.display = 'none';
+                (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden');
+              }}
+            />
+            <span className="hidden text-2xl font-bold text-[#f44336]">{redTeam.teamName.charAt(0)}</span>
           </div>
-          <span className="text-xl font-bold text-white">{blueTeam.teamName}</span>
-          <span className="text-xs text-[#00bcd4] bg-[#00bcd4]/20 px-2 py-0.5 rounded-full">
-            蓝色方
+          <span className="text-xl font-bold text-white">{redTeam.teamName}</span>
+          <span className="text-xs text-[#f44336] bg-[#f44336]/20 px-2 py-0.5 rounded-full">
+            红色方
           </span>
-          {isBlueWinner && <span className="text-[#0febc1] text-sm font-bold">★ 胜利</span>}
+          {isRedWinner && <span className="text-[#0febc1] text-sm font-bold">★ 胜利</span>}
         </div>
 
         <div className="flex flex-col items-center gap-2">
@@ -46,15 +57,25 @@ const MatchInfoCard: React.FC<MatchInfoCardProps> = ({ gameData }) => {
           <span className="text-sm text-gray-400">{formatGameStartTime(gameStartTime)}</span>
         </div>
 
+        {/* 右侧：蓝色方 */}
         <div className="flex flex-col items-center gap-3 min-w-[120px]">
-          <div className="w-20 h-20 rounded-full border-2 border-[#f44336] bg-[#1a1a2e] flex items-center justify-center overflow-hidden">
-            {redTeam.teamName.charAt(0)}
+          <div className="w-20 h-20 rounded-full border-2 border-[#00bcd4] bg-[#1a1a2e] flex items-center justify-center overflow-hidden">
+            <img
+              src={getUploadUrl(blueTeam.logoUrl) || `https://api.dicebear.com/7.x/identicon/svg?seed=${blueTeam.teamId}`}
+              alt={blueTeam.teamName}
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                (e.target as HTMLImageElement).style.display = 'none';
+                (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden');
+              }}
+            />
+            <span className="hidden text-2xl font-bold text-[#00bcd4]">{blueTeam.teamName.charAt(0)}</span>
           </div>
-          <span className="text-xl font-bold text-white">{redTeam.teamName}</span>
-          <span className="text-xs text-[#f44336] bg-[#f44336]/20 px-2 py-0.5 rounded-full">
-            红色方
+          <span className="text-xl font-bold text-white">{blueTeam.teamName}</span>
+          <span className="text-xs text-[#00bcd4] bg-[#00bcd4]/20 px-2 py-0.5 rounded-full">
+            蓝色方
           </span>
-          {isRedWinner && <span className="text-[#0febc1] text-sm font-bold">★ 胜利</span>}
+          {isBlueWinner && <span className="text-[#0febc1] text-sm font-bold">★ 胜利</span>}
         </div>
       </div>
     </div>

@@ -75,17 +75,26 @@ export const Footer: React.FC<FooterProps> = ({ className }) => {
               data-testid="footer"
             >
               <div
-                className="mx-auto"
+                className="mx-auto px-6 py-4"
                 style={{
                   maxWidth: FOOTER_CONFIG.layout.maxWidth,
-                  padding: `${FOOTER_CONFIG.layout.paddingY} ${FOOTER_CONFIG.layout.paddingX}`,
                 }}
               >
-                {/* 上半部分：社交媒体 + 微信公众号 */}
-                <div className="flex justify-between items-center mb-8">
-                  <div className="flex-1">
+                {/* 紧凑布局：所有内容在一行 */}
+                <div className="flex justify-between items-center">
+                  {/* 左侧：社交媒体链接 */}
+                  <div className="flex-shrink-0">
                     <SocialLinks links={FOOTER_CONFIG.socialLinks} />
                   </div>
+
+                  {/* 中间：联系信息和备案号 */}
+                  <div className="flex items-center gap-6">
+                    <ContactInfo email={FOOTER_CONFIG.contact.email} />
+                    <div className="w-[1px] h-4 bg-white/20" />
+                    <ICPInfo number={FOOTER_CONFIG.icp.number} />
+                  </div>
+
+                  {/* 右侧：微信公众号 */}
                   <div className="flex-shrink-0">
                     <WeChatSection
                       name={FOOTER_CONFIG.wechat.name}
@@ -93,15 +102,6 @@ export const Footer: React.FC<FooterProps> = ({ className }) => {
                       size={FOOTER_CONFIG.wechat.size}
                     />
                   </div>
-                </div>
-
-                {/* 分隔线 */}
-                <div className="h-[1px] bg-white/20 mb-8" />
-
-                {/* 下半部分：联系信息 + 备案号 */}
-                <div className="flex justify-between items-center">
-                  <ContactInfo email={FOOTER_CONFIG.contact.email} />
-                  <ICPInfo number={FOOTER_CONFIG.icp.number} />
                 </div>
               </div>
             </motion.footer>

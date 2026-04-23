@@ -483,6 +483,7 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     await run(this.db, 'DELETE FROM teams');
     await run(this.db, 'DELETE FROM matches');
     await run(this.db, 'DELETE FROM streamers');
+    await run(this.db, 'DELETE FROM videos');
     await run(this.db, 'DELETE FROM file_hashes');
     await run(
       this.db,

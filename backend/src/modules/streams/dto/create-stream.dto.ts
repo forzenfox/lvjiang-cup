@@ -1,12 +1,14 @@
-import { IsString, IsOptional, IsBoolean } from 'class-validator';
+import { IsString, IsOptional, IsBoolean, IsNotEmpty } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateStreamDto {
   @ApiProperty({ description: '直播标题' })
+  @IsNotEmpty()
   @IsString()
   title: string;
 
   @ApiProperty({ description: '直播URL' })
+  @IsNotEmpty()
   @IsString()
   url: string;
 

@@ -70,6 +70,30 @@ export const StartBox: React.FC<StartBoxProps> = ({ onExit }) => {
     };
   }, [isVisible, isExiting, triggerExit]);
 
+  // 点击鼠标进入主页面
+  useEffect(() => {
+    if (!isVisible || isExiting) return;
+
+    const handleClick = () => {
+      triggerExit();
+    };
+
+    window.addEventListener('click', handleClick);
+    return () => window.removeEventListener('click', handleClick);
+  }, [isVisible, isExiting, triggerExit]);
+
+  // 按任意键进入主页面
+  useEffect(() => {
+    if (!isVisible || isExiting) return;
+
+    const handleKeyDown = () => {
+      triggerExit();
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isVisible, isExiting, triggerExit]);
+
   const backgrounds = isMobile ? COVER_IMAGES.mobile : COVER_IMAGES.pc;
 
   if (!isVisible || !backgrounds.length) return null;

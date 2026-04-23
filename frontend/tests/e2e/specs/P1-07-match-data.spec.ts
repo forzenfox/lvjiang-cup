@@ -1378,3 +1378,422 @@ test.describe('【P2】对战数据展示 - 响应式布局', () => {
     console.log('✅ PC 端布局正常');
   });
 });
+
+test.describe('【P1】对战数据展示 - 编辑模式', () => {
+  let matchDataPage: MatchDataPage;
+
+  test.beforeEach(async ({ page }) => {
+    matchDataPage = new MatchDataPage(page);
+  });
+
+  test('TEST-MD-013: 编辑模式路由跳转 @P1 @edit', async ({ page }) => {
+    await page.route('**/api/matches/*/series', async route => {
+      await route.fulfill({
+        status: 200,
+        body: JSON.stringify({
+          success: true,
+          code: 20000,
+          data: {
+            matchId: matchDataFixture.matchId,
+            teamA: { name: matchDataFixture.teamAName, id: 'team-a' },
+            teamB: { name: matchDataFixture.teamBName, id: 'team-b' },
+            boFormat: 'BO3',
+            games: [
+              { gameNumber: 1, winnerTeamId: 'team-a', gameDuration: '32:45', hasData: true },
+              { gameNumber: 2, winnerTeamId: 'team-b', gameDuration: '28:10', hasData: true },
+              { gameNumber: 3, winnerTeamId: null, gameDuration: null, hasData: false },
+            ],
+          },
+        }),
+      });
+    });
+
+    await page.route('**/api/matches/*/games/1', async route => {
+      await route.fulfill({
+        status: 200,
+        body: JSON.stringify({
+          success: true,
+          code: 20000,
+          data: {
+            matchId: matchDataFixture.matchId,
+            gameNumber: 1,
+            winnerTeamId: 'team-a',
+            gameDuration: '32:45',
+            gameStartTime: '2026-04-16 14:00',
+            blueTeam: {
+              teamId: 'team-b',
+              teamName: matchDataFixture.teamBName,
+              side: 'blue',
+              kills: 18,
+              deaths: 25,
+              assists: 35,
+              gold: 58000,
+              towers: 3,
+              dragons: 1,
+              barons: 0,
+            },
+            redTeam: {
+              teamId: 'team-a',
+              teamName: matchDataFixture.teamAName,
+              side: 'red',
+              kills: 25,
+              deaths: 18,
+              assists: 47,
+              gold: 65000,
+              towers: 9,
+              dragons: 3,
+              barons: 1,
+            },
+            playerStats: Array(10).fill({
+              id: 1,
+              playerId: 'player-1',
+              playerName: 'Player',
+              teamId: 'team-a',
+              teamName: matchDataFixture.teamAName,
+              position: 'TOP',
+              championName: '英雄',
+              kda: '2.0',
+              kills: 1,
+              deaths: 1,
+              assists: 1,
+              cs: 100,
+              gold: 10000,
+              damageDealt: 10000,
+              damageTaken: 10000,
+              level: 15,
+              visionScore: 20,
+              firstBlood: false,
+              mvp: false,
+            }),
+          },
+        }),
+      });
+    });
+
+    await page.route('**/api/admin/matches/*/games/1', async route => {
+      if (route.request().method() === 'PUT') {
+        await route.fulfill({
+          status: 200,
+          body: JSON.stringify({ success: true, code: 20000, data: null }),
+        });
+      }
+    });
+
+    await matchDataPage.goto(matchDataFixture.matchId);
+    await matchDataPage.expectPageLoaded();
+
+    const editButton = page.getByRole('button', { name: '编辑' });
+    await expect(editButton).toBeVisible();
+
+    await editButton.click();
+
+    await page.waitForTimeout(500);
+
+    const currentUrl = page.url();
+    expect(currentUrl).toContain('/edit');
+    expect(currentUrl).toContain('games/1/edit');
+
+    console.log('✅ 编辑模式路由跳转成功');
+  });
+
+  test('TEST-MD-014: 编辑模式保存功能 @P1 @edit', async ({ page }) => {
+    await page.route('**/api/matches/*/series', async route => {
+      await route.fulfill({
+        status: 200,
+        body: JSON.stringify({
+          success: true,
+          code: 20000,
+          data: {
+            matchId: matchDataFixture.matchId,
+            teamA: { name: matchDataFixture.teamAName, id: 'team-a' },
+            teamB: { name: matchDataFixture.teamBName, id: 'team-b' },
+            boFormat: 'BO3',
+            games: [
+              { gameNumber: 1, winnerTeamId: 'team-a', gameDuration: '32:45', hasData: true },
+            ],
+          },
+        }),
+      });
+    });
+
+    await page.route('**/api/matches/*/games/1', async route => {
+      await route.fulfill({
+        status: 200,
+        body: JSON.stringify({
+          success: true,
+          code: 20000,
+          data: {
+            matchId: matchDataFixture.matchId,
+            gameNumber: 1,
+            winnerTeamId: 'team-a',
+            gameDuration: '32:45',
+            gameStartTime: '2026-04-16 14:00',
+            blueTeam: {
+              teamId: 'team-b',
+              teamName: matchDataFixture.teamBName,
+              side: 'blue',
+              kills: 18,
+              deaths: 25,
+              assists: 35,
+              gold: 58000,
+              towers: 3,
+              dragons: 1,
+              barons: 0,
+            },
+            redTeam: {
+              teamId: 'team-a',
+              teamName: matchDataFixture.teamAName,
+              side: 'red',
+              kills: 25,
+              deaths: 18,
+              assists: 47,
+              gold: 65000,
+              towers: 9,
+              dragons: 3,
+              barons: 1,
+            },
+            playerStats: [
+              {
+                id: 1,
+                playerId: 'player-1',
+                playerName: 'Player1',
+                teamId: 'team-a',
+                teamName: matchDataFixture.teamAName,
+                position: 'TOP',
+                championName: '英雄',
+                kda: '2.0',
+                kills: 1,
+                deaths: 1,
+                assists: 1,
+                cs: 100,
+                gold: 10000,
+                damageDealt: 10000,
+                damageTaken: 10000,
+                level: 15,
+                visionScore: 20,
+                firstBlood: false,
+                mvp: false,
+              },
+              {
+                id: 2,
+                playerId: 'player-2',
+                playerName: 'Player2',
+                teamId: 'team-b',
+                teamName: matchDataFixture.teamBName,
+                position: 'TOP',
+                championName: '英雄',
+                kda: '2.0',
+                kills: 1,
+                deaths: 1,
+                assists: 1,
+                cs: 100,
+                gold: 10000,
+                damageDealt: 10000,
+                damageTaken: 10000,
+                level: 15,
+                visionScore: 20,
+                firstBlood: false,
+                mvp: false,
+              },
+            ],
+          },
+        }),
+      });
+    });
+
+    let savedData: any = null;
+    await page.route('**/api/admin/matches/*/games/1', async route => {
+      if (route.request().method() === 'PUT') {
+        savedData = route.request().postDataJSON();
+        await route.fulfill({
+          status: 200,
+          body: JSON.stringify({ success: true, code: 20000, data: null }),
+        });
+      }
+    });
+
+    await matchDataPage.goto(matchDataFixture.matchId);
+    await matchDataPage.expectPageLoaded();
+
+    const editButton = page.getByRole('button', { name: '编辑' });
+    await editButton.click();
+    await page.waitForTimeout(500);
+
+    const saveButton = page.getByRole('button', { name: '保存' });
+    await expect(saveButton).toBeVisible();
+
+    await saveButton.click();
+    await page.waitForTimeout(1000);
+
+    expect(savedData).not.toBeNull();
+    expect(savedData.blueTeam).toBeDefined();
+    expect(savedData.redTeam).toBeDefined();
+    expect(savedData.playerStats).toBeDefined();
+
+    const toastMessage = page.getByText('保存成功');
+    await expect(toastMessage).toBeVisible({ timeout: 5000 });
+
+    console.log('✅ 编辑模式保存功能正常');
+  });
+});
+
+test.describe('【P1】对战数据展示 - 空状态与重试', () => {
+  let matchDataPage: MatchDataPage;
+
+  test.beforeEach(async ({ page }) => {
+    matchDataPage = new MatchDataPage(page);
+  });
+
+  test('TEST-MD-015: 空状态显示 @P1', async ({ page }) => {
+    await page.route('**/api/matches/*/games/check', async route => {
+      await route.fulfill({
+        status: 200,
+        body: JSON.stringify({ success: true, code: 20000, data: { hasData: false, gameCount: 0 } }),
+      });
+    });
+
+    await page.route('**/api/matches/*/series', async route => {
+      await route.fulfill({
+        status: 200,
+        body: JSON.stringify({
+          success: true,
+          code: 20000,
+          data: {
+            matchId: matchDataFixture.matchId,
+            teamA: { name: matchDataFixture.teamAName, id: 'team-a' },
+            teamB: { name: matchDataFixture.teamBName, id: 'team-b' },
+            boFormat: 'BO3',
+            games: [
+              { gameNumber: 1, winnerTeamId: null, gameDuration: null, hasData: false },
+              { gameNumber: 2, winnerTeamId: null, gameDuration: null, hasData: false },
+              { gameNumber: 3, winnerTeamId: null, gameDuration: null, hasData: false },
+            ],
+          },
+        }),
+      });
+    });
+
+    await page.route('**/api/matches/*/games/1', async route => {
+      await route.fulfill({
+        status: 200,
+        body: JSON.stringify({
+          success: true,
+          code: 20000,
+          data: null,
+        }),
+      });
+    });
+
+    await matchDataPage.goto(matchDataFixture.matchId);
+    await page.waitForTimeout(1000);
+
+    const emptyStateText = page.getByText('暂无对战数据');
+    await expect(emptyStateText).toBeVisible({ timeout: 5000 });
+
+    console.log('✅ 空状态显示正常');
+  });
+
+  test('TEST-MD-016: 加载失败后重试 @P1', async ({ page }) => {
+    let retryCount = 0;
+
+    await page.route('**/api/matches/*/games/1', async route => {
+      retryCount++;
+      if (retryCount < 3) {
+        await route.fulfill({
+          status: 500,
+          body: JSON.stringify({ success: false, code: 50000, message: '服务器错误' }),
+        });
+      } else {
+        await route.fulfill({
+          status: 200,
+          body: JSON.stringify({
+            success: true,
+            code: 20000,
+            data: {
+              matchId: matchDataFixture.matchId,
+              gameNumber: 1,
+              winnerTeamId: 'team-a',
+              gameDuration: '32:45',
+              gameStartTime: '2026-04-16 14:00',
+              blueTeam: {
+                teamId: 'team-b',
+                teamName: matchDataFixture.teamBName,
+                side: 'blue',
+                kills: 18,
+                deaths: 25,
+                assists: 35,
+                gold: 58000,
+                towers: 3,
+                dragons: 1,
+                barons: 0,
+              },
+              redTeam: {
+                teamId: 'team-a',
+                teamName: matchDataFixture.teamAName,
+                side: 'red',
+                kills: 25,
+                deaths: 18,
+                assists: 47,
+                gold: 65000,
+                towers: 9,
+                dragons: 3,
+                barons: 1,
+              },
+              playerStats: Array(10).fill({
+                id: 1,
+                playerId: 'player-1',
+                playerName: 'Player',
+                teamId: 'team-a',
+                teamName: matchDataFixture.teamAName,
+                position: 'TOP',
+                championName: '英雄',
+                kda: '2.0',
+                kills: 1,
+                deaths: 1,
+                assists: 1,
+                cs: 100,
+                gold: 10000,
+                damageDealt: 10000,
+                damageTaken: 10000,
+                level: 15,
+                visionScore: 20,
+                firstBlood: false,
+                mvp: false,
+              }),
+            },
+          }),
+        });
+      }
+    });
+
+    await page.route('**/api/matches/*/series', async route => {
+      await route.fulfill({
+        status: 200,
+        body: JSON.stringify({
+          success: true,
+          code: 20000,
+          data: {
+            matchId: matchDataFixture.matchId,
+            teamA: { name: matchDataFixture.teamAName, id: 'team-a' },
+            teamB: { name: matchDataFixture.teamBName, id: 'team-b' },
+            boFormat: 'BO3',
+            games: [
+              { gameNumber: 1, winnerTeamId: 'team-a', gameDuration: '32:45', hasData: true },
+            ],
+          },
+        }),
+      });
+    });
+
+    await matchDataPage.goto(matchDataFixture.matchId);
+
+    await page.waitForTimeout(3000);
+
+    await matchDataPage.expectPageLoaded();
+
+    expect(retryCount).toBe(3);
+
+    console.log('✅ 自动重试机制正常，第3次请求成功');
+  });
+});
+

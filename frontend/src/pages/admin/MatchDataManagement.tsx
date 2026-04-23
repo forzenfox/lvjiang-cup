@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import AdminLayout from '../../components/layout/AdminLayout';
 import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
@@ -7,9 +7,8 @@ import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { Edit2, Trash2, RefreshCw, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import MatchDataImportDialog from '../../components/admin/MatchDataImportDialog';
-import MatchDataEditDialog from '../../components/admin/MatchDataEditDialog';
-import { getMatchSeries, getMatchGameData } from '@/api/matchData';
-import type { MatchSeriesInfo, GameSummary, MatchGameData } from '@/types/matchData';
+import { getMatchSeries } from '@/api/matchData';
+import type { MatchSeriesInfo, GameSummary } from '@/types/matchData';
 
 interface GameStatus {
   enabled: boolean;
@@ -17,19 +16,15 @@ interface GameStatus {
 
 const MatchDataManagement: React.FC = () => {
   const { matchId } = useParams<{ matchId: string }>();
+  const navigate = useNavigate();
   const [seriesInfo, setSeriesInfo] = useState<MatchSeriesInfo | null>(null);
   const [loading, setLoading] = useState(false);
   const [hasLoaded, setHasLoaded] = useState(false);
 
-  // Dialog states
   const [importDialogOpen, setImportDialogOpen] = useState(false);
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [currentGameData, setCurrentGameData] = useState<MatchGameData | null>(null);
-  const [gameToEdit, setGameToEdit] = useState<number | null>(null);
   const [gameToDelete, setGameToDelete] = useState<number | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
-  // Game enabled status map (gameNumber -> enabled)
   const [gameStatuses, setGameStatuses] = useState<Record<number, GameStatus>>({});
 
   useEffect(() => {
@@ -66,29 +61,12 @@ const MatchDataManagement: React.FC = () => {
     await loadSeriesData();
   };
 
-  const handleEditClick = async (gameNumber: number) => {
-    if (!matchId) return;
-
-    setLoading(true);
-    try {
-      const gameData = await getMatchGameData(matchId, gameNumber);
-      setCurrentGameData(gameData);
-      setGameToEdit(gameNumber);
-      setEditDialogOpen(true);
-    } catch (error) {
-      console.error('Failed to load game data:', error);
-      toast.error('加载游戏数据失败');
-    } finally {
-      setLoading(false);
-    }
+  const handleEditClick = (gameNumber: number) => {
+    navigate(`/admin/matches/${matchId}/games/${gameNumber}/edit`);
   };
 
-  const handleEditSuccess = async () => {
-    toast.success('游戏数据已更新');
-    setEditDialogOpen(false);
-    setCurrentGameData(null);
-    setGameToEdit(null);
-    await loadSeriesData();
+  const handleViewClick = (gameNumber: number) => {
+    navigate(`/match/${matchId}/games?game=${gameNumber}`);
   };
 
   const handleDeleteClick = (gameNumber: number) => {
@@ -239,7 +217,6 @@ const MatchDataManagement: React.FC = () => {
                   </div>
 
                   <div className="flex items-center gap-2">
-                    {/* Enable/Disable Toggle */}
                     <button
                       onClick={() => toggleGameEnabled(gameNumber)}
                       className={`p-2 rounded-lg transition-colors ${
@@ -250,18 +227,27 @@ const MatchDataManagement: React.FC = () => {
                       {isEnabled ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
                     </button>
 
-                    {/* Edit Button */}
                     <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleEditClick(gameNumber)}
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleViewClick(gameNumber)}
                       disabled={!hasData || loading}
-                      title="编辑数据"
+                      className="border-blue-500 text-blue-400 hover:bg-blue-500/10"
                     >
-                      <Edit2 className="w-4 h-4 text-blue-400" />
+                      查看数据
                     </Button>
 
-                    {/* Delete Button */}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleEditClick(gameNumber)}
+                      disabled={!hasData || loading}
+                      className="border-yellow-500 text-yellow-400 hover:bg-yellow-500/10"
+                    >
+                      <Edit2 className="w-4 h-4 mr-1" />
+                      编辑
+                    </Button>
+
                     <Button
                       variant="ghost"
                       size="icon"
@@ -286,22 +272,6 @@ const MatchDataManagement: React.FC = () => {
         onSuccess={handleImportSuccess}
         matchId={matchId}
       />
-
-      {/* Edit Dialog */}
-      {currentGameData && (
-        <MatchDataEditDialog
-          open={editDialogOpen}
-          onClose={() => {
-            setEditDialogOpen(false);
-            setCurrentGameData(null);
-            setGameToEdit(null);
-          }}
-          onSuccess={handleEditSuccess}
-          matchId={matchId}
-          gameId={gameToEdit ?? 0}
-          gameData={currentGameData}
-        />
-      )}
 
       {/* Delete Confirmation Dialog */}
       <ConfirmDialog

@@ -213,12 +213,12 @@ export class MatchDataService {
 
     // 获取蓝色方战队信息
     const blueTeam = await this.databaseService.get<any>(
-      'SELECT id, name FROM teams WHERE id = ?',
+      'SELECT id, name, logo_url FROM teams WHERE id = ?',
       [game.blue_team_id],
     );
 
     // 获取红色方战队信息
-    const redTeam = await this.databaseService.get<any>('SELECT id, name FROM teams WHERE id = ?', [
+    const redTeam = await this.databaseService.get<any>('SELECT id, name, logo_url FROM teams WHERE id = ?', [
       game.red_team_id,
     ]);
 
@@ -282,6 +282,7 @@ export class MatchDataService {
       blueTeam: {
         teamId: game.blue_team_id,
         teamName: blueTeam?.name || '',
+        logoUrl: blueTeam?.logo_url || '',
         side: 'blue' as const,
         kills: game.blue_kills,
         gold: game.blue_gold,
@@ -293,6 +294,7 @@ export class MatchDataService {
       redTeam: {
         teamId: game.red_team_id,
         teamName: redTeam?.name || '',
+        logoUrl: redTeam?.logo_url || '',
         side: 'red' as const,
         kills: game.red_kills,
         gold: game.red_gold,
@@ -319,7 +321,7 @@ export class MatchDataService {
     matchId: string,
     file: Express.Multer.File,
     adminId: string,
-  ): Promise<{ imported: boolean; gameNumber: number; playerCount: number }> {
+  ): Promise<{ imported: boolean; gameNumber: number; playerCount: number; failedCount: number; failedPlayers?: Array<{ row: number; nickname: string; side: string; type: string; message: string }> }> {
     try {
       // 检查比赛是否存在
       const match = await this.databaseService.get<any>(
@@ -480,16 +482,59 @@ export class MatchDataService {
 
         // 插入player_match_stats
         let playerCount = 0;
-        for (const ps of parsedData.playerStats) {
-          // 匹配选手
-          const player = await this.matchPlayerNickname(ps.nickname);
+        const failedPlayers: Array<{
+          row: number;
+          nickname: string;
+          side: string;
+          type: 'player_not_found' | 'team_mismatch' | 'data_validation' | 'parse_error';
+          message: string;
+        }> = [];
+        
+        // 从MatchInfo获取MVP选手昵称和一血阵营
+        const mvpNickname = parsedData.matchInfo.mvp;
+        const firstBloodSide = parsedData.matchInfo.firstBlood;
+        
+        for (let i = 0; i < parsedData.playerStats.length; i++) {
+          const ps = parsedData.playerStats[i];
+          // Excel行号 = 表头(6) + 索引(从0开始) + 1 = 7 + i
+          const excelRow = 7 + i;
+
+          // 根据阵营确定战队ID
+          const expectedTeamId = this.normalizeTeamName(ps.side).includes('red') ? redTeamId : blueTeamId;
+          
+          // 匹配选手，增加战队关联验证
+          const player = await this.matchPlayerNicknameWithTeam(ps.nickname, expectedTeamId);
           if (!player) {
-            this.logger.warn(`Could not match player: ${ps.nickname}`);
+            const errorMsg = `选手 ${ps.nickname} 在${ps.side === 'red' ? '红方' : '蓝方'}战队中未找到`;
+            this.logger.warn(errorMsg);
+            failedPlayers.push({
+              row: excelRow,
+              nickname: ps.nickname,
+              side: ps.side,
+              type: 'player_not_found',
+              message: errorMsg,
+            });
             continue;
           }
 
-          // 确定teamId
-          const playerTeamId = player.team_id;
+          // 验证选手的战队是否与预期一致
+          if (player.team_id !== expectedTeamId) {
+            const errorMsg = `选手 ${ps.nickname} 的战队与预期的${ps.side}方战队不匹配`;
+            this.logger.error(errorMsg);
+            failedPlayers.push({
+              row: excelRow,
+              nickname: ps.nickname,
+              side: ps.side,
+              type: 'team_mismatch',
+              message: errorMsg,
+            });
+            continue;
+          }
+
+          // 判断当前选手是否是MVP
+          const isMvp = ps.nickname === mvpNickname ? 1 : 0;
+          // 判断当前选手是否获得一血（根据阵营）
+          const isFirstBlood = ps.side === firstBloodSide ? 1 : 0;
 
           await this.databaseService.run(
             `INSERT INTO player_match_stats (
@@ -500,7 +545,7 @@ export class MatchDataService {
             [
               gameId,
               player.id,
-              playerTeamId,
+              player.team_id,
               ps.position.toUpperCase(),
               ps.championName,
               ps.kills,
@@ -513,11 +558,23 @@ export class MatchDataService {
               ps.visionScore,
               ps.wardsPlaced,
               ps.level,
-              0,
-              ps.mvp ? 1 : 0,
+              isFirstBlood,
+              isMvp,
             ],
           );
           playerCount++;
+        }
+
+        if (playerCount === 0) {
+          throw new BadRequestException({
+            code: 40001,
+            message: '没有成功导入任何选手数据，请检查选手昵称是否正确',
+            failedPlayers,
+          });
+        }
+
+        if (failedPlayers.length > 0) {
+          this.logger.warn(`导入完成，但${failedPlayers.length}个选手匹配失败:`, JSON.stringify(failedPlayers));
         }
 
         await this.databaseService.commit();
@@ -533,6 +590,8 @@ export class MatchDataService {
           imported: true,
           gameNumber: parsedData.matchInfo.gameNumber,
           playerCount,
+          failedCount: failedPlayers.length,
+          failedPlayers: failedPlayers.length > 0 ? failedPlayers : undefined,
         };
       } catch (error) {
         await this.databaseService.rollback();
@@ -768,6 +827,26 @@ export class MatchDataService {
   private async matchPlayerNickname(nickname: string): Promise<any | null> {
     const players = await this.databaseService.all<any>(
       'SELECT id, nickname, team_id FROM team_members',
+    );
+
+    const normalizedNickname = nickname.trim().toLowerCase();
+
+    for (const player of players) {
+      if (player.nickname && player.nickname.trim().toLowerCase() === normalizedNickname) {
+        return player;
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * 匹配选手昵称（带战队关联验证）
+   */
+  private async matchPlayerNicknameWithTeam(nickname: string, expectedTeamId: string): Promise<any | null> {
+    const players = await this.databaseService.all<any>(
+      'SELECT id, nickname, team_id FROM team_members WHERE team_id = ?',
+      [expectedTeamId],
     );
 
     const normalizedNickname = nickname.trim().toLowerCase();

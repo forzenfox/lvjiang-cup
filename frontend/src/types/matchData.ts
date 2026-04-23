@@ -32,6 +32,8 @@ export interface TeamGameData {
   teamId: string;
   /** 战队名称 */
   teamName: string;
+  /** 战队 Logo URL */
+  logoUrl?: string;
   /** 红蓝方标识 */
   side: 'blue' | 'red';
   /** 总击杀 */
@@ -165,6 +167,22 @@ export interface MatchDataCheckResponse {
 }
 
 /**
+ * 导入对战数据错误项
+ */
+export interface MatchDataImportError {
+  /** 错误行号 */
+  row: number;
+  /** 选手昵称 */
+  nickname: string;
+  /** 阵营（红方/蓝方） */
+  side: string;
+  /** 错误类型 */
+  type: 'player_not_found' | 'team_mismatch' | 'data_validation' | 'parse_error';
+  /** 错误信息 */
+  message: string;
+}
+
+/**
  * 导入对战数据响应
  */
 export interface ImportMatchDataResponse {
@@ -174,6 +192,10 @@ export interface ImportMatchDataResponse {
   gameNumber: number;
   /** 导入的选手数据条数 */
   playerCount: number;
+  /** 失败的选手数量 */
+  failedCount?: number;
+  /** 失败详情列表 */
+  failedPlayers?: MatchDataImportError[];
 }
 
 /**

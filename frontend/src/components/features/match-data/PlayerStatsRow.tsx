@@ -8,6 +8,7 @@ import {
   AdcIcon,
   SupportIcon,
 } from '@/components/icons/PositionIcons';
+import { getChampionIconUrl } from '@/utils/championUtils';
 
 const PositionIcon: React.FC<{ position: PositionType; size?: number }> = ({ position, size = 16 }) => {
   switch (position) {
@@ -55,19 +56,28 @@ const PlayerStatsRow: React.FC<PlayerStatsRowProps> = ({
     >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3 flex-1">
-          <div className="w-12 h-12 rounded-full border-2 border-[#00bcd4]/50 bg-[#1a1a2e] flex items-center justify-center overflow-hidden">
-            {bluePlayer.championName.charAt(0)}
+          <div className="w-12 h-12 rounded-full border-2 border-[#f44336]/50 bg-[#1a1a2e] flex items-center justify-center overflow-hidden">
+            <img
+              src={getChampionIconUrl(redPlayer.championName)}
+              alt={redPlayer.championName}
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                (e.target as HTMLImageElement).style.display = 'none';
+                (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden');
+              }}
+            />
+            <span className="hidden">{redPlayer.championName.charAt(0)}</span>
           </div>
           <div className="flex flex-col">
             <div className="flex items-center gap-2">
-              <PositionIcon position={bluePlayer.position} size={16} />
-              <span className="text-sm font-bold text-white">{bluePlayer.playerName}</span>
+              <PositionIcon position={redPlayer.position} size={16} />
+              <span className="text-sm font-bold text-white">{redPlayer.playerName}</span>
             </div>
             <div className="flex items-center gap-3 mt-1">
-              <span className="text-sm text-[#00bcd4] font-mono font-bold">{bluePlayer.kda}</span>
-              <span className="text-xs text-gray-400">CS: {bluePlayer.cs}</span>
+              <span className="text-sm text-[#f44336] font-mono font-bold">{redPlayer.kda}</span>
+              <span className="text-xs text-gray-400">CS: {redPlayer.cs}</span>
               <span className="text-xs text-[#c49f58] font-mono">
-                {formatGold(bluePlayer.gold)}
+                {formatGold(redPlayer.gold)}
               </span>
             </div>
           </div>
@@ -76,18 +86,18 @@ const PlayerStatsRow: React.FC<PlayerStatsRowProps> = ({
         <div className="flex flex-col items-center gap-1 px-4">
           <span className="text-xs text-gray-500 font-bold">VS</span>
           <div className="flex items-center gap-2">
-            {bluePlayer.mvp && (
-              <span className="text-xs text-[#c49f58] font-bold bg-[#c49f58]/20 px-1.5 py-0.5 rounded">
-                MVP
-              </span>
-            )}
-            {bluePlayer.firstBlood && <span className="text-xs text-red-400 font-bold">一血</span>}
             {redPlayer.mvp && (
               <span className="text-xs text-[#c49f58] font-bold bg-[#c49f58]/20 px-1.5 py-0.5 rounded">
                 MVP
               </span>
             )}
             {redPlayer.firstBlood && <span className="text-xs text-red-400 font-bold">一血</span>}
+            {bluePlayer.mvp && (
+              <span className="text-xs text-[#c49f58] font-bold bg-[#c49f58]/20 px-1.5 py-0.5 rounded">
+                MVP
+              </span>
+            )}
+            {bluePlayer.firstBlood && <span className="text-xs text-red-400 font-bold">一血</span>}
           </div>
           <ChevronDown
             className={`w-5 h-5 text-gray-400 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
@@ -97,17 +107,26 @@ const PlayerStatsRow: React.FC<PlayerStatsRowProps> = ({
         <div className="flex items-center gap-3 flex-1 justify-end">
           <div className="flex flex-col items-end">
             <div className="flex items-center gap-2">
-              <span className="text-sm font-bold text-white">{redPlayer.playerName}</span>
-              <PositionIcon position={redPlayer.position} size={16} />
+              <span className="text-sm font-bold text-white">{bluePlayer.playerName}</span>
+              <PositionIcon position={bluePlayer.position} size={16} />
             </div>
             <div className="flex items-center gap-3 mt-1">
-              <span className="text-xs text-[#c49f58] font-mono">{formatGold(redPlayer.gold)}</span>
-              <span className="text-xs text-gray-400">CS: {redPlayer.cs}</span>
-              <span className="text-sm text-[#f44336] font-mono font-bold">{redPlayer.kda}</span>
+              <span className="text-xs text-[#c49f58] font-mono">{formatGold(bluePlayer.gold)}</span>
+              <span className="text-xs text-gray-400">CS: {bluePlayer.cs}</span>
+              <span className="text-sm text-[#00bcd4] font-mono font-bold">{bluePlayer.kda}</span>
             </div>
           </div>
-          <div className="w-12 h-12 rounded-full border-2 border-[#f44336]/50 bg-[#1a1a2e] flex items-center justify-center overflow-hidden">
-            {redPlayer.championName.charAt(0)}
+          <div className="w-12 h-12 rounded-full border-2 border-[#00bcd4]/50 bg-[#1a1a2e] flex items-center justify-center overflow-hidden">
+            <img
+              src={getChampionIconUrl(bluePlayer.championName)}
+              alt={bluePlayer.championName}
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                (e.target as HTMLImageElement).style.display = 'none';
+                (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden');
+              }}
+            />
+            <span className="hidden">{bluePlayer.championName.charAt(0)}</span>
           </div>
         </div>
       </div>
@@ -115,9 +134,9 @@ const PlayerStatsRow: React.FC<PlayerStatsRowProps> = ({
       <div className="md:hidden mt-4 pt-4 border-t border-white/10">
         <div className="flex items-center justify-between text-sm">
           <div className="flex flex-col items-start">
-            <span className="text-[#00bcd4] font-bold">{bluePlayer.playerName}</span>
-            <span className="text-gray-400 text-xs">{bluePlayer.championName}</span>
-            <span className="text-[#00bcd4] font-mono">{bluePlayer.kda}</span>
+            <span className="text-[#f44336] font-bold">{redPlayer.playerName}</span>
+            <span className="text-gray-400 text-xs">{redPlayer.championName}</span>
+            <span className="text-[#f44336] font-mono">{redPlayer.kda}</span>
           </div>
           <div className="flex flex-col items-center">
             <ChevronDown
@@ -125,9 +144,9 @@ const PlayerStatsRow: React.FC<PlayerStatsRowProps> = ({
             />
           </div>
           <div className="flex flex-col items-end">
-            <span className="text-[#f44336] font-bold">{redPlayer.playerName}</span>
-            <span className="text-gray-400 text-xs">{redPlayer.championName}</span>
-            <span className="text-[#f44336] font-mono">{redPlayer.kda}</span>
+            <span className="text-[#00bcd4] font-bold">{bluePlayer.playerName}</span>
+            <span className="text-gray-400 text-xs">{bluePlayer.championName}</span>
+            <span className="text-[#00bcd4] font-mono">{bluePlayer.kda}</span>
           </div>
         </div>
       </div>

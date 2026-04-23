@@ -409,10 +409,9 @@ export class VideosService extends BaseCachedService<Video, string> {
       }
     }
 
+    let bilibiliMeta: BilibiliMeta | null = null;
     if (needRefetchMeta) {
-      const bilibiliMeta = await this.fetchBilibiliMeta(bvid);
-      existing.bilibiliTitle = bilibiliMeta.title;
-      existing.coverUrl = bilibiliMeta.coverUrl;
+      bilibiliMeta = await this.fetchBilibiliMeta(bvid);
     }
 
     const updates: string[] = [];
@@ -424,9 +423,11 @@ export class VideosService extends BaseCachedService<Video, string> {
       updates.push('bvid = ?');
       values.push(bvid);
 
-      if (needRefetchMeta) {
+      if (needRefetchMeta && bilibiliMeta) {
         oldCoverFilename = existing.coverUrl ? path.basename(existing.coverUrl) : null;
         newCoverFilename = await this.fetchAndSaveCover(bvid);
+        updates.push('bilibili_title = ?');
+        values.push(bilibiliMeta.title);
         updates.push('cover_url = ?');
         values.push(newCoverFilename);
       }
@@ -469,6 +470,7 @@ export class VideosService extends BaseCachedService<Video, string> {
     }
 
     this.clearAllVideoCache();
+    this.cacheService.del(this.getOneCacheKey(id));
 
     return this.findById(id);
   }
@@ -490,6 +492,7 @@ export class VideosService extends BaseCachedService<Video, string> {
     this.videoLogger.log(`Video deleted: ${id}`);
 
     this.clearAllVideoCache();
+    this.cacheService.del(this.getOneCacheKey(id));
   }
 
   async sort(sortItems: SortItem[]): Promise<Video[]> {
