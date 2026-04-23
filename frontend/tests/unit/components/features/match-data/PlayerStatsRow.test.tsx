@@ -4,16 +4,26 @@ import PlayerStatsRow from '@/components/features/match-data/PlayerStatsRow';
 import type { PlayerStat, PositionType } from '@/types/matchData';
 
 const createMockPlayerStat = (overrides: Partial<PlayerStat> = {}): PlayerStat => ({
+  id: 1,
+  playerId: 'player-1',
   playerName: 'Bin',
+  teamId: 'team-1',
+  teamName: 'Test Team',
   championName: '格温',
   position: 'TOP' as PositionType,
   kda: '8/2/12',
+  kills: 8,
+  deaths: 2,
+  assists: 12,
   cs: 349,
   gold: 18500,
   mvp: true,
   firstBlood: true,
   damageDealt: 45000,
   damageTaken: 28000,
+  visionScore: 25,
+  wardsPlaced: 10,
+  level: 18,
   ...overrides,
 });
 
@@ -31,7 +41,6 @@ describe('PlayerStatsRow', () => {
         />
       );
 
-      // 使用 container 查询避免多个匹配（移动端和桌面端都有）
       const elements = container.querySelectorAll('*');
       const hasBin = Array.from(elements).some(el => el.textContent === 'Bin');
       const hasZika = Array.from(elements).some(el => el.textContent === 'Zika');
@@ -51,30 +60,11 @@ describe('PlayerStatsRow', () => {
         />
       );
 
-      // 使用 container 查询避免多个匹配
       const elements = container.querySelectorAll('*');
       const hasKDA1 = Array.from(elements).some(el => el.textContent === '8/2/12');
       const hasKDA2 = Array.from(elements).some(el => el.textContent === '3/5/8');
       expect(hasKDA1).toBe(true);
       expect(hasKDA2).toBe(true);
-    });
-
-    it('应该显示选手的补刀数', () => {
-      const bluePlayer = createMockPlayerStat({ cs: 349 });
-      const redPlayer = createMockPlayerStat({ cs: 267, mvp: false });
-      const { container } = render(
-        <PlayerStatsRow
-          bluePlayer={bluePlayer}
-          redPlayer={redPlayer}
-          isExpanded={false}
-          onToggle={vi.fn()}
-        />
-      );
-
-      // 检查包含CS的元素
-      const elements = container.querySelectorAll('*');
-      const hasCS = Array.from(elements).some(el => el.textContent?.includes('CS:'));
-      expect(hasCS).toBe(true);
     });
 
     it('应该正确格式化金币显示', () => {
@@ -176,7 +166,7 @@ describe('PlayerStatsRow', () => {
         />
       );
 
-      const blueBorder = container.querySelector('[class*="border-[\#00bcd4\]"]');
+      const blueBorder = container.querySelector('[class*="border-[#00bcd4]"]');
       expect(blueBorder).toBeInTheDocument();
     });
 
@@ -192,7 +182,7 @@ describe('PlayerStatsRow', () => {
         />
       );
 
-      const redBorder = container.querySelector('[class*="border-[\#f44336\]"]');
+      const redBorder = container.querySelector('[class*="border-[#f44336]"]');
       expect(redBorder).toBeInTheDocument();
     });
   });
@@ -214,7 +204,6 @@ describe('PlayerStatsRow', () => {
         />
       );
 
-      // 检查包含伤害数值的元素
       const elements = container.querySelectorAll('*');
       const hasDamage = Array.from(elements).some(el => el.textContent?.includes('45.0k'));
       expect(hasDamage).toBe(true);
@@ -236,7 +225,6 @@ describe('PlayerStatsRow', () => {
         />
       );
 
-      // 检查包含承伤数值的元素
       const elements = container.querySelectorAll('*');
       const hasDamageTaken = Array.from(elements).some(el => el.textContent?.includes('28.0k'));
       expect(hasDamageTaken).toBe(true);
@@ -258,7 +246,6 @@ describe('PlayerStatsRow', () => {
         />
       );
 
-      // 检查包含45.0k的元素
       const elements = container.querySelectorAll('*');
       const has45k = Array.from(elements).some(el => el.textContent?.includes('45.0k'));
       expect(has45k).toBe(true);
@@ -276,7 +263,6 @@ describe('PlayerStatsRow', () => {
         />
       );
 
-      // 检查包含850的元素
       const elements = container.querySelectorAll('*');
       const has850 = Array.from(elements).some(el => el.textContent?.includes('850'));
       expect(has850).toBe(true);
@@ -294,10 +280,140 @@ describe('PlayerStatsRow', () => {
         />
       );
 
-      // 检查包含0的元素（伤害数值）
       const elements = container.querySelectorAll('*');
       const hasZero = Array.from(elements).some(el => el.textContent === '0');
       expect(hasZero).toBe(true);
+    });
+  });
+
+  describe('KDA 视觉强调', () => {
+    it('KDA 应该使用大字号和粗体', () => {
+      const bluePlayer = createMockPlayerStat({ kda: '8/2/12' });
+      const redPlayer = createMockPlayerStat({ kda: '3/5/8', mvp: false });
+      const { container } = render(
+        <PlayerStatsRow
+          bluePlayer={bluePlayer}
+          redPlayer={redPlayer}
+          isExpanded={false}
+          onToggle={vi.fn()}
+        />
+      );
+
+      const kdaElements = container.querySelectorAll('.text-base');
+      expect(kdaElements.length).toBeGreaterThanOrEqual(2);
+    });
+
+    it('红方 KDA 应该使用红色', () => {
+      const bluePlayer = createMockPlayerStat({ kda: '8/2/12' });
+      const redPlayer = createMockPlayerStat({ kda: '3/5/8', mvp: false });
+      const { container } = render(
+        <PlayerStatsRow
+          bluePlayer={bluePlayer}
+          redPlayer={redPlayer}
+          isExpanded={false}
+          onToggle={vi.fn()}
+        />
+      );
+
+      const redKda = container.querySelector('[class*="text-[#f44336]"]');
+      expect(redKda).toBeInTheDocument();
+    });
+
+    it('蓝方 KDA 应该使用蓝色', () => {
+      const bluePlayer = createMockPlayerStat({ kda: '8/2/12' });
+      const redPlayer = createMockPlayerStat({ kda: '3/5/8', mvp: false });
+      const { container } = render(
+        <PlayerStatsRow
+          bluePlayer={bluePlayer}
+          redPlayer={redPlayer}
+          isExpanded={false}
+          onToggle={vi.fn()}
+        />
+      );
+
+      const blueKda = container.querySelector('[class*="text-[#00bcd4]"]');
+      expect(blueKda).toBeInTheDocument();
+    });
+  });
+
+  describe('VS 文字移除', () => {
+    it('不应该显示 VS 文字', () => {
+      const bluePlayer = createMockPlayerStat();
+      const redPlayer = createMockPlayerStat({ mvp: false });
+      const { container } = render(
+        <PlayerStatsRow
+          bluePlayer={bluePlayer}
+          redPlayer={redPlayer}
+          isExpanded={false}
+          onToggle={vi.fn()}
+        />
+      );
+
+      const elements = container.querySelectorAll('*');
+      const hasVS = Array.from(elements).some(el => el.textContent === 'VS');
+      expect(hasVS).toBe(false);
+    });
+  });
+
+  describe('英雄头像增强', () => {
+    it('英雄头像应该有发光效果', () => {
+      const bluePlayer = createMockPlayerStat();
+      const redPlayer = createMockPlayerStat({ mvp: false });
+      const { container } = render(
+        <PlayerStatsRow
+          bluePlayer={bluePlayer}
+          redPlayer={redPlayer}
+          isExpanded={false}
+          onToggle={vi.fn()}
+        />
+      );
+
+      const glowElements = container.querySelectorAll('[class*="shadow-"]');
+      expect(glowElements.length).toBeGreaterThanOrEqual(2);
+    });
+  });
+
+  describe('数据图标展示', () => {
+    it('金币数据应该显示图标', () => {
+      const bluePlayer = createMockPlayerStat({ gold: 18500 });
+      const redPlayer = createMockPlayerStat({ gold: 15200, mvp: false });
+      const { container } = render(
+        <PlayerStatsRow
+          bluePlayer={bluePlayer}
+          redPlayer={redPlayer}
+          isExpanded={false}
+          onToggle={vi.fn()}
+        />
+      );
+
+      // 通过svg元素查询Lucide图标（使用class名中的lucide前缀）
+      const svgElements = container.querySelectorAll('svg');
+      const hasCoinIcon = Array.from(svgElements).some(svg => {
+        const classAttr = svg.getAttribute('class') || '';
+        return classAttr.includes('lucide') && svg.parentElement?.textContent?.includes('18.5k');
+      });
+      expect(hasCoinIcon).toBe(true);
+    });
+
+    it('补刀数据应该显示图标', () => {
+      const bluePlayer = createMockPlayerStat({ cs: 349 });
+      const redPlayer = createMockPlayerStat({ cs: 267, mvp: false });
+      const { container } = render(
+        <PlayerStatsRow
+          bluePlayer={bluePlayer}
+          redPlayer={redPlayer}
+          isExpanded={false}
+          onToggle={vi.fn()}
+        />
+      );
+
+      // 通过svg元素查询Lucide图标
+      const svgElements = container.querySelectorAll('svg');
+      const hasTargetIcon = Array.from(svgElements).some(svg => {
+        const classAttr = svg.getAttribute('class') || '';
+        return classAttr.includes('lucide') && svg.parentElement?.textContent?.includes('349');
+      });
+      expect(hasTargetIcon).toBe(true);
     });
   });
 });

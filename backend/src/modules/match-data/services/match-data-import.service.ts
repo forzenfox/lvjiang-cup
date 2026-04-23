@@ -132,13 +132,15 @@ export class MatchDataImportService {
 
   /**
    * 创建对战数据 Sheet
-   * 固定 16 行结构：
+   * 固定 18 行结构：
    * - 第 1 行：MatchInfo 表头
    * - 第 2 行：MatchInfo 数据
    * - 第 3 行：TeamStats 表头
    * - 第 4-5 行：TeamStats 数据（红方、蓝方）
    * - 第 6 行：PlayerStats 表头
    * - 第 7-16 行：PlayerStats 数据（红方 5 人 + 蓝方 5 人）
+   * - 第 17 行：BAN 表头（新增）
+   * - 第 18 行：BAN 数据（红方5个 + 蓝方5个）
    */
   private async createMatchDataSheet(workbook: ExcelJS.Workbook): Promise<void> {
     const sheet = workbook.addWorksheet('MatchData');
@@ -510,5 +512,35 @@ export class MatchDataImportService {
         error: '位置必须是 TOP/JUNGLE/MID/ADC/SUPPORT 之一',
       };
     }
+
+    // ========== 第 17-18 行：BAN 数据（新增）==========
+
+    // 第 17 行：BAN 表头
+    const banHeaders = [
+      '红方BAN1', '红方BAN2', '红方BAN3', '红方BAN4', '红方BAN5',
+      '蓝方BAN1', '蓝方BAN2', '蓝方BAN3', '蓝方BAN4', '蓝方BAN5',
+    ];
+    banHeaders.forEach((header, index) => {
+      const cell = sheet.getCell(17, index + 1);
+      cell.value = header;
+      cell.font = { bold: true };
+      cell.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FFFFB3B3' }, // 浅红色背景
+      };
+      cell.alignment = { horizontal: 'center' };
+    });
+
+    // 第 18 行：BAN 示例数据（英雄中文名或英文ID）
+    const redBans = ['亚托克斯', '格雷福斯', '阿狸', '卡莎', '锤石'];
+    const blueBans = ['雷克顿', '李青', '辛德拉', '厄斐琉斯', '蕾欧娜'];
+    
+    redBans.forEach((ban, index) => {
+      sheet.getCell(18, index + 1).value = ban;
+    });
+    blueBans.forEach((ban, index) => {
+      sheet.getCell(18, index + 5 + 1).value = ban;
+    });
   }
 }

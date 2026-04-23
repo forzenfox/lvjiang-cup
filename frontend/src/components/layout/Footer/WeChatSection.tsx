@@ -5,6 +5,7 @@ import { QrCode } from 'lucide-react';
 interface WeChatSectionProps {
   name: string;
   qrCode: string;
+  size?: number;
 }
 
 export const WeChatSection: React.FC<WeChatSectionProps> = ({ name, qrCode }) => {

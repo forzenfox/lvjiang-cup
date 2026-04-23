@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback, useRef, useMemo } from 'react'
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { Loader2, AlertCircle } from 'lucide-react';
 import MatchDataHeader from './MatchDataHeader';
+import MatchSeriesHeader from './MatchSeriesHeader';
 import MatchInfoCard from './MatchInfoCard';
 import GameSwitcher from './GameSwitcher';
 import TeamStatsBar from './TeamStatsBar';
@@ -22,6 +23,10 @@ import MatchDataEmptyState from './MatchDataEmptyState';
 
 const POSITION_ORDER: PositionType[] = ['TOP', 'JUNGLE', 'MID', 'ADC', 'SUPPORT'];
 
+/**
+ * 对战数据详情页面
+ * 展示比赛系列赛的详细数据，包括各局对局信息、队伍统计、选手数据等
+ */
 const MatchDataPage: React.FC = () => {
   const { id: matchId } = useParams<{ id: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -37,6 +42,9 @@ const MatchDataPage: React.FC = () => {
 
   const currentGameNumber = parseInt(searchParams.get('game') || '1', 10);
 
+  /**
+   * 带重试机制的游戏数据加载
+   */
   const loadGameDataWithRetry = useCallback(async (mId: string, gameNum: number, retries = 3) => {
     for (let i = 0; i < retries; i++) {
       try {
@@ -49,6 +57,9 @@ const MatchDataPage: React.FC = () => {
     }
   }, []);
 
+  /**
+   * 加载系列赛信息
+   */
   const loadSeriesInfo = useCallback(
     async (mId: string) => {
       const cacheKey = matchDataCache.getMatchSeriesKey(mId);
@@ -91,6 +102,9 @@ const MatchDataPage: React.FC = () => {
     [currentGameNumber, setSearchParams, preloadAdjacentGame]
   );
 
+  /**
+   * 加载游戏数据
+   */
   const loadGameData = useCallback(
     async (mId: string, gameNum: number) => {
       const cacheKey = matchDataCache.getGameDataKey(mId, gameNum);
@@ -113,6 +127,9 @@ const MatchDataPage: React.FC = () => {
     [loadGameDataWithRetry]
   );
 
+  /**
+   * 重试加载
+   */
   const handleRetry = useCallback(() => {
     if (matchId) {
       setError(null);
@@ -120,6 +137,7 @@ const MatchDataPage: React.FC = () => {
     }
   }, [matchId, currentGameNumber, loadGameData]);
 
+  // 初始加载数据
   useEffect(() => {
     if (!matchId) {
       setError('缺少比赛ID');
@@ -141,12 +159,14 @@ const MatchDataPage: React.FC = () => {
     loadData();
   }, [matchId, currentGameNumber, loadSeriesInfo, loadGameData]);
 
+  // 页面浏览追踪
   useEffect(() => {
     if (matchId) {
       trackMatchDataPageView(matchId);
     }
   }, [matchId]);
 
+  // 场次切换追踪
   useEffect(() => {
     const prevGame = prevGameNumberRef.current;
 
@@ -157,6 +177,9 @@ const MatchDataPage: React.FC = () => {
     prevGameNumberRef.current = currentGameNumber;
   }, [matchId, currentGameNumber]);
 
+  /**
+   * 切换场次
+   */
   const handleGameChange = useCallback(
     (gameNumber: number) => {
       setSearchParams({ game: gameNumber.toString() });
@@ -164,12 +187,18 @@ const MatchDataPage: React.FC = () => {
     [setSearchParams]
   );
 
+  /**
+   * 返回上一页
+   */
   const handleBack = useCallback(() => {
     navigate(-1);
   }, [navigate]);
 
   const [expandedPosition, setExpandedPosition] = useState<string | null>(null);
 
+  /**
+   * 切换位置展开状态
+   */
   const handleTogglePosition = useCallback(
     (position: string) => {
       if (gameData && matchId) {
@@ -199,6 +228,9 @@ const MatchDataPage: React.FC = () => {
     [expandedPosition, gameData, matchId, currentGameNumber]
   );
 
+  /**
+   * 按阵营筛选选手
+   */
   const getPlayersBySide = useCallback(
     (playerStats: PlayerStat[], side: 'blue' | 'red') => {
       return playerStats.filter(p => {
@@ -234,6 +266,9 @@ const MatchDataPage: React.FC = () => {
     );
   }, [filteredRedPlayers]);
 
+  /**
+   * 渲染主内容区域
+   */
   const renderContent = () => {
     if (!gameData) return null;
 
@@ -244,8 +279,10 @@ const MatchDataPage: React.FC = () => {
 
     return (
       <>
-        <MatchInfoCard gameData={gameData} />
+        {/* 系列赛头部：展示总比分和比赛状态 */}
+        <MatchSeriesHeader seriesInfo={seriesInfo} gameData={gameData} />
 
+        {/* 场次切换器 */}
         <GameSwitcher
           games={seriesInfo?.games || []}
           currentGame={currentGameNumber}
@@ -253,8 +290,17 @@ const MatchDataPage: React.FC = () => {
           isBO1={seriesInfo?.format === 'BO1'}
         />
 
-        <TeamStatsBar blueTeam={gameData.blueTeam} redTeam={gameData.redTeam} />
+        {/* 对局信息卡片 */}
+        <MatchInfoCard gameData={gameData} />
 
+        {/* 队伍数据统计栏 */}
+        <TeamStatsBar
+          blueTeam={gameData.blueTeam}
+          redTeam={gameData.redTeam}
+          bans={gameData.bans}
+        />
+
+        {/* 选手数据列表 */}
         <PlayerStatsList
           bluePlayers={sortedBluePlayers}
           redPlayers={sortedRedPlayers}
@@ -262,6 +308,7 @@ const MatchDataPage: React.FC = () => {
           onToggle={handleTogglePosition}
         />
 
+        {/* 雷达图（展开时显示） */}
         {expandedPosition && topPlayers && (
           <div className="mt-4 max-w-5xl mx-auto">
             <RadarChart
@@ -278,6 +325,7 @@ const MatchDataPage: React.FC = () => {
     );
   };
 
+  // 错误状态
   if (error) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-[#0f0f23] to-[#1a1a2e] text-white">
@@ -305,6 +353,7 @@ const MatchDataPage: React.FC = () => {
     );
   }
 
+  // 加载中状态
   if (loading && !seriesInfo) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-[#0f0f23] to-[#1a1a2e] text-white">
@@ -316,6 +365,7 @@ const MatchDataPage: React.FC = () => {
     );
   }
 
+  // 空数据状态
   if (!loading && !gameData) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-[#0f0f23] to-[#1a1a2e] text-white">
@@ -332,6 +382,7 @@ const MatchDataPage: React.FC = () => {
     );
   }
 
+  // 正常渲染
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#0f0f23] to-[#1a1a2e] text-white">
       <MatchDataHeader

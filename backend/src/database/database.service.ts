@@ -335,6 +335,8 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
         red_towers INTEGER DEFAULT 0,
         red_dragons INTEGER DEFAULT 0,
         red_barons INTEGER DEFAULT 0,
+        red_ban TEXT,                      -- 红方BAN列表，JSON数组格式 ["Aatrox", "Graves", ...]
+        blue_ban TEXT,                     -- 蓝方BAN列表，JSON数组格式 ["Renekton", "LeeSin", ...]
         status INTEGER DEFAULT 1 CHECK(status IN (0, 1)),
         created_by TEXT,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,

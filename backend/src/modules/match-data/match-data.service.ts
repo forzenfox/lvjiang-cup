@@ -6,6 +6,7 @@ import {
   validateMatchInfo,
   validateTeamStats,
   validatePlayerStats,
+  validateTeamNamesMatch,
 } from '../utils/match-excel.util';
 
 @Injectable()
@@ -193,12 +194,13 @@ export class MatchDataService {
       });
     }
 
-    // 获取game数据
+    // 获取game数据（包含BAN信息）
     const game = await this.databaseService.get<any>(
       `SELECT id, match_id, game_number, winner_team_id, game_duration, game_start_time,
               blue_team_id, red_team_id,
               blue_kills, blue_gold, blue_towers, blue_dragons, blue_barons,
-              red_kills, red_gold, red_towers, red_dragons, red_barons
+              red_kills, red_gold, red_towers, red_dragons, red_barons,
+              red_ban, blue_ban
        FROM match_games
        WHERE match_id = ? AND game_number = ? AND status = 1`,
       [matchId, gameNumber],
@@ -272,6 +274,17 @@ export class MatchDataService {
       mvp: ps.mvp === 1,
     }));
 
+    // 解析BAN数据（JSON字符串转数组）
+    const parseBans = (banJson: string | null): string[] => {
+      if (!banJson) return [];
+      try {
+        const parsed = JSON.parse(banJson);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch {
+        return [];
+      }
+    };
+
     // 构建响应
     const response = {
       id: game.id,
@@ -303,6 +316,10 @@ export class MatchDataService {
         dragons: game.red_dragons,
         barons: game.red_barons,
         isWinner: game.winner_team_id === game.red_team_id,
+      },
+      bans: {
+        red: parseBans(game.red_ban),
+        blue: parseBans(game.blue_ban),
       },
       playerStats,
     };
@@ -349,6 +366,34 @@ export class MatchDataService {
       // 解析Excel文件
       const fileBuffer = file.buffer || require('fs').readFileSync(file.path);
       const parsedData = parseMatchDataExcel(fileBuffer);
+
+      // 获取对战中的战队信息
+      const teamA = await this.databaseService.get<any>('SELECT id, name FROM teams WHERE id = ?', [
+        match.team_a_id,
+      ]);
+      const teamB = await this.databaseService.get<any>('SELECT id, name FROM teams WHERE id = ?', [
+        match.team_b_id,
+      ]);
+
+      if (!teamA || !teamB) {
+        throw new NotFoundException('对战中的战队信息不完整');
+      }
+
+      // 验证Excel中的战队名称是否与所选对战中的战队名称一致
+      const teamNamesValidation = validateTeamNamesMatch(
+        parsedData.matchInfo.redTeamName,
+        parsedData.matchInfo.blueTeamName,
+        teamA.name,
+        teamB.name,
+      );
+
+      if (!teamNamesValidation.valid) {
+        throw new BadRequestException({
+          code: 40001,
+          message: '战队名称不匹配',
+          errors: teamNamesValidation.errors,
+        });
+      }
 
       // 验证MatchInfo
       const matchInfoValidation = validateMatchInfo(parsedData.matchInfo);
@@ -460,15 +505,20 @@ export class MatchDataService {
           winnerTeamId = redTeamId;
         }
 
-        // 插入match_games
+        // 准备BAN数据（JSON格式）
+        const redBanJson = JSON.stringify(parsedData.bans.redBans);
+        const blueBanJson = JSON.stringify(parsedData.bans.blueBans);
+
+        // 插入match_games（包含BAN数据）
         const gameResult = await this.databaseService.run(
           `INSERT INTO match_games (
             match_id, game_number, winner_team_id, game_duration, game_start_time,
             blue_team_id, red_team_id,
             blue_kills, blue_gold, blue_towers, blue_dragons, blue_barons,
             red_kills, red_gold, red_towers, red_dragons, red_barons,
+            red_ban, blue_ban,
             status, created_by
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?)`,
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?)`,
           [
             matchId,
             parsedData.matchInfo.gameNumber,
@@ -487,6 +537,8 @@ export class MatchDataService {
             this.getTeamFieldForSide(parsedData.teamStats, 'towers', 'red'),
             this.getTeamFieldForSide(parsedData.teamStats, 'dragons', 'red'),
             this.getTeamFieldForSide(parsedData.teamStats, 'barons', 'red'),
+            redBanJson,
+            blueBanJson,
             adminId,
           ],
         );

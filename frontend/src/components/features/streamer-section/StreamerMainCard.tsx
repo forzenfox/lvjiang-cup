@@ -7,7 +7,29 @@ interface StreamerMainCardProps {
   streamer: Streamer;
 }
 
+/**
+ * 验证主播数据是否完整
+ * @param streamer 主播数据
+ * @returns 数据是否有效
+ */
+const isValidStreamer = (streamer: Streamer | null | undefined): streamer is Streamer => {
+  return !!(
+    streamer &&
+    streamer.posterUrl &&
+    streamer.nickname &&
+    streamer.liveUrl &&
+    typeof streamer.posterUrl === 'string' &&
+    typeof streamer.nickname === 'string' &&
+    typeof streamer.liveUrl === 'string'
+  );
+};
+
 export const StreamerMainCard: React.FC<StreamerMainCardProps> = ({ streamer }) => {
+  // 数据验证：如果数据不完整，返回 null 不渲染
+  if (!isValidStreamer(streamer)) {
+    return null;
+  }
+
   return (
     <Card
       className="bg-white/5 border-white/10 overflow-hidden group cursor-pointer"

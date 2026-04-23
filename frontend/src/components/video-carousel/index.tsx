@@ -29,8 +29,9 @@ export const VideoCarousel: React.FC<VideoCarouselProps> = ({ videos }) => {
 
   const [isCarouselVisible, setIsCarouselVisible] = useState(true);
 
+  // 自动切换功能已禁用
   const { pause: pauseAutoplay } = useAutoplay({
-    enabled: isPC && videos.length > 1,
+    enabled: false,
     onAutoplay: goToNext,
     videoCount: videos.length,
     isMobile,
@@ -92,14 +93,14 @@ export const VideoCarousel: React.FC<VideoCarouselProps> = ({ videos }) => {
       {isMobile ? (
         <div className="flex-1 flex flex-col">
           <div className="flex-1 bg-gray-900 min-h-0">
-            <VideoPlayer video={currentVideo} />
+            <VideoPlayer video={currentVideo} autoplay={false} />
           </div>
           {showControls && (
             <Indicator videos={videos} currentIndex={currentIndex} onSelect={setCurrentIndex} />
           )}
         </div>
       ) : (
-        <div className="flex-1 flex items-center gap-4 min-h-0">
+        <div className={`flex-1 flex items-center min-h-0 ${showThumbnails ? 'gap-4' : 'justify-center'}`}>
           {showThumbnails && (
             <div className="w-[20%] h-full flex items-center">
               <VideoThumbnail
@@ -112,10 +113,10 @@ export const VideoCarousel: React.FC<VideoCarouselProps> = ({ videos }) => {
           )}
 
           <div
-            className={`flex-1 relative h-full flex flex-col justify-center ${showThumbnails ? 'max-w-[60%]' : isSmallVideoCount ? 'max-w-4xl' : 'max-w-full'}`}
+            className={`relative h-full flex flex-col justify-center ${showThumbnails ? 'flex-1 max-w-[60%]' : isSmallVideoCount ? 'w-full max-w-5xl mx-auto' : 'w-full max-w-full'}`}
           >
             <div
-              className={`w-full bg-gray-900 ${isSmallVideoCount ? 'max-h-[70vh]' : 'aspect-video'}`}
+              className={`w-full bg-gray-900 mx-auto ${isSmallVideoCount ? 'max-h-[70vh] aspect-video' : 'aspect-video'}`}
             >
               <VideoPlayer video={currentVideo} autoplay={false} isVisible={isCarouselVisible} />
             </div>

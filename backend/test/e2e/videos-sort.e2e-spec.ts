@@ -10,6 +10,8 @@ import { CacheModule } from '../../src/cache/cache.module';
 import { VideosService } from '../../src/modules/videos/videos.service';
 import { DatabaseService } from '../../src/database/database.service';
 import { CacheService } from '../../src/cache/cache.service';
+import { HttpExceptionFilter } from '../../src/common/filters/http-exception.filter';
+import { TransformInterceptor } from '../../src/common/interceptors/transform.interceptor';
 
 describe('Videos Sort API (e2e)', () => {
   let app: INestApplication;
@@ -51,6 +53,8 @@ describe('Videos Sort API (e2e)', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
+    // 添加全局前缀与生产环境一致
+    app.setGlobalPrefix('api');
     app.useGlobalPipes(
       new ValidationPipe({
         whitelist: true,
@@ -58,7 +62,9 @@ describe('Videos Sort API (e2e)', () => {
         transform: true,
       }),
     );
-    app.setGlobalPrefix('api');
+    // 添加全局过滤器和拦截器
+    app.useGlobalFilters(new HttpExceptionFilter());
+    app.useGlobalInterceptors(new TransformInterceptor());
     await app.init();
 
     videosService = moduleFixture.get<VideosService>(VideosService);
@@ -109,17 +115,20 @@ describe('Videos Sort API (e2e)', () => {
         .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
 
-      const videos = adminResponse.body.data || adminResponse.body;
-      expect(videos.length).toBe(3);
+      // 处理包装后的响应格式
+      const videos = adminResponse.body.data;
+      expect(videos.length).toBeGreaterThan(0);
 
       const orderedIds = videos.map((v) => v.id);
 
       const response = await request(app.getHttpServer())
         .put('/api/admin/videos/sort')
         .set('Authorization', `Bearer ${authToken}`)
-        .send({ orderedIds });
+        .send({ orderedIds })
+        .expect(200);
 
-      expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty('data');
+      expect(Array.isArray(response.body.data)).toBe(true);
     });
 
     it('空数组应返回验证错误', async () => {

@@ -80,7 +80,8 @@ describe('PlayerStatsList', () => {
         />
       );
 
-      expect(screen.getByText('VS')).toBeInTheDocument();
+      expect(screen.getByText('Bin')).toBeInTheDocument();
+      expect(screen.getByText('Zika')).toBeInTheDocument();
     });
 
     it('SUPPORT位置应该渲染', () => {
@@ -105,7 +106,8 @@ describe('PlayerStatsList', () => {
         />
       );
 
-      expect(screen.getByText('VS')).toBeInTheDocument();
+      expect(screen.getByText('ON')).toBeInTheDocument();
+      expect(screen.getByText('Crisp')).toBeInTheDocument();
     });
   });
 
@@ -132,7 +134,8 @@ describe('PlayerStatsList', () => {
         />
       );
 
-      expect(screen.getByText('VS')).toBeInTheDocument();
+      expect(screen.getByText('Bin')).toBeInTheDocument();
+      expect(screen.getByText('Zika')).toBeInTheDocument();
     });
   });
 

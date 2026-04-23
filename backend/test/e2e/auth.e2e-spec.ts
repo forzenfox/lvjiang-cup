@@ -6,6 +6,8 @@ import { AuthModule } from '../../src/modules/auth/auth.module';
 import { TeamsModule } from '../../src/modules/teams/teams.module';
 import { DatabaseModule } from '../../src/database/database.module';
 import { CacheModule } from '../../src/cache/cache.module';
+import { HttpExceptionFilter } from '../../src/common/filters/http-exception.filter';
+import { TransformInterceptor } from '../../src/common/interceptors/transform.interceptor';
 
 describe('Auth API (e2e)', () => {
   let app: INestApplication;
@@ -46,6 +48,8 @@ describe('Auth API (e2e)', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
+    // 添加全局前缀与生产环境一致
+    app.setGlobalPrefix('api');
     app.useGlobalPipes(
       new ValidationPipe({
         whitelist: true,
@@ -53,6 +57,9 @@ describe('Auth API (e2e)', () => {
         transform: true,
       }),
     );
+    // 添加全局过滤器和拦截器
+    app.useGlobalFilters(new HttpExceptionFilter());
+    app.useGlobalInterceptors(new TransformInterceptor());
     await app.init();
   });
 
@@ -65,26 +72,27 @@ describe('Auth API (e2e)', () => {
   describe('POST /api/admin/auth/login', () => {
     it('成功 - 应该成功登录并返回 token', async () => {
       const response = await request(app.getHttpServer())
-        .post('/admin/auth/login')
+        .post('/api/admin/auth/login')
         .send({
           username: 'admin',
           password: 'admin123',
         })
         .expect(201);
 
-      expect(response.body).toHaveProperty('access_token');
-      expect(response.body).toHaveProperty('token_type');
-      expect(response.body.token_type).toBe('Bearer');
+      expect(response.body).toHaveProperty('data');
+      expect(response.body.data).toHaveProperty('access_token');
+      expect(response.body.data).toHaveProperty('token_type');
+      expect(response.body.data.token_type).toBe('Bearer');
 
-      authToken = response.body.access_token;
-      if (response.body.refresh_token) {
-        refreshToken = response.body.refresh_token;
+      authToken = response.body.data.access_token;
+      if (response.body.data.refresh_token) {
+        refreshToken = response.body.data.refresh_token;
       }
     });
 
     it('失败 - 应该拒绝错误密码', async () => {
       const response = await request(app.getHttpServer())
-        .post('/admin/auth/login')
+        .post('/api/admin/auth/login')
         .send({
           username: 'admin',
           password: 'wrongpassword',
@@ -97,7 +105,7 @@ describe('Auth API (e2e)', () => {
 
     it('失败 - 应该拒绝错误用户名', async () => {
       const response = await request(app.getHttpServer())
-        .post('/admin/auth/login')
+        .post('/api/admin/auth/login')
         .send({
           username: 'wronguser',
           password: 'admin123',
@@ -110,7 +118,7 @@ describe('Auth API (e2e)', () => {
 
     it('失败 - 应该拒绝缺少用户名', async () => {
       const response = await request(app.getHttpServer())
-        .post('/admin/auth/login')
+        .post('/api/admin/auth/login')
         .send({
           password: 'admin123',
         })
@@ -122,7 +130,7 @@ describe('Auth API (e2e)', () => {
 
     it('失败 - 应该拒绝缺少密码', async () => {
       const response = await request(app.getHttpServer())
-        .post('/admin/auth/login')
+        .post('/api/admin/auth/login')
         .send({
           username: 'admin',
         })
@@ -134,7 +142,7 @@ describe('Auth API (e2e)', () => {
 
     it('失败 - 应该拒绝空请求体', async () => {
       const response = await request(app.getHttpServer())
-        .post('/admin/auth/login')
+        .post('/api/admin/auth/login')
         .send({})
         .expect(400);
 
@@ -146,7 +154,7 @@ describe('Auth API (e2e)', () => {
   describe('Protected Routes - 受保护接口测试', () => {
     it('无 token - 应该拒绝访问受保护路由', async () => {
       const response = await request(app.getHttpServer())
-        .post('/admin/teams')
+        .post('/api/admin/teams')
         .send({
           name: '测试战队',
         })
@@ -158,7 +166,7 @@ describe('Auth API (e2e)', () => {
 
     it('无效 token - 应该拒绝访问受保护路由', async () => {
       const response = await request(app.getHttpServer())
-        .post('/admin/teams')
+        .post('/api/admin/teams')
         .set('Authorization', 'Bearer invalid-token')
         .send({
           name: '测试战队',
@@ -175,7 +183,7 @@ describe('Auth API (e2e)', () => {
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJleHAiOjE1MTYyMzkwMjJ9.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c';
 
       const response = await request(app.getHttpServer())
-        .post('/admin/teams')
+        .post('/api/admin/teams')
         .set('Authorization', `Bearer ${expiredToken}`)
         .send({
           name: '测试战队',
@@ -188,7 +196,7 @@ describe('Auth API (e2e)', () => {
 
     it('错误格式 token - 应该拒绝访问受保护路由', async () => {
       const response = await request(app.getHttpServer())
-        .post('/admin/teams')
+        .post('/api/admin/teams')
         .set('Authorization', 'Basic admin:admin123')
         .send({
           name: '测试战队',
@@ -201,16 +209,16 @@ describe('Auth API (e2e)', () => {
 
     it('有效 token - 应该允许访问受保护路由', async () => {
       // 先登录获取 token
-      const loginResponse = await request(app.getHttpServer()).post('/admin/auth/login').send({
+      const loginResponse = await request(app.getHttpServer()).post('/api/admin/auth/login').send({
         username: 'admin',
         password: 'admin123',
       });
 
-      const token = loginResponse.body.access_token;
+      const token = loginResponse.body.data.access_token;
 
       // 访问受保护的路由（例如 teams）
       const response = await request(app.getHttpServer())
-        .get('/teams')
+        .get('/api/teams')
         .set('Authorization', `Bearer ${token}`)
         .expect(200);
 
@@ -222,16 +230,16 @@ describe('Auth API (e2e)', () => {
   describe('Token Refresh - token 刷新', () => {
     it('应该成功刷新 access token', async () => {
       // 先登录获取 token
-      const loginResponse = await request(app.getHttpServer()).post('/admin/auth/login').send({
+      const loginResponse = await request(app.getHttpServer()).post('/api/admin/auth/login').send({
         username: 'admin',
         password: 'admin123',
       });
 
-      const currentToken = loginResponse.body.access_token;
+      const currentToken = loginResponse.body.data.access_token;
 
       // 使用当前token访问受保护接口，验证token有效
       const response = await request(app.getHttpServer())
-        .get('/teams')
+        .get('/api/teams')
         .set('Authorization', `Bearer ${currentToken}`)
         .expect(200);
 
@@ -241,18 +249,18 @@ describe('Auth API (e2e)', () => {
 
     it('应该拒绝使用已注销的 token', async () => {
       // 先登录获取 token
-      const loginResponse = await request(app.getHttpServer()).post('/admin/auth/login').send({
+      const loginResponse = await request(app.getHttpServer()).post('/api/admin/auth/login').send({
         username: 'admin',
         password: 'admin123',
       });
 
-      const token = loginResponse.body.access_token;
+      const token = loginResponse.body.data.access_token;
 
       // 如果有注销端点，先注销
       // 然后验证token是否失效
       // 这里假设token在有效期内仍然可以使用
       const response = await request(app.getHttpServer())
-        .get('/teams')
+        .get('/api/teams')
         .set('Authorization', `Bearer ${token}`)
         .expect(200);
 
@@ -264,16 +272,16 @@ describe('Auth API (e2e)', () => {
   describe('Token Logout - token 注销', () => {
     it('应该成功注销并失效token', async () => {
       // 先登录获取 token
-      const loginResponse = await request(app.getHttpServer()).post('/admin/auth/login').send({
+      const loginResponse = await request(app.getHttpServer()).post('/api/admin/auth/login').send({
         username: 'admin',
         password: 'admin123',
       });
 
-      const token = loginResponse.body.access_token;
+      const token = loginResponse.body.data.access_token;
 
       // 验证token有效
       const response = await request(app.getHttpServer())
-        .get('/teams')
+        .get('/api/teams')
         .set('Authorization', `Bearer ${token}`)
         .expect(200);
 
@@ -291,7 +299,7 @@ describe('Auth API (e2e)', () => {
       const loginPromises = Array(5)
         .fill(null)
         .map(() =>
-          request(app.getHttpServer()).post('/admin/auth/login').send({
+          request(app.getHttpServer()).post('/api/admin/auth/login').send({
             username: 'admin',
             password: 'admin123',
           }),
@@ -302,13 +310,14 @@ describe('Auth API (e2e)', () => {
       // 所有请求都应该成功
       responses.forEach((response) => {
         expect(response.status).toBe(201);
-        expect(response.body).toHaveProperty('access_token');
-        expect(response.body).toHaveProperty('token_type');
-        expect(response.body.token_type).toBe('Bearer');
+        expect(response.body).toHaveProperty('data');
+        expect(response.body.data).toHaveProperty('access_token');
+        expect(response.body.data).toHaveProperty('token_type');
+        expect(response.body.data.token_type).toBe('Bearer');
       });
 
       // 验证所有token都是有效的（由于JWT包含时间戳，理论上应该不同）
-      const tokens = responses.map((r) => r.body.access_token);
+      const tokens = responses.map((r) => r.body.data.access_token);
       // 注意：如果后端使用mock JWT，token可能相同
       expect(tokens.length).toBe(5);
       expect(tokens.every((t) => typeof t === 'string' && t.length > 0)).toBe(true);
@@ -318,13 +327,13 @@ describe('Auth API (e2e)', () => {
       // 同时发起正确和错误的登录请求
       const promises = [
         request(app.getHttpServer())
-          .post('/admin/auth/login')
+          .post('/api/admin/auth/login')
           .send({ username: 'admin', password: 'admin123' }),
         request(app.getHttpServer())
-          .post('/admin/auth/login')
+          .post('/api/admin/auth/login')
           .send({ username: 'admin', password: 'wrongpassword' }),
         request(app.getHttpServer())
-          .post('/admin/auth/login')
+          .post('/api/admin/auth/login')
           .send({ username: 'wronguser', password: 'admin123' }),
       ];
 
@@ -332,7 +341,8 @@ describe('Auth API (e2e)', () => {
 
       // 第一个请求应该成功
       expect(responses[0].status).toBe(201);
-      expect(responses[0].body).toHaveProperty('access_token');
+      expect(responses[0].body).toHaveProperty('data');
+      expect(responses[0].body.data).toHaveProperty('access_token');
 
       // 其他请求应该失败
       expect(responses[1].status).toBe(401);

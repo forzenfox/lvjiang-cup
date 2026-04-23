@@ -32,17 +32,20 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
     const observer = new IntersectionObserver(
       entries => {
         entries.forEach(entry => {
-          // 当视频容器可见度超过 30% 时，才加载 iframe
-          if (entry.isIntersecting && entry.intersectionRatio >= 0.3) {
+          // 当视频容器可见度超过 10% 时，加载 iframe
+          // 降低阈值以确保视频能够更快加载
+          if (entry.isIntersecting && entry.intersectionRatio >= 0.1) {
             setIsInViewport(true);
-          } else {
+          }
+          // 只有在完全不在视口内时才隐藏 iframe
+          else if (!entry.isIntersecting) {
             setIsInViewport(false);
           }
         });
       },
       {
-        threshold: [0, 0.3, 0.5, 1],
-        rootMargin: '0px',
+        threshold: [0, 0.1, 0.3, 0.5, 1],
+        rootMargin: '50px',
       }
     );
 
@@ -53,23 +56,33 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
     };
   }, []);
 
-  // 当视频切换时，重置可见状态
+  // 当视频切换时，检查新视频是否在视口中
   useEffect(() => {
-    setIsInViewport(false);
-    // 延迟检查新视频是否在视口中
-    const timer = setTimeout(() => {
+    // 使用 requestAnimationFrame 确保 DOM 已更新
+    const checkViewport = () => {
       if (containerRef.current) {
         const rect = containerRef.current.getBoundingClientRect();
-        const inViewport = rect.top < window.innerHeight && rect.bottom > 0;
+        const windowHeight = window.innerHeight;
+        // 降低阈值：只要容器有一部分在视口内（考虑 rootMargin）就显示
+        const inViewport = rect.top < windowHeight + 100 && rect.bottom > -100;
         if (inViewport) {
           setIsInViewport(true);
+        } else {
+          setIsInViewport(false);
         }
       }
-    }, 100);
+    };
+
+    // 立即检查一次
+    checkViewport();
+
+    // 延迟再次检查，确保布局稳定
+    const timer = setTimeout(checkViewport, 150);
     return () => clearTimeout(timer);
   }, [video.bvid]);
 
-  const src = `https://player.bilibili.com/player.html?bvid=${video.bvid}${autoplay ? '&autoplay=1' : ''}${muted ? '&muted=1' : ''}`;
+  // 明确设置 autoplay=0 以确保视频默认不自动播放
+  const src = `https://player.bilibili.com/player.html?bvid=${video.bvid}&autoplay=${autoplay ? '1' : '0'}${muted ? '&muted=1' : ''}`;
 
   // 只有在视口内且轮播组件可见时才显示 iframe
   const shouldShowIframe = isInViewport && isVisible;

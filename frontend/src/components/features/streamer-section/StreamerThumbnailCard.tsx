@@ -6,10 +6,30 @@ interface StreamerThumbnailCardProps {
   onClick: () => void;
 }
 
+/**
+ * 验证主播数据是否完整
+ * @param streamer 主播数据
+ * @returns 数据是否有效
+ */
+const isValidStreamer = (streamer: Streamer | null | undefined): streamer is Streamer => {
+  return !!(
+    streamer &&
+    streamer.posterUrl &&
+    streamer.nickname &&
+    typeof streamer.posterUrl === 'string' &&
+    typeof streamer.nickname === 'string'
+  );
+};
+
 export const StreamerThumbnailCard: React.FC<StreamerThumbnailCardProps> = ({
   streamer,
   onClick,
 }) => {
+  // 数据验证：如果数据不完整，返回 null 不渲染
+  if (!isValidStreamer(streamer)) {
+    return null;
+  }
+
   return (
     <button
       onClick={onClick}

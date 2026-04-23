@@ -7,6 +7,7 @@ import {
   validateMatchInfo,
   validateTeamStats,
   validatePlayerStats,
+  validateTeamNamesMatch,
 } from '../../src/modules/utils/match-excel.util';
 
 describe('match-excel.util', () => {
@@ -79,6 +80,32 @@ describe('match-excel.util', () => {
       ['blue', 'SUPPORT', 'Crisp', '烈娜塔', 3, 6, 5, 38, 9800, 7500, 18000, 14, 82, 20, 20],
     ];
 
+    // BAN数据
+    const banHeaders = [
+      '红方BAN1',
+      '红方BAN2',
+      '红方BAN3',
+      '红方BAN4',
+      '红方BAN5',
+      '蓝方BAN1',
+      '蓝方BAN2',
+      '蓝方BAN3',
+      '蓝方BAN4',
+      '蓝方BAN5',
+    ];
+    const banData = [
+      '亚托克斯',
+      '格雷福斯',
+      '阿狸',
+      '卡莎',
+      '锤石',
+      '雷克顿',
+      '李青',
+      '辛德拉',
+      '厄斐琉斯',
+      '蕾欧娜',
+    ];
+
     // 构建完整的数据
     const data = [
       matchInfoHeaders,
@@ -89,6 +116,8 @@ describe('match-excel.util', () => {
       playerStatsHeaders,
       ...redPlayers,
       ...bluePlayers,
+      banHeaders,
+      banData,
     ];
 
     const worksheet = xlsx.utils.aoa_to_sheet(data);
@@ -233,6 +262,21 @@ describe('match-excel.util', () => {
       ];
 
       // 构建16行的数据，用空字符串填充缺失的选手行
+      // BAN数据（填充空行）
+      const banHeaders = [
+        '红方BAN1',
+        '红方BAN2',
+        '红方BAN3',
+        '红方BAN4',
+        '红方BAN5',
+        '蓝方BAN1',
+        '蓝方BAN2',
+        '蓝方BAN3',
+        '蓝方BAN4',
+        '蓝方BAN5',
+      ];
+      const banData = ['', '', '', '', '', '', '', '', '', ''];
+
       const data = [
         matchInfoHeaders,
         matchInfoData,
@@ -246,6 +290,8 @@ describe('match-excel.util', () => {
         ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
         ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
         ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+        banHeaders,
+        banData,
       ];
 
       const worksheet = xlsx.utils.aoa_to_sheet(data);
@@ -313,6 +359,21 @@ describe('match-excel.util', () => {
         ['blue', 'SUPPORT', 'Crisp', '烈娜塔', 3, 6, 5, 38, 9800, 7500, 18000, 14, 82, 20, 20],
       ];
 
+      // BAN数据（填充空行）
+      const banHeaders = [
+        '红方BAN1',
+        '红方BAN2',
+        '红方BAN3',
+        '红方BAN4',
+        '红方BAN5',
+        '蓝方BAN1',
+        '蓝方BAN2',
+        '蓝方BAN3',
+        '蓝方BAN4',
+        '蓝方BAN5',
+      ];
+      const banData = ['', '', '', '', '', '', '', '', '', ''];
+
       const data = [
         matchInfoHeaders,
         matchInfoData,
@@ -321,6 +382,8 @@ describe('match-excel.util', () => {
         ['', '', '', '', '', '', '', '', ''],
         playerStatsHeaders,
         ...redPlayers,
+        banHeaders,
+        banData,
       ];
 
       const worksheet = xlsx.utils.aoa_to_sheet(data);
@@ -509,6 +572,82 @@ describe('match-excel.util', () => {
       const result = validatePlayerStats(invalidData, 7);
       expect(result.valid).toBe(false);
       expect(result.errors[0]).toContain('等级必须在1-18之间');
+    });
+  });
+
+  describe('validateTeamNamesMatch', () => {
+    it('应该验证战队名称完全匹配（红方=A，蓝方=B）', () => {
+      const result = validateTeamNamesMatch('BLG', 'WBG', 'BLG', 'WBG');
+      expect(result.valid).toBe(true);
+      expect(result.errors).toHaveLength(0);
+    });
+
+    it('应该验证战队名称完全匹配（红方=B，蓝方=A）', () => {
+      const result = validateTeamNamesMatch('WBG', 'BLG', 'BLG', 'WBG');
+      expect(result.valid).toBe(true);
+      expect(result.errors).toHaveLength(0);
+    });
+
+    it('应该支持忽略大小写的匹配', () => {
+      const result = validateTeamNamesMatch('blg', 'wbg', 'BLG', 'WBG');
+      expect(result.valid).toBe(true);
+      expect(result.errors).toHaveLength(0);
+    });
+
+    it('应该支持忽略前后空格的匹配', () => {
+      const result = validateTeamNamesMatch('  BLG  ', '  WBG  ', 'BLG', 'WBG');
+      expect(result.valid).toBe(true);
+      expect(result.errors).toHaveLength(0);
+    });
+
+    it('当红方战队名不匹配时应返回错误', () => {
+      const result = validateTeamNamesMatch('T1', 'WBG', 'BLG', 'WBG');
+      expect(result.valid).toBe(false);
+      expect(result.errors).toContain(
+        'Excel中的红方战队名"T1"与所选对战中的战队名称不匹配。所选对战为：BLG vs WBG',
+      );
+    });
+
+    it('当蓝方战队名不匹配时应返回错误', () => {
+      const result = validateTeamNamesMatch('BLG', 'T1', 'BLG', 'WBG');
+      expect(result.valid).toBe(false);
+      expect(result.errors).toContain(
+        'Excel中的蓝方战队名"T1"与所选对战中的战队名称不匹配。所选对战为：BLG vs WBG',
+      );
+    });
+
+    it('当双方战队名都不匹配时应返回两个错误', () => {
+      const result = validateTeamNamesMatch('T1', 'GEN', 'BLG', 'WBG');
+      expect(result.valid).toBe(false);
+      expect(result.errors).toHaveLength(2);
+      expect(result.errors[0]).toContain('红方战队名');
+      expect(result.errors[1]).toContain('蓝方战队名');
+    });
+
+    it('当红方和蓝方战队名相同时应返回错误', () => {
+      const result = validateTeamNamesMatch('BLG', 'BLG', 'BLG', 'WBG');
+      expect(result.valid).toBe(false);
+      expect(result.errors).toContain('Excel中的红方战队名和蓝方战队名不能相同');
+    });
+
+    it('当红方和蓝方都匹配同一个战队时应返回错误', () => {
+      const result = validateTeamNamesMatch('BLG', 'BLG', 'BLG', 'WBG');
+      expect(result.valid).toBe(false);
+      expect(result.errors.some((e) => e.includes('不能同时匹配同一个战队'))).toBe(true);
+    });
+
+    it('应该处理中文战队名称', () => {
+      const result = validateTeamNamesMatch('驴酱', 'IC', '驴酱', 'IC');
+      expect(result.valid).toBe(true);
+      expect(result.errors).toHaveLength(0);
+    });
+
+    it('当导入文件战队与所选对战完全不同时应拒绝', () => {
+      const result = validateTeamNamesMatch('BLG', 'WBG', '驴酱', 'IC');
+      expect(result.valid).toBe(false);
+      expect(result.errors).toHaveLength(2);
+      expect(result.errors[0]).toContain('红方战队名');
+      expect(result.errors[0]).toContain('驴酱 vs IC');
     });
   });
 });

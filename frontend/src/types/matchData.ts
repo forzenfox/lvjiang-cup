@@ -97,6 +97,16 @@ export interface PlayerStat {
 }
 
 /**
+ * BAN数据
+ */
+export interface BanData {
+  /** 红色方BAN列表（英雄英文ID） */
+  red: string[];
+  /** 蓝色方BAN列表（英雄英文ID） */
+  blue: string[];
+}
+
+/**
  * 单局对战完整数据
  */
 export interface MatchGameData {
@@ -116,6 +126,8 @@ export interface MatchGameData {
   blueTeam: TeamGameData;
   /** 红色方战队数据 */
   redTeam: TeamGameData;
+  /** BAN数据 */
+  bans?: BanData;
   /** 选手统计数据列表 */
   playerStats: PlayerStat[];
 }

@@ -7,14 +7,30 @@ interface StreamerIndicatorProps {
   onSelect: (index: number) => void;
 }
 
+/**
+ * 验证主播数据是否有效（用于指示器渲染）
+ * @param streamer 主播数据
+ * @returns 数据是否有效
+ */
+const isValidIndicatorStreamer = (streamer: Streamer | null | undefined): streamer is Streamer => {
+  return !!(
+    streamer &&
+    streamer.id &&
+    typeof streamer.id === 'string'
+  );
+};
+
 export const StreamerIndicator: React.FC<StreamerIndicatorProps> = ({
   streamers,
   currentIndex,
   onSelect,
 }) => {
+  // 过滤掉无效的主播数据
+  const validStreamers = streamers.filter(isValidIndicatorStreamer);
+
   return (
     <div className="flex justify-center gap-3 p-5" data-testid="streamer-indicator">
-      {streamers.map((streamer, index) => (
+      {validStreamers.map((streamer, index) => (
         <button
           key={streamer.id}
           onClick={() => onSelect(index)}
@@ -24,7 +40,7 @@ export const StreamerIndicator: React.FC<StreamerIndicatorProps> = ({
               : 'bg-gray-500 hover:bg-gray-400'
           }`}
           data-testid="indicator-dot"
-          aria-label={`跳转到主播 ${streamer.nickname}`}
+          aria-label={`跳转到主播 ${streamer.nickname || '未知'}`}
         />
       ))}
     </div>

@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest';
 import type { SponsorConfig, StaffConfig, ThanksData } from '@/data/types';
-import thanksData from '@/data/thanks-data.json';
 
 describe('类型定义测试', () => {
   describe('SponsorConfig 接口', () => {
@@ -72,18 +71,18 @@ describe('类型定义测试', () => {
   });
 });
 
-describe('thanks-data.json 数据验证', () => {
+describe('THANKS_DATA 数据验证', () => {
   it('应该包含 sponsors 数组', () => {
-    expect(Array.isArray(thanksData.sponsors)).toBe(true);
-    expect(thanksData.sponsors.length).toBeGreaterThan(0);
+    expect(Array.isArray(window.THANKS_DATA.sponsors)).toBe(true);
+    expect(window.THANKS_DATA.sponsors.length).toBeGreaterThan(0);
   });
 
   it('应该包含 staff 数组', () => {
-    expect(Array.isArray(thanksData.staff)).toBe(true);
+    expect(Array.isArray(window.THANKS_DATA.staff)).toBe(true);
   });
 
   it('每个赞助商应该有正确的字段类型', () => {
-    thanksData.sponsors.forEach(sponsor => {
+    window.THANKS_DATA.sponsors.forEach(sponsor => {
       expect(typeof sponsor.id).toBe('number');
       expect(typeof sponsor.sponsorName).toBe('string');
       expect(typeof sponsor.sponsorContent).toBe('string');
@@ -94,7 +93,7 @@ describe('thanks-data.json 数据验证', () => {
   });
 
   it('每个工作人员应该有正确的字段类型', () => {
-    thanksData.staff.forEach(staff => {
+    window.THANKS_DATA.staff.forEach(staff => {
       expect(typeof staff.id).toBe('number');
       expect(typeof staff.name).toBe('string');
       expect(typeof staff.role).toBe('string');
@@ -102,23 +101,23 @@ describe('thanks-data.json 数据验证', () => {
   });
 
   it('赞助商 ID 应该是唯一的', () => {
-    const ids = thanksData.sponsors.map(s => s.id);
+    const ids = window.THANKS_DATA.sponsors.map(s => s.id);
     const uniqueIds = new Set(ids);
     expect(uniqueIds.size).toBe(ids.length);
   });
 
   it('工作人员 ID 应该是唯一的', () => {
-    const ids = thanksData.staff.map(s => s.id);
+    const ids = window.THANKS_DATA.staff.map(s => s.id);
     const uniqueIds = new Set(ids);
     expect(uniqueIds.size).toBe(ids.length);
   });
 
   it('应该有 20 条赞助数据', () => {
-    expect(thanksData.sponsors).toHaveLength(20);
+    expect(window.THANKS_DATA.sponsors).toHaveLength(20);
   });
 
   it('部分赞助商应该有 specialAward 字段', () => {
-    const sponsorsWithAward = thanksData.sponsors.filter(s => s.specialAward);
+    const sponsorsWithAward = window.THANKS_DATA.sponsors.filter(s => s.specialAward);
     expect(sponsorsWithAward.length).toBeGreaterThan(0);
   });
 });

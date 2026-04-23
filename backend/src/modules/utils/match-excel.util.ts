@@ -44,10 +44,16 @@ export interface PlayerStatsData {
   wardsCleared: number;
 }
 
+export interface BanData {
+  redBans: string[]; // 红方BAN的英雄ID列表
+  blueBans: string[]; // 蓝方BAN的英雄ID列表
+}
+
 export interface ParsedMatchData {
   matchInfo: MatchInfoData;
   teamStats: TeamStatsData[];
   playerStats: PlayerStatsData[];
+  bans: BanData;
 }
 
 export interface ValidationResult {
@@ -255,6 +261,74 @@ export function matchChampionName(championName: string): string | null {
   return championId;
 }
 
+/**
+ * 验证Excel中的战队名称是否与所选对战中的战队名称一致
+ * @param excelRedTeamName Excel中的红方战队名
+ * @param excelBlueTeamName Excel中的蓝方战队名
+ * @param matchTeamNameA 对战中战队A的名称
+ * @param matchTeamNameB 对战中战队B的名称
+ * @returns 验证结果
+ */
+export function validateTeamNamesMatch(
+  excelRedTeamName: string,
+  excelBlueTeamName: string,
+  matchTeamNameA: string,
+  matchTeamNameB: string,
+): ValidationResult {
+  const errors: string[] = [];
+
+  // 标准化战队名称（去除空格，统一大小写）
+  const normalize = (name: string) => name.trim().toLowerCase();
+
+  const excelRed = normalize(excelRedTeamName);
+  const excelBlue = normalize(excelBlueTeamName);
+  const matchA = normalize(matchTeamNameA);
+  const matchB = normalize(matchTeamNameB);
+
+  // 验证Excel中的红方战队名是否匹配对战中的某个战队
+  const redMatchesA = excelRed === matchA;
+  const redMatchesB = excelRed === matchB;
+
+  if (!redMatchesA && !redMatchesB) {
+    errors.push(
+      `Excel中的红方战队名"${excelRedTeamName}"与所选对战中的战队名称不匹配。所选对战为：${matchTeamNameA} vs ${matchTeamNameB}`,
+    );
+  }
+
+  // 验证Excel中的蓝方战队名是否匹配对战中的某个战队
+  const blueMatchesA = excelBlue === matchA;
+  const blueMatchesB = excelBlue === matchB;
+
+  if (!blueMatchesA && !blueMatchesB) {
+    errors.push(
+      `Excel中的蓝方战队名"${excelBlueTeamName}"与所选对战中的战队名称不匹配。所选对战为：${matchTeamNameA} vs ${matchTeamNameB}`,
+    );
+  }
+
+  // 验证红方和蓝方不能是同一个战队
+  if (excelRed === excelBlue) {
+    errors.push('Excel中的红方战队名和蓝方战队名不能相同');
+  }
+
+  // 验证红方和蓝方必须分别匹配对战中的两个不同战队
+  const redValid = redMatchesA || redMatchesB;
+  const blueValid = blueMatchesA || blueMatchesB;
+
+  if (redValid && blueValid) {
+    // 检查是否红方和蓝方匹配了同一个战队
+    const bothMatchA = redMatchesA && blueMatchesA;
+    const bothMatchB = redMatchesB && blueMatchesB;
+
+    if (bothMatchA || bothMatchB) {
+      errors.push(
+        `Excel中的红方战队名"${excelRedTeamName}"和蓝方战队名"${excelBlueTeamName}"不能同时匹配同一个战队。所选对战为：${matchTeamNameA} vs ${matchTeamNameB}`,
+      );
+    }
+  }
+
+  return { valid: errors.length === 0, errors };
+}
+
 // ============= Excel解析核心函数 =============
 
 export function parseMatchDataExcel(buffer: Buffer): ParsedMatchData {
@@ -268,8 +342,8 @@ export function parseMatchDataExcel(buffer: Buffer): ParsedMatchData {
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
     const jsonData = xlsx.utils.sheet_to_json<any[]>(sheet, { header: 1, defval: null });
 
-    if (jsonData.length < 16) {
-      throw new Error(`Excel文件行数不足，当前${jsonData.length}行，应为16行`);
+    if (jsonData.length < 18) {
+      throw new Error(`Excel文件行数不足，当前${jsonData.length}行，应为18行（包含BAN数据）`);
     }
 
     // 解析第2行: MatchInfo数据
@@ -313,7 +387,10 @@ export function parseMatchDataExcel(buffer: Buffer): ParsedMatchData {
       throw new Error(`选手数据不完整，应为10行，实际${playerStats.length}行`);
     }
 
-    return { matchInfo, teamStats, playerStats };
+    // 解析第17-18行: BAN数据（新增）
+    const bans = parseBansRow(jsonData[16], jsonData[17]);
+
+    return { matchInfo, teamStats, playerStats, bans };
   } catch (error) {
     if (error instanceof Error) {
       throw error;
@@ -367,4 +444,54 @@ function parsePlayerStatsRow(row: any[], _rowIndex: number): PlayerStatsData {
     wardsPlaced: extractNumericValue(row[13]),
     wardsCleared: extractNumericValue(row[14]),
   };
+}
+
+// ============= BAN数据解析函数 =============
+
+/**
+ * 解析BAN数据行
+ * @param headerRow 第17行（表头）
+ * @param dataRow 第18行（数据）
+ * @returns BanData对象
+ */
+function parseBansRow(headerRow: any[] | undefined, dataRow: any[] | undefined): BanData {
+  // 如果没有BAN数据行，返回空数组
+  if (!dataRow || dataRow.length === 0) {
+    return { redBans: [], blueBans: [] };
+  }
+
+  const redBans: string[] = [];
+  const blueBans: string[] = [];
+
+  // 解析前5列为红方BAN
+  for (let i = 0; i < 5; i++) {
+    const ban = extractCellValue(dataRow[i]);
+    if (ban) {
+      // 将中文英雄名转换为英文ID
+      const championId = findChampionId(ban);
+      if (championId) {
+        redBans.push(championId);
+      } else {
+        // 如果找不到映射，使用原始值（假设已是英文ID）
+        redBans.push(ban);
+      }
+    }
+  }
+
+  // 解析后5列为蓝方BAN
+  for (let i = 5; i < 10; i++) {
+    const ban = extractCellValue(dataRow[i]);
+    if (ban) {
+      // 将中文英雄名转换为英文ID
+      const championId = findChampionId(ban);
+      if (championId) {
+        blueBans.push(championId);
+      } else {
+        // 如果找不到映射，使用原始值（假设已是英文ID）
+        blueBans.push(ban);
+      }
+    }
+  }
+
+  return { redBans, blueBans };
 }

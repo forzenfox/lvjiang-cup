@@ -53,6 +53,8 @@ describe('MatchExcelUtil', () => {
         ['blue', 'MID', 'Rookie', '阿狸', 5, 6, 7, 312, 16800, 25000, 19000, 17, 38, 5, 2],
         ['blue', 'ADC', 'Hope', '厄斐琉斯', 6, 5, 6, 352, 17500, 28000, 22000, 18, 32, 3, 1],
         ['blue', 'SUPPORT', 'Crisp', '烈娜塔', 3, 6, 5, 38, 9800, 7500, 18000, 14, 82, 20, 8],
+        ['红方BAN1', '红方BAN2', '红方BAN3', '红方BAN4', '红方BAN5', '蓝方BAN1', '蓝方BAN2', '蓝方BAN3', '蓝方BAN4', '蓝方BAN5'],
+        ['Aatrox', 'Graves', 'Ahri', 'Kaisa', 'Thresh', 'Renekton', 'LeeSin', 'Syndra', 'Aphelios', 'Leona'],
       ];
 
       const sheet = xlsx.utils.aoa_to_sheet(aoa);
@@ -68,6 +70,8 @@ describe('MatchExcelUtil', () => {
       expect(result.playerStats[0].nickname).toBe('Bin');
       expect(result.matchInfo.firstBlood).toBe('red');
       expect(result.matchInfo.mvp).toBe('Knight');
+      expect(result.bans.redBans).toHaveLength(5);
+      expect(result.bans.blueBans).toHaveLength(5);
     });
 
     it('应正确解析包含10名选手的完整Excel文件', () => {
@@ -122,6 +126,8 @@ describe('MatchExcelUtil', () => {
         ],
         ...redTeamPlayers,
         ...blueTeamPlayers,
+        ['红方BAN1', '红方BAN2', '红方BAN3', '红方BAN4', '红方BAN5', '蓝方BAN1', '蓝方BAN2', '蓝方BAN3', '蓝方BAN4', '蓝方BAN5'],
+        ['Aatrox', 'Graves', 'Ahri', 'Kaisa', 'Thresh', 'Renekton', 'LeeSin', 'Syndra', 'Aphelios', 'Leona'],
       ];
 
       const sheet = xlsx.utils.aoa_to_sheet(aoa);
@@ -134,6 +140,8 @@ describe('MatchExcelUtil', () => {
       expect(result.playerStats[2].wardsCleared).toBe(3);
       expect(result.matchInfo.firstBlood).toBe('blue');
       expect(result.matchInfo.mvp).toBe('Hope');
+      expect(result.bans.redBans).toHaveLength(5);
+      expect(result.bans.blueBans).toHaveLength(5);
     });
 
     it('应正确解析MatchInfo中的新字段', () => {
@@ -180,6 +188,8 @@ describe('MatchExcelUtil', () => {
         ['blue', 'MID', 'Rookie', '阿狸', 5, 6, 7, 312, 16800, 25000, 19000, 17, 38, 5, 2],
         ['blue', 'ADC', 'Hope', '厄斐琉斯', 6, 5, 6, 352, 17500, 28000, 22000, 18, 32, 3, 1],
         ['blue', 'SUPPORT', 'Crisp', '烈娜塔', 3, 6, 5, 38, 9800, 7500, 18000, 14, 82, 20, 8],
+        ['红方BAN1', '红方BAN2', '红方BAN3', '红方BAN4', '红方BAN5', '蓝方BAN1', '蓝方BAN2', '蓝方BAN3', '蓝方BAN4', '蓝方BAN5'],
+        ['Aatrox', 'Graves', 'Ahri', 'Kaisa', 'Thresh', 'Renekton', 'LeeSin', 'Syndra', 'Aphelios', 'Leona'],
       ];
 
       const sheet = xlsx.utils.aoa_to_sheet(aoa);
@@ -190,6 +200,8 @@ describe('MatchExcelUtil', () => {
 
       expect(result.matchInfo.firstBlood).toBe('blue');
       expect(result.matchInfo.mvp).toBe('Viper');
+      expect(result.bans.redBans).toHaveLength(5);
+      expect(result.bans.blueBans).toHaveLength(5);
     });
   });
 
