@@ -13,11 +13,7 @@ interface StreamerIndicatorProps {
  * @returns 数据是否有效
  */
 const isValidIndicatorStreamer = (streamer: Streamer | null | undefined): streamer is Streamer => {
-  return !!(
-    streamer &&
-    streamer.id &&
-    typeof streamer.id === 'string'
-  );
+  return !!(streamer && streamer.id && typeof streamer.id === 'string');
 };
 
 export const StreamerIndicator: React.FC<StreamerIndicatorProps> = ({

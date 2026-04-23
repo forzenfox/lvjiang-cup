@@ -371,7 +371,9 @@ describe('AppController (e2e)', () => {
     });
 
     it('应该返回 404 当战队不存在', async () => {
-      const response = await request(app.getHttpServer()).get('/api/teams/non-existent-id').expect(404);
+      const response = await request(app.getHttpServer())
+        .get('/api/teams/non-existent-id')
+        .expect(404);
 
       expect(response.body).toHaveProperty('message');
       expect(response.body.statusCode).toBe(404);

@@ -517,8 +517,16 @@ export class MatchDataImportService {
 
     // 第 17 行：BAN 表头
     const banHeaders = [
-      '红方BAN1', '红方BAN2', '红方BAN3', '红方BAN4', '红方BAN5',
-      '蓝方BAN1', '蓝方BAN2', '蓝方BAN3', '蓝方BAN4', '蓝方BAN5',
+      '红方BAN1',
+      '红方BAN2',
+      '红方BAN3',
+      '红方BAN4',
+      '红方BAN5',
+      '蓝方BAN1',
+      '蓝方BAN2',
+      '蓝方BAN3',
+      '蓝方BAN4',
+      '蓝方BAN5',
     ];
     banHeaders.forEach((header, index) => {
       const cell = sheet.getCell(17, index + 1);
@@ -535,7 +543,7 @@ export class MatchDataImportService {
     // 第 18 行：BAN 示例数据（英雄中文名或英文ID）
     const redBans = ['亚托克斯', '格雷福斯', '阿狸', '卡莎', '锤石'];
     const blueBans = ['雷克顿', '李青', '辛德拉', '厄斐琉斯', '蕾欧娜'];
-    
+
     redBans.forEach((ban, index) => {
       sheet.getCell(18, index + 1).value = ban;
     });

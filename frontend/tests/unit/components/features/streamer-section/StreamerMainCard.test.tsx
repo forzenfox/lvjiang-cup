@@ -80,17 +80,13 @@ describe('StreamerMainCard', () => {
    * 以便获得良好的用户体验
    */
   it('returns null when streamer is null', () => {
-    const { container } = render(
-      <StreamerMainCard streamer={null as unknown as Streamer} />
-    );
+    const { container } = render(<StreamerMainCard streamer={null as unknown as Streamer} />);
 
     expect(container.firstChild).toBeNull();
   });
 
   it('returns null when streamer is undefined', () => {
-    const { container } = render(
-      <StreamerMainCard streamer={undefined as unknown as Streamer} />
-    );
+    const { container } = render(<StreamerMainCard streamer={undefined as unknown as Streamer} />);
 
     expect(container.firstChild).toBeNull();
   });

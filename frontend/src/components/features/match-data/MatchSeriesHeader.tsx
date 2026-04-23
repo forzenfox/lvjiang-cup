@@ -104,7 +104,7 @@ const MatchSeriesHeader: React.FC<MatchSeriesHeaderProps> = ({ seriesInfo, gameD
               }
               alt={redTeam.teamName}
               className="w-full h-full object-cover"
-              onError={(e) => {
+              onError={e => {
                 (e.target as HTMLImageElement).style.display = 'none';
                 (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden');
               }}
@@ -132,9 +132,7 @@ const MatchSeriesHeader: React.FC<MatchSeriesHeaderProps> = ({ seriesInfo, gameD
             </span>
             <span
               className={`text-sm px-3 py-1 rounded-full ${
-                isFinished
-                  ? 'bg-gray-700 text-gray-300'
-                  : 'bg-[#c49f58]/20 text-[#c49f58]'
+                isFinished ? 'bg-gray-700 text-gray-300' : 'bg-[#c49f58]/20 text-[#c49f58]'
               }`}
             >
               {status}
@@ -165,7 +163,7 @@ const MatchSeriesHeader: React.FC<MatchSeriesHeaderProps> = ({ seriesInfo, gameD
               }
               alt={blueTeam.teamName}
               className="w-full h-full object-cover"
-              onError={(e) => {
+              onError={e => {
                 (e.target as HTMLImageElement).style.display = 'none';
                 (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden');
               }}

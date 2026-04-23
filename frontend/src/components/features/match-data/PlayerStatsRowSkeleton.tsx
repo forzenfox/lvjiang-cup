@@ -10,7 +10,10 @@ const PlayerStatsRowSkeleton: React.FC<PlayerStatsRowSkeletonProps> = ({ count =
   return (
     <div className="max-w-5xl mx-auto mt-4 space-y-1">
       {rows.map(index => (
-        <div key={index} className="bg-[rgba(255,255,255,0.03)] rounded-lg py-3 px-4 animate-pulse border-b border-white/5">
+        <div
+          key={index}
+          className="bg-[rgba(255,255,255,0.03)] rounded-lg py-3 px-4 animate-pulse border-b border-white/5"
+        >
           <div className="flex items-center justify-between">
             {/* 左侧骨架 */}
             <div className="flex items-center gap-3 flex-1">

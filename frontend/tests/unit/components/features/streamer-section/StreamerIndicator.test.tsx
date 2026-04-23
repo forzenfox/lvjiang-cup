@@ -43,26 +43,14 @@ describe('StreamerIndicator', () => {
    * 以便了解当前位置和快速跳转
    */
   it('renders indicator dots for each streamer', () => {
-    render(
-      <StreamerIndicator
-        streamers={mockStreamers}
-        currentIndex={0}
-        onSelect={vi.fn()}
-      />
-    );
+    render(<StreamerIndicator streamers={mockStreamers} currentIndex={0} onSelect={vi.fn()} />);
 
     const dots = screen.getAllByTestId('indicator-dot');
     expect(dots).toHaveLength(3);
   });
 
   it('highlights current index dot', () => {
-    render(
-      <StreamerIndicator
-        streamers={mockStreamers}
-        currentIndex={1}
-        onSelect={vi.fn()}
-      />
-    );
+    render(<StreamerIndicator streamers={mockStreamers} currentIndex={1} onSelect={vi.fn()} />);
 
     const dots = screen.getAllByTestId('indicator-dot');
     // 当前选中的应该有特殊样式（通过 aria-label 可以识别）
@@ -72,11 +60,7 @@ describe('StreamerIndicator', () => {
   it('calls onSelect with correct index when clicked', () => {
     const handleSelect = vi.fn();
     render(
-      <StreamerIndicator
-        streamers={mockStreamers}
-        currentIndex={0}
-        onSelect={handleSelect}
-      />
+      <StreamerIndicator streamers={mockStreamers} currentIndex={0} onSelect={handleSelect} />
     );
 
     const dots = screen.getAllByTestId('indicator-dot');
@@ -85,13 +69,7 @@ describe('StreamerIndicator', () => {
   });
 
   it('has correct aria-label for accessibility', () => {
-    render(
-      <StreamerIndicator
-        streamers={mockStreamers}
-        currentIndex={0}
-        onSelect={vi.fn()}
-      />
-    );
+    render(<StreamerIndicator streamers={mockStreamers} currentIndex={0} onSelect={vi.fn()} />);
 
     expect(screen.getByLabelText('跳转到主播 主播1')).toBeInTheDocument();
     expect(screen.getByLabelText('跳转到主播 主播2')).toBeInTheDocument();
@@ -112,18 +90,10 @@ describe('StreamerIndicator', () => {
   });
 
   it('handles streamers with null items gracefully', () => {
-    const streamersWithNull = [
-      mockStreamers[0],
-      null as unknown as Streamer,
-      mockStreamers[2],
-    ];
+    const streamersWithNull = [mockStreamers[0], null as unknown as Streamer, mockStreamers[2]];
 
     const { container } = render(
-      <StreamerIndicator
-        streamers={streamersWithNull}
-        currentIndex={0}
-        onSelect={vi.fn()}
-      />
+      <StreamerIndicator streamers={streamersWithNull} currentIndex={0} onSelect={vi.fn()} />
     );
 
     // 应该能渲染，不会崩溃
@@ -138,11 +108,7 @@ describe('StreamerIndicator', () => {
     ];
 
     const { container } = render(
-      <StreamerIndicator
-        streamers={streamersWithUndefined}
-        currentIndex={0}
-        onSelect={vi.fn()}
-      />
+      <StreamerIndicator streamers={streamersWithUndefined} currentIndex={0} onSelect={vi.fn()} />
     );
 
     // 应该能渲染，不会崩溃
@@ -157,11 +123,7 @@ describe('StreamerIndicator', () => {
     ];
 
     const { container } = render(
-      <StreamerIndicator
-        streamers={streamersWithMissingId}
-        currentIndex={0}
-        onSelect={vi.fn()}
-      />
+      <StreamerIndicator streamers={streamersWithMissingId} currentIndex={0} onSelect={vi.fn()} />
     );
 
     // 应该能渲染，不会崩溃
@@ -191,24 +153,14 @@ describe('StreamerIndicator', () => {
    * 用户旅程3：数据完整性检查
    */
   it('has correct data-testid attribute', () => {
-    render(
-      <StreamerIndicator
-        streamers={mockStreamers}
-        currentIndex={0}
-        onSelect={vi.fn()}
-      />
-    );
+    render(<StreamerIndicator streamers={mockStreamers} currentIndex={0} onSelect={vi.fn()} />);
 
     expect(screen.getByTestId('streamer-indicator')).toBeInTheDocument();
   });
 
   it('renders with single streamer', () => {
     render(
-      <StreamerIndicator
-        streamers={[mockStreamers[0]]}
-        currentIndex={0}
-        onSelect={vi.fn()}
-      />
+      <StreamerIndicator streamers={[mockStreamers[0]]} currentIndex={0} onSelect={vi.fn()} />
     );
 
     expect(screen.getAllByTestId('indicator-dot')).toHaveLength(1);

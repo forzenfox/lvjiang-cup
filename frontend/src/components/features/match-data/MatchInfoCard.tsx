@@ -54,7 +54,7 @@ const MatchInfoCard: React.FC<MatchInfoCardProps> = ({ gameData }) => {
                 }
                 alt={redTeam.teamName}
                 className="w-full h-full object-cover"
-                onError={(e) => {
+                onError={e => {
                   (e.target as HTMLImageElement).style.display = 'none';
                   (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden');
                 }}
@@ -75,9 +75,7 @@ const MatchInfoCard: React.FC<MatchInfoCardProps> = ({ gameData }) => {
             <span className="text-xs text-[#f44336] bg-[#f44336]/20 px-2 py-0.5 rounded-full">
               红色方
             </span>
-            {isRedWinner && (
-              <span className="text-[#0febc1] text-sm font-bold mt-1">胜利</span>
-            )}
+            {isRedWinner && <span className="text-[#0febc1] text-sm font-bold mt-1">胜利</span>}
           </div>
         </div>
 
@@ -103,7 +101,7 @@ const MatchInfoCard: React.FC<MatchInfoCardProps> = ({ gameData }) => {
                 }
                 alt={blueTeam.teamName}
                 className="w-full h-full object-cover"
-                onError={(e) => {
+                onError={e => {
                   (e.target as HTMLImageElement).style.display = 'none';
                   (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden');
                 }}
@@ -124,9 +122,7 @@ const MatchInfoCard: React.FC<MatchInfoCardProps> = ({ gameData }) => {
             <span className="text-xs text-[#00bcd4] bg-[#00bcd4]/20 px-2 py-0.5 rounded-full">
               蓝色方
             </span>
-            {isBlueWinner && (
-              <span className="text-[#0febc1] text-sm font-bold mt-1">胜利</span>
-            )}
+            {isBlueWinner && <span className="text-[#0febc1] text-sm font-bold mt-1">胜利</span>}
           </div>
         </div>
       </div>

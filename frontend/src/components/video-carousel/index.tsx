@@ -17,7 +17,6 @@ interface VideoCarouselProps {
 export const VideoCarousel: React.FC<VideoCarouselProps> = ({ videos }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const isMobile = useMediaQuery('(max-width: 767px)');
-  const isPC = useMediaQuery('(min-width: 1024px)');
 
   const goToNext = useCallback(() => {
     setCurrentIndex(prev => (prev + 1) % videos.length);
@@ -100,7 +99,9 @@ export const VideoCarousel: React.FC<VideoCarouselProps> = ({ videos }) => {
           )}
         </div>
       ) : (
-        <div className={`flex-1 flex items-center min-h-0 ${showThumbnails ? 'gap-4' : 'justify-center'}`}>
+        <div
+          className={`flex-1 flex items-center min-h-0 ${showThumbnails ? 'gap-4' : 'justify-center'}`}
+        >
           {showThumbnails && (
             <div className="w-[20%] h-full flex items-center">
               <VideoThumbnail
