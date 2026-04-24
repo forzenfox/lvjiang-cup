@@ -1,0 +1,45 @@
+version: '3.8'
+
+# Nginx Proxy Manager - 统一网关配置
+# 用于多应用环境的统一入口，提供 SSL 证书管理和反向代理
+#
+# 使用方法:
+# 1. 创建部署目录：mkdir -p /opt/nginx-proxy-manager
+# 2. 将此文件保存为 docker-compose.yml
+# 3. docker-compose up -d
+# 4. 访问管理界面：http://服务器 IP:8181
+#    默认账号：admin@example.com
+#    默认密码：changeme
+#
+# 管理界面端口：8181
+# HTTP 端口：80
+# HTTPS 端口：443
+
+services:
+  nginx-proxy-manager:
+    image: 'jc21/nginx-proxy-manager:latest'
+    container_name: nginx-proxy-manager
+    restart: unless-stopped
+    ports:
+      - '80:80'   # HTTP 端口
+      - '443:443' # HTTPS 端口
+      - '8181:81' # 管理界面端口
+    volumes:
+      - ./npm-data:/data
+      - ./npm-letsencrypt:/etc/letsencrypt
+    networks:
+      - npm-network
+    environment:
+      - TZ=Asia/Shanghai
+      - PUID=1000
+      - PGID=1000
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:81 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  npm-network:
+    driver: bridge
+    external: true  # 使用外部网络，需要手动创建

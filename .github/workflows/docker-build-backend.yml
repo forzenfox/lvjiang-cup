@@ -1,0 +1,128 @@
+name: Build Backend Docker Image
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: '镜像标签 (例如：latest, v1.0.0)'
+        required: false
+        default: 'latest'
+        type: string
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build-backend-amd64:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push backend image (AMD64)
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:${{ inputs.tag || 'latest' }}-amd64
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64
+
+      - name: Output backend image info
+        run: |
+          echo "✅ 后端镜像 (AMD64) 构建完成"
+          echo "后端镜像：${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:${{ inputs.tag || 'latest' }}-amd64"
+
+  build-backend-arm64:
+    runs-on: ubuntu-24.04-arm  # 使用原生 ARM64 运行器，避免 QEMU 模拟
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push backend image (ARM64)
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:${{ inputs.tag || 'latest' }}-arm64
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/arm64
+
+      - name: Output backend image info
+        run: |
+          echo "✅ 后端镜像 (ARM64) 构建完成"
+          echo "后端镜像：${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:${{ inputs.tag || 'latest' }}-arm64"
+
+  merge-backend-manifest:
+    runs-on: ubuntu-latest
+    needs: [build-backend-amd64, build-backend-arm64]
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create and push multi-arch manifest
+        run: |
+          TAG="${{ inputs.tag || 'latest' }}"
+          docker buildx imagetools create \
+            -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:${TAG} \
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:${TAG}-amd64 \
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:${TAG}-arm64
+          echo "✅ 后端多架构镜像合并完成"
+          echo "最终镜像：${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:${TAG}"
+
+  summary:
+    runs-on: ubuntu-latest
+    needs: [merge-backend-manifest]
+    steps:
+      - name: Output deployment info
+        run: |
+          echo "✅ 后端 Docker 镜像构建完成"
+          echo ""
+          echo "📦 镜像信息："
+          echo "- 后端：${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:${{ inputs.tag || 'latest' }}"
+          echo ""
+          echo "📌 部署说明："
+          echo "1. 拉取镜像：docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:${{ inputs.tag || 'latest' }}"
+          echo "2. 部署到服务器：参考 deploy/README.md"

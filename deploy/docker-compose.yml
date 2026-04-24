@@ -1,0 +1,90 @@
+version: '3.8'
+
+# 驴酱杯赛事网站 - Docker Compose 配置（方案 C：Nginx Proxy Manager 统一网关）
+# 使用 GitHub Container Registry 预构建镜像
+#
+# 使用方法:
+# 1. 配置 .env 文件
+# 2. docker-compose pull
+# 3. docker-compose up -d
+#
+# 注意：
+# - 此方案使用 Nginx Proxy Manager 作为统一网关
+# - 前端容器使用 static-web-server（高性能 Rust 静态服务器）
+# - 所有容器端口仅内部访问，不映射到主机
+# - 需要先部署 Nginx Proxy Manager
+# - 前端配置通过 volume 挂载，修改 config.js 后重启容器即可生效
+# - 鸣谢模块数据通过 THANKS_DATA 配置在 config.js 中
+# - 日志配置：使用 json-file 驱动，单文件最大 100MB，最多保留 3 个文件
+
+# 全局日志配置（所有服务共享）
+x-logging: &default-logging
+  driver: "json-file"
+  options:
+    max-size: "100m"
+    max-file: "3"
+
+services:
+  # 后端服务
+  backend:
+    image: ghcr.io/${GITHUB_OWNER:-forzenfox}/${GITHUB_REPO:-lvjiang-cup}/backend:${TAG:-latest}
+    container_name: lvjiang-backend
+    restart: unless-stopped
+    expose:
+      - "3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRES_IN=24h
+      - ADMIN_USERNAME=${ADMIN_USERNAME:-admin}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+      - DATABASE_PATH=/app/data/lvjiang.db
+      - UPLOAD_BASE_DIR=/app/uploads
+      - CORS_ORIGIN=${CORS_ORIGIN}
+    volumes:
+      # 数据持久化
+      - ../data:/app/data
+      - ../backup:/app/backup
+      - ../uploads:/app/uploads
+      - ../templates:/app/templates
+    networks:
+      - npm-network
+    logging: *default-logging
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -T 2 -O /dev/null http://127.0.0.1:3000/api/teams || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    pull_policy: always
+
+  # 前端服务（static-web-server - 高性能 Rust 静态文件服务器）
+  frontend:
+    image: ghcr.io/${GITHUB_OWNER:-forzenfox}/${GITHUB_REPO:-lvjiang-cup}/frontend:${TAG:-latest}
+    container_name: lvjiang-frontend
+    restart: unless-stopped
+    expose:
+      - "3001"
+    environment:
+      - PORT=3001
+    volumes:
+      # 挂载前端运行时配置文件（包含 THANKS_DATA 鸣谢模块数据）
+      - ./config.js:/app/dist/config.js:ro
+    networks:
+      - npm-network
+    depends_on:
+      - backend
+    logging: *default-logging
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -T 2 -O /dev/null http://127.0.0.1:3001/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    pull_policy: always
+
+networks:
+  npm-network:
+    driver: bridge
+    external: true  # 使用 Nginx Proxy Manager 的外部网络

@@ -1,0 +1,1074 @@
+[
+  {
+    "teamName": "驴酱",
+    "logoUrl": "https://picsum.photos/seed/donkey/200/200",
+    "battleCry": "驴酱战队",
+    "members": [
+      {
+        "position": "上单",
+        "nickname": "洞主",
+        "gameId": "douyu138243#0001",
+        "avatarUrl": "https://robohash.org/dongzhu?set=set4&size=100x100",
+        "rating": 95,
+        "isCaptain": "是",
+        "level": "S",
+        "championPool": "暗裔剑魔",
+        "liveRoom": "138243",
+        "bio": "斗鱼138243"
+      },
+      {
+        "position": "打野",
+        "nickname": "凯哥",
+        "gameId": "douyu138243#0002",
+        "avatarUrl": "https://robohash.org/kaige?set=set4&size=100x100",
+        "rating": 92,
+        "isCaptain": "否",
+        "level": "A",
+        "championPool": "盲僧,千珏,格雷福斯",
+        "liveRoom": "138243",
+        "bio": "斗鱼138243"
+      },
+      {
+        "position": "中单",
+        "nickname": "啧啧",
+        "gameId": "douyu138243#0003",
+        "avatarUrl": "https://robohash.org/zeze?set=set4&size=100x100",
+        "rating": 94,
+        "isCaptain": "否",
+        "level": "S",
+        "championPool": "离群之刺,解脱者,暮光星灵",
+        "liveRoom": "138243",
+        "bio": "操作细腻"
+      },
+      {
+        "position": "ADC",
+        "nickname": "伏羲",
+        "gameId": "douyu138243#0004",
+        "avatarUrl": "https://robohash.org/fuxi?set=set4&size=100x100",
+        "rating": 93,
+        "isCaptain": "否",
+        "level": "A",
+        "championPool": "厄斐琉斯,金克丝,卡莎",
+        "liveRoom": "138243",
+        "bio": "输出稳定"
+      },
+      {
+        "position": "辅助",
+        "nickname": "小溪",
+        "gameId": "douyu8981206#0001",
+        "avatarUrl": "https://robohash.org/xiaoxi?set=set4&size=100x100",
+        "rating": 90,
+        "isCaptain": "否",
+        "level": "A",
+        "championPool": "锤石,诺提勒斯,洛",
+        "liveRoom": "8981206",
+        "bio": "斗鱼8981206"
+      }
+    ]
+  },
+  {
+    "teamName": "IC",
+    "logoUrl": "https://picsum.photos/seed/icstar/200/200",
+    "battleCry": "IC战队",
+    "members": [
+      {
+        "position": "上单",
+        "nickname": "余小C",
+        "gameId": "douyu1126960#0001",
+        "avatarUrl": "https://robohash.org/yuxiaoc?set=set4&size=100x100",
+        "rating": 91,
+        "isCaptain": "是",
+        "level": "A",
+        "championPool": "卡蜜尔",
+        "liveRoom": "1126960",
+        "bio": "斗鱼1126960"
+      },
+      {
+        "position": "打野",
+        "nickname": "阿亮",
+        "gameId": "douyu1126960#0002",
+        "avatarUrl": "https://robohash.org/aliang?set=set4&size=100x100",
+        "rating": 88,
+        "isCaptain": "否",
+        "level": "B",
+        "championPool": "蔚,瑟庄妮,斯卡纳",
+        "liveRoom": "1126960",
+        "bio": "斗鱼1126960"
+      },
+      {
+        "position": "中单",
+        "nickname": "二泽",
+        "gameId": "douyu1126960#0003",
+        "avatarUrl": "https://robohash.org/erze?set=set4&size=100x100",
+        "rating": 93,
+        "isCaptain": "否",
+        "level": "A",
+        "championPool": "奥莉安娜,维克托,辛德拉",
+        "liveRoom": "1126960",
+        "bio": "中路核心"
+      },
+      {
+        "position": "ADC",
+        "nickname": "恶意",
+        "gameId": "douyu1126960#0004",
+        "avatarUrl": "https://robohash.org/eyi?set=set4&size=100x100",
+        "rating": 94,
+        "isCaptain": "否",
+        "level": "S",
+        "championPool": "德莱文,卢锡安,莎弥拉",
+        "liveRoom": "1126960",
+        "bio": "激进射手"
+      },
+      {
+        "position": "辅助",
+        "nickname": "阿瓜",
+        "gameId": "douyu1126960#0005",
+        "avatarUrl": "https://robohash.org/agua?set=set4&size=100x100",
+        "rating": 89,
+        "isCaptain": "否",
+        "level": "A",
+        "championPool": "娜美,迦娜,璐璐",
+        "liveRoom": "1126960",
+        "bio": "团队大脑"
+      }
+    ]
+  },
+  {
+    "teamName": "PLG",
+    "logoUrl": "https://picsum.photos/seed/plgwater/200/200",
+    "battleCry": "PLG战队",
+    "members": [
+      {
+        "position": "上单",
+        "nickname": "泰妍",
+        "gameId": "douyu4452132#0001",
+        "avatarUrl": "https://robohash.org/taiyan?set=set4&size=100x100",
+        "rating": 85,
+        "isCaptain": "是",
+        "level": "B",
+        "championPool": "墨菲特,赛恩,茂凯",
+        "liveRoom": "4452132",
+        "bio": "稳健上路"
+      },
+      {
+        "position": "打野",
+        "nickname": "查理",
+        "gameId": "douyu4452132#0002",
+        "avatarUrl": "https://robohash.org/chali?set=set4&size=100x100",
+        "rating": 87,
+        "isCaptain": "否",
+        "level": "B",
+        "championPool": "赫卡里姆,魔腾,卡兹克",
+        "liveRoom": "4452132",
+        "bio": "节奏掌控"
+      },
+      {
+        "position": "中单",
+        "nickname": "二抛",
+        "gameId": "douyu4452132#0003",
+        "avatarUrl": "https://robohash.org/erpao?set=set4&size=100x100",
+        "rating": 86,
+        "isCaptain": "否",
+        "level": "B",
+        "championPool": "瑞兹,卡西奥佩娅,玛尔扎哈",
+        "liveRoom": "4452132",
+        "bio": "斗鱼4452132"
+      },
+      {
+        "position": "ADC",
+        "nickname": "芬达",
+        "gameId": "douyu4452132#0004",
+        "avatarUrl": "https://robohash.org/fenda?set=set4&size=100x100",
+        "rating": 88,
+        "isCaptain": "否",
+        "level": "B",
+        "championPool": "希维尔,图奇,克格莫",
+        "liveRoom": "4452132",
+        "bio": "后期大核"
+      },
+      {
+        "position": "辅助",
+        "nickname": "小唯",
+        "gameId": "douyu8690608#0001",
+        "avatarUrl": "https://robohash.org/xiaowei?set=set4&size=100x100",
+        "rating": 84,
+        "isCaptain": "否",
+        "level": "C",
+        "championPool": "布隆",
+        "liveRoom": "8690608",
+        "bio": "斗鱼8690608"
+      }
+    ]
+  },
+  {
+    "teamName": "小熊",
+    "logoUrl": "https://picsum.photos/seed/xiaoxiong/200/200",
+    "battleCry": "小熊战队",
+    "members": [
+      {
+        "position": "上单",
+        "nickname": "小达",
+        "gameId": "douyu251783#0001",
+        "avatarUrl": "https://robohash.org/xiaoda?set=set4&size=100x100",
+        "rating": 92,
+        "isCaptain": "是",
+        "level": "A",
+        "championPool": "艾瑞莉娅,菲奥娜,贾克斯",
+        "liveRoom": "251783",
+        "bio": "上路猛男"
+      },
+      {
+        "position": "打野",
+        "nickname": "老佳阳",
+        "gameId": "douyu251783#0002",
+        "avatarUrl": "https://robohash.org/laojiayang?set=set4&size=100x100",
+        "rating": 90,
+        "isCaptain": "否",
+        "level": "A",
+        "championPool": "奈德丽,伊莉丝,艾克",
+        "liveRoom": "251783",
+        "bio": "经验丰富"
+      },
+      {
+        "position": "中单",
+        "nickname": "银剑君",
+        "gameId": "douyu251783#0003",
+        "avatarUrl": "https://robohash.org/yinjianjun?set=set4&size=100x100",
+        "rating": 91,
+        "isCaptain": "否",
+        "level": "A",
+        "championPool": "亚索,永恩,劫",
+        "liveRoom": "251783",
+        "bio": "斗鱼251783"
+      },
+      {
+        "position": "ADC",
+        "nickname": "秃秃",
+        "gameId": "douyu251783#0004",
+        "avatarUrl": "https://robohash.org/tutu?set=set4&size=100x100",
+        "rating": 89,
+        "isCaptain": "否",
+        "level": "B",
+        "championPool": "霞,薇恩,凯特琳",
+        "liveRoom": "251783",
+        "bio": "稳定输出"
+      },
+      {
+        "position": "辅助",
+        "nickname": "皮皮核桃",
+        "gameId": "douyu251783#0005",
+        "avatarUrl": "https://robohash.org/pipihetao?set=set4&size=100x100",
+        "rating": 86,
+        "isCaptain": "否",
+        "level": "B",
+        "championPool": "布隆,慎,塔姆",
+        "liveRoom": "251783",
+        "bio": "保护型辅助"
+      }
+    ]
+  },
+  {
+    "teamName": "搓搓鸟",
+    "logoUrl": "https://picsum.photos/seed/cuocuoniao/200/200",
+    "battleCry": "搓搓鸟战队",
+    "members": [
+      {
+        "position": "上单",
+        "nickname": "法环",
+        "gameId": "douyu2057760#0001",
+        "avatarUrl": "https://robohash.org/fahuan?set=set4&size=100x100",
+        "rating": 90,
+        "isCaptain": "是",
+        "level": "A",
+        "championPool": "锐雯,兰博,纳尔",
+        "liveRoom": "2057760",
+        "bio": "上路法王"
+      },
+      {
+        "position": "打野",
+        "nickname": "大本猪",
+        "gameId": "douyu2057760#0002",
+        "avatarUrl": "https://robohash.org/dabenzhu?set=set4&size=100x100",
+        "rating": 85,
+        "isCaptain": "否",
+        "level": "B",
+        "championPool": "扎克,拉莫斯,奥拉夫",
+        "liveRoom": "2057760",
+        "bio": "肉盾型打野"
+      },
+      {
+        "position": "中单",
+        "nickname": "格局",
+        "gameId": "douyu2057760#0003",
+        "avatarUrl": "https://robohash.org/geju?set=set4&size=100x100",
+        "rating": 88,
+        "isCaptain": "否",
+        "level": "B",
+        "championPool": "崔斯特,加里奥,塔莉垭",
+        "liveRoom": "2057760",
+        "bio": "斗鱼2057760"
+      },
+      {
+        "position": "ADC",
+        "nickname": "xlbos",
+        "gameId": "douyu2057760#0004",
+        "avatarUrl": "https://robohash.org/xlbos?set=set4&size=100x100",
+        "rating": 87,
+        "isCaptain": "否",
+        "level": "B",
+        "championPool": "厄运小姐,烬,艾希",
+        "liveRoom": "2057760",
+        "bio": "技术流"
+      },
+      {
+        "position": "辅助",
+        "nickname": "年年",
+        "gameId": "douyu12619385#0001",
+        "avatarUrl": "https://robohash.org/niannian?set=set4&size=100x100",
+        "rating": 86,
+        "isCaptain": "否",
+        "level": "B",
+        "championPool": "布里茨,锤石,布兰德",
+        "liveRoom": "12619385",
+        "bio": "斗鱼12619385"
+      }
+    ]
+  },
+  {
+    "teamName": "100J",
+    "logoUrl": "https://picsum.photos/seed/100j/200/200",
+    "battleCry": "100J战队",
+    "members": [
+      {
+        "position": "上单",
+        "nickname": "十六夜",
+        "gameId": "douyu3863752#0001",
+        "avatarUrl": "https://robohash.org/shiliuye?set=set4&size=100x100",
+        "rating": 86,
+        "isCaptain": "是",
+        "level": "B",
+        "championPool": "弗拉基米尔,凯南,慎",
+        "liveRoom": "3863752",
+        "bio": "夜猫子选手"
+      },
+      {
+        "position": "打野",
+        "nickname": "小甜椒",
+        "gameId": "douyu3863752#0002",
+        "avatarUrl": "https://robohash.org/xiaotianjiao?set=set4&size=100x100",
+        "rating": 84,
+        "isCaptain": "否",
+        "level": "C",
+        "championPool": "嘉文四世,古拉加斯,雷克塞",
+        "liveRoom": "3863752",
+        "bio": "斗鱼3863752"
+      },
+      {
+        "position": "中单",
+        "nickname": "温柔遍野",
+        "gameId": "douyu3863752#0003",
+        "avatarUrl": "https://robohash.org/wenroubianye?set=set4&size=100x100",
+        "rating": 83,
+        "isCaptain": "否",
+        "level": "C",
+        "championPool": "基兰,卡尔萨斯,维迦",
+        "liveRoom": "3863752",
+        "bio": "温柔打法"
+      },
+      {
+        "position": "ADC",
+        "nickname": "团子",
+        "gameId": "douyu1580850#0001",
+        "avatarUrl": "https://robohash.org/tuanzi?set=set4&size=100x100",
+        "rating": 85,
+        "isCaptain": "否",
+        "level": "C",
+        "championPool": "希维尔,赛娜,伊泽瑞尔",
+        "liveRoom": "1580850",
+        "bio": "斗鱼1580850"
+      },
+      {
+        "position": "辅助",
+        "nickname": "柚柚子",
+        "gameId": "douyu12661677#0001",
+        "avatarUrl": "https://robohash.org/youyouzi?set=set4&size=100x100",
+        "rating": 82,
+        "isCaptain": "否",
+        "level": "C",
+        "championPool": "索拉卡,娑娜,妮蔻",
+        "liveRoom": "12661677",
+        "bio": "斗鱼12661677"
+      }
+    ]
+  },
+  {
+    "teamName": "69",
+    "logoUrl": "https://picsum.photos/seed/69team/200/200",
+    "battleCry": "69战队",
+    "members": [
+      {
+        "position": "上单",
+        "nickname": "尊师HKL",
+        "gameId": "douyu10902240#0001",
+        "avatarUrl": "https://robohash.org/zunshihkl?set=set4&size=100x100",
+        "rating": 82,
+        "isCaptain": "是",
+        "level": "C",
+        "championPool": "茂凯,波比,慎",
+        "liveRoom": "10902240",
+        "bio": "导师型选手"
+      },
+      {
+        "position": "打野",
+        "nickname": "大B脸",
+        "gameId": "douyu10902240#0002",
+        "avatarUrl": "https://robohash.org/dabilian?set=set4&size=100x100",
+        "rating": 80,
+        "isCaptain": "否",
+        "level": "D",
+        "championPool": "易,赵信,泰达米尔",
+        "liveRoom": "10902240",
+        "bio": "幽默担当"
+      },
+      {
+        "position": "中单",
+        "nickname": "可乐",
+        "gameId": "douyu10902240#0003",
+        "avatarUrl": "https://robohash.org/kele?set=set4&size=100x100",
+        "rating": 81,
+        "isCaptain": "否",
+        "level": "D",
+        "championPool": "亚索,普朗克,泰隆",
+        "liveRoom": "10902240",
+        "bio": "快乐游戏"
+      },
+      {
+        "position": "ADC",
+        "nickname": "咬人鹅",
+        "gameId": "douyu10902240#0004",
+        "avatarUrl": "https://robohash.org/yaorene?set=set4&size=100x100",
+        "rating": 79,
+        "isCaptain": "否",
+        "level": "D",
+        "championPool": "提莫,萨科,薇恩",
+        "liveRoom": "10902240",
+        "bio": "斗鱼10902240"
+      },
+      {
+        "position": "辅助",
+        "nickname": "阿松",
+        "gameId": "douyu10902240#0005",
+        "avatarUrl": "https://robohash.org/asong?set=set4&size=100x100",
+        "rating": 78,
+        "isCaptain": "否",
+        "level": "D",
+        "championPool": "盖伦,赵信,蒙多",
+        "liveRoom": "10902240",
+        "bio": "稳健辅助"
+      }
+    ]
+  },
+  {
+    "teamName": "雨酱",
+    "logoUrl": "https://picsum.photos/seed/yujiang/200/200",
+    "battleCry": "雨酱战队",
+    "members": [
+      {
+        "position": "上单",
+        "nickname": "想和哥俩玩游戏",
+        "gameId": "douyu9779433#0001",
+        "avatarUrl": "https://robohash.org/xiangwan?set=set4&size=100x100",
+        "rating": 84,
+        "isCaptain": "是",
+        "level": "C",
+        "championPool": "辛吉德,提莫,薇恩",
+        "liveRoom": "9779433",
+        "bio": "社交达人"
+      },
+      {
+        "position": "打野",
+        "nickname": "慧琳宝",
+        "gameId": "douyu9779433#0002",
+        "avatarUrl": "https://robohash.org/huilinbao?set=set4&size=100x100",
+        "rating": 83,
+        "isCaptain": "否",
+        "level": "C",
+        "championPool": "图奇,艾翁,努努",
+        "liveRoom": "9779433",
+        "bio": "宝藏选手"
+      },
+      {
+        "position": "中单",
+        "nickname": "辰林",
+        "gameId": "douyu9779433#0003",
+        "avatarUrl": "https://robohash.org/chenlin?set=set4&size=100x100",
+        "rating": 82,
+        "isCaptain": "否",
+        "level": "C",
+        "championPool": "茂凯,艾翁,努努",
+        "liveRoom": "9779433",
+        "bio": "森林之子"
+      },
+      {
+        "position": "ADC",
+        "nickname": "暴龙战士",
+        "gameId": "douyu9779433#0004",
+        "avatarUrl": "https://robohash.org/baolong?set=set4&size=100x100",
+        "rating": 84,
+        "isCaptain": "否",
+        "level": "C",
+        "championPool": "卢锡安,薇恩,德莱文",
+        "liveRoom": "9779433",
+        "bio": "斗鱼9779433"
+      },
+      {
+        "position": "辅助",
+        "nickname": "冯雨",
+        "gameId": "douyu317422#0001",
+        "avatarUrl": "https://robohash.org/fengyu?set=set4&size=100x100",
+        "rating": 83,
+        "isCaptain": "否",
+        "level": "C",
+        "championPool": "迦娜,璐璐,娑娜",
+        "liveRoom": "317422",
+        "bio": "斗鱼317422"
+      }
+    ]
+  },
+  {
+    "teamName": "星辰",
+    "logoUrl": "https://picsum.photos/seed/star/200/200",
+    "battleCry": "星辰战队",
+    "members": [
+      {
+        "position": "上单",
+        "nickname": "星河",
+        "gameId": "star0001",
+        "avatarUrl": "https://robohash.org/xinghe?set=set4&size=100x100",
+        "rating": 91,
+        "isCaptain": "是",
+        "level": "A",
+        "championPool": "凯尔",
+        "liveRoom": "",
+        "bio": "星光上路"
+      },
+      {
+        "position": "打野",
+        "nickname": "闪烁",
+        "gameId": "star0002",
+        "avatarUrl": "https://robohash.org/shanshan?set=set4&size=100x100",
+        "rating": 89,
+        "isCaptain": "否",
+        "level": "B",
+        "championPool": "格雷福斯,卡兹克,雷恩加尔",
+        "liveRoom": "",
+        "bio": "打野新星"
+      },
+      {
+        "position": "中单",
+        "nickname": "流星",
+        "gameId": "star0003",
+        "avatarUrl": "https://robohash.org/liuxing?set=set4&size=100x100",
+        "rating": 90,
+        "isCaptain": "否",
+        "level": "A",
+        "championPool": "奥瑞利安,玛尔扎哈,维克托",
+        "liveRoom": "",
+        "bio": "中单新秀"
+      },
+      {
+        "position": "ADC",
+        "nickname": "彗星",
+        "gameId": "star0004",
+        "avatarUrl": "https://robohash.org/huixing?set=set4&size=100x100",
+        "rating": 88,
+        "isCaptain": "否",
+        "level": "B",
+        "championPool": "韦鲁斯,艾希,凯特琳",
+        "liveRoom": "",
+        "bio": "精准射手"
+      },
+      {
+        "position": "辅助",
+        "nickname": "夜空",
+        "gameId": "star0005",
+        "avatarUrl": "https://robohash.org/yekong?set=set4&size=100x100",
+        "rating": 87,
+        "isCaptain": "否",
+        "level": "B",
+        "championPool": "洛,娜美,卡尔玛",
+        "liveRoom": "",
+        "bio": "夜空守护"
+      }
+    ]
+  },
+  {
+    "teamName": "烈焰",
+    "logoUrl": "https://picsum.photos/seed/fire/200/200",
+    "battleCry": "烈焰战队",
+    "members": [
+      {
+        "position": "上单",
+        "nickname": "火焰",
+        "gameId": "fire0001",
+        "avatarUrl": "https://robohash.org/huoyan?set=set4&size=100x100",
+        "rating": 90,
+        "isCaptain": "是",
+        "level": "A",
+        "championPool": "兰博",
+        "liveRoom": "",
+        "bio": "烈焰上路"
+      },
+      {
+        "position": "打野",
+        "nickname": "燃烧",
+        "gameId": "fire0002",
+        "avatarUrl": "https://robohash.org/ranshao?set=set4&size=100x100",
+        "rating": 86,
+        "isCaptain": "否",
+        "level": "B",
+        "championPool": "布兰德,费德提克,魔腾",
+        "liveRoom": "",
+        "bio": "燃烧打野"
+      },
+      {
+        "position": "中单",
+        "nickname": "炽热",
+        "gameId": "fire0003",
+        "avatarUrl": "https://robohash.org/chire?set=set4&size=100x100",
+        "rating": 89,
+        "isCaptain": "否",
+        "level": "B",
+        "championPool": "安妮,瑞兹",
+        "liveRoom": "",
+        "bio": "中单强者"
+      },
+      {
+        "position": "ADC",
+        "nickname": "烈焰",
+        "gameId": "fire0004",
+        "avatarUrl": "https://robohash.org/lieyan?set=set4&size=100x100",
+        "rating": 87,
+        "isCaptain": "否",
+        "level": "B",
+        "championPool": "厄运小姐,烬",
+        "liveRoom": "",
+        "bio": "火焰射手"
+      },
+      {
+        "position": "辅助",
+        "nickname": "灰烬",
+        "gameId": "fire0005",
+        "avatarUrl": "https://robohash.org/huijin?set=set4&size=100x100",
+        "rating": 85,
+        "isCaptain": "否",
+        "level": "C",
+        "championPool": "布兰德,兰博,尼菈",
+        "liveRoom": "",
+        "bio": "辅助新星"
+      }
+    ]
+  },
+  {
+    "teamName": "寒冰",
+    "logoUrl": "https://picsum.photos/seed/ice/200/200",
+    "battleCry": "寒冰战队",
+    "members": [
+      {
+        "position": "上单",
+        "nickname": "冰霜",
+        "gameId": "ice0001",
+        "avatarUrl": "https://robohash.org/bingshuang?set=set4&size=100x100",
+        "rating": 88,
+        "isCaptain": "是",
+        "level": "B",
+        "championPool": "丽桑卓,波比,诺提勒斯",
+        "liveRoom": "",
+        "bio": "冰封上路"
+      },
+      {
+        "position": "打野",
+        "nickname": "雪花",
+        "gameId": "ice0002",
+        "avatarUrl": "https://robohash.org/xuehua?set=set4&size=100x100",
+        "rating": 85,
+        "isCaptain": "否",
+        "level": "C",
+        "championPool": "艾希,艾尼维亚,茂凯",
+        "liveRoom": "",
+        "bio": "雪花打野"
+      },
+      {
+        "position": "中单",
+        "nickname": "寒流",
+        "gameId": "ice0003",
+        "avatarUrl": "https://robohash.org/hanliu?set=set4&size=100x100",
+        "rating": 86,
+        "isCaptain": "否",
+        "level": "B",
+        "championPool": "艾尼维亚,奥莉安娜,维克托",
+        "liveRoom": "",
+        "bio": "寒冰中单"
+      },
+      {
+        "position": "ADC",
+        "nickname": "冰川",
+        "gameId": "ice0004",
+        "avatarUrl": "https://robohash.org/bingchuan?set=set4&size=100x100",
+        "rating": 87,
+        "isCaptain": "否",
+        "level": "B",
+        "championPool": "艾希,韦鲁斯",
+        "liveRoom": "",
+        "bio": "冰川射手"
+      },
+      {
+        "position": "辅助",
+        "nickname": "极光",
+        "gameId": "ice0005",
+        "avatarUrl": "https://robohash.org/jiguang?set=set4&size=100x100",
+        "rating": 86,
+        "isCaptain": "否",
+        "level": "B",
+        "championPool": "丽桑卓,迦娜,璐璐",
+        "liveRoom": "",
+        "bio": "极光守护"
+      }
+    ]
+  },
+  {
+    "teamName": "雷霆",
+    "logoUrl": "https://picsum.photos/seed/thunder/200/200",
+    "battleCry": "雷霆战队",
+    "members": [
+      {
+        "position": "上单",
+        "nickname": "闪电",
+        "gameId": "thunder0001",
+        "avatarUrl": "https://robohash.org/shandian?set=set4&size=100x100",
+        "rating": 89,
+        "isCaptain": "是",
+        "level": "B",
+        "championPool": "艾瑞莉娅,卡蜜尔,沃利贝尔",
+        "liveRoom": "",
+        "bio": "闪电上路"
+      },
+      {
+        "position": "打野",
+        "nickname": "雷鸣",
+        "gameId": "thunder0002",
+        "avatarUrl": "https://robohash.org/leiming?set=set4&size=100x100",
+        "rating": 87,
+        "isCaptain": "否",
+        "level": "B",
+        "championPool": "雷恩加尔,卡兹克,雷克塞",
+        "liveRoom": "",
+        "bio": "雷鸣打野"
+      },
+      {
+        "position": "中单",
+        "nickname": "电场",
+        "gameId": "thunder0003",
+        "avatarUrl": "https://robohash.org/dianchang?set=set4&size=100x100",
+        "rating": 88,
+        "isCaptain": "否",
+        "level": "B",
+        "championPool": "维克托,佐伊,辛德拉",
+        "liveRoom": "",
+        "bio": "电场中单"
+      },
+      {
+        "position": "ADC",
+        "nickname": "电荷",
+        "gameId": "thunder0004",
+        "avatarUrl": "https://robohash.org/dianhe?set=set4&size=100x100",
+        "rating": 86,
+        "isCaptain": "否",
+        "level": "B",
+        "championPool": "金克丝,厄运小姐,库奇",
+        "liveRoom": "",
+        "bio": "电荷射手"
+      },
+      {
+        "position": "辅助",
+        "nickname": "云端",
+        "gameId": "thunder0005",
+        "avatarUrl": "https://robohash.org/yunduan?set=set4&size=100x100",
+        "rating": 85,
+        "isCaptain": "否",
+        "level": "C",
+        "championPool": "沃利贝尔,迦娜,璐璐",
+        "liveRoom": "",
+        "bio": "云端辅助"
+      }
+    ]
+  },
+  {
+    "teamName": "暗影",
+    "logoUrl": "https://picsum.photos/seed/shadow/200/200",
+    "battleCry": "暗影战队",
+    "members": [
+      {
+        "position": "上单",
+        "nickname": "影子",
+        "gameId": "shadow0001",
+        "avatarUrl": "https://robohash.org/yingzi?set=set4&size=100x100",
+        "rating": 88,
+        "isCaptain": "是",
+        "level": "B",
+        "championPool": "泰隆,劫,格雷福斯",
+        "liveRoom": "",
+        "bio": "暗影上路"
+      },
+      {
+        "position": "打野",
+        "nickname": "幽灵",
+        "gameId": "shadow0002",
+        "avatarUrl": "https://robohash.org/youlong?set=set4&size=100x100",
+        "rating": 86,
+        "isCaptain": "否",
+        "level": "B",
+        "championPool": "魔腾,图奇,雷恩加尔",
+        "liveRoom": "",
+        "bio": "幽灵打野"
+      },
+      {
+        "position": "中单",
+        "nickname": "黑夜",
+        "gameId": "shadow0003",
+        "avatarUrl": "https://robohash.org/heiye?set=set4&size=100x100",
+        "rating": 87,
+        "isCaptain": "否",
+        "level": "B",
+        "championPool": "辛德拉,劫,卡萨丁",
+        "liveRoom": "",
+        "bio": "黑夜中单"
+      },
+      {
+        "position": "ADC",
+        "nickname": "暗夜",
+        "gameId": "shadow0004",
+        "avatarUrl": "https://robohash.org/anye?set=set4&size=100x100",
+        "rating": 86,
+        "isCaptain": "否",
+        "level": "B",
+        "championPool": "薇恩,卡莎,卢锡安",
+        "liveRoom": "",
+        "bio": "暗夜射手"
+      },
+      {
+        "position": "辅助",
+        "nickname": "迷雾",
+        "gameId": "shadow0005",
+        "avatarUrl": "https://robohash.org/miwnu?set=set4&size=100x100",
+        "rating": 84,
+        "isCaptain": "否",
+        "level": "C",
+        "championPool": "派克,诺提勒斯,德莱厄斯",
+        "liveRoom": "",
+        "bio": "迷雾守护"
+      }
+    ]
+  },
+  {
+    "teamName": "疾风",
+    "logoUrl": "https://picsum.photos/seed/wind/200/200",
+    "battleCry": "疾风战队",
+    "members": [
+      {
+        "position": "上单",
+        "nickname": "风暴",
+        "gameId": "wind0001",
+        "avatarUrl": "https://robohash.org/fengbao?set=set4&size=100x100",
+        "rating": 90,
+        "isCaptain": "是",
+        "level": "A",
+        "championPool": "亚索,永恩",
+        "liveRoom": "",
+        "bio": "风暴上路"
+      },
+      {
+        "position": "打野",
+        "nickname": "飓风",
+        "gameId": "wind0002",
+        "avatarUrl": "https://robohash.org/jufeng?set=set4&size=100x100",
+        "rating": 87,
+        "isCaptain": "否",
+        "level": "B",
+        "championPool": "蔚,赵信,贾克斯",
+        "liveRoom": "",
+        "bio": "飓风打野"
+      },
+      {
+        "position": "中单",
+        "nickname": "微风",
+        "gameId": "wind0003",
+        "avatarUrl": "https://robohash.org/weifeng?set=set4&size=100x100",
+        "rating": 88,
+        "isCaptain": "否",
+        "level": "B",
+        "championPool": "亚索,劫,永恩",
+        "liveRoom": "",
+        "bio": "微风中单"
+      },
+      {
+        "position": "ADC",
+        "nickname": "狂风",
+        "gameId": "wind0004",
+        "avatarUrl": "https://robohash.org/kuangfeng?set=set4&size=100x100",
+        "rating": 86,
+        "isCaptain": "否",
+        "level": "B",
+        "championPool": "卡莉丝塔,薇恩,卢锡安",
+        "liveRoom": "",
+        "bio": "狂风射手"
+      },
+      {
+        "position": "辅助",
+        "nickname": "清风",
+        "gameId": "wind0005",
+        "avatarUrl": "https://robohash.org/qingfeng?set=set4&size=100x100",
+        "rating": 85,
+        "isCaptain": "否",
+        "level": "C",
+        "championPool": "迦娜,娜美,洛",
+        "liveRoom": "",
+        "bio": "清风辅助"
+      }
+    ]
+  },
+  {
+    "teamName": "巨石",
+    "logoUrl": "https://picsum.photos/seed/rock/200/200",
+    "battleCry": "巨石战队",
+    "members": [
+      {
+        "position": "上单",
+        "nickname": "岩石",
+        "gameId": "rock0001",
+        "avatarUrl": "https://robohash.org/yanshi?set=set4&size=100x100",
+        "rating": 86,
+        "isCaptain": "是",
+        "level": "C",
+        "championPool": "墨菲特,奥恩,茂凯",
+        "liveRoom": "",
+        "bio": "岩石上路"
+      },
+      {
+        "position": "打野",
+        "nickname": "山岳",
+        "gameId": "rock0002",
+        "avatarUrl": "https://robohash.org/shanyue?set=set4&size=100x100",
+        "rating": 84,
+        "isCaptain": "否",
+        "level": "C",
+        "championPool": "扎克,拉莫斯,阿木木",
+        "liveRoom": "",
+        "bio": "山岳打野"
+      },
+      {
+        "position": "中单",
+        "nickname": "砂石",
+        "gameId": "rock0003",
+        "avatarUrl": "https://robohash.org/shashi?set=set4&size=100x100",
+        "rating": 85,
+        "isCaptain": "否",
+        "level": "C",
+        "championPool": "玛尔扎哈,瑞兹,崔斯特",
+        "liveRoom": "",
+        "bio": "砂石中单"
+      },
+      {
+        "position": "ADC",
+        "nickname": "碎石",
+        "gameId": "rock0004",
+        "avatarUrl": "https://robohash.org/suishi?set=set4&size=100x100",
+        "rating": 84,
+        "isCaptain": "否",
+        "level": "C",
+        "championPool": "希维尔,韦鲁斯,艾希",
+        "liveRoom": "",
+        "bio": "碎石射手"
+      },
+      {
+        "position": "辅助",
+        "nickname": "岩壁",
+        "gameId": "rock0005",
+        "avatarUrl": "https://robohash.org/yanbi?set=set4&size=100x100",
+        "rating": 83,
+        "isCaptain": "否",
+        "level": "D",
+        "championPool": "诺提勒斯,布隆,阿利斯塔",
+        "liveRoom": "",
+        "bio": "岩壁辅助"
+      }
+    ]
+  },
+  {
+    "teamName": "深海",
+    "logoUrl": "https://picsum.photos/seed/ocean/200/200",
+    "battleCry": "深海战队",
+    "members": [
+      {
+        "position": "上单",
+        "nickname": "海浪",
+        "gameId": "ocean0001",
+        "avatarUrl": "https://robohash.org/hailang?set=set4&size=100x100",
+        "rating": 89,
+        "isCaptain": "是",
+        "level": "A",
+        "championPool": "普朗克,俄洛伊",
+        "liveRoom": "",
+        "bio": "海浪上路"
+      },
+      {
+        "position": "打野",
+        "nickname": "潮汐",
+        "gameId": "ocean0002",
+        "avatarUrl": "https://robohash.org/chaoxi?set=set4&size=100x100",
+        "rating": 88,
+        "isCaptain": "否",
+        "level": "B",
+        "championPool": "菲兹,伊莉丝",
+        "liveRoom": "",
+        "bio": "潮汐打野"
+      },
+      {
+        "position": "中单",
+        "nickname": "珊瑚",
+        "gameId": "ocean0003",
+        "avatarUrl": "https://robohash.org/shanhu?set=set4&size=100x100",
+        "rating": 87,
+        "isCaptain": "否",
+        "level": "B",
+        "championPool": "菲兹,卡萨丁,艾克",
+        "liveRoom": "",
+        "bio": "珊瑚中单"
+      },
+      {
+        "position": "ADC",
+        "nickname": "海龟",
+        "gameId": "ocean0004",
+        "avatarUrl": "https://robohash.org/haigui?set=set4&size=100x100",
+        "rating": 86,
+        "isCaptain": "否",
+        "level": "B",
+        "championPool": "尼菈,希维尔,崔丝塔娜",
+        "liveRoom": "",
+        "bio": "海龟射手"
+      },
+      {
+        "position": "辅助",
+        "nickname": "珍珠",
+        "gameId": "ocean0005",
+        "avatarUrl": "https://robohash.org/zhenzhu?set=set4&size=100x100",
+        "rating": 85,
+        "isCaptain": "否",
+        "level": "C",
+        "championPool": "娜美,洛,迦娜",
+        "liveRoom": "",
+        "bio": "珍珠辅助"
+      }
+    ]
+  }
+]
