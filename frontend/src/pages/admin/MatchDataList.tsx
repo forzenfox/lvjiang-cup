@@ -25,9 +25,10 @@ const MatchDataList: React.FC = () => {
   const [matches, setMatches] = useState<MatchWithTeams[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [templateLoading, setTemplateLoading] = useState(false);
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [currentMatchId, setCurrentMatchId] = useState<string | null>(null);
+  // 管理每行下载模板按钮的 loading 状态，存储当前正在下载的比赛 ID
+  const [downloadingMatchId, setDownloadingMatchId] = useState<string | null>(null);
 
   useEffect(() => {
     loadData();
@@ -124,24 +125,53 @@ const MatchDataList: React.FC = () => {
     navigate(adminPath(`matches/${matchId}/games`));
   };
 
-  const handleDownloadTemplate = async () => {
-    setTemplateLoading(true);
+  /**
+   * 处理下载对战数据导入模板
+   * @param matchId 比赛 ID
+   */
+  const handleDownloadTemplate = async (matchId: string) => {
+    // 检查比赛是否已结束
+    const match = matches.find(m => m.id === matchId);
+    if (!match) {
+      toast.error('未找到对战记录');
+      return;
+    }
+    if (match.status !== 'finished') {
+      toast.error('对战未结束，无法下载模板');
+      return;
+    }
+    // 检查比分是否有效（避免 0:0 等无效比分）
+    if (match.scoreA === undefined || match.scoreB === undefined) {
+      toast.error('比分无效，无法下载模板');
+      return;
+    }
+
+    setDownloadingMatchId(matchId);
     try {
-      const blob = await downloadMatchDataTemplate();
+      const blob = await downloadMatchDataTemplate(matchId);
+
+      // 尝试从响应头获取文件名，否则使用默认文件名
+      const fileName = `驴酱杯对战数据导入模板_${new Date().toISOString().slice(0, 10).replace(/-/g, '')}.xlsx`;
+
+      // 创建临时链接触发下载
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `驴酱杯_对战数据导入模板_${new Date().toISOString().slice(0, 10).replace(/-/g, '')}.xlsx`;
+      link.download = fileName;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
+
       toast.success('模板下载成功');
-    } catch (error) {
-      console.error('Failed to download template:', error);
-      toast.error('模板下载失败');
+    } catch (error: unknown) {
+      console.error('模板下载失败:', error);
+      // 根据错误信息给出更精确的提示
+      const err = error as { response?: { data?: { message?: string } }; message?: string };
+      const message = err?.response?.data?.message || err?.message || '模板下载失败';
+      toast.error(message);
     } finally {
-      setTemplateLoading(false);
+      setDownloadingMatchId(null);
     }
   };
 
@@ -177,25 +207,15 @@ const MatchDataList: React.FC = () => {
           </div>
         </div>
 
+        {/* 搜索栏：仅保留搜索输入框，移除下载模板按钮 */}
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <Input
             placeholder="搜索战队名称..."
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
-            className="pl-10 pr-32 bg-gray-800 border-gray-700 text-white placeholder:text-gray-400 w-full max-w-md"
+            className="pl-10 bg-gray-800 border-gray-700 text-white placeholder:text-gray-400 w-full max-w-md"
           />
-          <Button
-            data-testid="download-template-button"
-            variant="outline"
-            size="sm"
-            onClick={handleDownloadTemplate}
-            disabled={templateLoading}
-            className="absolute right-1 top-1/2 -translate-y-1/2 border-blue-600 text-blue-400 hover:bg-blue-900/30"
-          >
-            <Download className={`w-4 h-4 mr-1 ${templateLoading ? 'animate-spin' : ''}`} />
-            {templateLoading ? '下载中...' : '下载模板'}
-          </Button>
         </div>
 
         <div className="bg-gray-800 rounded-lg border border-gray-700 overflow-hidden">
@@ -242,6 +262,19 @@ const MatchDataList: React.FC = () => {
                     </td>
                     <td className="px-4 py-4">
                       <div className="flex items-center justify-end gap-2">
+                        {/* 下载模板按钮：位于管理数据之前，样式与导入数据一致 */}
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="border-blue-600 text-blue-400 hover:bg-blue-900/30"
+                          onClick={() => handleDownloadTemplate(match.id)}
+                          disabled={downloadingMatchId === match.id}
+                        >
+                          <Download
+                            className={`w-4 h-4 mr-1 ${downloadingMatchId === match.id ? 'animate-spin' : ''}`}
+                          />
+                          {downloadingMatchId === match.id ? '下载中...' : '下载模板'}
+                        </Button>
                         {!match.checkingMatchData && match.hasMatchData && (
                           <Button
                             size="sm"

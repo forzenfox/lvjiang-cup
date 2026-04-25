@@ -9,7 +9,7 @@ describe('AdminController', () => {
   let controller: AdminController;
   let databaseService: DatabaseService;
   let cacheService: CacheService;
-  let matchesService: MatchesService;
+  let _matchesService: MatchesService;
 
   const mockMatchesService = {
     initSlots: jest.fn(),
@@ -55,7 +55,7 @@ describe('AdminController', () => {
       .compile();
 
     controller = module.get<AdminController>(AdminController);
-    matchesService = module.get<MatchesService>(MatchesService);
+    _matchesService = module.get<MatchesService>(MatchesService);
     databaseService = module.get<DatabaseService>(DatabaseService);
     cacheService = module.get<CacheService>(CacheService);
   });

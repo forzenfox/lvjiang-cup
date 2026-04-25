@@ -15,11 +15,11 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiConsumes } from '@nestjs/swagger';
 import { Response } from 'express';
-import * as fs from 'fs';
 import { MatchDataService } from './match-data.service';
 import { MatchDataImportService } from './services/match-data-import.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { AdminRoleGuard } from './guards/admin-role.guard';
+import { ImportOptions } from '../utils/match-excel.util';
 
 @ApiTags('对战数据管理')
 @Controller('admin/matches')
@@ -32,19 +32,26 @@ export class MatchDataAdminController {
   ) {}
 
   @Post(':matchId/games/import')
-  @ApiOperation({ summary: '从Excel导入比赛数据' })
+  @ApiOperation({ summary: '从Excel导入比赛数据（支持多Sheet）' })
   @ApiConsumes('multipart/form-data')
   @UseInterceptors(FileInterceptor('file'))
   async importMatchData(
     @Param('matchId') matchId: string,
     @UploadedFile() file: Express.Multer.File,
+    @Body('dryRun') dryRun?: string,
+    @Body('confirmWarnings') confirmWarnings?: string,
   ) {
     if (!file) {
       throw new Error('请上传Excel文件');
     }
 
+    const options: ImportOptions = {
+      dryRun: dryRun === 'true',
+      confirmWarnings: confirmWarnings === 'true',
+    };
+
     const adminId = 'admin';
-    return this.matchDataService.importMatchData(matchId, file, adminId);
+    return this.matchDataService.importMatchData(matchId, file, adminId, options);
   }
 
   @Put(':matchId/games/:gameId')
@@ -68,33 +75,14 @@ export class MatchDataAdminController {
     return this.matchDataService.deleteMatchGameData(matchId, gameNumber, adminId);
   }
 
-  @Get('import/template')
-  @ApiOperation({ summary: '下载对战数据导入模板' })
-  async downloadTemplate(@Res() res: Response) {
-    const templatePath = await this.matchDataImportService.generateTemplate();
+  @Get(':matchId/import/template')
+  @ApiOperation({ summary: '下载对战数据导入模板（根据比分动态生成）' })
+  async downloadTemplate(@Param('matchId') matchId: string, @Res() res: Response) {
+    const buffer = await this.matchDataImportService.generateTemplate(matchId);
 
-    const fileName = `驴酱杯_对战数据导入模板_${new Date().toISOString().slice(0, 10).replace(/-/g, '')}.xlsx`;
-
-    res.setHeader(
-      'Content-Type',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    );
-    res.setHeader(
-      'Content-Disposition',
-      `attachment; filename*=UTF-8''${encodeURIComponent(fileName)}`,
-    );
-    res.setHeader('Content-Length', fs.statSync(templatePath).size.toString());
-
-    const fileStream = fs.createReadStream(templatePath);
-    fileStream.pipe(res);
-  }
-
-  @Get('import/template/refresh')
-  @ApiOperation({ summary: '刷新对战数据导入模板（删除旧模板并重新生成）' })
-  async refreshTemplate(@Res() res: Response) {
-    const templatePath = await this.matchDataImportService.refreshTemplate();
-
-    const fileName = `驴酱杯_对战数据导入模板_${new Date().toISOString().slice(0, 10).replace(/-/g, '')}.xlsx`;
+    // 查询对战信息用于生成文件名
+    const match = await this.matchDataService.getMatchBasicInfo(matchId);
+    const fileName = `驴酱杯对战信息_${match.teamAName}_vs_${match.teamBName}_${match.boFormat}.xlsx`;
 
     res.setHeader(
       'Content-Type',
@@ -104,10 +92,8 @@ export class MatchDataAdminController {
       'Content-Disposition',
       `attachment; filename*=UTF-8''${encodeURIComponent(fileName)}`,
     );
-    res.setHeader('Content-Length', fs.statSync(templatePath).size.toString());
-
-    const fileStream = fs.createReadStream(templatePath);
-    fileStream.pipe(res);
+    res.setHeader('Content-Length', buffer.length.toString());
+    res.send(buffer);
   }
 
   @Post('import/error-report')

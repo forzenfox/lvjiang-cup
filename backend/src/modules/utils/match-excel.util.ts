@@ -126,6 +126,299 @@ export function validateMatchInfo(data: MatchInfoData): ValidationResult {
   return { valid: errors.length === 0, errors };
 }
 
+// ============= Sheet名称解析与校验工具函数 =============
+
+/**
+ * 中文数字映射表
+ * 将中文数字字符转换为对应的阿拉伯数字
+ */
+const CHINESE_NUMBER_MAP: Record<string, number> = {
+  一: 1,
+  二: 2,
+  三: 3,
+  四: 4,
+  五: 5,
+};
+
+/**
+ * 数字转中文映射表
+ * 将阿拉伯数字转换为对应的中文数字
+ */
+export const NUMBER_TO_CHINESE: Record<number, string> = {
+  1: '一',
+  2: '二',
+  3: '三',
+  4: '四',
+  5: '五',
+};
+
+/**
+ * Sheet名称正则表达式
+ * 匹配"第X局"格式，X可以是中文数字（一至五）或阿拉伯数字（1-5）
+ */
+const SHEET_NAME_REGEX = /^第([一二三四五1-5])局$/;
+
+/**
+ * 赛制最大局数映射
+ * 不同赛制允许的最大对局数
+ */
+export const BO_FORMAT_MAX_GAMES: Record<string, number> = {
+  BO1: 1,
+  BO3: 3,
+  BO5: 5,
+};
+
+/**
+ * 赛制胜出分数映射
+ * 不同赛制中胜方需要达到的最低分数
+ */
+export const BO_FORMAT_WIN_SCORE: Record<string, number> = {
+  BO1: 1,
+  BO3: 2,
+  BO5: 3,
+};
+
+/**
+ * Sheet校验结果接口
+ */
+export interface SheetValidationResult {
+  /** 是否校验通过 */
+  valid: boolean;
+  /** 错误信息列表 */
+  errors: string[];
+}
+
+/**
+ * 有效Sheet信息接口
+ */
+export interface ValidSheetInfo {
+  /** Sheet名称 */
+  sheetName: string;
+  /** 解析出的局数 */
+  gameNumber: number;
+}
+
+/**
+ * 局数不一致告警接口
+ */
+export interface GameNumberWarning {
+  /** Sheet名称 */
+  sheetName: string;
+  /** Sheet名称解析的局数 */
+  sheetGameNumber: number;
+  /** Excel中填写的局数 */
+  excelGameNumber: number;
+  /** 最终使用的局数（以Sheet名称为准） */
+  resolvedGameNumber: number;
+  /** 告警描述信息 */
+  message: string;
+}
+
+/**
+ * 导入选项接口
+ */
+export interface ImportOptions {
+  /** 预检模式：仅校验不导入 */
+  dryRun?: boolean;
+  /** 确认告警后继续导入 */
+  confirmWarnings?: boolean;
+}
+
+/**
+ * 单局导入结果接口
+ */
+export interface SingleGameImportResult {
+  /** 局数 */
+  gameNumber: number;
+  /** 是否导入成功 */
+  imported: boolean;
+  /** 导入的选手数据条数 */
+  playerCount: number;
+  /** 失败的选手数量 */
+  failedCount: number;
+  /** 是否为覆盖导入 */
+  overwritten: boolean;
+  /** 失败的选手详情 */
+  failedPlayers?: any[];
+  /** 错误信息（导入失败时） */
+  error?: string;
+}
+
+/**
+ * 多局导入响应接口
+ */
+export interface MultiGameImportResponse {
+  /** 是否全部导入成功 */
+  imported: boolean;
+  /** 总导入局数 */
+  totalGames: number;
+  /** 各局导入结果 */
+  results: SingleGameImportResult[];
+  /** 局数不一致告警 */
+  warnings?: GameNumberWarning[];
+}
+
+/**
+ * 解析Sheet名称，提取局数
+ * 支持"第X局"格式，X可以是中文数字（一至五）或阿拉伯数字（1-5）
+ * 自动去除前后空格
+ * @param sheetName Sheet名称
+ * @returns 局数（1-5），不匹配返回null
+ */
+export function parseSheetGameNumber(sheetName: string): number | null {
+  const trimmed = sheetName.trim();
+  const match = trimmed.match(SHEET_NAME_REGEX);
+  if (!match) return null;
+
+  const numStr = match[1];
+  if (CHINESE_NUMBER_MAP[numStr] !== undefined) {
+    return CHINESE_NUMBER_MAP[numStr];
+  }
+  return parseInt(numStr, 10);
+}
+
+/**
+ * 校验多个Sheet的局数唯一性
+ * 确保没有两个Sheet解析出相同的局数
+ * @param sheets Sheet名称与解析局数的映射列表
+ * @returns 校验结果
+ */
+export function validateGameNumberUniqueness(sheets: ValidSheetInfo[]): SheetValidationResult {
+  const errors: string[] = [];
+  const numberMap = new Map<number, string[]>();
+
+  for (const item of sheets) {
+    if (!numberMap.has(item.gameNumber)) {
+      numberMap.set(item.gameNumber, []);
+    }
+    numberMap.get(item.gameNumber)!.push(item.sheetName);
+  }
+
+  for (const [gameNumber, sheetNames] of numberMap) {
+    if (sheetNames.length > 1) {
+      errors.push(
+        `Sheet「${sheetNames.join('」和Sheet「')}」解析的局数均为${gameNumber}，局数不能重复`,
+      );
+    }
+  }
+
+  return { valid: errors.length === 0, errors };
+}
+
+/**
+ * 校验局数是否在赛制允许范围内
+ * @param gameNumber 局数
+ * @param boFormat 赛制（BO1/BO3/BO5）
+ * @returns 是否有效
+ */
+export function validateGameNumberForFormat(gameNumber: number, boFormat: string): boolean {
+  const maxGames = BO_FORMAT_MAX_GAMES[boFormat] || 1;
+  return gameNumber >= 1 && gameNumber <= maxGames;
+}
+
+/**
+ * 批量校验多个Sheet的赛制合法性
+ * @param sheets 有效Sheet信息列表
+ * @param boFormat 赛制（BO1/BO3/BO5）
+ * @returns 校验结果
+ */
+export function validateSheetsForFormat(
+  sheets: ValidSheetInfo[],
+  boFormat: string,
+): SheetValidationResult {
+  const errors: string[] = [];
+  const maxGames = BO_FORMAT_MAX_GAMES[boFormat] || 1;
+
+  for (const sheet of sheets) {
+    if (!validateGameNumberForFormat(sheet.gameNumber, boFormat)) {
+      errors.push(
+        `Sheet「${sheet.sheetName}」解析的局数为${sheet.gameNumber}，但当前对战的赛制为${boFormat}，最多允许${maxGames}局`,
+      );
+    }
+  }
+
+  return { valid: errors.length === 0, errors };
+}
+
+/**
+ * 根据比分计算模板Sheet数量
+ * Sheet数量 = 双方比分之和（即实际对局数）
+ * @param scoreA 战队A得分
+ * @param scoreB 战队B得分
+ * @returns Sheet数量
+ */
+export function calculateSheetCount(scoreA: number, scoreB: number): number {
+  return scoreA + scoreB;
+}
+
+/**
+ * 校验比分是否满足赛制约束
+ * @param scoreA 战队A得分
+ * @param scoreB 战队B得分
+ * @param boFormat 赛制（BO1/BO3/BO5）
+ * @returns 校验结果
+ */
+export function validateScoreForFormat(
+  scoreA: number,
+  scoreB: number,
+  boFormat: string,
+): SheetValidationResult {
+  const errors: string[] = [];
+  const maxGames = BO_FORMAT_MAX_GAMES[boFormat] || 1;
+  const winScore = BO_FORMAT_WIN_SCORE[boFormat] || 1;
+
+  const totalGames = scoreA + scoreB;
+  const maxScore = Math.max(scoreA, scoreB);
+  const minScore = Math.min(scoreA, scoreB);
+
+  if (totalGames < 1 || totalGames > maxGames) {
+    errors.push(`比分 ${scoreA}:${scoreB} 的总场数不在1-${maxGames}范围内`);
+  }
+
+  if (maxScore < winScore) {
+    errors.push(`${boFormat}赛制中胜方至少需要${winScore}分，当前最高分为${maxScore}`);
+  }
+
+  if (minScore >= winScore) {
+    errors.push(`双方得分均达到${winScore}，比分不合法`);
+  }
+
+  return { valid: errors.length === 0, errors };
+}
+
+/**
+ * 校验Sheet局数与MatchInfo局数的一致性
+ * @param sheetGameNumber Sheet名称解析的局数
+ * @param excelGameNumber Excel中MatchInfo填写的局数
+ * @returns 一致性校验结果和告警信息
+ */
+export function validateGameNumberConsistency(
+  sheetGameNumber: number,
+  excelGameNumber: number,
+): { consistent: boolean; warning: GameNumberWarning | null } {
+  // MatchInfo局数为空或0，以Sheet局数为准，不告警
+  if (!excelGameNumber || excelGameNumber === 0) {
+    return { consistent: true, warning: null };
+  }
+
+  // 一致
+  if (sheetGameNumber === excelGameNumber) {
+    return { consistent: true, warning: null };
+  }
+
+  // 不一致，生成告警
+  return {
+    consistent: false,
+    warning: {
+      sheetName: '',
+      sheetGameNumber,
+      excelGameNumber,
+      resolvedGameNumber: sheetGameNumber,
+      message: `Sheet名称解析的局数为${sheetGameNumber}，但表格中填写的局数为${excelGameNumber}，将以Sheet名称的局数${sheetGameNumber}为准`,
+    },
+  };
+}
+
 // 新增BV号验证函数
 function isValidBVId(bvid: string): boolean {
   // BV号格式：以BV开头，后接10位大小写字母和数字

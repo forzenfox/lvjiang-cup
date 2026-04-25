@@ -24,9 +24,9 @@ const convertApiMatchToLocal = (apiMatch: ApiMatch, teams: Team[]): Match => {
 
   // 将 API eliminationBracket 映射到本地格式
   const bracketMap: Record<string, EliminationBracket> = {
-    winners: 'quarterfinals',
-    losers: 'semifinals',
-    grand_finals: 'finals',
+    quarterfinals: 'quarterfinals',
+    semifinals: 'semifinals',
+    finals: 'finals',
   };
   const eliminationBracket = apiMatch.eliminationBracket
     ? bracketMap[apiMatch.eliminationBracket] || undefined
@@ -49,6 +49,7 @@ const convertApiMatchToLocal = (apiMatch: ApiMatch, teams: Team[]): Match => {
     swissRound: apiMatch.swissRound,
     boFormat: apiMatch.boFormat,
     eliminationBracket,
+    eliminationGameNumber: apiMatch.eliminationGameNumber,
   };
 };
 

@@ -1,7 +1,15 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, HttpException } from '@nestjs/common';
 import * as ExcelJS from 'exceljs';
-import * as fs from 'fs';
-import * as path from 'path';
+import {
+  NUMBER_TO_CHINESE,
+  calculateSheetCount,
+  validateScoreForFormat,
+} from '../../utils/match-excel.util';
+import {
+  MatchNotFinishedException,
+  InvalidScoreException,
+} from '../errors/match-data-import.errors';
+import { DatabaseService } from '../../../database/database.service';
 
 export interface MatchDataImportError {
   row: number;
@@ -11,53 +19,80 @@ export interface MatchDataImportError {
   message: string;
 }
 
+/**
+ * 模板预填充数据接口
+ */
+interface TemplatePrefilledData {
+  /** 红方战队名 */
+  redTeamName: string;
+  /** 蓝方战队名 */
+  blueTeamName: string;
+  /** 局数 */
+  gameNumber: number;
+}
+
 @Injectable()
 export class MatchDataImportService {
   private readonly logger = new Logger(MatchDataImportService.name);
-  private readonly TEMPLATE_DIR = path.join(process.cwd(), 'templates');
-  private readonly TEMPLATE_FILE = 'match-data-import-template.xlsx';
+
+  constructor(private readonly databaseService: DatabaseService) {}
 
   /**
-   * 生成对战数据导入模板
-   * 如果模板已存在，直接返回缓存的模板路径
+   * 根据对战信息动态生成导入模板
+   * Sheet数量 = 双方比分之和（即实际对局数）
+   * @param matchId 对战ID
+   * @returns Excel文件Buffer
    */
-  async generateTemplate(): Promise<string> {
-    const templatePath = path.join(this.TEMPLATE_DIR, this.TEMPLATE_FILE);
+  async generateTemplate(matchId: string): Promise<Buffer> {
+    // 1. 查询对战信息
+    const match = await (
+      this.databaseService.get as <T = any>(sql: string, params: any[]) => Promise<T>
+    )(
+      `SELECT m.id, m.bo_format, m.score_a, m.score_b, m.status,
+              ta.name as team_a_name, tb.name as team_b_name
+       FROM matches m
+       LEFT JOIN teams ta ON m.team_a_id = ta.id
+       LEFT JOIN teams tb ON m.team_b_id = tb.id
+       WHERE m.id = ?`,
+      [matchId],
+    );
 
-    // 如果模板已存在，直接返回缓存的模板路径
-    if (fs.existsSync(templatePath)) {
-      this.logger.log(`Using cached template: ${templatePath}`);
-      return templatePath;
+    if (!match) {
+      throw new HttpException('对战不存在', 404);
     }
 
-    // 模板不存在，生成新模板
-    this.logger.log(`Generating new template: ${templatePath}`);
-    await this.ensureTemplateDir();
+    // 2. 校验对战状态
+    if (match.status !== 'finished') {
+      throw new MatchNotFinishedException();
+    }
 
+    // 3. 校验比分
+    const scoreResult = validateScoreForFormat(match.score_a, match.score_b, match.bo_format);
+    if (!scoreResult.valid) {
+      throw new InvalidScoreException(scoreResult.errors);
+    }
+
+    // 4. 计算Sheet数量
+    const sheetCount = calculateSheetCount(match.score_a, match.score_b);
+
+    // 5. 生成多Sheet的Excel文件
     const workbook = new ExcelJS.Workbook();
     workbook.created = new Date();
     workbook.modified = new Date();
 
-    await this.createMatchDataSheet(workbook);
-
-    await workbook.xlsx.writeFile(templatePath);
-    this.logger.log(`Template generated successfully: ${templatePath}`);
-
-    return templatePath;
-  }
-
-  /**
-   * 刷新模板（删除旧模板并重新生成）
-   */
-  async refreshTemplate(): Promise<string> {
-    const templatePath = path.join(this.TEMPLATE_DIR, this.TEMPLATE_FILE);
-
-    if (fs.existsSync(templatePath)) {
-      fs.unlinkSync(templatePath);
-      this.logger.log(`Old template deleted: ${templatePath}`);
+    for (let i = 1; i <= sheetCount; i++) {
+      const sheetName = `第${NUMBER_TO_CHINESE[i]}局`;
+      await this.createMatchDataSheet(workbook, sheetName, {
+        redTeamName: match.team_a_name,
+        blueTeamName: match.team_b_name,
+        gameNumber: i,
+      });
     }
 
-    return this.generateTemplate();
+    // 6. 生成Buffer返回
+    const buffer = await workbook.xlsx.writeBuffer();
+    this.logger.log(`Template generated for match ${matchId}: ${sheetCount} sheets`);
+    return Buffer.from(buffer);
   }
 
   /**
@@ -124,26 +159,27 @@ export class MatchDataImportService {
     return typeMap[type] || type;
   }
 
-  private async ensureTemplateDir(): Promise<void> {
-    if (!fs.existsSync(this.TEMPLATE_DIR)) {
-      fs.mkdirSync(this.TEMPLATE_DIR, { recursive: true });
-    }
-  }
-
   /**
    * 创建对战数据 Sheet
    * 固定 18 行结构：
    * - 第 1 行：MatchInfo 表头
-   * - 第 2 行：MatchInfo 数据
+   * - 第 2 行：MatchInfo 数据（预填充已知字段，未知字段留空）
    * - 第 3 行：TeamStats 表头
-   * - 第 4-5 行：TeamStats 数据（红方、蓝方）
+   * - 第 4-5 行：TeamStats 数据（红方、蓝方，仅阵营填充）
    * - 第 6 行：PlayerStats 表头
-   * - 第 7-16 行：PlayerStats 数据（红方 5 人 + 蓝方 5 人）
-   * - 第 17 行：BAN 表头（新增）
-   * - 第 18 行：BAN 数据（红方5个 + 蓝方5个）
+   * - 第 7-16 行：PlayerStats 数据（红方 5 人 + 蓝方 5 人，仅阵营和位置填充）
+   * - 第 17 行：BAN 表头
+   * - 第 18 行：BAN 数据（全部留空）
+   * @param workbook Excel工作簿
+   * @param sheetName Sheet名称（如"第一局"）
+   * @param prefilledData 预填充数据
    */
-  private async createMatchDataSheet(workbook: ExcelJS.Workbook): Promise<void> {
-    const sheet = workbook.addWorksheet('MatchData');
+  private async createMatchDataSheet(
+    workbook: ExcelJS.Workbook,
+    sheetName: string,
+    prefilledData: TemplatePrefilledData,
+  ): Promise<void> {
+    const sheet = workbook.addWorksheet(sheetName);
 
     // 设置列宽
     for (let col = 1; col <= 15; col++) {
@@ -161,7 +197,7 @@ export class MatchDataImportService {
       '蓝方战队名',
       '局数',
       '比赛时间',
-      '游戏时长', // 恢复：用于雷达图维度计算
+      '游戏时长',
       '获胜方',
       'MVP',
       '视频BV号',
@@ -178,21 +214,21 @@ export class MatchDataImportService {
       cell.alignment = { horizontal: 'center' };
     });
 
-    // 第 2 行：MatchInfo 示例数据
-    sheet.getCell('A2').value = 'BLG';
-    sheet.getCell('B2').value = 'WBG';
-    sheet.getCell('C2').value = 1;
-    sheet.getCell('D2').value = '2026-04-16 14:00';
-    sheet.getCell('E2').value = '32:45'; // 游戏时长
-    sheet.getCell('F2').value = 'red'; // 获胜方
-    sheet.getCell('G2').value = 'Knight'; // MVP
-    sheet.getCell('H2').value = 'BV1Ab4y1X7zK'; // 视频BV号
+    // 第 2 行：MatchInfo 数据 - 预填充已知字段，未知字段留空
+    sheet.getCell('A2').value = prefilledData.redTeamName; // 红方战队名 - 填充
+    sheet.getCell('B2').value = prefilledData.blueTeamName; // 蓝方战队名 - 填充
+    sheet.getCell('C2').value = prefilledData.gameNumber; // 局数 - 填充
+    sheet.getCell('D2').value = ''; // 比赛时间 - 留空
+    sheet.getCell('E2').value = ''; // 游戏时长 - 留空
+    sheet.getCell('F2').value = ''; // 获胜方 - 留空
+    sheet.getCell('G2').value = ''; // MVP - 留空
+    sheet.getCell('H2').value = ''; // 视频BV号 - 留空
 
     // 为获胜方添加数据验证（下拉列表）
     ['F2'].forEach((cellAddr) => {
       sheet.getCell(cellAddr).dataValidation = {
         type: 'list',
-        allowBlank: false,
+        allowBlank: true,
         formulae: ['"red,blue"'],
         showErrorMessage: true,
         errorTitle: '无效值',
@@ -226,31 +262,16 @@ export class MatchDataImportService {
       cell.alignment = { horizontal: 'center' };
     });
 
-    // 第 4 行：TeamStats 红方数据
+    // 第 4 行：TeamStats 红方数据 - 仅阵营填充，战队名留空
     sheet.getCell('A4').value = 'red';
-    sheet.getCell('B4').value = 'BLG';
-    sheet.getCell('C4').value = 25;
-    sheet.getCell('D4').value = 18;
-    sheet.getCell('E4').value = 47;
-    sheet.getCell('F4').value = 65000;
-    sheet.getCell('G4').value = 9;
-    sheet.getCell('H4').value = 3;
-    sheet.getCell('I4').value = 1;
+    sheet.getCell('B4').value = ''; // 战队名 - 留空（红蓝方可能交换）
 
-    // 第 5 行：TeamStats 蓝方数据
+    // 第 5 行：TeamStats 蓝方数据 - 仅阵营填充，战队名留空
     sheet.getCell('A5').value = 'blue';
-    sheet.getCell('B5').value = 'WBG';
-    sheet.getCell('C5').value = 18;
-    sheet.getCell('D5').value = 25;
-    sheet.getCell('E5').value = 35;
-    sheet.getCell('F5').value = 58000;
-    sheet.getCell('G5').value = 3;
-    sheet.getCell('H5').value = 1;
-    sheet.getCell('I5').value = 0;
+    sheet.getCell('B5').value = ''; // 战队名 - 留空
 
     // 为阵营添加数据验证
     [4, 5].forEach((row) => {
-      // 阵营下拉列表
       sheet.getCell(row, 1).dataValidation = {
         type: 'list',
         allowBlank: false,
@@ -293,203 +314,24 @@ export class MatchDataImportService {
       cell.alignment = { horizontal: 'center' };
     });
 
-    // 红方选手示例数据（第 7-11 行）
-    const redTeamPlayers = [
-      {
-        position: 'TOP',
-        nickname: 'Bin',
-        champion: '格温',
-        kills: 2,
-        deaths: 2,
-        assists: 11,
-        cs: 349,
-        gold: 17315,
-        damage: 28500,
-        taken: 32000,
-        level: 18,
-        vision: 45,
-        wards: 12,
-      },
-      {
-        position: 'JUNGLE',
-        nickname: 'Xun',
-        champion: '潘森',
-        kills: 4,
-        deaths: 7,
-        assists: 10,
-        cs: 261,
-        gold: 14855,
-        damage: 22000,
-        taken: 28000,
-        level: 16,
-        vision: 38,
-        wards: 8,
-      },
-      {
-        position: 'MID',
-        nickname: 'Knight',
-        champion: '奎桑提',
-        kills: 13,
-        deaths: 0,
-        assists: 11,
-        cs: 339,
-        gold: 19592,
-        damage: 35000,
-        taken: 18000,
-        level: 18,
-        vision: 42,
-        wards: 6,
-      },
-      {
-        position: 'ADC',
-        nickname: 'Viper',
-        champion: '艾希',
-        kills: 7,
-        deaths: 3,
-        assists: 10,
-        cs: 368,
-        gold: 19385,
-        damage: 32000,
-        taken: 21000,
-        level: 18,
-        vision: 35,
-        wards: 4,
-      },
-      {
-        position: 'SUPPORT',
-        nickname: 'ON',
-        champion: '萨勒芬妮',
-        kills: 0,
-        deaths: 3,
-        assists: 22,
-        cs: 47,
-        gold: 11580,
-        damage: 8500,
-        taken: 15000,
-        level: 15,
-        vision: 78,
-        wards: 18,
-      },
-    ];
+    // 红方选手数据（第 7-11 行）- 仅阵营和位置填充
+    const positions = ['TOP', 'JUNGLE', 'MID', 'ADC', 'SUPPORT'];
+    for (let i = 0; i < 5; i++) {
+      const row = 7 + i;
+      sheet.getCell(row, 1).value = 'red'; // 阵营 - 填充
+      sheet.getCell(row, 2).value = positions[i]; // 位置 - 填充
+      sheet.getCell(row, 3).value = ''; // 选手昵称 - 留空
+      sheet.getCell(row, 4).value = ''; // 英雄名 - 留空
+    }
 
-    // 蓝方选手示例数据（第 12-16 行）
-    const blueTeamPlayers = [
-      {
-        position: 'TOP',
-        nickname: 'TheShy',
-        champion: '奎桑提',
-        kills: 1,
-        deaths: 3,
-        assists: 8,
-        cs: 289,
-        gold: 15200,
-        damage: 21000,
-        taken: 35000,
-        level: 17,
-        vision: 42,
-        wards: 10,
-      },
-      {
-        position: 'JUNGLE',
-        nickname: 'Tian',
-        champion: '蔚',
-        kills: 3,
-        deaths: 5,
-        assists: 9,
-        cs: 198,
-        gold: 12500,
-        damage: 18000,
-        taken: 26000,
-        level: 15,
-        vision: 36,
-        wards: 9,
-      },
-      {
-        position: 'MID',
-        nickname: 'Rookie',
-        champion: '阿狸',
-        kills: 5,
-        deaths: 6,
-        assists: 7,
-        cs: 312,
-        gold: 16800,
-        damage: 25000,
-        taken: 19000,
-        level: 17,
-        vision: 38,
-        wards: 5,
-      },
-      {
-        position: 'ADC',
-        nickname: 'Hope',
-        champion: '厄斐琉斯',
-        kills: 6,
-        deaths: 5,
-        assists: 6,
-        cs: 352,
-        gold: 17500,
-        damage: 28000,
-        taken: 22000,
-        level: 18,
-        vision: 32,
-        wards: 3,
-      },
-      {
-        position: 'SUPPORT',
-        nickname: 'Crisp',
-        champion: '烈娜塔',
-        kills: 3,
-        deaths: 6,
-        assists: 5,
-        cs: 38,
-        gold: 9800,
-        damage: 7500,
-        taken: 18000,
-        level: 14,
-        vision: 82,
-        wards: 20,
-      },
-    ];
-
-    // 填充红方选手数据
-    redTeamPlayers.forEach((player, index) => {
-      const row = 7 + index;
-      sheet.getCell(row, 1).value = 'red';
-      sheet.getCell(row, 2).value = player.position;
-      sheet.getCell(row, 3).value = player.nickname;
-      sheet.getCell(row, 4).value = player.champion;
-      sheet.getCell(row, 5).value = player.kills;
-      sheet.getCell(row, 6).value = player.deaths;
-      sheet.getCell(row, 7).value = player.assists;
-      sheet.getCell(row, 8).value = player.cs;
-      sheet.getCell(row, 9).value = player.gold;
-      sheet.getCell(row, 10).value = player.damage;
-      sheet.getCell(row, 11).value = player.taken;
-      sheet.getCell(row, 12).value = player.level;
-      sheet.getCell(row, 13).value = player.vision;
-      sheet.getCell(row, 14).value = player.wards;
-      sheet.getCell(row, 15).value = player.wards; // 排眼数（示例使用相同值）
-    });
-
-    // 填充蓝方选手数据
-    blueTeamPlayers.forEach((player, index) => {
-      const row = 12 + index;
-      sheet.getCell(row, 1).value = 'blue';
-      sheet.getCell(row, 2).value = player.position;
-      sheet.getCell(row, 3).value = player.nickname;
-      sheet.getCell(row, 4).value = player.champion;
-      sheet.getCell(row, 5).value = player.kills;
-      sheet.getCell(row, 6).value = player.deaths;
-      sheet.getCell(row, 7).value = player.assists;
-      sheet.getCell(row, 8).value = player.cs;
-      sheet.getCell(row, 9).value = player.gold;
-      sheet.getCell(row, 10).value = player.damage;
-      sheet.getCell(row, 11).value = player.taken;
-      sheet.getCell(row, 12).value = player.level;
-      sheet.getCell(row, 13).value = player.vision;
-      sheet.getCell(row, 14).value = player.wards;
-      sheet.getCell(row, 15).value = player.wards;
-    });
+    // 蓝方选手数据（第 12-16 行）- 仅阵营和位置填充
+    for (let i = 0; i < 5; i++) {
+      const row = 12 + i;
+      sheet.getCell(row, 1).value = 'blue'; // 阵营 - 填充
+      sheet.getCell(row, 2).value = positions[i]; // 位置 - 填充
+      sheet.getCell(row, 3).value = ''; // 选手昵称 - 留空
+      sheet.getCell(row, 4).value = ''; // 英雄名 - 留空
+    }
 
     // 为选手数据添加数据验证（第 7-16 行）
     for (let row = 7; row <= 16; row++) {
@@ -513,7 +355,7 @@ export class MatchDataImportService {
       };
     }
 
-    // ========== 第 17-18 行：BAN 数据（新增）==========
+    // ========== 第 17-18 行：BAN 数据 ==========
 
     // 第 17 行：BAN 表头
     const banHeaders = [
@@ -535,20 +377,14 @@ export class MatchDataImportService {
       cell.fill = {
         type: 'pattern',
         pattern: 'solid',
-        fgColor: { argb: 'FFFFB3B3' }, // 浅红色背景
+        fgColor: { argb: 'FFFFB3B3' },
       };
       cell.alignment = { horizontal: 'center' };
     });
 
-    // 第 18 行：BAN 示例数据（英雄中文名或英文ID）
-    const redBans = ['亚托克斯', '格雷福斯', '阿狸', '卡莎', '锤石'];
-    const blueBans = ['雷克顿', '李青', '辛德拉', '厄斐琉斯', '蕾欧娜'];
-
-    redBans.forEach((ban, index) => {
-      sheet.getCell(18, index + 1).value = ban;
-    });
-    blueBans.forEach((ban, index) => {
-      sheet.getCell(18, index + 5 + 1).value = ban;
-    });
+    // 第 18 行：BAN 数据 - 全部留空
+    for (let col = 1; col <= 10; col++) {
+      sheet.getCell(18, col).value = '';
+    }
   }
 }

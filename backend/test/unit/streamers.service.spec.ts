@@ -3,7 +3,7 @@ import { StreamersService, StreamerType } from '../../src/modules/streamers/stre
 import { DatabaseService } from '../../src/database/database.service';
 import { CacheService } from '../../src/cache/cache.service';
 import { NotFoundException } from '@nestjs/common';
-import * as fs from 'fs';
+import * as _fs from 'fs';
 
 jest.mock('fs', () => ({
   existsSync: jest.fn().mockReturnValue(true),

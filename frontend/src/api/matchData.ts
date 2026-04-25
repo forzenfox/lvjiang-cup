@@ -6,6 +6,8 @@ import type {
   MatchDataCheckResponse,
   ImportMatchDataResponse,
   UpdateMatchDataResponse,
+  ImportOptions,
+  MultiGameImportResponse,
 } from '../types/matchData';
 
 /**
@@ -72,19 +74,29 @@ export async function getMatchGameData(
 }
 
 /**
- * 导入对战数据（Excel 文件）
+ * 导入对战数据（Excel 文件，支持多 Sheet）
  * @param matchId 比赛 ID
  * @param file Excel 文件
+ * @param options 导入选项（dryRun, confirmWarnings）
  * @returns 导入结果
  */
 export async function importMatchData(
   matchId: string,
-  file: File
-): Promise<ImportMatchDataResponse> {
+  file: File,
+  options?: ImportOptions
+): Promise<ImportMatchDataResponse | MultiGameImportResponse> {
   const formData = new FormData();
   formData.append('file', file);
 
-  const responseData = await post<ApiResponse<ImportMatchDataResponse>>(
+  // 将导入选项追加到表单数据
+  if (options?.dryRun) {
+    formData.append('dryRun', 'true');
+  }
+  if (options?.confirmWarnings) {
+    formData.append('confirmWarnings', 'true');
+  }
+
+  const responseData = await post<ApiResponse<ImportMatchDataResponse | MultiGameImportResponse>>(
     `/admin/matches/${matchId}/games/import`,
     formData
   );
@@ -143,10 +155,11 @@ export async function deleteMatchGameData(
 
 /**
  * 下载对战数据导入模板
+ * @param matchId 比赛 ID
  * @returns 模板文件 Blob
  */
-export async function downloadMatchDataTemplate(): Promise<Blob> {
-  const response = await apiClient.get<Blob>('/admin/matches/import/template', {
+export async function downloadMatchDataTemplate(matchId: string): Promise<Blob> {
+  const response = await apiClient.get<Blob>(`/admin/matches/${matchId}/import/template`, {
     responseType: 'blob',
   });
   return response.data;

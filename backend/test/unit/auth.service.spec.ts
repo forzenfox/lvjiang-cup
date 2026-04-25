@@ -155,7 +155,7 @@ describe('AuthService', () => {
 
   describe('安全场景测试', () => {
     it('应该拒绝空用户名', async () => {
-      const loginDto = { username: '', password: 'admin123' };
+      const _loginDto = { username: '', password: 'admin123' };
 
       const result = await service.validateUser('', 'admin123');
 

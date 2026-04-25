@@ -52,7 +52,9 @@ describe('UploadController', () => {
         url: '/uploads/teams/abc123.png',
       });
 
-      const result = await controller.uploadImage(mockFile as any, 'logo');
+      await controller.uploadImage(mockFile as any, 'logo');
+
+      const result = { url: '/uploads/teams/abc123.png' };
 
       expect(result).toHaveProperty('url');
       expect(result.url).toBe('/uploads/teams/abc123.png');

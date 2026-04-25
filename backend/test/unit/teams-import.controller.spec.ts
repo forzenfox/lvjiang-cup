@@ -2,10 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { TeamsImportController } from '../../src/modules/teams/controllers/teams-import.controller';
 import { TeamsImportService } from '../../src/modules/teams/services/teams-import.service';
 import { JwtAuthGuard } from '../../src/modules/auth/guards/jwt-auth.guard';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
 import * as path from 'path';
-import * as fs from 'fs';
 
 describe('TeamsImportController', () => {
   let controller: TeamsImportController;

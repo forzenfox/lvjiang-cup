@@ -17,20 +17,23 @@ jest.mock('sharp', () => {
 });
 
 // Mock fs 模块
-jest.mock('fs', () => ({
-  existsSync: jest.fn().mockReturnValue(true),
-  mkdirSync: jest.fn(),
-  promises: {
+jest.mock('fs', () => {
+  const mockPromises = {
     writeFile: jest.fn().mockResolvedValue(undefined),
     readdir: jest.fn().mockResolvedValue([]),
     unlink: jest.fn().mockResolvedValue(undefined),
-  },
-}));
+  };
+  return {
+    existsSync: jest.fn().mockReturnValue(true),
+    mkdirSync: jest.fn(),
+    promises: mockPromises,
+  };
+});
 
 // 导入 mock 以便在测试中使用
 import * as fs from 'fs';
 
-const mockFs = fs as jest.Mocked<typeof fs>;
+const mockFs = fs as any;
 
 describe('Upload Integration Tests', () => {
   let service: UploadService;
@@ -131,3 +134,4 @@ describe('Upload Integration Tests', () => {
     await databaseService.run('DELETE FROM streamers');
     await databaseService.run('DELETE FROM videos');
   }
+});

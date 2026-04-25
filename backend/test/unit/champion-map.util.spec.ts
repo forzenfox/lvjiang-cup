@@ -5,8 +5,8 @@ import {
   validateChampionPool,
   clearChampionCache,
 } from '../../src/modules/teams/utils/champion-map.util';
-import * as fs from 'fs';
-import * as path from 'path';
+import * as _fs from 'fs';
+import * as _path from 'path';
 
 describe('ChampionMapUtil', () => {
   beforeEach(() => {

@@ -101,9 +101,12 @@ describe.skip('MatchData Import Flow (Skipped - Excel parsing mock issues)', () 
       const result = await service.importMatchData('match_1', mockFile, 'admin_1');
 
       expect(result.imported).toBe(true);
-      expect(result.gameNumber).toBe(1);
-      expect(result.playerCount).toBeGreaterThan(0);
-      expect(result.overwritten).toBe(false);
+      // 多局导入返回 MultiGameImportResponse，通过 results 数组访问单局结果
+      if ('results' in result && Array.isArray(result.results)) {
+        expect(result.results[0].gameNumber).toBe(1);
+        expect(result.results[0].playerCount).toBeGreaterThan(0);
+        expect(result.results[0].overwritten).toBe(false);
+      }
     });
   });
 

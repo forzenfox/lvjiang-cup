@@ -265,3 +265,61 @@ export interface ApiResponse<T = unknown> {
   /** 是否成功 */
   success: boolean;
 }
+
+/**
+ * 单局导入结果
+ */
+export interface SingleGameImportResult {
+  /** 局数 */
+  gameNumber: number;
+  /** 是否导入成功 */
+  imported: boolean;
+  /** 导入的选手数据条数 */
+  playerCount: number;
+  /** 失败的选手数量 */
+  failedCount?: number;
+  /** 是否为覆盖导入（同一局已有数据） */
+  overwritten?: boolean;
+  /** 失败详情列表 */
+  failedPlayers?: MatchDataImportError[];
+}
+
+/**
+ * 局数不一致告警
+ */
+export interface GameNumberWarning {
+  /** Sheet名称 */
+  sheetName: string;
+  /** Sheet名称解析的局数 */
+  sheetGameNumber: number;
+  /** Excel中填写的局数 */
+  excelGameNumber: number;
+  /** 最终使用的局数（以Sheet名称为准） */
+  resolvedGameNumber: number;
+  /** 告警描述信息 */
+  message: string;
+}
+
+/**
+ * 多局导入响应
+ */
+export interface MultiGameImportResponse {
+  /** 是否全部导入成功 */
+  imported: boolean;
+  /** 总导入局数 */
+  totalGames: number;
+  /** 各局导入结果列表 */
+  results: SingleGameImportResult[];
+  /** 局数不一致告警（仅在 dryRun 时返回） */
+  warnings?: GameNumberWarning[];
+}
+
+/**
+ * 导入选项
+ */
+export interface ImportOptions {
+  /** 是否为试运行模式（仅校验不实际写入） */
+  dryRun?: boolean;
+  /** 是否确认并忽略局数不一致告警 */
+  confirmWarnings?: boolean;
+}

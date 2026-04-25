@@ -13,6 +13,7 @@ interface ConfirmDialogProps {
   cancelText?: string;
   onConfirm: () => void;
   onCancel: () => void;
+  children?: React.ReactNode;
 }
 
 export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
@@ -25,6 +26,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   cancelText = '取消',
   onConfirm,
   onCancel,
+  children,
 }) => {
   const isDialogOpen = open ?? isOpen ?? false;
   if (!isDialogOpen) return null;
@@ -53,7 +55,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
 
         {/* 消息内容 */}
         <div className="px-6 py-4">
-          <p className="text-gray-300 leading-relaxed">{content}</p>
+          {children ? children : <p className="text-gray-300 leading-relaxed">{content}</p>}
         </div>
 
         {/* 按钮区域 */}

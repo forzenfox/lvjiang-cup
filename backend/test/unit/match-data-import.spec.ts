@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll } from '@jest/globals';
-import * as fs from 'fs';
-import * as path from 'path';
+import * as _fs from 'fs';
+import * as _path from 'path';
 import * as xlsx from 'xlsx';
 import {
   parseMatchDataExcel,

@@ -137,7 +137,7 @@ export const HomeDataProvider: React.FC<HomeDataProviderProps> = ({ children }) 
   }, [setLoading]);
 
   const fetchMatches = useCallback(async () => {
-    if (hasFetched.current.matches) return;
+    // 如果请求正在进行中，等待该请求完成
     if (pendingRequests.current.matches) {
       await pendingRequests.current.matches;
       return;
@@ -153,7 +153,6 @@ export const HomeDataProvider: React.FC<HomeDataProviderProps> = ({ children }) 
         console.error('获取比赛数据失败:', error);
       })
       .finally(() => {
-        hasFetched.current.matches = true;
         setLoading('matches', false);
         pendingRequests.current.matches = null;
       });

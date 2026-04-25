@@ -2,7 +2,6 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { StreamersController } from '../../src/modules/streamers/streamers.controller';
 import { StreamersService, StreamerType } from '../../src/modules/streamers/streamers.service';
 import { JwtAuthGuard } from '../../src/modules/auth/guards/jwt-auth.guard';
-import { ExecutionContext } from '@nestjs/common';
 
 describe('StreamersController', () => {
   let controller: StreamersController;
@@ -18,7 +17,7 @@ describe('StreamersController', () => {
   };
 
   const mockJwtAuthGuard = {
-    canActivate: jest.fn((context: ExecutionContext) => true),
+    canActivate: jest.fn((_context: any) => true),
   };
 
   const mockStreamer = {

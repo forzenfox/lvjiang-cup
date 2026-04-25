@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { VideosController } from '../../src/modules/videos/videos.controller';
-import { VideosService, SortItem } from '../../src/modules/videos/videos.service';
+import { VideosService } from '../../src/modules/videos/videos.service';
 import { Video } from '../../src/modules/videos/entities/video.entity';
 import { JwtAuthGuard } from '../../src/modules/auth/guards/jwt-auth.guard';
 import { NotFoundException } from '@nestjs/common';

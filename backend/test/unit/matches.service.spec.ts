@@ -178,7 +178,7 @@ describe('MatchesService', () => {
           status: 'finished',
         }); // for returning updated match
 
-      const result = await service.update('1', {
+      const _result = await service.update('1', {
         scoreA: 2,
         scoreB: 1,
         status: MatchStatus.FINISHED,
@@ -231,7 +231,7 @@ describe('MatchesService', () => {
           status: 'upcoming',
         }); // for returning cleared match
 
-      const result = await service.clearScores('1');
+      const _result = await service.clearScores('1');
 
       expect(mockDatabaseService.run).toHaveBeenCalledWith(expect.stringContaining('score_a = 0'), [
         '1',
