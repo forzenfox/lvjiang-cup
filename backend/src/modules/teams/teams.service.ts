@@ -82,6 +82,7 @@ export class TeamsService extends BaseCachedService<Team, string> {
           liveUrl: m.live_url,
           sortOrder: m.sort_order,
           level: m.level,
+          auctionPrice: m.auction_price || 0,
         })),
     }));
   }
@@ -120,6 +121,7 @@ export class TeamsService extends BaseCachedService<Team, string> {
         liveUrl: m.live_url,
         sortOrder: m.sort_order,
         level: m.level,
+        auctionPrice: m.auction_price || 0,
       })),
     };
   }
@@ -487,6 +489,10 @@ export class TeamsService extends BaseCachedService<Team, string> {
     if (updateMemberDto.level !== undefined) {
       updates.push('level = ?');
       values.push(updateMemberDto.level);
+    }
+    if (updateMemberDto.auctionPrice !== undefined) {
+      updates.push('auction_price = ?');
+      values.push(updateMemberDto.auctionPrice);
     }
 
     if (updates.length > 0) {

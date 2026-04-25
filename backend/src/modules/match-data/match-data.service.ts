@@ -208,10 +208,9 @@ export class MatchDataService {
     );
 
     if (!game) {
-      throw new NotFoundException({
-        code: 40003,
-        message: `Match data for game ${gameNumber} not found`,
-      });
+      // 数据不存在时返回 null，而非抛出404异常
+      // 这样前端可以正常处理未导入数据的情况
+      return null;
     }
 
     // 获取蓝色方战队信息
@@ -311,9 +310,9 @@ export class MatchDataService {
       matchId: game.match_id,
       gameNumber: game.game_number,
       winnerTeamId: game.winner_team_id,
-      gameDuration: game.game_duration,    // 保留兼容
+      gameDuration: game.game_duration, // 保留兼容
       gameStartTime: game.game_start_time,
-      videoBvid: game.video_bvid || null,  // 新增
+      videoBvid: game.video_bvid || null, // 新增
       blueTeam: {
         teamId: game.blue_team_id,
         teamName: blueTeam?.name || '',
@@ -548,7 +547,7 @@ export class MatchDataService {
         const redBanJson = JSON.stringify(parsedData.bans.redBans);
         const blueBanJson = JSON.stringify(parsedData.bans.blueBans);
 
-        // 插入match_games（包含BAN数据和BV号）
+        // 插入match_games（包含BAN数据、游戏时长和BV号）
         const gameResult = await this.databaseService.run(
           `INSERT INTO match_games (
             match_id, game_number, winner_team_id, game_duration, game_start_time,
@@ -562,7 +561,7 @@ export class MatchDataService {
             matchId,
             parsedData.matchInfo.gameNumber,
             winnerTeamId,
-            '',                                      // game_duration 废弃，插入空
+            parsedData.matchInfo.gameDuration, // 恢复：用于雷达图维度计算
             parsedData.matchInfo.gameStartTime || new Date().toISOString(),
             blueTeamId,
             redTeamId,
@@ -578,7 +577,7 @@ export class MatchDataService {
             this.getTeamFieldForSide(parsedData.teamStats, 'barons', 'red'),
             redBanJson,
             blueBanJson,
-            parsedData.matchInfo.videoBvid || null,   // 新增BV号
+            parsedData.matchInfo.videoBvid || null, // 视频BV号
             adminId,
           ],
         );
@@ -671,7 +670,7 @@ export class MatchDataService {
               ps.visionScore,
               ps.wardsPlaced,
               ps.level,
-              0,  // first_blood 废弃，固定为0
+              0, // first_blood 废弃，固定为0
               isMvp,
             ],
           );
@@ -722,6 +721,79 @@ export class MatchDataService {
       throw new BadRequestException({
         code: 50000,
         message: `Failed to import match data: ${error.message}`,
+      });
+    }
+  }
+
+  /**
+   * 删除比赛数据（整局）
+   */
+  async deleteMatchGameData(
+    matchId: string,
+    gameNumber: number,
+    adminId: string,
+  ): Promise<{ deleted: boolean; gameNumber: number }> {
+    try {
+      // 检查比赛是否存在
+      const match = await this.databaseService.get<any>(
+        'SELECT id, bo_format FROM matches WHERE id = ?',
+        [matchId],
+      );
+
+      if (!match) {
+        throw new NotFoundException(`Match with id ${matchId} not found`);
+      }
+
+      // 检查game是否存在
+      const game = await this.databaseService.get<any>(
+        'SELECT id, game_number FROM match_games WHERE match_id = ? AND game_number = ? AND status = 1',
+        [matchId, gameNumber],
+      );
+
+      if (!game) {
+        throw new NotFoundException({
+          code: 40003,
+          message: `Match game ${gameNumber} not found for match ${matchId}`,
+        });
+      }
+
+      // 使用事务删除数据
+      await this.databaseService.begin();
+
+      try {
+        // 先删除选手统计数据
+        await this.databaseService.run('DELETE FROM player_match_stats WHERE match_game_id = ?', [
+          game.id,
+        ]);
+
+        // 再删除比赛游戏数据（硬删除）
+        await this.databaseService.run('DELETE FROM match_games WHERE id = ?', [game.id]);
+
+        await this.databaseService.commit();
+
+        // 清除缓存
+        this.clearMatchCache(matchId);
+
+        this.logger.log(
+          `Deleted match game data: matchId=${matchId}, gameNumber=${gameNumber}, adminId=${adminId}`,
+        );
+
+        return {
+          deleted: true,
+          gameNumber,
+        };
+      } catch (error) {
+        await this.databaseService.rollback();
+        throw error;
+      }
+    } catch (error) {
+      if (error instanceof BadRequestException || error instanceof NotFoundException) {
+        throw error;
+      }
+      this.logger.error(`Failed to delete match game data: ${error.message}`, error.stack);
+      throw new BadRequestException({
+        code: 50000,
+        message: `Failed to delete match game data: ${error.message}`,
       });
     }
   }

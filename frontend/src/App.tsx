@@ -10,6 +10,7 @@ import AdminStreamers from './pages/admin/Streamers';
 import Videos from './pages/admin/Videos';
 import ProtectedRoute from './components/layout/ProtectedRoute';
 import MatchDataPage from './components/features/match-data/MatchDataPage';
+import MatchDataEditPage from './components/features/match-data/MatchDataEditPage';
 import MatchDataList from './pages/admin/MatchDataList';
 import MatchDataManagement from './pages/admin/MatchDataManagement';
 import { adminPath } from './constants/routes';
@@ -84,6 +85,14 @@ function App() {
           element={
             <ProtectedRoute>
               <MatchDataManagement />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path={adminPath('matches/:matchId/games/:gameNumber/edit')}
+          element={
+            <ProtectedRoute>
+              <MatchDataEditPage />
             </ProtectedRoute>
           }
         />

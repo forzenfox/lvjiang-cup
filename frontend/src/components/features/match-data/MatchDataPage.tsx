@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
-import { Loader2, AlertCircle } from 'lucide-react';
+import { Loader2, AlertCircle, Edit3 } from 'lucide-react';
 import MatchDataHeader from './MatchDataHeader';
 import MatchSeriesHeader from './MatchSeriesHeader';
 import GameSwitcher from './GameSwitcher';
@@ -19,6 +19,8 @@ import { matchDataCache } from '@/utils/matchDataCache';
 import MatchDataSkeleton from './MatchDataSkeleton';
 import MatchDataEmptyState from './MatchDataEmptyState';
 import { initChampionMap } from '@/utils/championUtils';
+import { isTokenValid } from '@/utils/tokenUtils';
+import { adminPath } from '@/constants/routes';
 
 const POSITION_ORDER: PositionType[] = ['TOP', 'JUNGLE', 'MID', 'ADC', 'SUPPORT'];
 
@@ -41,6 +43,41 @@ const MatchDataPage: React.FC = () => {
 
   const currentGameNumber = parseInt(searchParams.get('game') || '1', 10);
 
+  // 管理员鉴权状态：检查本地存储的 Token 是否有效
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    setIsAdmin(!!token && isTokenValid(token));
+  }, []);
+
+  // 跳转到编辑页面（带安全校验）
+  const handleEditClick = useCallback(() => {
+    if (!matchId || !isAdmin) {
+      console.warn('[MatchDataPage] 未授权访问编辑页面');
+      return;
+    }
+
+    const gameNum = currentGameNumber || 1;
+    navigate(adminPath(`matches/${matchId}/games/${gameNum}/edit`));
+  }, [matchId, currentGameNumber, isAdmin, navigate]);
+
+  // 渲染头部操作区域（仅管理员可见）
+  const renderHeaderAction = () => {
+    if (!isAdmin) return null;
+
+    return (
+      <button
+        onClick={handleEditClick}
+        className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-[#2d2d2d] hover:bg-[#3d3d3d] rounded-lg transition-colors"
+        aria-label="编辑对战数据"
+      >
+        <Edit3 className="w-4 h-4" />
+        编辑
+      </button>
+    );
+  };
+
   /**
    * 带重试机制的游戏数据加载
    */
@@ -48,6 +85,8 @@ const MatchDataPage: React.FC = () => {
     for (let i = 0; i < retries; i++) {
       try {
         const data = await getMatchGameData(mId, gameNum);
+        // data 为 null 表示该局未导入数据，直接返回
+        if (data === null) return null;
         return data;
       } catch (err) {
         if (i === retries - 1) throw err;
@@ -117,7 +156,10 @@ const MatchDataPage: React.FC = () => {
       try {
         const data = await loadGameDataWithRetry(mId, gameNum);
         setGameData(data);
-        matchDataCache.set(cacheKey, data);
+        // 只有数据存在时才缓存，null 不缓存
+        if (data) {
+          matchDataCache.set(cacheKey, data);
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : '获取游戏数据失败');
         console.error('[MatchDataPage] 游戏数据加载失败:', err);
@@ -317,7 +359,7 @@ const MatchDataPage: React.FC = () => {
   if (error) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-[#0f0f23] to-[#1a1a2e] text-white">
-        <MatchDataHeader onBack={handleBack} />
+        <MatchDataHeader onBack={handleBack} action={renderHeaderAction()} />
         <div className="flex flex-col items-center justify-center mt-8">
           <AlertCircle className="w-12 h-12 text-red-500 mb-4" />
           <p className="text-lg mb-2">{error}</p>
@@ -345,7 +387,7 @@ const MatchDataPage: React.FC = () => {
   if (loading && !seriesInfo) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-[#0f0f23] to-[#1a1a2e] text-white">
-        <MatchDataHeader onBack={handleBack} />
+        <MatchDataHeader onBack={handleBack} action={renderHeaderAction()} />
         <div className="container mx-auto px-4 py-6">
           <MatchDataSkeleton />
         </div>
@@ -364,6 +406,7 @@ const MatchDataPage: React.FC = () => {
               ? `${seriesInfo.teamA.name} vs ${seriesInfo.teamB.name} - ${seriesInfo.format}`
               : undefined
           }
+          action={renderHeaderAction()}
         />
         <MatchDataEmptyState matchId={matchId} />
       </div>
@@ -380,6 +423,7 @@ const MatchDataPage: React.FC = () => {
             ? `${seriesInfo.teamA.name} vs ${seriesInfo.teamB.name} - ${seriesInfo.format}`
             : undefined
         }
+        action={renderHeaderAction()}
       />
 
       <div className="container mx-auto px-4 py-6">

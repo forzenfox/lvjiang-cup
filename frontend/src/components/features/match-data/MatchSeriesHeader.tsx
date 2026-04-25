@@ -140,11 +140,12 @@ const MatchSeriesHeader: React.FC<MatchSeriesHeaderProps> = ({ seriesInfo, gameD
           </span>
 
           {/* 视频回顾按钮 */}
-          {isFinished && (
+          {isFinished && gameData?.videoBvid && (
             <button
               className="flex items-center gap-2 px-8 py-3 bg-[#c49f58] hover:bg-[#b08d4a] text-[#1a1a2e] font-bold rounded-lg transition-all duration-200 mt-2 group"
               onClick={() => {
-                // TODO: 实现视频回顾功能
+                const videoUrl = `https://www.bilibili.com/video/${gameData.videoBvid}`;
+                window.open(videoUrl, '_blank');
               }}
             >
               <Play className="w-5 h-5 group-hover:scale-110 transition-transform" />

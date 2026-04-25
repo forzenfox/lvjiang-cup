@@ -36,6 +36,7 @@ const MatchDataImportDialog: React.FC<MatchDataImportDialogProps> = ({
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [errorDetails, setErrorDetails] = useState<ImportErrorDetail[]>([]);
+  const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const [preview, setPreview] = useState<ImportMatchDataResponse | null>(null);
   const [downloadingReport, setDownloadingReport] = useState(false);
 
@@ -57,12 +58,14 @@ const MatchDataImportDialog: React.FC<MatchDataImportDialogProps> = ({
       if (validationError) {
         setError(validationError);
         setErrorDetails([]);
+        setValidationErrors([]);
         return;
       }
       setFile(selectedFile);
       setPreview(null);
       setError(null);
       setErrorDetails([]);
+      setValidationErrors([]);
     }
   };
 
@@ -85,12 +88,14 @@ const MatchDataImportDialog: React.FC<MatchDataImportDialogProps> = ({
       if (validationError) {
         setError(validationError);
         setErrorDetails([]);
+        setValidationErrors([]);
         return;
       }
       setFile(droppedFile);
       setPreview(null);
       setError(null);
       setErrorDetails([]);
+      setValidationErrors([]);
     }
   }, []);
 
@@ -106,6 +111,21 @@ const MatchDataImportDialog: React.FC<MatchDataImportDialogProps> = ({
     }));
   };
 
+  /**
+   * 从错误响应中提取验证错误列表
+   */
+  const parseValidationErrors = (err: any): string[] => {
+    // 优先从 errors 数组获取验证错误
+    if (err.errors && Array.isArray(err.errors) && err.errors.length > 0) {
+      return err.errors;
+    }
+    // 其次从 response.data.errors 获取
+    if (err.response?.data?.errors && Array.isArray(err.response.data.errors)) {
+      return err.response.data.errors;
+    }
+    return [];
+  };
+
   const handleImport = async () => {
     if (!file) return;
 
@@ -115,6 +135,7 @@ const MatchDataImportDialog: React.FC<MatchDataImportDialogProps> = ({
     setUploading(true);
     setError(null);
     setErrorDetails([]);
+    setValidationErrors([]);
     const toastId = toast.loading('正在解析并导入比赛数据...');
 
     try {
@@ -145,7 +166,12 @@ const MatchDataImportDialog: React.FC<MatchDataImportDialogProps> = ({
       const responseDetails = err.response?.data;
       let errorMessage = err.message || '导入失败，请重试';
 
-      if (responseDetails) {
+      // 首先尝试提取验证错误列表
+      const validationErrs = parseValidationErrors(err.response?.data || err);
+      if (validationErrs.length > 0) {
+        setValidationErrors(validationErrs);
+        errorMessage = responseDetails?.message || `验证失败：发现 ${validationErrs.length} 个问题`;
+      } else if (responseDetails) {
         const details = parseErrorDetails(responseDetails);
         if (details.length > 0) {
           setErrorDetails(details);
@@ -163,11 +189,22 @@ const MatchDataImportDialog: React.FC<MatchDataImportDialogProps> = ({
   };
 
   const handleDownloadErrorReport = async () => {
-    if (errorDetails.length === 0) return;
+    if (errorDetails.length === 0 && validationErrors.length === 0) return;
 
     setDownloadingReport(true);
     try {
-      const blob = await downloadMatchDataErrorReport(errorDetails);
+      // 合并两种错误类型
+      const reportData = [
+        ...validationErrors.map((msg, idx) => ({
+          row: idx + 1,
+          nickname: '-',
+          side: '-',
+          type: 'validation_error',
+          message: msg,
+        })),
+        ...errorDetails,
+      ];
+      const blob = await downloadMatchDataErrorReport(reportData);
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -195,12 +232,13 @@ const MatchDataImportDialog: React.FC<MatchDataImportDialogProps> = ({
     setFile(null);
     setError(null);
     setErrorDetails([]);
+    setValidationErrors([]);
     setDragging(false);
     setPreview(null);
     onClose();
   };
 
-  const hasErrors = errorDetails.length > 0;
+  const hasErrors = errorDetails.length > 0 || validationErrors.length > 0;
 
   return (
     <Modal visible={open} onClose={handleClose} title="导入比赛数据" className="max-w-2xl">
@@ -241,6 +279,7 @@ const MatchDataImportDialog: React.FC<MatchDataImportDialogProps> = ({
                     setFile(null);
                     setPreview(null);
                     setErrorDetails([]);
+                    setValidationErrors([]);
                   }}
                   className="p-1 hover:bg-white/10 rounded"
                   aria-label="移除文件"
@@ -315,7 +354,42 @@ const MatchDataImportDialog: React.FC<MatchDataImportDialogProps> = ({
           </div>
         )}
 
-        {hasErrors && (
+        {/* 验证错误列表 */}
+        {validationErrors.length > 0 && (
+          <div className="border border-red-500/30 rounded-lg">
+            <div className="p-4 bg-red-500/10 border-b border-red-500/20 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <AlertCircle className="w-5 h-5 text-red-400" />
+                <span className="text-red-400 font-medium">
+                  验证错误：发现 {validationErrors.length} 个问题
+                </span>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleDownloadErrorReport}
+                disabled={downloadingReport}
+                className="border-red-500/30 text-red-400 hover:bg-red-500/10"
+              >
+                <Download className="w-4 h-4 mr-2" />
+                {downloadingReport ? '下载中...' : '下载错误报告'}
+              </Button>
+            </div>
+            <div className="max-h-64 overflow-y-auto p-4">
+              <ul className="space-y-2">
+                {validationErrors.map((errMsg, index) => (
+                  <li key={index} className="flex items-start gap-2 text-sm">
+                    <span className="text-red-400 flex-shrink-0">•</span>
+                    <span className="text-gray-300">{errMsg}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        )}
+
+        {/* 选手匹配错误列表 */}
+        {errorDetails.length > 0 && (
           <div className="border border-red-500/30 rounded-lg">
             <div className="p-4 bg-red-500/10 border-b border-red-500/20 flex items-center justify-between">
               <div className="flex items-center gap-2">

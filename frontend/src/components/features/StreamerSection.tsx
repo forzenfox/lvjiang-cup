@@ -2,8 +2,8 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger } from '../ui/tabs';
 import { Button } from '../ui/button';
-import { streamersApi } from '@/api/streamers';
-import { type Streamer, StreamerType } from '@/api/types';
+import { useHomeData } from '@/context/HomeDataContext';
+import { StreamerType } from '@/api/types';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { StreamerMainCard } from './streamer-section/StreamerMainCard';
 import { StreamerThumbnailCard } from './streamer-section/StreamerThumbnailCard';
@@ -54,7 +54,7 @@ const EmptyState: React.FC<{ onRetry: () => void }> = ({ onRetry }) => (
   </div>
 );
 
-const ErrorState: React.FC<{ message: string; onRetry: () => void }> = ({ message, onRetry }) => (
+const _ErrorState: React.FC<{ message: string; onRetry: () => void }> = ({ message, onRetry }) => (
   <div className="col-span-full flex flex-col items-center justify-center py-20">
     <AlertCircle className="w-16 h-16 text-red-500 mb-4" />
     <p className="text-xl text-red-400 mb-2">加载失败</p>
@@ -69,56 +69,26 @@ const ErrorState: React.FC<{ message: string; onRetry: () => void }> = ({ messag
   </div>
 );
 
-interface StreamerSectionProps {
-  refreshInterval?: number;
-}
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+interface StreamerSectionProps {}
 
-const StreamerSection: React.FC<StreamerSectionProps> = ({ refreshInterval = 30000 }) => {
+const StreamerSection: React.FC<StreamerSectionProps> = () => {
   const isMobile = useMediaQuery('(max-width: 767px)');
   const isPC = useMediaQuery('(min-width: 1024px)');
 
-  const [streamers, setStreamers] = useState<Streamer[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+  const { streamers, isLoading, fetchStreamers, refresh } = useHomeData();
   const [activeTab, setActiveTab] = useState<'internal' | 'guest'>('internal');
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  const fetchStreamers = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const data = await streamersApi.getAll();
-      setStreamers(data);
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : '获取主播数据失败';
-      setError(errorMessage);
-      console.error('[StreamerSection] 获取主播数据失败:', err);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const loading = isLoading.streamers;
 
   useEffect(() => {
     fetchStreamers();
   }, [fetchStreamers]);
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      fetchStreamers();
-    }, refreshInterval);
-
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        fetchStreamers();
-      }
-    };
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
-    return () => {
-      clearInterval(interval);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, [refreshInterval, fetchStreamers]);
+  const handleRetry = useCallback(() => {
+    refresh('streamers');
+  }, [refresh]);
 
   const filteredStreamers = streamers.filter(streamer => {
     if (activeTab === 'internal') return streamer.streamerType === StreamerType.INTERNAL;
@@ -201,10 +171,8 @@ const StreamerSection: React.FC<StreamerSectionProps> = ({ refreshInterval = 300
           <div className="max-w-4xl mx-auto w-full">
             <StreamerCardSkeleton />
           </div>
-        ) : error && streamers.length === 0 ? (
-          <ErrorState message={error} onRetry={fetchStreamers} />
-        ) : filteredStreamers.length === 0 ? (
-          <EmptyState onRetry={fetchStreamers} />
+        ) : !loading && streamers.length === 0 ? (
+          <EmptyState onRetry={handleRetry} />
         ) : (
           <div
             className="streamer-carousel"

@@ -1,6 +1,6 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { Users, Loader2, AlertCircle } from 'lucide-react';
-import { teamService } from '../../services';
+import { useHomeData } from '../../context/HomeDataContext';
 import type { Team as ApiTeam, Player } from '../../api/types';
 import { Button } from '../ui/button';
 import { PlayerDetailModal } from '../team/PlayerDetailModal';
@@ -51,7 +51,7 @@ const EmptyState: React.FC<{ onRetry: () => void }> = ({ onRetry }) => (
 );
 
 // 错误状态组件
-const ErrorState: React.FC<{ message: string; onRetry: () => void }> = ({ message, onRetry }) => (
+const _ErrorState: React.FC<{ message: string; onRetry: () => void }> = ({ message, onRetry }) => (
   <div className="col-span-full flex flex-col items-center justify-center py-20">
     <AlertCircle className="w-16 h-16 text-red-500 mb-4" />
     <p className="text-xl text-red-400 mb-2">加载失败</p>
@@ -67,9 +67,8 @@ const ErrorState: React.FC<{ message: string; onRetry: () => void }> = ({ messag
 );
 
 const TeamSection: React.FC = () => {
-  const [teams, setTeams] = useState<Team[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+  const { teams: apiTeams, isLoading, fetchTeams, refresh } = useHomeData();
+  const loading = isLoading.teams;
 
   // 弹框状态
   const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
@@ -82,41 +81,10 @@ const TeamSection: React.FC = () => {
   // 检测是否为移动端
   const [isMobile, setIsMobile] = useState(false);
 
-  // 点击战队卡片打开弹框
-  const handleTeamClick = useCallback((team: Team) => {
-    setSelectedTeam(team);
-    setIsTeamModalOpen(true);
-  }, []);
-
-  // 点击队员打开抽屉
-  const handlePlayerClick = useCallback((player: Player) => {
-    setSelectedPlayer(player);
-  }, []);
-
-  // 关闭旧版队员详情弹框
-  const handleCloseModal = useCallback(() => {
-    setIsModalOpen(false);
-    setSelectedPlayer(null);
-  }, []);
-
-  // 关闭弹框（清空所有状态）
-  const handleCloseTeamModal = useCallback(() => {
-    setIsTeamModalOpen(false);
-    setSelectedTeam(null);
-    setSelectedPlayer(null); // 同时清空 selectedPlayer
-  }, []);
-
-  // 关闭抽屉
-  const handleCloseDrawer = useCallback(() => {
-    setSelectedPlayer(null);
-  }, []);
-
   // 将 API Team 转换为本地 Team 格式
-  const convertApiTeamToLocal = (apiTeam: ApiTeam): Team => {
-    // 使用 members 字段（后端返回）
+  const convertApiTeamToLocal = useCallback((apiTeam: ApiTeam): Team => {
     const members = apiTeam.members || [];
 
-    // 如果 API 返回了队员数据，使用真实数据；否则生成模拟数据
     let players: Player[];
     if (members.length > 0) {
       players = members.map(apiPlayer => ({
@@ -133,9 +101,9 @@ const TeamSection: React.FC = () => {
         isCaptain: apiPlayer.isCaptain,
         liveUrl: apiPlayer.liveUrl,
         level: apiPlayer.level,
+        auctionPrice: apiPlayer.auctionPrice,
       }));
     } else {
-      // 生成模拟队员数据（当 API 没有返回队员数据时）
       const positions: PositionType[] = ['TOP', 'JUNGLE', 'MID', 'ADC', 'SUPPORT'];
       players = positions.map((position, index) => ({
         id: `${apiTeam.id}-player-${index}`,
@@ -155,28 +123,44 @@ const TeamSection: React.FC = () => {
       players,
       battleCry: apiTeam.battleCry || '暂无参赛宣言',
     };
-  };
-
-  // 获取战队数据
-  const fetchTeams = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await teamService.getAll();
-      const convertedTeams = response.map(convertApiTeamToLocal);
-      setTeams(convertedTeams);
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : '获取战队数据失败';
-      setError(errorMessage);
-      console.error('[TeamSection] 获取战队数据失败:', err);
-    } finally {
-      setLoading(false);
-    }
   }, []);
+
+  const teams = useMemo(
+    () => apiTeams.map(convertApiTeamToLocal),
+    [apiTeams, convertApiTeamToLocal]
+  );
 
   useEffect(() => {
     fetchTeams();
   }, [fetchTeams]);
+
+  const handleRetry = useCallback(() => {
+    refresh('teams');
+  }, [refresh]);
+
+  const handleTeamClick = useCallback((team: Team) => {
+    setSelectedTeam(team);
+    setIsTeamModalOpen(true);
+  }, []);
+
+  const handlePlayerClick = useCallback((player: Player) => {
+    setSelectedPlayer(player);
+  }, []);
+
+  const handleCloseModal = useCallback(() => {
+    setIsModalOpen(false);
+    setSelectedPlayer(null);
+  }, []);
+
+  const handleCloseTeamModal = useCallback(() => {
+    setIsTeamModalOpen(false);
+    setSelectedTeam(null);
+    setSelectedPlayer(null);
+  }, []);
+
+  const handleCloseDrawer = useCallback(() => {
+    setSelectedPlayer(null);
+  }, []);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -197,15 +181,9 @@ const TeamSection: React.FC = () => {
               <TeamCardSkeleton key={i} />
             ))}
           </div>
-        ) : error && teams.length === 0 ? (
-          /* 错误状态 */
+        ) : !loading && teams.length === 0 ? (
           <div className="grid grid-cols-1">
-            <ErrorState message={error} onRetry={fetchTeams} />
-          </div>
-        ) : teams.length === 0 ? (
-          /* 空数据状态 */
-          <div className="grid grid-cols-1">
-            <EmptyState onRetry={fetchTeams} />
+            <EmptyState onRetry={handleRetry} />
           </div>
         ) : (
           /* 正常数据展示（4行4列正方形卡片布局，队标队名占比更大） */

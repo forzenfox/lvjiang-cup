@@ -3,6 +3,7 @@ import {
   Get,
   Post,
   Put,
+  Delete,
   Param,
   Body,
   UseGuards,
@@ -55,6 +56,16 @@ export class MatchDataAdminController {
   ) {
     const adminId = 'admin';
     return this.matchDataService.updateMatchGameData(matchId, gameId, data, adminId);
+  }
+
+  @Delete(':matchId/games/:gameNumber')
+  @ApiOperation({ summary: '删除比赛数据（整局）' })
+  async deleteMatchGameData(
+    @Param('matchId') matchId: string,
+    @Param('gameNumber', ParseIntPipe) gameNumber: number,
+  ) {
+    const adminId = 'admin';
+    return this.matchDataService.deleteMatchGameData(matchId, gameNumber, adminId);
   }
 
   @Get('import/template')

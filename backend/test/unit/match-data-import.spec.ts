@@ -18,17 +18,27 @@ describe('match-excel.util', () => {
     // 创建一个有效的Excel文件用于测试
     const workbook = xlsx.utils.book_new();
 
-    // MatchInfo 表头和数据（新增视频BV号字段，移除游戏时长和一血）
+    // MatchInfo 表头和数据（8列，含游戏时长用于雷达图维度计算）
     const matchInfoHeaders = [
       '红方战队名',
       '蓝方战队名',
       '局数',
       '比赛时间',
+      '游戏时长',
       '获胜方',
       'MVP',
       '视频BV号',
     ];
-    const matchInfoData = ['BLG', 'WBG', 1, '2026-04-16 14:00', 'red', 'Knight', 'BV1Ab4y1X7zK'];
+    const matchInfoData = [
+      'BLG',
+      'WBG',
+      1,
+      '2026-04-16 14:00',
+      '32:45',
+      'red',
+      'Knight',
+      'BV1Ab4y1X7zK',
+    ];
 
     // TeamStats 表头和数据（移除一血字段）
     const teamStatsHeaders = [
@@ -145,8 +155,9 @@ describe('match-excel.util', () => {
       expect(result.matchInfo.blueTeamName).toBe('WBG');
       expect(result.matchInfo.gameNumber).toBe(1);
       expect(result.matchInfo.gameStartTime).toBe('2026-04-16 14:00');
+      expect(result.matchInfo.gameDuration).toBe('32:45'); // 恢复
       expect(result.matchInfo.winner).toBe('red');
-      expect(result.matchInfo.firstBlood).toBe('');  // 已废弃，返回空
+      expect(result.matchInfo.firstBlood).toBe(''); // 已废弃，返回空
       expect(result.matchInfo.mvp).toBe('Knight');
       expect(result.matchInfo.videoBvid).toBe('BV1Ab4y1X7zK');
     });
@@ -419,9 +430,9 @@ describe('match-excel.util', () => {
         blueTeamName: 'WBG',
         gameNumber: 1,
         gameStartTime: '2026-04-16 14:00',
-        gameDuration: '',  // 已废弃
+        gameDuration: '32:45', // 恢复
         winner: 'red',
-        firstBlood: '',  // 已废弃
+        firstBlood: '', // 已废弃
         mvp: 'Knight',
         videoBvid: 'BV1Ab4y1X7zK',
       };
@@ -437,7 +448,7 @@ describe('match-excel.util', () => {
         blueTeamName: 'WBG',
         gameNumber: 1,
         gameStartTime: '2026-04-16 14:00',
-        gameDuration: '',
+        gameDuration: '32:45',
         winner: 'red',
         firstBlood: '',
         mvp: 'Knight',
@@ -455,7 +466,7 @@ describe('match-excel.util', () => {
         blueTeamName: 'WBG',
         gameNumber: 1,
         gameStartTime: '2026-04-16 14:00',
-        gameDuration: '',
+        gameDuration: '32:45',
         winner: 'invalid',
         firstBlood: '',
         mvp: 'Knight',
@@ -473,7 +484,7 @@ describe('match-excel.util', () => {
         blueTeamName: 'WBG',
         gameNumber: 1,
         gameStartTime: '2026-04-16 14:00',
-        gameDuration: '',
+        gameDuration: '32:45',
         winner: '红方',
         firstBlood: '',
         mvp: 'Knight',
@@ -490,7 +501,7 @@ describe('match-excel.util', () => {
         blueTeamName: 'WBG',
         gameNumber: 1,
         gameStartTime: '2026-04-16 14:00',
-        gameDuration: '',
+        gameDuration: '32:45',
         winner: 'red',
         firstBlood: '',
         mvp: 'Knight',
@@ -507,7 +518,7 @@ describe('match-excel.util', () => {
         blueTeamName: 'WBG',
         gameNumber: 1,
         gameStartTime: '2026-04-16 14:00',
-        gameDuration: '',
+        gameDuration: '32:45',
         winner: 'red',
         firstBlood: '',
         mvp: 'Knight',
@@ -516,7 +527,7 @@ describe('match-excel.util', () => {
 
       const result = validateMatchInfo(invalidData);
       expect(result.valid).toBe(false);
-      expect(result.errors).toContain('视频BV号格式错误');
+      expect(result.errors.some((e) => e.includes('视频BV号格式错误'))).toBe(true);
     });
 
     it('BV号字段为空时应通过验证', () => {
@@ -525,7 +536,7 @@ describe('match-excel.util', () => {
         blueTeamName: 'WBG',
         gameNumber: 1,
         gameStartTime: '2026-04-16 14:00',
-        gameDuration: '',
+        gameDuration: '32:45',
         winner: 'red',
         firstBlood: '',
         mvp: 'Knight',
@@ -542,7 +553,7 @@ describe('match-excel.util', () => {
         blueTeamName: 'WBG',
         gameNumber: 1,
         gameStartTime: '2026-04-16 14:00',
-        gameDuration: '',
+        gameDuration: '32:45',
         winner: 'red',
         firstBlood: '',
         mvp: 'Knight',
@@ -553,7 +564,7 @@ describe('match-excel.util', () => {
         blueTeamName: 'WBG',
         gameNumber: 1,
         gameStartTime: '2026-04-16 14:00',
-        gameDuration: '',
+        gameDuration: '32:45',
         winner: 'red',
         firstBlood: '',
         mvp: 'Knight',

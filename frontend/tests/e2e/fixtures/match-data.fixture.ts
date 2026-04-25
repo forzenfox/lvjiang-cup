@@ -8,9 +8,9 @@ export interface MatchDataFixture {
   teamBName: string;
   boFormat: 'BO1' | 'BO3' | 'BO5';
   gameNumber: number;
-  gameDuration: string;  // 保留兼容
+  gameDuration: string; // 保留兼容
   winner: 'red' | 'blue';
-  videoBvid?: string;    // 新增
+  videoBvid?: string; // 新增
 }
 
 export const matchDataFixture: MatchDataFixture = {

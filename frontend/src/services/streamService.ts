@@ -168,6 +168,9 @@ export const streamService: StreamService = {
 
       const stream = await streamApi.update(data);
 
+      // 清除缓存，确保下次获取时从后端拉取最新数据
+      requestCache.clear('stream_current');
+
       // 更新本地列表中的直播
       setState({
         streams: state.streams.map(s => (s.id === stream.id ? stream : s)),

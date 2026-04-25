@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Play, Radio, Loader2 } from 'lucide-react';
 import { Button } from '../ui/button';
-import { streamService } from '../../services';
-import type { Stream } from '../../api/types';
+import { useHomeData } from '../../context/HomeDataContext';
+import { useVisibleRefresh } from '@/hooks/useVisibleRefresh';
 
 const DEFAULT_GITHUB_CDN_BASE = 'https://cdn.jsdmirror.com/gh/forzenfox/lvjiang-cup@main';
 const GITHUB_CDN_BASE = window.APP_CONFIG?.GITHUB_CDN_BASE || DEFAULT_GITHUB_CDN_BASE;
@@ -13,36 +13,25 @@ const HERO_IMAGE = {
 };
 
 const HeroSection: React.FC = () => {
-  const [streamInfo, setStreamInfo] = useState<Stream | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+  const { stream: streamInfo, isLoading, fetchStream, refresh } = useHomeData();
   const [heroImgSrc, setHeroImgSrc] = useState<string>(HERO_IMAGE.cdn);
 
-  // 处理图片加载错误，降级到本地路径
   const handleHeroImageError = () => {
     console.warn('[HeroSection] CDN图片加载失败，降级到本地路径');
     setHeroImgSrc(HERO_IMAGE.local);
   };
 
-  // 获取直播信息
-  const fetchStreamInfo = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const stream = await streamService.get();
-      setStreamInfo(stream);
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : '获取直播信息失败';
-      setError(errorMessage);
-      console.error('[HeroSection] 获取直播信息失败:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    fetchStreamInfo();
-  }, []);
+    fetchStream();
+  }, [fetchStream]);
+
+  // 可视区域内每15秒刷新直播状态
+  useVisibleRefresh({
+    fetchFn: fetchStream,
+    intervalMs: 15_000,
+    isVisible: true,
+    enabled: true,
+  });
 
   const handleWatchLive = () => {
     if (streamInfo?.url) {
@@ -50,14 +39,18 @@ const HeroSection: React.FC = () => {
     }
   };
 
-  // 加载状态
+  const handleRetry = () => {
+    refresh('stream');
+  };
+
+  const loading = isLoading.stream;
+
   if (loading && !streamInfo) {
     return (
       <section
         id="hero"
         className="relative h-[calc(100vh-96px)] flex items-center justify-center overflow-hidden"
       >
-        {/* Background Image with Overlay */}
         <div className="absolute inset-0 z-0">
           <img
             src={heroImgSrc}
@@ -69,8 +62,6 @@ const HeroSection: React.FC = () => {
           />
           <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-background"></div>
         </div>
-
-        {/* Loading Content */}
         <div className="relative z-10 text-center px-4 max-w-4xl mx-auto">
           <div className="flex flex-col items-center space-y-6">
             <Loader2 className="w-12 h-12 text-yellow-400 animate-spin" />
@@ -81,14 +72,12 @@ const HeroSection: React.FC = () => {
     );
   }
 
-  // 错误状态
-  if (error && !streamInfo) {
+  if (!streamInfo && !loading) {
     return (
       <section
         id="hero"
         className="relative h-[calc(100vh-96px)] flex items-center justify-center overflow-hidden"
       >
-        {/* Background Image with Overlay */}
         <div className="absolute inset-0 z-0">
           <img
             src={heroImgSrc}
@@ -100,15 +89,13 @@ const HeroSection: React.FC = () => {
           />
           <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-background"></div>
         </div>
-
-        {/* Error Content */}
         <div className="relative z-10 text-center px-4 max-w-4xl mx-auto">
           <div className="bg-black/50 backdrop-blur-sm p-8 rounded-xl border border-red-500/30">
             <p className="text-xl text-red-400 mb-4">加载失败</p>
-            <p className="text-gray-300 mb-6">{error}</p>
+            <p className="text-gray-300 mb-6">获取直播信息失败</p>
             <Button
               variant="outline"
-              onClick={fetchStreamInfo}
+              onClick={handleRetry}
               className="border-yellow-400 text-yellow-400 hover:bg-yellow-400/10"
             >
               重试
@@ -124,7 +111,6 @@ const HeroSection: React.FC = () => {
       id="hero"
       className="relative h-[calc(100vh-96px)] flex items-center justify-center overflow-hidden"
     >
-      {/* Background Image with Overlay */}
       <div className="absolute inset-0 z-0">
         <img
           src={heroImgSrc}
@@ -137,7 +123,6 @@ const HeroSection: React.FC = () => {
         <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-background"></div>
       </div>
 
-      {/* Content */}
       <div className="relative z-10 text-center px-4 max-w-4xl mx-auto">
         <h1 className="text-6xl md:text-8xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-yellow-500 to-yellow-300 animate-shine mb-6 tracking-tight drop-shadow-lg">
           驴酱杯
@@ -169,7 +154,6 @@ const HeroSection: React.FC = () => {
           </div>
         )}
 
-        {/* 刷新指示器 */}
         {loading && (
           <div className="mt-4 flex items-center justify-center space-x-2 text-gray-400">
             <Loader2 className="w-4 h-4 animate-spin" />
@@ -178,7 +162,6 @@ const HeroSection: React.FC = () => {
         )}
       </div>
 
-      {/* Scroll Indicator */}
       <div className="absolute bottom-24 md:bottom-10 left-1/2 transform -translate-x-1/2 animate-bounce text-white/50">
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path

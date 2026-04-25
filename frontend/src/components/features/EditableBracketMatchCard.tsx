@@ -2,11 +2,13 @@ import React, { useState, forwardRef } from 'react';
 import { Match, Team, MatchStatus } from '@/types';
 import { ELIMINATION_THEME } from '@/constants/eliminationTheme';
 import MatchEditDialog from '@/pages/admin/components/MatchEditDialog';
+import { useAdvancementStore } from '@/store/advancementStore';
 
 interface EditableBracketMatchCardProps {
   match: Match;
   teams: Team[];
   onUpdate: (match: Match) => void;
+  allMatches?: Match[];
 }
 
 // 状态徽章组件 - 与BracketMatchCard保持一致
@@ -130,8 +132,9 @@ const formatMatchTime = (startTime: string): string => {
 };
 
 const EditableBracketMatchCard = forwardRef<HTMLDivElement, EditableBracketMatchCardProps>(
-  ({ match, teams, onUpdate }, ref) => {
+  ({ match, teams, onUpdate, allMatches = [] }, ref) => {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const advancement = useAdvancementStore(state => state.advancement);
 
     const teamA = teams.find(t => t.id === match.teamAId);
     const teamB = teams.find(t => t.id === match.teamBId);
@@ -218,6 +221,9 @@ const EditableBracketMatchCard = forwardRef<HTMLDivElement, EditableBracketMatch
           isOpen={isDialogOpen}
           onClose={() => setIsDialogOpen(false)}
           onSave={handleSave}
+          advancement={advancement}
+          allMatches={allMatches}
+          currentBracket={match.eliminationBracket}
         />
       </>
     );

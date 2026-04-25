@@ -412,6 +412,114 @@ test.describe('【P1】对战数据展示 - 页面访问与加载', () => {
   });
 
   /**
+   * TEST-MD-001.6: 视频回顾按钮功能
+   * 验证 MatchSeriesHeader 中的视频回顾按钮能正确打开 B 站视频
+   */
+  test('TEST-MD-001.6: 视频回顾按钮功能 @P1', async ({ page }) => {
+    // 监听新标签页打开事件
+    const newPagePromise = page.context().waitForEvent('page');
+
+    await page.route('**/api/matches/*/games/check', async route => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          success: true,
+          code: 20000,
+          data: { hasData: true, gameCount: 3 },
+        }),
+      });
+    });
+
+    await page.route('**/api/matches/*/series', async route => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          success: true,
+          code: 20000,
+          data: {
+            matchId: matchDataFixture.matchId,
+            teamA: { name: matchDataFixture.teamAName, id: 'team-a' },
+            teamB: { name: matchDataFixture.teamBName, id: 'team-b' },
+            boFormat: matchDataFixture.boFormat,
+            games: [
+              { gameNumber: 1, winnerTeamId: 'team-a', duration: '32:45', status: 1 },
+              { gameNumber: 2, winnerTeamId: 'team-b', duration: '28:10', status: 1 },
+              { gameNumber: 3, winnerTeamId: 'team-a', duration: '35:20', status: 1 },
+            ],
+          },
+        }),
+      });
+    });
+
+    await page.route('**/api/matches/*/games/1', async route => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          success: true,
+          code: 20000,
+          data: {
+            matchId: matchDataFixture.matchId,
+            gameNumber: 1,
+            gameDuration: '32:45',
+            gameStartTime: '2026-04-16 14:00',
+            videoBvid: 'BV1Ab4y1X7zK',
+            winnerTeamId: 'team-a',
+            blueTeam: {
+              teamId: 'team-b',
+              teamName: matchDataFixture.teamBName,
+              side: 'blue',
+              kills: 18,
+              deaths: 25,
+              assists: 35,
+              gold: 58000,
+              towers: 3,
+              dragons: 1,
+              barons: 0,
+              isWinner: false,
+            },
+            redTeam: {
+              teamId: 'team-a',
+              teamName: matchDataFixture.teamAName,
+              side: 'red',
+              kills: 25,
+              deaths: 18,
+              assists: 47,
+              gold: 65000,
+              towers: 9,
+              dragons: 3,
+              barons: 1,
+              isWinner: true,
+            },
+            playerStats: [],
+          },
+        }),
+      });
+    });
+
+    await matchDataPage.goto(matchDataFixture.matchId);
+    await matchDataPage.expectPageLoaded();
+
+    // 验证视频回顾按钮存在
+    const videoButton = page.locator('button', { hasText: '视频回顾' });
+    await expect(videoButton).toBeVisible();
+
+    // 点击视频回顾按钮
+    await videoButton.click();
+
+    // 等待新标签页打开
+    const newPage = await newPagePromise;
+    await newPage.waitForLoadState();
+
+    // 验证新页面 URL 是 B 站视频链接
+    expect(newPage.url()).toBe('https://www.bilibili.com/video/BV1Ab4y1X7zK');
+
+    console.log('✅ 视频回顾按钮正确打开新标签页');
+  });
+
+  /**
    * TEST-MD-002: 访问无数据的对战详情页面
    * 验证显示空状态
    */
@@ -1715,12 +1823,12 @@ test.describe('【P1】对战数据展示 - 编辑模式', () => {
     });
 
     let savedData: any = null;
-    await page.route('**/api/admin/matches/*/games/1', async route => {
+    await page.route('**/api/admin/matches/**/games/**', async route => {
       if (route.request().method() === 'PUT') {
         savedData = route.request().postDataJSON();
         await route.fulfill({
           status: 200,
-          body: JSON.stringify({ success: true, code: 20000, data: null }),
+          body: JSON.stringify({ success: true, code: 20000, data: { message: '保存成功' } }),
         });
       }
     });
@@ -1729,22 +1837,32 @@ test.describe('【P1】对战数据展示 - 编辑模式', () => {
     await matchDataPage.expectPageLoaded();
 
     const editButton = page.getByRole('button', { name: '编辑' });
+    await expect(editButton).toBeVisible();
+
+    // 点击编辑按钮，导航到编辑页面
     await editButton.click();
-    await page.waitForTimeout(500);
 
+    // 等待导航到编辑页面
+    await page.waitForURL(/\/admin\/matches\/.*\/games\/.*\/edit/);
+
+    // 等待页面加载完成
+    await page.waitForLoadState('domcontentloaded');
+    await page.waitForTimeout(2000);
+
+    // 验证保存按钮可见并点击
     const saveButton = page.getByRole('button', { name: '保存' });
-    await expect(saveButton).toBeVisible();
-
+    await expect(saveButton).toBeVisible({ timeout: 10000 });
     await saveButton.click();
-    await page.waitForTimeout(1000);
 
+    // 等待保存成功提示
+    const toastMessage = page.getByText('保存成功');
+    await expect(toastMessage).toBeVisible({ timeout: 10000 });
+
+    // 验证保存的数据
     expect(savedData).not.toBeNull();
     expect(savedData.blueTeam).toBeDefined();
     expect(savedData.redTeam).toBeDefined();
     expect(savedData.playerStats).toBeDefined();
-
-    const toastMessage = page.getByText('保存成功');
-    await expect(toastMessage).toBeVisible({ timeout: 5000 });
 
     console.log('✅ 编辑模式保存功能正常');
   });

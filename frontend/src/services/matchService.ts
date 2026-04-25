@@ -183,6 +183,9 @@ export const matchService: MatchService = {
 
       const match = await matchApi.update(data);
 
+      // 清除缓存，确保下次获取时从后端拉取最新数据
+      requestCache.clear('matches');
+
       // 更新本地列表中的比赛
       const updatedMatches = state.matches.map(m => (m.id === match.id ? match : m));
 

@@ -23,33 +23,15 @@ export type { MatchServiceState } from './matchService';
 export { streamService, subscribeToStreamService } from './streamService';
 export type { StreamServiceState } from './streamService';
 
-// 视频数据服务
-export { videoService, subscribeToVideoService } from './videoService';
-export type {
-  VideoQueryParams,
-  CreateVideoRequest,
-  UpdateVideoRequest,
-  PaginatedData,
-  VideoServiceState,
-} from './videoService';
-
-// 晋级数据服务
-export { advancementService, subscribeToAdvancementService } from './advancementService';
-export type { AdvancementServiceState } from './advancementService';
-
 // 导入服务用于默认导出和工具函数
 import { teamService } from './teamService';
 import { matchService } from './matchService';
 import { streamService } from './streamService';
-import { videoService } from './videoService';
-import { advancementService } from './advancementService';
 
 // 默认导出所有服务
 export { teamService as teamServiceDefault };
 export { matchService as matchServiceDefault };
 export { streamService as streamServiceDefault };
-export { videoService as videoServiceDefault };
-export { advancementService as advancementServiceDefault };
 
 /**
  * 服务集合对象，便于批量使用
@@ -58,8 +40,6 @@ export const services = {
   team: teamService,
   match: matchService,
   stream: streamService,
-  video: videoService,
-  advancement: advancementService,
 } as const;
 
 /**
@@ -70,8 +50,6 @@ export function resetAllServices(): void {
   teamService.resetState();
   matchService.resetState();
   streamService.resetState();
-  videoService.resetState();
-  advancementService.resetState();
 }
 
 /**
@@ -81,8 +59,6 @@ export function clearAllServiceErrors(): void {
   teamService.clearError();
   matchService.clearError();
   streamService.clearError();
-  videoService.clearError();
-  advancementService.clearError();
 }
 
 // 默认导出服务集合

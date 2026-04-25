@@ -1,5 +1,5 @@
 import React from 'react';
-import MatchInfoCardSkeleton from './MatchInfoCardSkeleton';
+import MatchSeriesHeaderSkeleton from './MatchSeriesHeaderSkeleton';
 import GameSwitcherSkeleton from './GameSwitcherSkeleton';
 import TeamStatsBarSkeleton from './TeamStatsBarSkeleton';
 import PlayerStatsRowSkeleton from './PlayerStatsRowSkeleton';
@@ -9,10 +9,13 @@ interface MatchDataSkeletonProps {
   gameCount?: number;
 }
 
-const MatchDataSkeleton: React.FC<MatchDataSkeletonProps> = ({ isBO3 = true, gameCount = 3 }) => {
+const MatchDataSkeleton: React.FC<MatchDataSkeletonProps> = ({
+  isBO3: _isBO3 = true,
+  gameCount = 3,
+}) => {
   return (
     <div className="container mx-auto px-4 py-6">
-      <MatchInfoCardSkeleton isBO3={isBO3} />
+      <MatchSeriesHeaderSkeleton />
       <GameSwitcherSkeleton gameCount={gameCount} />
       <TeamStatsBarSkeleton />
       <PlayerStatsRowSkeleton count={5} />

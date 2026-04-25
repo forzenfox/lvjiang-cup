@@ -1,27 +1,111 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Loader2, AlertCircle, Edit3, Save, X } from 'lucide-react';
+import { Loader2, AlertCircle, Save, X } from 'lucide-react';
 import { toast } from 'sonner';
 import MatchDataHeader from './MatchDataHeader';
-import MatchInfoCard from './MatchInfoCard';
+import MatchSeriesHeader from './MatchSeriesHeader';
 import GameSwitcher from './GameSwitcher';
-import TeamStatsBar from './TeamStatsBar';
 import TeamStatsBarEdit from './TeamStatsBarEdit';
-import PlayerStatsList from './PlayerStatsList';
 import PlayerStatsRowEdit from './PlayerStatsRowEdit';
+import PlayerStatsHeader from './PlayerStatsHeader';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { getMatchSeries, getMatchGameData, updateMatchGameData } from '@/api/matchData';
 import type { MatchSeriesInfo, MatchGameData, PlayerStat, PositionType } from '@/types/matchData';
 import { ADMIN_PREFIX, adminPath } from '@/constants/routes';
 import { useMatchDataStore } from '@/store/matchDataStore';
-import { trackAdminEditOpen, trackAdminEditSave } from '@/utils/tracking';
+import { trackAdminEditSave } from '@/utils/tracking';
 import MatchDataSkeleton from './MatchDataSkeleton';
 
 const POSITION_ORDER: PositionType[] = ['TOP', 'JUNGLE', 'MID', 'ADC', 'SUPPORT'];
 
+const isEditDisabled = true;
+
+const DisabledEditPage: React.FC<{ onBack: () => void }> = ({ onBack }) => {
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-[#0f0f23] to-[#1a1a2e] text-white">
+      <div className="sticky top-0 z-50 h-16 border-b border-white/10 bg-gray-900/80 backdrop-blur-md">
+        <div className="max-w-7xl mx-auto h-full flex items-center justify-between px-6">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={onBack}
+              className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-gray-400 transition-colors hover:bg-slate-800 hover:text-white"
+            >
+              <svg
+                className="h-4 w-4"
+                fill="none"
+                height="24"
+                stroke="currentColor"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path d="m12 19-7-7 7-7" />
+                <path d="M19 12H5" />
+              </svg>
+              返回
+            </button>
+            <div className="h-5 w-px bg-slate-700" />
+            <div>
+              <h1 className="text-lg font-bold text-white md:text-xl neon-text">
+                对战数据详情编辑
+              </h1>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="flex flex-col items-center justify-center min-h-[calc(100vh-4rem)] px-4">
+        <div className="text-center max-w-md">
+          <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-[#c49f58]/20 flex items-center justify-center">
+            <svg
+              className="w-10 h-10 text-[#c49f58]"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <rect
+                fill="none"
+                height="24"
+                stroke="currentColor"
+                strokeWidth="2"
+                width="24"
+                x="3"
+                y="11"
+              />
+              <circle cx="12" cy="16" r="1" />
+              <circle cx="8" cy="16" r="1" />
+              <circle cx="16" cy="16" r="1" />
+            </svg>
+          </div>
+          <h2 className="text-2xl font-bold text-white mb-3">功能暂时禁用</h2>
+          <p className="text-gray-400 mb-6">
+            对战数据编辑功能暂时禁用
+            <br />
+            如有需要请联系管理员
+          </p>
+          <button
+            onClick={onBack}
+            className="px-6 py-3 bg-[#c49f58] hover:bg-[#b08d4a] text-[#1a1a2e] font-bold rounded-lg transition-colors"
+          >
+            返回上一页
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const MatchDataEditPage: React.FC = () => {
-  const { id: matchId, gameNumber: routeGameNumber } = useParams<{
-    id: string;
+  const { matchId, gameNumber: routeGameNumber } = useParams<{
+    matchId: string;
     gameNumber: string;
   }>();
   const navigate = useNavigate();
@@ -31,7 +115,6 @@ const MatchDataEditPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [isEditMode, setIsEditMode] = useState(false);
   const [showUnsavedConfirm, setShowUnsavedConfirm] = useState(false);
   const [pendingNavigation, setPendingNavigation] = useState<(() => void) | null>(null);
 
@@ -47,7 +130,6 @@ const MatchDataEditPage: React.FC = () => {
       const gameNum = parseInt(routeGameNumber, 10);
       if (!isNaN(gameNum)) {
         currentGameRef.current = gameNum;
-        setIsEditMode(true);
       }
     }
   }, [routeGameNumber]);
@@ -76,6 +158,11 @@ const MatchDataEditPage: React.FC = () => {
   const loadGameData = useCallback(async (mId: string, gameNum: number) => {
     try {
       const data = await getMatchGameData(mId, gameNum);
+      if (!data) {
+        setError('该局对战数据尚未导入');
+        setGameData(null);
+        return;
+      }
       setGameData(data);
       currentGameRef.current = gameNum;
     } catch (err) {
@@ -149,25 +236,16 @@ const MatchDataEditPage: React.FC = () => {
     navigateBack();
   }, [modifiedTeamFields, modifiedPlayerFields, navigate]);
 
-  const handleEnterEditMode = () => {
-    setIsEditMode(true);
-    setModifiedTeamFields(new Set());
-    setModifiedPlayerFields(new Set());
-    if (matchId) {
-      trackAdminEditOpen(matchId, currentGameRef.current);
-    }
-  };
-
   const handleCancelEdit = () => {
     if (modifiedTeamFields.size > 0 || modifiedPlayerFields.size > 0) {
       setShowUnsavedConfirm(true);
       setPendingNavigation(() => () => {
-        setIsEditMode(false);
         setModifiedTeamFields(new Set());
         setModifiedPlayerFields(new Set());
+        handleBack();
       });
     } else {
-      setIsEditMode(false);
+      handleBack();
     }
   };
 
@@ -219,7 +297,6 @@ const MatchDataEditPage: React.FC = () => {
 
       await updateMatchGameData(matchId, gameData.gameNumber, updatedData);
       toast.success('保存成功');
-      setIsEditMode(false);
       setModifiedTeamFields(new Set());
       setModifiedPlayerFields(new Set());
       trackAdminEditSave(matchId, gameData.gameNumber);
@@ -326,8 +403,10 @@ const MatchDataEditPage: React.FC = () => {
 
     return (
       <>
-        <MatchInfoCard gameData={gameData} />
+        {/* 系列赛头部：展示总比分和比赛状态 - 与详情页保持一致 */}
+        <MatchSeriesHeader seriesInfo={seriesInfo} gameData={gameData} />
 
+        {/* 对局切换器 */}
         <GameSwitcher
           games={seriesInfo?.games || []}
           currentGame={currentGameRef.current}
@@ -335,54 +414,52 @@ const MatchDataEditPage: React.FC = () => {
           format={seriesInfo?.format}
         />
 
-        {isEditMode ? (
-          <TeamStatsBarEdit
-            blueTeam={gameData.blueTeam}
-            redTeam={gameData.redTeam}
-            modifiedFields={modifiedTeamFields}
-            onFieldChange={handleTeamFieldChange}
-          />
-        ) : (
-          <TeamStatsBar blueTeam={gameData.blueTeam} redTeam={gameData.redTeam} />
-        )}
+        {/* 队伍数据统计栏 - 可编辑版本，布局与详情页一致 */}
+        <TeamStatsBarEdit
+          blueTeam={gameData.blueTeam}
+          redTeam={gameData.redTeam}
+          bans={gameData.bans}
+          gameDuration={gameData.gameDuration}
+          modifiedFields={modifiedTeamFields}
+          onFieldChange={handleTeamFieldChange}
+        />
 
+        {/* 选手数据列表 - 与详情页布局一致，但可编辑 */}
         <div className="max-w-5xl mx-auto mt-4">
-          {isEditMode ? (
-            sortedBluePlayers.map((bluePlayer, index) => {
+          <PlayerStatsHeader />
+          <div className="rounded-b-lg overflow-hidden bg-[#2d2d2d]">
+            {POSITION_ORDER.map((position, index) => {
+              const bluePlayer = sortedBluePlayers[index];
               const redPlayer = sortedRedPlayers[index];
-              if (!redPlayer) return null;
+
+              if (!bluePlayer || !redPlayer) return null;
+
               return (
                 <PlayerStatsRowEdit
-                  key={bluePlayer.playerId}
+                  key={position}
                   bluePlayer={bluePlayer}
                   redPlayer={redPlayer}
-                  isExpanded={expandedPosition === bluePlayer.position}
-                  onToggle={() => handleTogglePosition(bluePlayer.position)}
+                  isExpanded={expandedPosition === position}
+                  onToggle={() => handleTogglePosition(position)}
                   modifiedFields={modifiedPlayerFields}
                   onFieldChange={handlePlayerFieldChange}
                 />
               );
-            })
-          ) : (
-            <PlayerStatsList
-              bluePlayers={sortedBluePlayers}
-              redPlayers={sortedRedPlayers}
-              expandedPosition={expandedPosition}
-              onToggle={handleTogglePosition}
-              gameDuration={gameData.gameDuration}
-              redTeamStats={gameData.redTeam}
-              blueTeamStats={gameData.blueTeam}
-            />
-          )}
+            })}
+          </div>
         </div>
       </>
     );
   };
 
+  if (isEditDisabled) {
+    return <DisabledEditPage onBack={handleBack} />;
+  }
+
   if (error) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-[#0f0f23] to-[#1a1a2e] text-white">
-        <MatchDataHeader onBack={handleBack} />
+        <MatchDataHeader onBack={handleBack} title="对战数据详情编辑" />
         <div className="flex flex-col items-center justify-center mt-8">
           <AlertCircle className="w-12 h-12 text-red-500 mb-4" />
           <p className="text-lg">{error}</p>
@@ -394,7 +471,7 @@ const MatchDataEditPage: React.FC = () => {
   if (loading && !seriesInfo) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-[#0f0f23] to-[#1a1a2e] text-white">
-        <MatchDataHeader onBack={handleBack} />
+        <MatchDataHeader onBack={handleBack} title="对战数据详情编辑" />
         <div className="container mx-auto px-4 py-6">
           <MatchDataSkeleton />
         </div>
@@ -406,38 +483,29 @@ const MatchDataEditPage: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-b from-[#0f0f23] to-[#1a1a2e] text-white">
       <MatchDataHeader
         onBack={handleBack}
+        title="对战数据详情编辑"
         subtitle={
           seriesInfo
             ? `${seriesInfo.teamA.name} vs ${seriesInfo.teamB.name} - ${seriesInfo.format}`
             : undefined
         }
         action={
-          isEditMode ? (
-            <div className="flex items-center gap-2">
-              <button
-                onClick={handleCancelEdit}
-                className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-gray-300 hover:bg-slate-800 rounded-lg transition-colors"
-              >
-                <X className="w-4 h-4" />
-                取消
-              </button>
-              <button
-                onClick={handleSaveEdit}
-                className="flex items-center gap-1.5 px-4 py-2 text-sm font-bold text-[#1E3A8A] bg-gradient-to-r from-yellow-400 to-yellow-600 rounded-lg hover:shadow-[0_0_15px_rgba(250,204,21,0.5)] transition-all"
-              >
-                <Save className="w-4 h-4" />
-                保存
-              </button>
-            </div>
-          ) : (
+          <div className="flex items-center gap-2">
             <button
-              onClick={handleEnterEditMode}
-              className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-[#2d2d2d] hover:bg-[#3d3d3d] rounded-lg transition-colors"
+              onClick={handleCancelEdit}
+              className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-gray-300 hover:bg-slate-800 rounded-lg transition-colors"
             >
-              <Edit3 className="w-4 h-4" />
-              编辑
+              <X className="w-4 h-4" />
+              取消
             </button>
-          )
+            <button
+              onClick={handleSaveEdit}
+              className="flex items-center gap-1.5 px-4 py-2 text-sm font-bold text-[#1E3A8A] bg-gradient-to-r from-yellow-400 to-yellow-600 rounded-lg hover:shadow-[0_0_15px_rgba(250,204,21,0.5)] transition-all"
+            >
+              <Save className="w-4 h-4" />
+              保存
+            </button>
+          </div>
         }
       />
 

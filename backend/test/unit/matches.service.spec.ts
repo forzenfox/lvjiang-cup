@@ -290,32 +290,172 @@ describe('MatchesService', () => {
     });
   });
 
+  describe('比赛状态转换', () => {
+    it('应该支持 upcoming → in_progress → finished 状态流转', async () => {
+      mockDatabaseService.get.mockResolvedValueOnce({ id: '1', status: 'upcoming' });
+      mockDatabaseService.get.mockResolvedValueOnce({
+        id: '1',
+        status: 'in_progress',
+        score_a: 0,
+        score_b: 0,
+      });
+
+      const result1 = await service.update('1', { status: MatchStatus.ONGOING });
+
+      expect(result1.status).toBe('in_progress');
+
+      mockDatabaseService.get.mockResolvedValueOnce({ id: '1', status: 'in_progress' });
+      mockDatabaseService.get.mockResolvedValueOnce({
+        id: '1',
+        status: 'finished',
+        score_a: 2,
+        score_b: 1,
+      });
+
+      const result2 = await service.update('1', {
+        status: MatchStatus.FINISHED,
+        scoreA: 2,
+        scoreB: 1,
+      });
+
+      expect(result2.status).toBe('finished');
+    });
+
+    it('应该在状态更新时清除缓存', async () => {
+      mockDatabaseService.get.mockResolvedValueOnce({ id: '1', status: 'upcoming' });
+      mockDatabaseService.get.mockResolvedValueOnce({
+        id: '1',
+        status: 'in_progress',
+        score_a: 0,
+        score_b: 0,
+      });
+
+      await service.update('1', { status: MatchStatus.ONGOING });
+
+      expect(mockCacheService.del).toHaveBeenCalledWith('matches:all');
+      expect(mockCacheService.del).toHaveBeenCalledWith('matches:1');
+    });
+
+    it('应该处理空比赛状态更新', async () => {
+      mockDatabaseService.get.mockResolvedValueOnce({ id: '1', status: 'upcoming' });
+      mockDatabaseService.get.mockResolvedValueOnce({
+        id: '1',
+        status: 'upcoming',
+        score_a: 0,
+        score_b: 0,
+      });
+
+      const result = await service.update('1', {});
+
+      expect(result.status).toBe('upcoming');
+    });
+  });
+
+  describe('比分更新业务规则', () => {
+    it('应该更新比赛比分', async () => {
+      mockDatabaseService.get.mockResolvedValueOnce({ id: '1' });
+      mockDatabaseService.get.mockResolvedValueOnce({
+        id: '1',
+        score_a: 2,
+        score_b: 1,
+        status: 'finished',
+      });
+
+      const result = await service.update('1', { scoreA: 2, scoreB: 1 });
+
+      expect(result.scoreA).toBe(2);
+      expect(result.scoreB).toBe(1);
+    });
+
+    it('应该允许相同比分（平局场景）', async () => {
+      mockDatabaseService.get.mockResolvedValueOnce({ id: '1' });
+      mockDatabaseService.get.mockResolvedValueOnce({
+        id: '1',
+        score_a: 1,
+        score_b: 1,
+        status: 'finished',
+      });
+
+      const result = await service.update('1', { scoreA: 1, scoreB: 1 });
+
+      expect(result.scoreA).toBe(1);
+      expect(result.scoreB).toBe(1);
+    });
+
+    it('应该支持清零比分', async () => {
+      mockDatabaseService.get.mockResolvedValueOnce({ id: '1' });
+      mockDatabaseService.get.mockResolvedValueOnce({
+        id: '1',
+        score_a: 0,
+        score_b: 0,
+        status: 'upcoming',
+      });
+
+      const result = await service.update('1', { scoreA: 0, scoreB: 0 });
+
+      expect(result.scoreA).toBe(0);
+      expect(result.scoreB).toBe(0);
+    });
+
+    it('应该单独更新 A 队比分', async () => {
+      mockDatabaseService.get.mockResolvedValueOnce({ id: '1' });
+      mockDatabaseService.get.mockResolvedValueOnce({
+        id: '1',
+        score_a: 3,
+        score_b: 0,
+        status: 'upcoming',
+      });
+
+      const result = await service.update('1', { scoreA: 3 });
+
+      expect(result.scoreA).toBe(3);
+    });
+
+    it('应该单独更新 B 队比分', async () => {
+      mockDatabaseService.get.mockResolvedValueOnce({ id: '1' });
+      mockDatabaseService.get.mockResolvedValueOnce({
+        id: '1',
+        score_a: 0,
+        score_b: 2,
+        status: 'upcoming',
+      });
+
+      const result = await service.update('1', { scoreB: 2 });
+
+      expect(result.scoreB).toBe(2);
+    });
+  });
+
   describe('边界值测试', () => {
-    it('should handle negative score in update', async () => {
-      mockDatabaseService.get.mockResolvedValueOnce({ id: '1' }).mockResolvedValueOnce({
+    it('应该处理负数比分更新', async () => {
+      mockDatabaseService.get.mockResolvedValueOnce({ id: '1' });
+      mockDatabaseService.get.mockResolvedValueOnce({
         id: '1',
         score_a: -1,
         score_b: 0,
+        status: 'upcoming',
       });
 
-      const result = await service.update('1', { scoreA: -1 });
+      await service.update('1', { scoreA: -1 });
 
       expect(mockDatabaseService.run).toHaveBeenCalled();
     });
 
-    it('should handle very large score', async () => {
-      mockDatabaseService.get.mockResolvedValueOnce({ id: '1' }).mockResolvedValueOnce({
+    it('应该处理极大比分值', async () => {
+      mockDatabaseService.get.mockResolvedValueOnce({ id: '1' });
+      mockDatabaseService.get.mockResolvedValueOnce({
         id: '1',
         score_a: 999999,
         score_b: 0,
+        status: 'upcoming',
       });
 
-      const result = await service.update('1', { scoreA: 999999 });
+      await service.update('1', { scoreA: 999999 });
 
       expect(mockDatabaseService.run).toHaveBeenCalled();
     });
 
-    it('should handle invalid stage filter', async () => {
+    it('应该处理无效的阶段过滤条件', async () => {
       mockCacheService.get.mockReturnValue(undefined);
       mockDatabaseService.all.mockResolvedValue([]);
 
@@ -324,23 +464,40 @@ describe('MatchesService', () => {
       expect(result).toEqual([]);
     });
 
-    it('should handle empty match id in findOne', async () => {
+    it('应该处理空比赛 ID 的 findOne 查询', async () => {
       mockCacheService.get.mockReturnValue(undefined);
       mockDatabaseService.get.mockResolvedValue(null);
 
       await expect(service.findOne('')).rejects.toThrow(NotFoundException);
     });
 
-    it('should handle score with decimal values', async () => {
-      mockDatabaseService.get.mockResolvedValueOnce({ id: '1' }).mockResolvedValueOnce({
+    it('应该处理小数比分值', async () => {
+      mockDatabaseService.get.mockResolvedValueOnce({ id: '1' });
+      mockDatabaseService.get.mockResolvedValueOnce({
         id: '1',
         score_a: 1.5,
         score_b: 0,
+        status: 'upcoming',
       });
 
-      const result = await service.update('1', { scoreA: 1.5 } as any);
+      await service.update('1', { scoreA: 1.5 } as any);
 
       expect(mockDatabaseService.run).toHaveBeenCalled();
+    });
+
+    it('应该处理零比分更新', async () => {
+      mockDatabaseService.get.mockResolvedValueOnce({ id: '1' });
+      mockDatabaseService.get.mockResolvedValueOnce({
+        id: '1',
+        score_a: 0,
+        score_b: 0,
+        status: 'upcoming',
+      });
+
+      const result = await service.update('1', { scoreA: 0, scoreB: 0 });
+
+      expect(result.scoreA).toBe(0);
+      expect(result.scoreB).toBe(0);
     });
   });
 });

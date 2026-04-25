@@ -155,15 +155,16 @@ export class MatchDataImportService {
 
     // ========== 第 1-2 行：MatchInfo（对战信息）==========
 
-    // 第 1 行：MatchInfo 表头（7列）
+    // 第 1 行：MatchInfo 表头（8列）
     const matchInfoHeaders = [
       '红方战队名',
       '蓝方战队名',
       '局数',
       '比赛时间',
+      '游戏时长', // 恢复：用于雷达图维度计算
       '获胜方',
       'MVP',
-      '视频BV号', // 新增：视频BV号（大小写敏感）
+      '视频BV号',
     ];
     matchInfoHeaders.forEach((header, index) => {
       const cell = sheet.getCell(1, index + 1);
@@ -182,12 +183,13 @@ export class MatchDataImportService {
     sheet.getCell('B2').value = 'WBG';
     sheet.getCell('C2').value = 1;
     sheet.getCell('D2').value = '2026-04-16 14:00';
-    sheet.getCell('E2').value = 'red';  // 获胜方
-    sheet.getCell('F2').value = 'Knight';  // MVP
-    sheet.getCell('G2').value = 'BV1Ab4y1X7zK';  // 视频BV号
+    sheet.getCell('E2').value = '32:45'; // 游戏时长
+    sheet.getCell('F2').value = 'red'; // 获胜方
+    sheet.getCell('G2').value = 'Knight'; // MVP
+    sheet.getCell('H2').value = 'BV1Ab4y1X7zK'; // 视频BV号
 
     // 为获胜方添加数据验证（下拉列表）
-    ['E2'].forEach((cellAddr) => {
+    ['F2'].forEach((cellAddr) => {
       sheet.getCell(cellAddr).dataValidation = {
         type: 'list',
         allowBlank: false,

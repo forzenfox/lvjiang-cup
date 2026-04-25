@@ -66,6 +66,7 @@ const toFrontendMatch = (apiMatch: any): Match => ({
   swissRound: apiMatch.swissRound,
   boFormat: apiMatch.boFormat,
   eliminationBracket: apiMatch.eliminationBracket,
+  eliminationGameNumber: apiMatch.eliminationGameNumber,
 });
 
 const AdminSchedule: React.FC = () => {

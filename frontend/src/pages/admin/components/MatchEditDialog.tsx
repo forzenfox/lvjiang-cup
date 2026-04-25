@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Match, Team, MatchStatus } from '@/types';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { Match, Team, MatchStatus, SwissAdvancementResult, EliminationBracket } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Save, X, PlayCircle, CheckCircle, Calendar } from 'lucide-react';
 import { toDateTimeLocal, fromDateTimeLocal } from '@/utils/datetime';
 import { toast } from 'sonner';
+import { getQualifiedTeams, getUsedTeamIds } from '@/utils/eliminationTeamFilter';
 
 interface MatchEditDialogProps {
   match: Match;
@@ -12,6 +13,10 @@ interface MatchEditDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (match: Match) => boolean | void | Promise<boolean | void>;
+  // 新增 props 用于淘汰赛模式
+  advancement?: SwissAdvancementResult;
+  allMatches?: Match[];
+  currentBracket?: EliminationBracket;
 }
 
 const MatchEditDialog: React.FC<MatchEditDialogProps> = ({
@@ -20,9 +25,50 @@ const MatchEditDialog: React.FC<MatchEditDialogProps> = ({
   isOpen,
   onClose,
   onSave,
+  advancement,
+  allMatches = [],
+  currentBracket,
 }) => {
   const [formData, setFormData] = useState<Match>(match);
   const dateInputRef = useRef<HTMLInputElement>(null);
+
+  // 计算有效的队伍列表
+  const effectiveTeams = useMemo(() => {
+    // 如果提供了晋级信息，只显示晋级队伍
+    if (advancement) {
+      return getQualifiedTeams(teams, advancement);
+    }
+    return teams;
+  }, [teams, advancement]);
+
+  // 计算已使用的队伍 ID（同一轮次中已安排的队伍）
+  const usedTeamIds = useMemo(() => {
+    if (currentBracket && match.eliminationBracket === currentBracket) {
+      return getUsedTeamIds(allMatches, match.id, currentBracket);
+    }
+    return new Set<string>();
+  }, [allMatches, match.id, currentBracket, match.eliminationBracket]);
+
+  // 检查队伍是否应该被禁用
+  const isTeamDisabled = (teamId: string, isTeamASelect: boolean): boolean => {
+    // 当前比赛已选择的队伍保持可选（编辑模式）
+    if (teamId === match.teamAId || teamId === match.teamBId) {
+      // 如果是队伍 A 的选择框，禁用 teamBId；反之亦然
+      if (isTeamASelect) {
+        return teamId === formData.teamBId;
+      }
+      return teamId === formData.teamAId;
+    }
+    // 如果队伍在同一轮次中已被其他比赛使用，则禁用
+    if (usedTeamIds.has(teamId)) {
+      return true;
+    }
+    // 队伍 A 的选择中禁用队伍 B 已选择的队伍，反之亦然
+    if (isTeamASelect) {
+      return teamId === formData.teamBId;
+    }
+    return teamId === formData.teamAId;
+  };
 
   useEffect(() => {
     setFormData(match);
@@ -155,8 +201,8 @@ const MatchEditDialog: React.FC<MatchEditDialogProps> = ({
                 className="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded text-white text-sm"
               >
                 <option value="">选择队伍</option>
-                {teams.map(t => (
-                  <option key={t.id} value={t.id} disabled={t.id === formData.teamBId}>
+                {effectiveTeams.map(t => (
+                  <option key={t.id} value={t.id} disabled={isTeamDisabled(t.id, true)}>
                     {t.name}
                   </option>
                 ))}
@@ -170,8 +216,8 @@ const MatchEditDialog: React.FC<MatchEditDialogProps> = ({
                 className="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded text-white text-sm"
               >
                 <option value="">选择队伍</option>
-                {teams.map(t => (
-                  <option key={t.id} value={t.id} disabled={t.id === formData.teamAId}>
+                {effectiveTeams.map(t => (
+                  <option key={t.id} value={t.id} disabled={isTeamDisabled(t.id, false)}>
                     {t.name}
                   </option>
                 ))}

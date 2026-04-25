@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Loader2, AlertCircle } from 'lucide-react';
-import { matchService, teamService } from '@/services';
+import { useHomeData } from '@/context/HomeDataContext';
+import { useVisibleRefresh } from '@/hooks/useVisibleRefresh';
 import type { Match as ApiMatch, Team as ApiTeam } from '@/api/types';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -127,66 +128,63 @@ const ErrorState: React.FC<{ message: string; onRetry: () => void }> = ({ messag
 );
 
 const ScheduleSection: React.FC = () => {
-  const [matches, setMatches] = useState<Match[]>([]);
-  const [teams, setTeams] = useState<Team[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+  const {
+    matches: apiMatches,
+    teams: apiTeams,
+    isLoading,
+    fetchMatches,
+    fetchTeams,
+    refresh,
+  } = useHomeData();
+  const loading = isLoading.matches || isLoading.teams;
   const [activeTab, setActiveTab] = useState<string>('swiss');
   const { advancement, setAdvancement } = useAdvancementStore();
   const [scale, setScale] = useState(1);
   const contentRef = useRef<HTMLDivElement>(null);
 
-  // 加载数据
-  const loadData = useCallback(
-    async (_forceRefresh = false) => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        const [matchesResponse, teamsResponse] = await Promise.all([
-          matchService.getAll(),
-          teamService.getAll(),
-        ]);
-
-        const convertedTeams = teamsResponse.map(convertApiTeamToLocal);
-        const convertedMatches = matchesResponse.map(m =>
-          convertApiMatchToLocal(m, convertedTeams)
-        );
-
-        setTeams(convertedTeams);
-        setMatches(convertedMatches);
-
-        // 自动计算晋级名单
-        const swissMatches = convertedMatches.filter(m => m.stage === 'swiss');
-        if (swissMatches.length > 0) {
-          const calculated = calculateAdvancement(swissMatches, convertedTeams);
-          setAdvancement(calculated);
-        }
-      } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : '获取赛程数据失败';
-        setError(errorMessage);
-        console.error('[ScheduleSection] 获取赛程数据失败:', err);
-      } finally {
-        setLoading(false);
-      }
-    },
-    [setAdvancement]
+  const convertedTeams = useMemo(
+    () => (apiTeams as ApiTeam[]).map(convertApiTeamToLocal),
+    [apiTeams]
   );
 
-  // 按阶段筛选比赛
+  const matches = useMemo(() => {
+    const converted = (apiMatches as ApiMatch[]).map(m =>
+      convertApiMatchToLocal(m, convertedTeams)
+    );
+    return converted;
+  }, [apiMatches, convertedTeams]);
+
+  useEffect(() => {
+    fetchMatches();
+    fetchTeams();
+  }, [fetchMatches, fetchTeams]);
+
+  // 可视区域内每60秒刷新赛程数据
+  useVisibleRefresh({
+    fetchFn: fetchMatches,
+    intervalMs: 60_000,
+    isVisible: true,
+    enabled: true,
+  });
+
+  useEffect(() => {
+    const swissMatches = matches.filter(m => m.stage === 'swiss');
+    if (swissMatches.length > 0) {
+      const calculated = calculateAdvancement(swissMatches, convertedTeams);
+      setAdvancement(calculated);
+    }
+  }, [matches, convertedTeams, setAdvancement]);
+
+  const handleRetry = useCallback(() => {
+    refresh('matches');
+  }, [refresh]);
+
   const swissMatches = matches.filter(m => m.stage === 'swiss');
   const eliminationMatches = matches.filter(m => m.stage === 'elimination');
 
-  // Tab 切换处理
   const handleTabChange = (value: string) => {
     setActiveTab(value);
-    // Tab 切换时刷新数据（强制刷新）
-    loadData(true);
   };
-
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
 
   // 动态计算缩放比例（优化：使用 requestAnimationFrame 减少布局抖动）
   useEffect(() => {
@@ -224,9 +222,8 @@ const ScheduleSection: React.FC = () => {
         {loading && matches.length === 0 ? (
           // 加载骨架屏
           <ScheduleSkeleton />
-        ) : error && matches.length === 0 ? (
-          // 错误状态
-          <ErrorState message={error} onRetry={loadData} />
+        ) : !loading && matches.length === 0 ? (
+          <ErrorState message="获取赛程数据失败" onRetry={handleRetry} />
         ) : (
           <div
             ref={contentRef}
@@ -268,7 +265,11 @@ const ScheduleSection: React.FC = () => {
                   {swissMatches.length === 0 ? (
                     <SwissEmptyState message="暂无赛程信息，赛程信息将在比赛开始前公布" />
                   ) : (
-                    <SwissStage matches={swissMatches} teams={teams} advancement={advancement} />
+                    <SwissStage
+                      matches={swissMatches}
+                      teams={convertedTeams}
+                      advancement={advancement}
+                    />
                   )}
                 </motion.div>
               </TabsContent>
@@ -283,7 +284,7 @@ const ScheduleSection: React.FC = () => {
                   {eliminationMatches.length === 0 ? (
                     <SwissEmptyState message="暂无淘汰赛信息" />
                   ) : (
-                    <EliminationStage matches={eliminationMatches} teams={teams} />
+                    <EliminationStage matches={eliminationMatches} teams={convertedTeams} />
                   )}
                 </motion.div>
               </TabsContent>

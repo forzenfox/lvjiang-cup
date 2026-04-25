@@ -38,6 +38,7 @@ interface MemberFormData {
   isCaptain: boolean;
   liveUrl?: string;
   level?: PlayerLevel;
+  auctionPrice: number;
 }
 
 // LOL固定位置
@@ -66,6 +67,7 @@ const ensureAllPositions = (players: any[] = [], teamId: string): any[] => {
         isCaptain: false,
         liveUrl: '',
         level: undefined,
+        auctionPrice: 0,
       });
     }
   });
@@ -308,6 +310,7 @@ const AdminTeams: React.FC = () => {
       await loadTeams();
     } catch (error) {
       console.error('Failed to save team:', error);
+      // 保存失败时保留编辑状态，让用户修改后重试
       toast.error(error instanceof Error ? error.message : '保存战队失败');
     } finally {
       setLoading(false);
@@ -408,6 +411,7 @@ const AdminTeams: React.FC = () => {
       isCaptain: player.isCaptain ?? false,
       liveUrl: player.liveUrl || '',
       level: player.level,
+      auctionPrice: player.auctionPrice ?? 0,
     };
 
     // 检查战队是否已保存（是否是未保存的新战队）
@@ -448,7 +452,7 @@ const AdminTeams: React.FC = () => {
     if (!team) return;
 
     const player = team.players[editingPlayerIndex];
-    const newPlayers = [...team.players];
+    const _newPlayers = [...team.players];
 
     // 准备更新到后端的数据（使用后端期望的字段名）
     // 确保直播间URL是完整格式
@@ -464,40 +468,26 @@ const AdminTeams: React.FC = () => {
       isCaptain: editingPlayerData.isCaptain,
       liveUrl: finalLiveUrl,
       level: editingPlayerData.level,
+      auctionPrice: editingPlayerData.auctionPrice,
     };
 
     try {
       // 调用后端 API 更新队员信息
       await membersApi.updateMember(player.id, updateData);
 
-      // 更新本地状态
-      const updatedPlayer: Player = {
-        ...newPlayers[editingPlayerIndex],
-        nickname: editingPlayerData.nickname,
-        avatarUrl: editingPlayerData.avatarUrl || '',
-        position: editingPlayerData.position,
-        bio: editingPlayerData.bio || '',
-        gameId: editingPlayerData.gameId,
-        rating: editingPlayerData.rating,
-        isCaptain: editingPlayerData.isCaptain,
-        liveUrl: finalLiveUrl,
-        championPool: editingPlayerData.championPool,
-        level: editingPlayerData.level,
-      };
-      newPlayers[editingPlayerIndex] = updatedPlayer;
-
-      // 更新teams数组
-      const updatedTeams = teams.map(t =>
-        t.id === editingTeamId ? { ...t, players: newPlayers } : t
-      );
-      setTeams(updatedTeams);
-
+      // 退出编辑模式
       setIsEditingTeam(false);
+      setEditingTeamId(null);
       setEditingPlayerIndex(null);
       setEditingPlayerData(null);
+
+      // 刷新列表获取最新数据（service层已自动清除缓存）
+      await loadTeams();
+
       toast.success('队员信息已保存');
     } catch (error) {
       console.error('Failed to update member:', error);
+      // 保存失败时保留编辑状态，让用户修改后重试
       toast.error(error instanceof Error ? error.message : '保存队员信息失败');
     }
   };
@@ -609,7 +599,7 @@ const AdminTeams: React.FC = () => {
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
-                    {!isEditingTeam && editingTeamId === null && (
+                    {editingTeamId !== team.id && (
                       <>
                         <Button
                           variant="ghost"
@@ -966,8 +956,8 @@ const AdminTeams: React.FC = () => {
                                             </div>
                                           </div>
 
-                                          {/* 第2行：游戏属性 - 位置 + 评分 + 队长 */}
-                                          <div className="grid grid-cols-3 gap-3">
+                                          {/* 第2行：游戏属性 - 位置 + 评分 + 实力等级 + 拍卖价 */}
+                                          <div className="grid grid-cols-4 gap-3">
                                             <div>
                                               <label className="block text-xs text-gray-400 mb-1">
                                                 位置
@@ -1092,6 +1082,36 @@ const AdminTeams: React.FC = () => {
                                                   D
                                                 </option>
                                               </select>
+                                            </div>
+                                            <div>
+                                              <label className="block text-xs text-gray-400 mb-1">
+                                                拍卖价 (0-200)
+                                              </label>
+                                              <input
+                                                type="number"
+                                                min={0}
+                                                max={200}
+                                                value={editingPlayerData.auctionPrice}
+                                                onChange={e => {
+                                                  const value =
+                                                    e.target.value === ''
+                                                      ? ''
+                                                      : Number(e.target.value);
+                                                  if (
+                                                    value === '' ||
+                                                    (Number.isInteger(value) &&
+                                                      value >= 0 &&
+                                                      value <= 200)
+                                                  ) {
+                                                    setEditingPlayerData({
+                                                      ...editingPlayerData,
+                                                      auctionPrice: value as number,
+                                                    });
+                                                  }
+                                                }}
+                                                className="w-full px-2 py-1.5 bg-white/5 border border-white/10 rounded text-white text-sm focus:outline-none focus:border-blue-500"
+                                                placeholder="0-200"
+                                              />
                                             </div>
                                             <div className="flex items-end">
                                               <label className="flex items-center gap-2 px-2 py-1.5 cursor-pointer">
@@ -1313,6 +1333,12 @@ const AdminTeams: React.FC = () => {
                                               ) : (
                                                 <span className="text-white ml-2">未设置</span>
                                               )}
+                                            </div>
+                                            <div>
+                                              <span className="text-gray-500">拍卖价:</span>
+                                              <span className="text-amber-500 ml-2">
+                                                {player.auctionPrice ?? 0}
+                                              </span>
                                             </div>
                                           </div>
 

@@ -9,6 +9,14 @@ import { handleError, ErrorHandlerConfig } from '@/utils/error-handler';
 
 const TIMEOUT = 10000;
 
+/**
+ * 扩展 AxiosRequestConfig，支持自定义配置
+ */
+interface ExtendedAxiosRequestConfig extends AxiosRequestConfig {
+  /** 错误处理配置 */
+  errorConfig?: ErrorHandlerConfig;
+}
+
 const apiClient: AxiosInstance = axios.create({
   baseURL: '/api',
   timeout: TIMEOUT,
@@ -50,10 +58,19 @@ apiClient.interceptors.response.use(
     return response;
   },
   (error: AxiosError) => {
+    // 获取请求配置中的自定义错误处理配置
+    const config = error.config as ExtendedAxiosRequestConfig | undefined;
+    const errorConfig = config?.errorConfig;
+
     // 使用新的错误处理系统
     handleError(error, {
-      showToast: true,
-      redirectToLogin: true,
+      showToast: errorConfig?.showToast ?? true,
+      redirectToLogin: errorConfig?.redirectToLogin ?? true,
+      onError: errorConfig?.onError,
+      onUnauthorized: errorConfig?.onUnauthorized,
+      onForbidden: errorConfig?.onForbidden,
+      onNotFound: errorConfig?.onNotFound,
+      onServerError: errorConfig?.onServerError,
     });
 
     return Promise.reject(error);
@@ -67,13 +84,11 @@ export async function request<T>(
   config: AxiosRequestConfig,
   errorConfig?: ErrorHandlerConfig
 ): Promise<T> {
-  try {
-    const response = await apiClient(config);
-    return response.data as T;
-  } catch (error) {
-    handleError(error, { showToast: true, ...errorConfig });
-    throw error;
-  }
+  const response = await apiClient({
+    ...config,
+    errorConfig,
+  } as ExtendedAxiosRequestConfig);
+  return response.data as T;
 }
 
 /**

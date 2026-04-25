@@ -426,9 +426,7 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
       const hasColumn = columns.some((col: any) => col.name === 'auction_price');
 
       if (!hasColumn) {
-        await this.run(
-          `ALTER TABLE team_members ADD COLUMN auction_price INTEGER DEFAULT 0`
-        );
+        await this.run(`ALTER TABLE team_members ADD COLUMN auction_price INTEGER DEFAULT 0`);
         this.logger.log('已添加 auction_price 字段');
       }
     } catch (error) {
@@ -445,9 +443,7 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
       const hasColumn = columns.some((col: any) => col.name === 'video_bvid');
 
       if (!hasColumn) {
-        await this.run(
-          `ALTER TABLE match_games ADD COLUMN video_bvid TEXT`
-        );
+        await this.run(`ALTER TABLE match_games ADD COLUMN video_bvid TEXT`);
         this.logger.log('已添加 video_bvid 字段');
       }
     } catch (error) {

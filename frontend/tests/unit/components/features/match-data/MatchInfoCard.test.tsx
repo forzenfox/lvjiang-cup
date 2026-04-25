@@ -12,9 +12,9 @@ const createMockGameData = (overrides: Partial<MatchGameData> = {}): MatchGameDa
   matchId: 'match1',
   gameNumber: 2,
   winnerTeamId: 'team1',
-  gameDuration: '32:45',  // 保留兼容
+  gameDuration: '32:45', // 保留兼容
   gameStartTime: '2026-04-16T14:00:00',
-  videoBvid: 'BV1Ab4y1X7zK',  // 新增
+  videoBvid: 'BV1Ab4y1X7zK', // 新增
   blueTeam: {
     teamId: 'team1',
     teamName: 'BLG',
@@ -111,7 +111,10 @@ describe('MatchInfoCard', () => {
 
       const videoLink = screen.getByText('📺 观看视频');
       expect(videoLink).toBeInTheDocument();
-      expect(videoLink.closest('a')).toHaveAttribute('href', 'https://www.bilibili.com/video/BV1Ab4y1X7zK');
+      expect(videoLink.closest('a')).toHaveAttribute(
+        'href',
+        'https://www.bilibili.com/video/BV1Ab4y1X7zK'
+      );
     });
 
     it('不应该显示视频链接当没有BV号时', () => {

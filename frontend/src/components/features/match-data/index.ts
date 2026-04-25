@@ -12,9 +12,9 @@ export { default as MatchDataEditPage } from './MatchDataEditPage';
 // 布局组件
 export { default as MatchDataHeader } from './MatchDataHeader';
 
-// 信息展示组件
-export { default as MatchInfoCard } from './MatchInfoCard';
-export { default as MatchInfoCardSkeleton } from './MatchInfoCardSkeleton';
+// 系列赛头部组件
+export { default as MatchSeriesHeader } from './MatchSeriesHeader';
+export { default as MatchSeriesHeaderSkeleton } from './MatchSeriesHeaderSkeleton';
 
 // 对局切换组件
 export { default as GameSwitcher } from './GameSwitcher';

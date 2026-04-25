@@ -66,6 +66,16 @@ export const useMatchDataStore = create<MatchDataState>(set => ({
 
     try {
       const data = await getMatchGameData(matchId, gameNumber);
+      if (!data) {
+        // 数据不存在（未导入），设置为 null
+        set({
+          gameData: null,
+          selectedGameNumber: gameNumber,
+          loading: false,
+          error: null,
+        });
+        return;
+      }
       set({
         gameData: data,
         selectedGameNumber: gameNumber,
@@ -150,6 +160,7 @@ export const useMatchDataStore = create<MatchDataState>(set => ({
   /**
    * 预加载相邻局数数据（gameNumber-1 和 gameNumber+1）
    * 使用 setTimeout 延迟1秒执行，避免阻塞主线程
+   * 使用静默模式（silent=true）避免在数据不存在时弹出错误提示
    * @param matchId 比赛ID
    * @param currentGame 当前局数
    * @param maxGames 最大局数
@@ -168,12 +179,15 @@ export const useMatchDataStore = create<MatchDataState>(set => ({
         adjacentGames.push(currentGame + 1);
       }
 
-      // 异步预加载，不阻塞主线程
+      // 异步预加载，不阻塞主线程，使用静默模式
       adjacentGames.forEach(gameNumber => {
-        getMatchGameData(matchId, gameNumber)
-          .then(() => {
-            // 预加载数据存入缓存（通过浏览器缓存或zustand内部缓存）
-            // 这里不更新state，仅利用API层缓存
+        getMatchGameData(matchId, gameNumber, true)
+          .then(data => {
+            // 数据为 null 表示该局尚未导入，不需要缓存
+            if (data) {
+              // 预加载数据存入缓存（通过浏览器缓存或zustand内部缓存）
+              // 这里不更新state，仅利用API层缓存
+            }
           })
           .catch(() => {
             // 预加载失败静默处理，不影响用户体验

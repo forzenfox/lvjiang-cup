@@ -4,16 +4,12 @@ import AdminLayout from '../../components/layout/AdminLayout';
 import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
-import { Edit2, Trash2, RefreshCw, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { Edit2, Trash2, RefreshCw, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import MatchDataImportDialog from '../../components/admin/MatchDataImportDialog';
-import { getMatchSeries } from '@/api/matchData';
+import { getMatchSeries, deleteMatchGameData } from '@/api/matchData';
 import type { MatchSeriesInfo, GameSummary } from '@/types/matchData';
 import { adminPath } from '@/constants/routes';
-
-interface GameStatus {
-  enabled: boolean;
-}
 
 const MatchDataManagement: React.FC = () => {
   const { matchId } = useParams<{ matchId: string }>();
@@ -25,8 +21,6 @@ const MatchDataManagement: React.FC = () => {
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [gameToDelete, setGameToDelete] = useState<number | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-
-  const [gameStatuses, setGameStatuses] = useState<Record<number, GameStatus>>({});
 
   useEffect(() => {
     if (matchId && !hasLoaded) {
@@ -42,13 +36,6 @@ const MatchDataManagement: React.FC = () => {
     try {
       const series = await getMatchSeries(matchId);
       setSeriesInfo(series);
-
-      // Initialize game statuses
-      const statuses: Record<number, GameStatus> = {};
-      for (const game of series.games) {
-        statuses[game.gameNumber] = { enabled: game.hasData };
-      }
-      setGameStatuses(statuses);
     } catch (error) {
       console.error('Failed to load series data:', error);
       toast.error('加载比赛数据失败');
@@ -80,12 +67,9 @@ const MatchDataManagement: React.FC = () => {
 
     setLoading(true);
     try {
-      // TODO: Implement delete API when available
-      toast.warning('删除功能暂未实现');
-      setGameStatuses(prev => ({
-        ...prev,
-        [gameToDelete]: { enabled: false },
-      }));
+      await deleteMatchGameData(matchId, gameToDelete);
+      toast.success('删除成功');
+      await loadSeriesData();
     } catch (error) {
       console.error('Failed to delete game data:', error);
       toast.error('删除游戏数据失败');
@@ -94,13 +78,6 @@ const MatchDataManagement: React.FC = () => {
       setDeleteDialogOpen(false);
       setGameToDelete(null);
     }
-  };
-
-  const toggleGameEnabled = (gameNumber: number) => {
-    setGameStatuses(prev => ({
-      ...prev,
-      [gameNumber]: { enabled: !prev[gameNumber]?.enabled },
-    }));
   };
 
   const getWinnerName = (game: GameSummary): string => {
@@ -178,7 +155,6 @@ const MatchDataManagement: React.FC = () => {
         <div className="space-y-4">
           {Array.from({ length: getMaxGames() }, (_, i) => i + 1).map(gameNumber => {
             const game = seriesInfo?.games?.find(g => g.gameNumber === gameNumber);
-            const isEnabled = gameStatuses[gameNumber]?.enabled ?? false;
             const hasData = game?.hasData ?? false;
 
             return (
@@ -218,16 +194,6 @@ const MatchDataManagement: React.FC = () => {
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => toggleGameEnabled(gameNumber)}
-                      className={`p-2 rounded-lg transition-colors ${
-                        isEnabled ? 'bg-green-500/20 text-green-400' : 'bg-gray-700 text-gray-400'
-                      }`}
-                      title={isEnabled ? '禁用此局' : '启用此局'}
-                    >
-                      {isEnabled ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
-                    </button>
-
                     <Button
                       variant="outline"
                       size="sm"
@@ -254,6 +220,7 @@ const MatchDataManagement: React.FC = () => {
                       size="icon"
                       onClick={() => handleDeleteClick(gameNumber)}
                       disabled={!hasData || loading}
+                      aria-label={`删除第 ${gameNumber} 局数据`}
                       title="删除数据"
                     >
                       <Trash2 className="w-4 h-4 text-red-400" />

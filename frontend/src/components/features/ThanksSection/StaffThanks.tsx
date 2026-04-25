@@ -53,8 +53,7 @@ export const StaffThanks: React.FC<StaffThanksProps> = ({ staff }) => {
   const roles = Object.entries(grouped);
 
   // Hook 必须在条件判断之前调用
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { containerRef: _containerRef, visibleItems } = useStaggeredAnimation(roles.length, 100);
+  const { containerRef, visibleItems } = useStaggeredAnimation(roles.length, 100);
 
   if (staff.length === 0) return null;
 
@@ -92,6 +91,7 @@ export const StaffThanks: React.FC<StaffThanksProps> = ({ staff }) => {
 
   return (
     <div
+      ref={containerRef}
       data-testid="staff-thanks-container"
       className="relative mt-8 md:mt-12 p-5 md:p-6 rounded-2xl border border-amber-500/20 bg-gradient-to-br from-amber-900/20 via-black/50 to-pink-900/20 backdrop-blur-md overflow-hidden group flex flex-col w-full"
     >

@@ -161,6 +161,9 @@ export const teamService: TeamService = {
 
       const team = await teamApi.create(data);
 
+      // 清除缓存，确保下次获取时从后端拉取最新数据
+      requestCache.clear('teams');
+
       // 更新本地列表
       setState({
         teams: [...state.teams, team],
@@ -189,6 +192,9 @@ export const teamService: TeamService = {
 
       const team = await teamApi.update(data);
 
+      // 清除缓存，确保下次获取时从后端拉取最新数据
+      requestCache.clear('teams');
+
       // 更新本地列表中的战队
       setState({
         teams: state.teams.map(t => (t.id === team.id ? team : t)),
@@ -211,6 +217,9 @@ export const teamService: TeamService = {
 
     try {
       await teamApi.remove(id);
+
+      // 清除缓存，确保下次获取时从后端拉取最新数据
+      requestCache.clear('teams');
 
       // 从本地列表中移除
       setState({

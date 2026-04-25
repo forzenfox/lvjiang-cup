@@ -12,12 +12,6 @@ declare global {
   }
 }
 
-const thanksData: ThanksData = window.THANKS_DATA || { sponsors: [], staff: [] };
-
-const sponsors: SponsorConfig[] = thanksData.sponsors || [];
-const staff: StaffConfig[] = thanksData.staff || [];
-
-// 动画配置
 const sectionVariants = {
   hidden: { opacity: 0 },
   visible: {
@@ -42,14 +36,21 @@ const itemVariants = {
 };
 
 export const ThanksSection: React.FC = () => {
+  const [sponsors, setSponsors] = useState<SponsorConfig[]>([]);
+  const [staff, setStaff] = useState<StaffConfig[]>([]);
   const [scale, setScale] = useState(1);
   const contentRef = useRef<HTMLDivElement>(null);
 
-  // 动态计算缩放比例，确保内容在视窗内完整展示
+  useEffect(() => {
+    const thanksData: ThanksData = window.THANKS_DATA || { sponsors: [], staff: [] };
+    setSponsors(thanksData.sponsors || []);
+    setStaff(thanksData.staff || []);
+  }, []);
+
   useEffect(() => {
     const calculateScale = () => {
       const viewportHeight = window.innerHeight;
-      const headerHeight = 96; // 导航栏高度
+      const headerHeight = 96;
       const availableHeight = viewportHeight - headerHeight;
 
       if (contentRef.current) {
@@ -62,7 +63,7 @@ export const ThanksSection: React.FC = () => {
     calculateScale();
     window.addEventListener('resize', calculateScale);
     return () => window.removeEventListener('resize', calculateScale);
-  }, []);
+  }, [sponsors, staff]);
 
   if (sponsors.length === 0 && staff.length === 0) return null;
 

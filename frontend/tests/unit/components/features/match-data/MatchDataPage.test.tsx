@@ -64,6 +64,7 @@ const createMockGameData = (): MatchGameData => ({
   winnerTeamId: 'team1',
   gameDuration: '32:45',
   gameStartTime: '2026-04-16T14:00:00',
+  videoBvid: 'BV1Ab4y1X7zK',
   blueTeam: {
     teamId: 'team1',
     teamName: 'BLG',

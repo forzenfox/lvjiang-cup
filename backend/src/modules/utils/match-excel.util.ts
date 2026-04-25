@@ -8,11 +8,11 @@ export interface MatchInfoData {
   blueTeamName: string;
   gameNumber: number;
   gameStartTime: string;
-  gameDuration: string;         // 保留（向后兼容，标记废弃）
+  gameDuration: string; // 保留（向后兼容，标记废弃）
   winner: string;
-  firstBlood: string;           // 保留（向后兼容，标记废弃）
+  firstBlood: string; // 保留（向后兼容，标记废弃）
   mvp: string;
-  videoBvid?: string;           // 新增：视频BV号（大小写敏感）
+  videoBvid?: string; // 新增：视频BV号（大小写敏感）
 }
 
 export interface TeamStatsData {
@@ -108,13 +108,18 @@ export function validateMatchInfo(data: MatchInfoData): ValidationResult {
   if (!data.gameStartTime) {
     errors.push('游戏开始时间不能为空');
   }
-  // 移除游戏时长验证（已废弃）
+  // 恢复游戏时长验证（用于雷达图维度计算）
+  if (!data.gameDuration) {
+    errors.push('游戏时长不能为空');
+  } else if (!isValidDurationFormat(data.gameDuration)) {
+    errors.push('游戏时长格式错误，应为 MM:SS 格式');
+  }
   if (!data.winner) {
     errors.push('获胜方不能为空');
   } else if (!['red', 'blue', 'Red', 'Blue', '红方', '蓝方'].includes(data.winner)) {
     errors.push('获胜方必须是 red 或 blue');
   }
-  // 新增BV号格式验证（如果填写）
+  // BV号格式验证（如果填写）
   if (data.videoBvid && !isValidBVId(data.videoBvid)) {
     errors.push('视频BV号格式错误，应为 BVxxxxxxxxxx 格式');
   }
@@ -408,17 +413,46 @@ export function parseMatchDataExcel(buffer: Buffer): ParsedMatchData {
 }
 
 function parseMatchInfoRow(row: any[]): MatchInfoData {
-  return {
-    redTeamName: extractCellValue(row[0]),
-    blueTeamName: extractCellValue(row[1]),
-    gameNumber: extractNumericValue(row[2]),
-    gameStartTime: extractCellValue(row[3]),
-    gameDuration: extractCellValue(row[4]),       // 保留兼容（原E列，现废弃）
-    winner: extractCellValue(row[5]),             // 原F列
-    firstBlood: '',                                // 废弃，返回空
-    mvp: extractCellValue(row[6]),                 // 原H列，现F列
-    videoBvid: extractCellValue(row[7]),           // 新增：G列
-  };
+  // 检测格式：7列新模板（无游戏时长）vs 8列旧模板（含游戏时长）
+  // 7列: [红方战队名, 蓝方战队名, 局数, 比赛时间, 获胜方, MVP, 视频BV号]
+  // 8列: [红方战队名, 蓝方战队名, 局数, 比赛时间, 游戏时长, 获胜方, MVP, 视频BV号]
+  // 判断依据：
+  //   1. 8列格式: row[4]是时长格式(含":"), row[5]是获胜方("red"/"blue")
+  //   2. 7列格式: row[4]直接是获胜方("red"/"blue")
+  const row4 = extractCellValue(row[4]);
+  const row5 = extractCellValue(row[5]);
+
+  const isOldFormat =
+    row4.includes(':') &&
+    ['red', 'blue', '红方', '蓝方'].some((v) => row5.toLowerCase().includes(v));
+
+  if (isOldFormat) {
+    // 8列旧模板格式（含游戏时长，用于雷达图维度计算）
+    return {
+      redTeamName: extractCellValue(row[0]),
+      blueTeamName: extractCellValue(row[1]),
+      gameNumber: extractNumericValue(row[2]),
+      gameStartTime: extractCellValue(row[3]),
+      gameDuration: row4, // E列: 游戏时长
+      winner: row5, // F列: 获胜方
+      firstBlood: '', // 废弃
+      mvp: extractCellValue(row[6]), // G列: MVP
+      videoBvid: extractCellValue(row[7]), // H列: 视频BV号
+    };
+  } else {
+    // 7列新模板格式（无游戏时长，雷达图计算将异常）
+    return {
+      redTeamName: extractCellValue(row[0]),
+      blueTeamName: extractCellValue(row[1]),
+      gameNumber: extractNumericValue(row[2]),
+      gameStartTime: extractCellValue(row[3]),
+      gameDuration: '', // 新格式无游戏时长（验证会失败）
+      winner: row4, // E列: 获胜方
+      firstBlood: '', // 废弃
+      mvp: row5, // F列: MVP
+      videoBvid: extractCellValue(row[6]), // G列: 视频BV号
+    };
+  }
 }
 
 function parseTeamStatsRow(row: any[], _rowIndex: number): TeamStatsData {

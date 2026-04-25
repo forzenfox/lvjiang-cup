@@ -58,10 +58,12 @@ vi.hoisted(() => {
       { id: 20, sponsorName: '人生梦想', sponsorContent: '1K', specialAward: '冠军打野' },
     ],
     staff: [
-      { id: 1, name: '（待补充）', role: '赛事策划' },
-      { id: 2, name: '（待补充）', role: '技术支持' },
-      { id: 3, name: '（待补充）', role: '运营推广' },
-      { id: 4, name: '（待补充）', role: '数据统计' },
+      { id: 1, name: '帅小伙山月', role: '大总管' },
+      { id: 2, name: 'MidOuOri', role: '数据分析' },
+      { id: 3, name: '刘补树', role: '数据分析' },
+      { id: 4, name: '古文灬', role: '技术支持' },
+      { id: 5, name: 'YangATree', role: '技术支持' },
+      { id: 6, name: '梅怡阁诗人', role: '技术支持' },
     ],
   };
   Object.defineProperty(window, 'THANKS_DATA', {

@@ -107,7 +107,12 @@ const EliminationStage: React.FC<EliminationStageProps> = ({
         }}
       >
         {editable && onMatchUpdate ? (
-          <EditableBracketMatchCard match={displayMatch} teams={teams} onUpdate={onMatchUpdate} />
+          <EditableBracketMatchCard
+            match={displayMatch}
+            teams={teams}
+            onUpdate={onMatchUpdate}
+            allMatches={matches}
+          />
         ) : (
           <BracketMatchCard match={displayMatch} teams={teams} testId={testId} />
         )}
