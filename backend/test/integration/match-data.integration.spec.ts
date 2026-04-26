@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
-import { NotFoundException } from '@nestjs/common';
+import { NotFoundException, BadRequestException } from '@nestjs/common';
 import { MatchDataService } from '../../src/modules/match-data/match-data.service';
 import { DatabaseService } from '../../src/database/database.service';
 import { CacheService } from '../../src/cache/cache.service';
@@ -420,6 +420,199 @@ describe('MatchData Integration Tests', () => {
         'match_cascade',
       ]);
       expect(games).toHaveLength(0);
+    });
+  });
+
+  describe('importMatchData - 多Sheet解析错误处理', () => {
+    it('当某个Sheet数据不完整时应该抛出BadRequestException而不是500错误', async () => {
+      // 准备测试数据：模拟包含不完整数据的Excel buffer
+      const xlsx = require('xlsx');
+
+      // 创建包含两个Sheet的工作簿，其中一个Sheet的战队名为空
+      const workbook = xlsx.utils.book_new();
+
+      // Sheet 1: 完整数据
+      const validSheetData = [
+        ['teamA', 'teamB', '局数', '比赛时间', '游戏时长', '获胜方', 'MVP', '视频BV号'],
+        ['Team A', 'Team B', 1, '2026-04-25 20:25', '30:25', 'red', 'Player1', 'BV1xxx'],
+        [
+          '阵营',
+          '战队名',
+          '总击杀',
+          '总死亡',
+          '总助攻',
+          '总经济',
+          '推塔数',
+          '控龙数',
+          '控 Baron 数',
+        ],
+        ['red', 'Team A', 25, 18, 47, 65000, 9, 3, 1],
+        ['blue', 'Team B', 18, 25, 35, 58000, 3, 1, 0],
+        [
+          '阵营',
+          '位置',
+          '选手昵称',
+          '英雄名',
+          '击杀',
+          '死亡',
+          '助攻',
+          '补刀',
+          '经济',
+          '伤害',
+          '承伤',
+          '等级',
+          '视野得分',
+          '插眼数',
+          '排眼数',
+        ],
+        ['red', 'TOP', 'Player1', '格温', 2, 2, 11, 349, 17315, 28500, 32000, 18, 45, 12, 12],
+        ['red', 'JUNGLE', 'Player2', '潘森', 4, 7, 10, 261, 14855, 22000, 28000, 16, 38, 8, 8],
+        ['red', 'MID', 'Player3', '奎桑提', 13, 0, 11, 339, 19592, 35000, 18000, 18, 42, 6, 6],
+        ['red', 'ADC', 'Player4', '艾希', 7, 3, 10, 368, 19385, 32000, 21000, 18, 35, 4, 4],
+        ['red', 'SUPPORT', 'Player5', '萨勒芬妮', 0, 3, 22, 47, 11580, 8500, 15000, 15, 78, 18, 18],
+        ['blue', 'TOP', 'Player6', '奎桑提', 1, 3, 8, 289, 15200, 21000, 35000, 17, 42, 10, 10],
+        ['blue', 'JUNGLE', 'Player7', '蔚', 3, 5, 9, 198, 12500, 18000, 26000, 15, 36, 9, 9],
+        ['blue', 'MID', 'Player8', '阿狸', 5, 6, 7, 312, 16800, 25000, 19000, 17, 38, 5, 5],
+        ['blue', 'ADC', 'Player9', '厄斐琉斯', 6, 5, 6, 352, 17500, 28000, 22000, 18, 32, 3, 3],
+        ['blue', 'SUPPORT', 'Player10', '烈娜塔', 3, 6, 5, 38, 9800, 7500, 18000, 14, 82, 20, 20],
+        [
+          '红方BAN1',
+          '红方BAN2',
+          '红方BAN3',
+          '红方BAN4',
+          '红方BAN5',
+          '蓝方BAN1',
+          '蓝方BAN2',
+          '蓝方BAN3',
+          '蓝方BAN4',
+          '蓝方BAN5',
+        ],
+        [
+          '亚托克斯',
+          '格雷福斯',
+          '阿狸',
+          '卡莎',
+          '锤石',
+          '雷克顿',
+          '李青',
+          '辛德拉',
+          '厄斐琉斯',
+          '蕾欧娜',
+        ],
+      ];
+      const validSheet = xlsx.utils.aoa_to_sheet(validSheetData);
+      xlsx.utils.book_append_sheet(workbook, validSheet, '第一局');
+
+      // Sheet 2: 战队名为空的数据（模拟第四局的问题）
+      const invalidSheetData = [
+        ['teamA', 'teamB', '局数', '比赛时间', '游戏时长', '获胜方', 'MVP', '视频BV号'],
+        ['Team A', 'Team B', 2, '2026-04-25 20:25', '26:25', 'red', 'Player1', 'BV1xxx'],
+        [
+          '阵营',
+          '战队名',
+          '总击杀',
+          '总死亡',
+          '总助攻',
+          '总经济',
+          '推塔数',
+          '控龙数',
+          '控 Baron 数',
+        ],
+        ['red', '', 25, 18, 47, 65000, 9, 3, 1], // 战队名为空！
+        ['blue', 'Team B', 18, 25, 35, 58000, 3, 1, 0],
+        [
+          '阵营',
+          '位置',
+          '选手昵称',
+          '英雄名',
+          '击杀',
+          '死亡',
+          '助攻',
+          '补刀',
+          '经济',
+          '伤害',
+          '承伤',
+          '等级',
+          '视野得分',
+          '插眼数',
+          '排眼数',
+        ],
+        ['red', 'TOP', 'Player1', '格温', 2, 2, 11, 349, 17315, 28500, 32000, 18, 45, 12, 12],
+        ['red', 'JUNGLE', 'Player2', '潘森', 4, 7, 10, 261, 14855, 22000, 28000, 16, 38, 8, 8],
+        ['red', 'MID', 'Player3', '奎桑提', 13, 0, 11, 339, 19592, 35000, 18000, 18, 42, 6, 6],
+        ['red', 'ADC', 'Player4', '艾希', 7, 3, 10, 368, 19385, 32000, 21000, 18, 35, 4, 4],
+        ['red', 'SUPPORT', 'Player5', '萨勒芬妮', 0, 3, 22, 47, 11580, 8500, 15000, 15, 78, 18, 18],
+        ['blue', 'TOP', 'Player6', '奎桑提', 1, 3, 8, 289, 15200, 21000, 35000, 17, 42, 10, 10],
+        ['blue', 'JUNGLE', 'Player7', '蔚', 3, 5, 9, 198, 12500, 18000, 26000, 15, 36, 9, 9],
+        ['blue', 'MID', 'Player8', '阿狸', 5, 6, 7, 312, 16800, 25000, 19000, 17, 38, 5, 5],
+        ['blue', 'ADC', 'Player9', '厄斐琉斯', 6, 5, 6, 352, 17500, 28000, 22000, 18, 32, 3, 3],
+        ['blue', 'SUPPORT', 'Player10', '烈娜塔', 3, 6, 5, 38, 9800, 7500, 18000, 14, 82, 20, 20],
+        [
+          '红方BAN1',
+          '红方BAN2',
+          '红方BAN3',
+          '红方BAN4',
+          '红方BAN5',
+          '蓝方BAN1',
+          '蓝方BAN2',
+          '蓝方BAN3',
+          '蓝方BAN4',
+          '蓝方BAN5',
+        ],
+        [
+          '亚托克斯',
+          '格雷福斯',
+          '阿狸',
+          '卡莎',
+          '锤石',
+          '雷克顿',
+          '李青',
+          '辛德拉',
+          '厄斐琉斯',
+          '蕾欧娜',
+        ],
+      ];
+      const invalidSheet = xlsx.utils.aoa_to_sheet(invalidSheetData);
+      xlsx.utils.book_append_sheet(workbook, invalidSheet, '第二局');
+
+      const buffer = xlsx.write(workbook, { type: 'buffer', bookType: 'xlsx' });
+
+      // 插入比赛数据
+      await databaseService.run(
+        'INSERT INTO matches (id, round, stage, team_a_id, team_b_id, bo_format, status) VALUES (?, ?, ?, ?, ?, ?, ?)',
+        ['match_parse_error', 'Round 1', 'swiss', 'team_a', 'team_b', 'BO3', 'finished'],
+      );
+
+      await databaseService.run('INSERT INTO teams (id, name) VALUES (?, ?)', ['team_a', 'Team A']);
+      await databaseService.run('INSERT INTO teams (id, name) VALUES (?, ?)', ['team_b', 'Team B']);
+
+      // 模拟文件对象
+      const mockFile = {
+        buffer,
+        originalname: 'test.xlsx',
+        mimetype: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      } as Express.Multer.File;
+
+      // 验证：应该抛出BadRequestException而不是500错误
+      await expect(
+        matchDataService.importMatchData('match_parse_error', mockFile, 'admin'),
+      ).rejects.toThrow(BadRequestException);
+
+      // 验证错误信息包含具体的Sheet和错误详情
+      try {
+        await matchDataService.importMatchData('match_parse_error', mockFile, 'admin');
+      } catch (error) {
+        expect(error).toBeInstanceOf(BadRequestException);
+        const response = (error as BadRequestException).getResponse() as any;
+        expect(response.code).toBe(40001);
+        expect(response.message).toContain('Excel数据验证失败');
+        expect(response.errors).toBeDefined();
+        expect(response.errors.length).toBeGreaterThan(0);
+        // 验证错误信息包含Sheet名称和具体错误
+        const errorString = response.errors.join(' ');
+        expect(errorString).toContain('第二局');
+        expect(errorString).toContain('战队名称不能为空');
+      }
     });
   });
 });

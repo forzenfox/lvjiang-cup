@@ -110,11 +110,9 @@ networks:
     external: true  # 使用已存在的网络
 ```
 
-**注意**：如果网络不存在，请先运行网络初始化脚本：
+**注意**：如果网络不存在，请手动创建：
 ```bash
-curl -fsSL https://raw.githubusercontent.com/forzenfox/lvjiang-cup/main/deploy/init-network.sh -o init-network.sh
-chmod +x init-network.sh
-./init-network.sh
+docker network create --driver bridge npm-network
 ```
 
 ---

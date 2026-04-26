@@ -403,8 +403,33 @@ export class MatchDataService {
   > {
     const { dryRun = false, confirmWarnings = false } = options || {};
 
+    // 防御性检查: 确保文件对象存在
+    if (!file) {
+      throw new BadRequestException({
+        code: 40001,
+        message: '未上传文件',
+        errors: ['请上传Excel文件'],
+      });
+    }
+
+    // 防御性检查: 确保文件 buffer 存在
+    if (!file.buffer || file.buffer.length === 0) {
+      throw new BadRequestException({
+        code: 40001,
+        message: '文件内容为空',
+        errors: ['上传的Excel文件内容为空'],
+      });
+    }
+
+    this.logger.log(
+      `开始导入比赛数据: matchId=${matchId}, fileName=${file.originalname}, fileSize=${file.size} bytes`,
+    );
+
     // 读取Excel文件
     const workbook = xlsx.read(file.buffer, { type: 'buffer' });
+    this.logger.log(
+      `成功读取Excel文件, Sheet数量: ${workbook.SheetNames.length}, Sheets: ${workbook.SheetNames.join(', ')}`,
+    );
 
     // 解析所有Sheet名称
     const validSheets: ValidSheetInfo[] = [];
@@ -412,6 +437,9 @@ export class MatchDataService {
       const gameNumber = parseSheetGameNumber(sheetName);
       if (gameNumber !== null) {
         validSheets.push({ sheetName, gameNumber });
+        this.logger.log(`解析Sheet: ${sheetName} -> 局数 ${gameNumber}`);
+      } else {
+        this.logger.warn(`跳过无效Sheet名称: ${sheetName}`);
       }
     }
 
@@ -443,27 +471,56 @@ export class MatchDataService {
     const sortedSheets = validSheets.sort((a, b) => a.gameNumber - b.gameNumber);
     const warnings: GameNumberWarning[] = [];
     const parsedResults: ParsedMatchData[] = [];
+    const parseErrors: Array<{ sheetName: string; error: string }> = [];
 
     for (const sheetInfo of sortedSheets) {
-      const sheet = workbook.Sheets[sheetInfo.sheetName];
-      // 直接读取Sheet的单元格数据
-      const sheetData = xlsx.utils.sheet_to_json(sheet, { header: 1 }) as any[][];
+      try {
+        const sheet = workbook.Sheets[sheetInfo.sheetName];
+        // 直接读取Sheet的单元格数据
+        const sheetData = xlsx.utils.sheet_to_json(sheet, { header: 1 }) as any[][];
 
-      // 构造ParsedMatchData对象
-      const parsedData = this.parseSheetData(sheetData);
+        // 构造ParsedMatchData对象
+        const parsedData = this.parseSheetData(sheetData);
 
-      // 局数一致性校验
-      const consistency = validateGameNumberConsistency(
-        sheetInfo.gameNumber,
-        parsedData.matchInfo.gameNumber,
-      );
-      if (!consistency.consistent && consistency.warning) {
-        warnings.push({ ...consistency.warning, sheetName: sheetInfo.sheetName });
+        // 局数一致性校验
+        const consistency = validateGameNumberConsistency(
+          sheetInfo.gameNumber,
+          parsedData.matchInfo.gameNumber,
+        );
+        if (!consistency.consistent && consistency.warning) {
+          warnings.push({ ...consistency.warning, sheetName: sheetInfo.sheetName });
+        }
+
+        // 以Sheet局数为准
+        parsedData.matchInfo.gameNumber = sheetInfo.gameNumber;
+        parsedResults.push(parsedData);
+      } catch (error) {
+        // 捕获Sheet解析错误，收集错误信息而不是直接抛出
+        if (error instanceof BadRequestException) {
+          const errorResponse = error.getResponse() as any;
+          const errorMessage = errorResponse?.message || error.message;
+          const errorDetails = errorResponse?.errors || [];
+          parseErrors.push({
+            sheetName: sheetInfo.sheetName,
+            error: `${errorMessage}${errorDetails.length > 0 ? ': ' + errorDetails.join('; ') : ''}`,
+          });
+        } else {
+          parseErrors.push({
+            sheetName: sheetInfo.sheetName,
+            error: error.message || '未知错误',
+          });
+        }
       }
+    }
 
-      // 以Sheet局数为准
-      parsedData.matchInfo.gameNumber = sheetInfo.gameNumber;
-      parsedResults.push(parsedData);
+    // 如果有解析错误，抛出包含所有错误信息的异常
+    if (parseErrors.length > 0) {
+      const errorMessages = parseErrors.map((e) => `[${e.sheetName}] ${e.error}`);
+      throw new BadRequestException({
+        code: 40001,
+        message: `Excel数据验证失败，${parseErrors.length}个Sheet解析出错`,
+        errors: errorMessages,
+      });
     }
 
     // 如果有告警且用户未确认，返回告警
@@ -481,10 +538,10 @@ export class MatchDataService {
       return {
         imported: false,
         totalGames: sortedSheets.length,
-        results: sortedSheets.map((s) => ({
-          gameNumber: s.gameNumber,
-          imported: false,
-          playerCount: 0,
+        results: parsedResults.map((parsedData, index) => ({
+          gameNumber: parsedData.matchInfo.gameNumber,
+          imported: false, // dryRun 不实际导入
+          playerCount: parsedData.playerStats.length, // 返回预估选手数量
           failedCount: 0,
           overwritten: false,
         })),
@@ -546,6 +603,9 @@ export class MatchDataService {
     if (!teamA || !teamB) {
       throw new NotFoundException('对战中的战队信息不完整');
     }
+
+    // 预检：验证Excel中战队数据完整性
+    this.validateTeamDataBeforeImport(parsedData);
 
     // 验证Excel中的战队名称是否与所选对战中的战队名称一致
     const teamNamesValidation = validateTeamNamesMatch(
@@ -620,9 +680,14 @@ export class MatchDataService {
     await this.databaseService.begin();
 
     try {
-      // 确定蓝色方和红色方
-      const blueTeamName = this.normalizeTeamName(parsedData.matchInfo.teamBName);
-      const redTeamName = this.normalizeTeamName(parsedData.matchInfo.teamAName);
+      // 根据 teamStats 中的实际 side 值来确定红蓝方
+      // 这样可以正确处理红蓝方交换的情况（如BO5中不同局次可能换边）
+      const redTeamName = this.normalizeTeamName(
+        parsedData.teamStats.find((ts) => ts.side === 'red' || ts.side === '红方')?.teamName || '',
+      );
+      const blueTeamName = this.normalizeTeamName(
+        parsedData.teamStats.find((ts) => ts.side === 'blue' || ts.side === '蓝方')?.teamName || '',
+      );
 
       // 匹配战队ID
       let blueTeamId = await this.matchTeamName(blueTeamName);
@@ -863,28 +928,52 @@ export class MatchDataService {
    * 参考parseMatchDataExcel的逻辑，但直接处理二维数组
    */
   private parseSheetData(sheetData: any[][]): ParsedMatchData {
-    if (sheetData.length < 18) {
-      throw new Error(`Excel文件行数不足，当前${sheetData.length}行，应为18行（包含BAN数据）`);
+    // 预先验证数据完整性
+    if (!sheetData || sheetData.length < 18) {
+      throw new BadRequestException({
+        code: 40001,
+        message: 'Excel文件数据不完整',
+        errors: [`文件行数不足，当前${sheetData?.length || 0}行，应为18行（包含BAN数据）`],
+      });
     }
 
     // 解析第2行: MatchInfo数据
     const matchInfoRow = sheetData[1];
     if (!matchInfoRow || matchInfoRow.length === 0) {
-      throw new Error('第2行（对战信息数据行）为空或格式错误');
+      throw new BadRequestException({
+        code: 40001,
+        message: 'Excel文件格式错误',
+        errors: ['第2行（对战信息数据行）为空或格式错误'],
+      });
     }
     const matchInfo = this.parseMatchInfoRow(matchInfoRow);
 
     // 解析第4-5行: TeamStats数据
     const teamStats: TeamStatsData[] = [];
     for (let i = 3; i <= 4; i++) {
-      if (
-        sheetData[i] &&
-        sheetData[i].some((cell) => cell !== null && cell !== undefined && cell !== '')
-      ) {
-        teamStats.push(this.parseTeamStatsRow(sheetData[i], i + 1));
-      } else {
-        throw new Error(`第${i + 1}行（战队数据行）为空或格式错误`);
+      const row = sheetData[i];
+      // 增加安全检查
+      if (!row || !Array.isArray(row) || row.length === 0) {
+        throw new BadRequestException({
+          code: 40001,
+          message: 'Excel文件格式错误',
+          errors: [`第${i + 1}行（战队数据行）为空或格式错误`],
+        });
       }
+
+      // 检查战队名
+      const teamName = this.extractCellValue(row[1]);
+      if (!teamName || teamName.trim() === '') {
+        const side = this.extractCellValue(row[0]) || '未知';
+        const sideText = side === 'red' ? '红方' : side === 'blue' ? '蓝方' : side;
+        throw new BadRequestException({
+          code: 40001,
+          message: 'Excel数据验证失败',
+          errors: [`第${i + 1}行：${sideText}战队名称不能为空`],
+        });
+      }
+
+      teamStats.push(this.parseTeamStatsRow(row, i + 1));
     }
 
     if (teamStats.length !== 2) {
@@ -894,22 +983,60 @@ export class MatchDataService {
     // 解析第7-16行: PlayerStats数据
     const playerStats: PlayerStatsData[] = [];
     for (let i = 6; i <= 15; i++) {
-      if (
-        sheetData[i] &&
-        sheetData[i].some((cell) => cell !== null && cell !== undefined && cell !== '')
-      ) {
-        playerStats.push(this.parsePlayerStatsRow(sheetData[i], i + 1));
-      } else {
-        throw new Error(`第${i + 1}行（选手数据行）为空或格式错误`);
+      const row = sheetData[i];
+      // 增加安全检查
+      if (!row || !Array.isArray(row) || row.length === 0) {
+        throw new BadRequestException({
+          code: 40001,
+          message: 'Excel文件格式错误',
+          errors: [`第${i + 1}行（选手数据行）为空或格式错误`],
+        });
       }
+
+      // 检查选手昵称和英雄名
+      const nickname = this.extractCellValue(row[2]);
+      const champion = this.extractCellValue(row[3]);
+      if (!nickname || nickname.trim() === '') {
+        const side = this.extractCellValue(row[0]) || '未知';
+        const position = this.extractCellValue(row[1]) || '未知';
+        const sideText = side === 'red' ? '红方' : side === 'blue' ? '蓝方' : side;
+        throw new BadRequestException({
+          code: 40001,
+          message: 'Excel数据验证失败',
+          errors: [`第${i + 1}行：${sideText}${position}选手昵称不能为空`],
+        });
+      }
+      if (!champion || champion.trim() === '') {
+        const side = this.extractCellValue(row[0]) || '未知';
+        const position = this.extractCellValue(row[1]) || '未知';
+        const sideText = side === 'red' ? '红方' : side === 'blue' ? '蓝方' : side;
+        throw new BadRequestException({
+          code: 40001,
+          message: 'Excel数据验证失败',
+          errors: [`第${i + 1}行：${sideText}${position}使用英雄不能为空`],
+        });
+      }
+
+      playerStats.push(this.parsePlayerStatsRow(row, i + 1));
     }
 
     if (playerStats.length !== 10) {
       throw new Error(`选手数据不完整，应为10行，实际${playerStats.length}行`);
     }
 
-    // 解析第17-18行: BAN数据
-    const bans = this.parseBansRow(sheetData[16], sheetData[17]);
+    // 解析第17-18行: BAN数据（增加防御性检查）
+    const bansHeaderRow = sheetData[16];
+    const bansDataRow = sheetData[17];
+
+    if (!bansHeaderRow || !bansDataRow || bansHeaderRow.length === 0 || bansDataRow.length === 0) {
+      throw new BadRequestException({
+        code: 40001,
+        message: 'Excel文件格式错误',
+        errors: ['第17-18行（BAN数据行）为空或格式错误'],
+      });
+    }
+
+    const bans = this.parseBansRow(bansHeaderRow, bansDataRow);
 
     return { matchInfo, teamStats, playerStats, bans };
   }
@@ -918,6 +1045,15 @@ export class MatchDataService {
    * 解析MatchInfo行数据
    */
   private parseMatchInfoRow(row: any[]): MatchInfoData {
+    // 防御性检查：确保 row 存在且是数组
+    if (!row || !Array.isArray(row)) {
+      throw new BadRequestException({
+        code: 40001,
+        message: 'Excel文件格式错误',
+        errors: ['对战信息数据行格式错误'],
+      });
+    }
+
     // 检测格式：
     // 7列新模板（无游戏时长）: [teamA, teamB, 局数, 比赛时间, 获胜方, MVP, 视频BV号]
     // 8列新模板（含游戏时长）: [teamA, teamB, 局数, 比赛时间, 游戏时长, 获胜方, MVP, 视频BV号]
@@ -1358,6 +1494,46 @@ export class MatchDataService {
   // ============= 私有辅助方法 =============
 
   /**
+   * 预检战队数据完整性
+   * 在数据库事务开始前提前发现数据问题，避免后续处理出错
+   */
+  private validateTeamDataBeforeImport(parsedData: ParsedMatchData): void {
+    const errors: string[] = [];
+
+    // 检查TeamStats中的战队名
+    parsedData.teamStats.forEach((ts, index) => {
+      if (!ts.teamName || ts.teamName.trim() === '') {
+        const sideText =
+          ts.side === 'red' ? '红方' : ts.side === 'blue' ? '蓝方' : ts.side || '未知阵营';
+        errors.push(`第${index + 4}行：${sideText}战队名称不能为空`);
+      }
+    });
+
+    // 检查PlayerStats中的选手昵称和英雄名
+    parsedData.playerStats.forEach((ps, index) => {
+      const excelRow = index + 7;
+      if (!ps.nickname || ps.nickname.trim() === '') {
+        const sideText =
+          ps.side === 'red' ? '红方' : ps.side === 'blue' ? '蓝方' : ps.side || '未知阵营';
+        errors.push(`第${excelRow}行：${sideText}${ps.position}选手昵称不能为空`);
+      }
+      if (!ps.championName || ps.championName.trim() === '') {
+        const sideText =
+          ps.side === 'red' ? '红方' : ps.side === 'blue' ? '蓝方' : ps.side || '未知阵营';
+        errors.push(`第${excelRow}行：${sideText}${ps.position}使用英雄不能为空`);
+      }
+    });
+
+    if (errors.length > 0) {
+      throw new BadRequestException({
+        code: 40001,
+        message: 'Excel数据验证失败',
+        errors,
+      });
+    }
+  }
+
+  /**
    * 根据BO格式获取最大game数量
    */
   private getMaxGames(boFormat: string): number {
@@ -1443,14 +1619,19 @@ export class MatchDataService {
    * 获取指定方的击杀数
    */
   private getTeamStatsForSide(teamStats: any[], side: string): number {
+    if (!teamStats || !Array.isArray(teamStats) || teamStats.length === 0) {
+      return 0;
+    }
+
     const sideLower = side.toLowerCase();
     for (const ts of teamStats) {
+      if (!ts || !ts.side) continue;
       const tsSide = ts.side.toLowerCase();
       if (
         (sideLower === 'blue' && (tsSide === 'blue' || tsSide === '蓝方')) ||
         (sideLower === 'red' && (tsSide === 'red' || tsSide === '红方'))
       ) {
-        return ts.kills;
+        return ts.kills || 0;
       }
     }
     return 0;
@@ -1460,8 +1641,13 @@ export class MatchDataService {
    * 获取指定方的某个字段值
    */
   private getTeamFieldForSide(teamStats: any[], field: string, side: string): number {
+    if (!teamStats || !Array.isArray(teamStats) || teamStats.length === 0) {
+      return 0;
+    }
+
     const sideLower = side.toLowerCase();
     for (const ts of teamStats) {
+      if (!ts || !ts.side) continue;
       const tsSide = ts.side.toLowerCase();
       if (
         (sideLower === 'blue' && (tsSide === 'blue' || tsSide === '蓝方')) ||

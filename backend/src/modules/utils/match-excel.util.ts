@@ -433,8 +433,9 @@ export function validateTeamStats(data: TeamStatsData, rowIndex: number): Valida
   } else if (!['red', 'blue', 'Red', 'Blue', '红方', '蓝方'].includes(data.side)) {
     errors.push(`第${rowIndex}行: 阵营必须是 red 或 blue`);
   }
-  if (!data.teamName) {
-    errors.push(`第${rowIndex}行: 战队名称不能为空`);
+  if (!data.teamName || data.teamName.trim() === '') {
+    const sideText = data.side === 'red' ? '红方' : data.side === 'blue' ? '蓝方' : '未知阵营';
+    errors.push(`第${rowIndex}行: ${sideText}战队名称不能为空`);
   }
   if (data.kills < 0) {
     errors.push(`第${rowIndex}行: 击杀数不能为负数`);
@@ -849,6 +850,97 @@ function parseBansRow(headerRow: any[] | undefined, dataRow: any[] | undefined):
   }
 
   return { redBans, blueBans, errors };
+}
+
+/**
+ * 预检Sheet数据行的完整性
+ * 在解析前提前发现数据结构问题，避免后续访问undefined导致500错误
+ * @param sheetData 二维数组
+ * @returns 校验结果
+ */
+export function validateSheetDataIntegrity(sheetData: any[][]): ValidationResult {
+  const errors: string[] = [];
+
+  if (!sheetData || sheetData.length === 0) {
+    return { valid: false, errors: ['Excel文件数据为空'] };
+  }
+
+  if (sheetData.length < 18) {
+    return {
+      valid: false,
+      errors: [`Excel文件行数不足，当前${sheetData.length}行，应为18行（包含BAN数据）`],
+    };
+  }
+
+  // 检查关键行是否存在且不为空
+  const matchInfoRow = sheetData[1];
+  if (!matchInfoRow || matchInfoRow.length === 0) {
+    errors.push('第2行（对战信息数据行）为空');
+  }
+
+  const teamStatsRow1 = sheetData[3];
+  const teamStatsRow2 = sheetData[4];
+  if (!teamStatsRow1 || teamStatsRow1.length < 3) {
+    errors.push('第4行（战队统计数据行1）数据不完整');
+  }
+  if (!teamStatsRow2 || teamStatsRow2.length < 3) {
+    errors.push('第5行（战队统计数据行2）数据不完整');
+  }
+
+  // 检查战队名是否为空
+  if (teamStatsRow1) {
+    const teamName1 = teamStatsRow1[1];
+    if (!teamName1 || String(teamName1).trim() === '') {
+      const side = teamStatsRow1[0] || '未知';
+      const sideText = side === 'red' ? '红方' : side === 'blue' ? '蓝方' : side;
+      errors.push(`第4行：${sideText}战队名称不能为空`);
+    }
+  }
+  if (teamStatsRow2) {
+    const teamName2 = teamStatsRow2[1];
+    if (!teamName2 || String(teamName2).trim() === '') {
+      const side = teamStatsRow2[0] || '未知';
+      const sideText = side === 'red' ? '红方' : side === 'blue' ? '蓝方' : side;
+      errors.push(`第5行：${sideText}战队名称不能为空`);
+    }
+  }
+
+  // 检查选手数据行（第7-16行）
+  for (let i = 6; i <= 15; i++) {
+    const playerRow = sheetData[i];
+    if (!playerRow || playerRow.length === 0) {
+      errors.push(`第${i + 1}行（选手数据行）为空`);
+    } else {
+      // 检查选手昵称
+      const nickname = playerRow[2];
+      if (!nickname || String(nickname).trim() === '') {
+        const side = playerRow[0] || '未知';
+        const position = playerRow[1] || '未知';
+        const sideText = side === 'red' ? '红方' : side === 'blue' ? '蓝方' : side;
+        errors.push(`第${i + 1}行：${sideText}${position}选手昵称不能为空`);
+      }
+      // 检查英雄名
+      const champion = playerRow[3];
+      if (!champion || String(champion).trim() === '') {
+        const side = playerRow[0] || '未知';
+        const position = playerRow[1] || '未知';
+        const sideText = side === 'red' ? '红方' : side === 'blue' ? '蓝方' : side;
+        errors.push(`第${i + 1}行：${sideText}${position}使用英雄不能为空`);
+      }
+    }
+  }
+
+  // 检查BAN数据行（第17-18行）
+  const bansHeaderRow = sheetData[16];
+  const bansDataRow = sheetData[17];
+  if (!bansHeaderRow || bansHeaderRow.length === 0) {
+    errors.push('第17行（BAN表头行）为空');
+  }
+  if (!bansDataRow || bansDataRow.length === 0) {
+    errors.push('第18行（BAN数据行）为空');
+  }
+
+  return { valid: errors.length === 0, errors };
 }
 
 /**

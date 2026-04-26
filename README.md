@@ -1,6 +1,6 @@
 # 驴酱杯电竞赛事管理系统
 
-一个基于 React + TypeScript + Vite 构建的现代化电竞赛事管理平台，支持战队管理、赛程安排、直播配置等功能。
+一个基于 React + TypeScript + Vite 构建的现代化电竞赛事管理平台，支持战队管理、赛程安排、直播配置、对战数据管理等功能。
 
 ## 功能特性
 
@@ -8,15 +8,21 @@
 - **赛事首页**：展示赛事信息、直播入口、战队介绍
 - **战队展示**：展示参赛战队及其队员信息（top、jungle、mid、bot、support）
 - **赛程查看**：支持瑞士轮和淘汰赛双阶段赛程展示
+- **对战数据查看**：查看比赛详细数据（英雄选择、玩家统计、雷达图对比）
+- **视频回看**：赛事视频列表展示与播放
 - **直播观看**：集成直播平台链接，实时观看比赛
 
 ### 后台管理
 - **仪表盘**：概览系统状态和管理入口
 - **战队管理**：添加、编辑、删除战队及队员信息
+- **战队导入**：Excel 批量导入战队和队员信息
 - **赛程管理**：
   - 瑞士轮赛程管理（支持战绩记录）
   - 淘汰赛赛程管理
   - 比赛结果录入和更新
+- **对战数据管理**：Excel 批量导入对战数据，支持在线编辑
+- **主播管理**：主播信息配置和展示排序
+- **视频管理**：赛事视频上传、编辑、排序
 - **直播配置**：配置直播标题、链接、平台和直播状态
 
 ## 技术栈
@@ -31,40 +37,66 @@
 - **UI 组件**：Radix UI
 - **动画**：Framer Motion
 - **图标**：Lucide React
+- **测试**：Vitest（单元测试）、Playwright（E2E 测试）
 
 ### 后端
 - **框架**：NestJS
-- **数据库**：SQLite
-- **认证**：JWT
+- **数据库**：SQLite + better-sqlite3
+- **缓存**：node-cache
+- **认证**：JWT + Passport
+- **文档**：Swagger/OpenAPI
 - **容器化**：Docker
 
 ## 项目结构
 
 ```
 .
-├── frontend/              # 前端应用
+├── frontend/              # 前端应用 (React + Vite)
 │   ├── src/
-│   │   ├── components/   # 组件
-│   │   ├── pages/        # 页面
-│   │   ├── types/        # 类型定义
-│   │   └── utils/        # 工具函数
-│   ├── Dockerfile        # 前端 Docker 构建文件
-│   └── package.json
+│   │   ├── api/          # API 客户端层
+│   │   ├── components/   # React 组件 (common, features, layout, ui 等)
+│   │   ├── pages/        # 页面组件 (Home, admin 管理等)
+│   │   ├── store/        # Zustand 状态管理
+│   │   ├── hooks/        # 自定义 Hooks
+│   │   ├── types/        # TypeScript 类型定义
+│   │   ├── utils/        # 工具函数
+│   │   └── constants/    # 常量配置
+│   ├── tests/
+│   │   ├── unit/         # Vitest 单元测试
+│   │   └── e2e/          # Playwright E2E 测试
+│   └── Dockerfile        # 前端 Docker 构建文件
 │
-├── backend/              # 后端应用
+├── backend/               # 后端应用 (NestJS)
 │   ├── src/
-│   │   ├── controllers/  # 控制器
-│   │   ├── services/     # 服务层
-│   │   ├── entities/     # 数据模型
-│   │   └── dto/          # 数据传输对象
-│   ├── Dockerfile        # 后端 Docker 构建文件
-│   └── package.json
+│   │   ├── modules/      # 业务模块
+│   │   │   ├── admin/    # 管理操作（数据清空/槽位初始化）
+│   │   │   ├── auth/     # JWT 认证模块
+│   │   │   ├── match-data/# 对战数据模块（导入/导出/编辑）
+│   │   │   ├── matches/  # 比赛管理模块
+│   │   │   ├── streamers/# 主播展示模块
+│   │   │   ├── streams/  # 直播流模块
+│   │   │   ├── teams/    # 战队管理模块（含 Excel 导入）
+│   │   │   ├── tracking/ # 数据追踪模块
+│   │   │   ├── upload/   # 文件上传模块
+│   │   │   ├── utils/    # Excel 工具模块
+│   │   │   └── videos/   # 视频管理模块
+│   │   ├── cache/        # 缓存模块 (node-cache)
+│   │   ├── common/       # 公共模块 (拦截器/过滤器)
+│   │   ├── config/       # 配置模块 (app/upload)
+│   │   └── database/     # 数据库模块 (better-sqlite3)
+│   ├── test/
+│   │   ├── unit/         # 单元测试
+│   │   ├── integration/  # 集成测试
+│   │   └── e2e/          # 端到端测试
+│   └── Dockerfile        # 后端 Docker 构建文件
 │
-└── deploy/               # 部署配置
-    ├── docker-compose.yml
-    ├── deploy.sh
-    ├── npm/              # Nginx Proxy Manager 配置
-    └── QUICKSTART.md     # 快速部署指南
+└── deploy/                # 部署配置
+    ├── README.md          # 部署指南
+    ├── docker-compose.yml # Docker Compose 配置
+    ├── setup.sh           # 一键部署脚本
+    ├── update.sh          # 更新脚本
+    ├── backup.sh          # 备份脚本
+    └── npm/               # Nginx Proxy Manager 配置
 ```
 
 ## 快速开始
@@ -101,7 +133,7 @@ npm install
 ```bash
 # 启动后端（端口 3000）
 cd backend
-npm run dev
+npm run start:dev
 
 # 启动前端（端口 5173）
 cd frontend
@@ -110,22 +142,11 @@ npm run dev
 
 访问 http://localhost:5173 查看应用。
 
-### 生产环境部署（方案 C）
+### 生产环境部署
 
 本项目采用 **Nginx Proxy Manager 统一网关** 的容器化部署方案，适用于多应用服务器环境。
 
-#### 部署架构
-
-```
-用户 → Cloudflare → Nginx Proxy Manager (80/443)
-                          │
-                          ├─→ 前端容器 (3001)
-                          └─→ 后端容器 (3000)
-```
-
-#### 快速部署（1 步完成）
-
-**使用统一部署脚本**（推荐）
+#### 快速部署
 
 ```bash
 # 1. 创建部署目录
@@ -136,123 +157,14 @@ cd /opt/lvjiang-cup/deploy
 curl -fsSL https://raw.githubusercontent.com/forzenfox/lvjiang-cup/main/deploy/setup.sh -o setup.sh
 chmod +x setup.sh
 
-# 3. 运行部署脚本（自动完成网络初始化、NPM 部署和应用部署）
+# 3. 运行部署脚本（自动完成 NPM 部署和应用部署）
 ./setup.sh
 
 # 或指定版本标签
 ./setup.sh v1.0.0
 ```
 
-**传统部署步骤**（4 步完成）
-
-**第 0 步：初始化网络**
-
-```bash
-# 创建部署目录
-mkdir -p /opt/lvjiang-cup/deploy
-cd /opt/lvjiang-cup/deploy
-
-# 下载网络初始化脚本
-curl -fsSL https://raw.githubusercontent.com/forzenfox/lvjiang-cup/main/deploy/init-network.sh -o init-network.sh
-chmod +x init-network.sh
-
-# 运行网络初始化
-./init-network.sh
-```
-
-**第 1 步：部署 Nginx Proxy Manager**
-
-```bash
-# 创建部署目录
-mkdir -p /opt/nginx-proxy-manager
-cd /opt/nginx-proxy-manager
-
-# 下载配置
-curl -fsSL https://raw.githubusercontent.com/forzenfox/lvjiang-cup/main/deploy/npm/docker-compose.yml -o docker-compose.yml
-
-# 启动 NPM
-docker-compose up -d
-```
-
-**第 2 步：部署驴酱杯应用**
-
-```bash
-# 创建部署目录
-mkdir -p /opt/lvjiang-cup/deploy
-cd /opt/lvjiang-cup/deploy
-
-# 下载部署脚本
-curl -fsSL https://raw.githubusercontent.com/forzenfox/lvjiang-cup/main/deploy/deploy.sh -o deploy.sh
-chmod +x deploy.sh
-
-# 运行部署脚本
-./deploy.sh
-```
-
-**第 3 步：配置 NPM 代理**
-
-1. 访问 `http://服务器 IP:8181` 登录 NPM 管理界面
-2. 添加 Proxy Host：
-   - Domain: `cup.example.com`
-   - Forward IP: `127.0.0.1`
-   - Forward Port: `3001`（前端）
-3. 配置 SSL 证书（自动申请）
-4. 添加 API 路由（高级配置）：
-   - Location: `/api`
-   - Forward Port: `3000`（后端）
-
-详细部署指南请查看：[deploy/QUICKSTART.md](deploy/QUICKSTART.md)
-
-#### 方案优势
-
-- ✅ **统一网关**：所有应用通过 NPM 统一管理
-- ✅ **自动 SSL**：Let's Encrypt 证书自动申请和续期
-- ✅ **Web 界面**：可视化管理，无需记忆 Nginx 配置
-- ✅ **资源优化**：前端容器使用 static-web-server（高性能 Rust 静态服务器，4MB 体积）
-- ✅ **易于扩展**：添加新应用只需几步点击
-
-## 核心数据模型
-
-### 战队 (Team)
-```typescript
-interface Team {
-  id: string;
-  name: string;        // 战队名称
-  logo: string;        // 队标链接
-  players: Player[];   // 队员列表
-  description: string; // 战队简介
-}
-```
-
-### 队员 (Player)
-```typescript
-interface Player {
-  id: string;
-  name: string;        // 姓名
-  avatar: string;      // 头像链接
-  position: string;    // 位置（top/jungle/mid/bot/support）
-  description: string; // 简介
-}
-```
-
-### 比赛 (Match)
-```typescript
-interface Match {
-  id: string;
-  teamAId: string;
-  teamBId: string;
-  scoreA: number;
-  scoreB: number;
-  winnerId: string | null;
-  round: string;
-  status: 'upcoming' | 'ongoing' | 'finished';
-  startTime: string;
-  stage: 'swiss' | 'elimination';
-  swissRecord?: string;      // 瑞士轮战绩
-  swissDay?: number;         // 瑞士轮天数
-  eliminationBracket?: 'winners' | 'losers' | 'grand_finals';
-}
-```
+详细部署指南请查看：[deploy/README.md](deploy/README.md)
 
 ## 管理后台访问
 
@@ -260,7 +172,7 @@ interface Match {
 
 默认登录信息（开发环境）：
 - 用户名：`admin`
-- 密码：`admin`
+- 密码：`admin123`
 
 **生产环境请务必修改默认密码！**
 
@@ -279,33 +191,25 @@ interface Match {
 
 ### GitHub Actions 工作流
 
-#### 1. Docker 镜像构建（`docker-build.yml`）
-
-**触发条件**：
-- Push 到 `main` 分支
-- 创建 `v*` 标签
-- 手动触发
-
-**功能**：
-- 自动构建前后端 Docker 镜像
-- 推送到 GitHub Container Registry (GHCR)
-- 支持多平台构建（amd64/arm64）
-
-**镜像地址**：
-```bash
-ghcr.io/forzenfox/lvjiang-cup/backend:latest
-ghcr.io/forzenfox/lvjiang-cup/frontend:latest
-```
-
-#### 2. Demo 环境部署（`deploy.yml`）
+#### 1. 后端 Docker 镜像构建（`docker-build-backend.yml`）
 
 **触发条件**：手动触发
 
-**功能**：部署到 GitHub Pages（仅前端 Demo）
+**功能**：自动构建后端 Docker 镜像并推送到 GitHub Container Registry (GHCR)
+
+#### 2. 前端 Docker 镜像构建（`docker-build-frontend.yml`）
+
+**触发条件**：手动触发
+
+**功能**：自动构建前端 Docker 镜像并推送到 GitHub Container Registry (GHCR)
+
+#### 3. Demo 环境部署（`deploy.yml`）
+
+**触发条件**：手动触发
+
+**功能**：部署到 GitHub Pages（仅在 `release/demo` 分支）
 
 ### 服务器手动更新
-
-本项目提供便捷的更新脚本，无需自动化部署，用户可在服务器上手动操作：
 
 ```bash
 # 1. 连接到服务器
@@ -321,10 +225,71 @@ cd /opt/lvjiang-cup/deploy
 ./update.sh v1.0.0
 ```
 
-**优势**：
-- ✅ 更灵活：可选择更新时间点
-- ✅ 更安全：无需配置 SSH Secrets
-- ✅ 更可控：实时查看更新过程
+## 常用命令
+
+### 前端
+
+```bash
+cd frontend
+
+# 开发模式
+npm run dev
+
+# 构建生产版本
+npm run build
+
+# 预览生产构建
+npm run preview
+
+# 代码检查
+npm run lint
+npm run check
+
+# 运行单元测试（Vitest）
+npm run test
+npm run test:watch
+npm run test:coverage
+
+# 运行 E2E 测试（Playwright）
+npm run test:e2e
+npm run test:e2e:ui
+npm run test:e2e:debug
+```
+
+### 后端
+
+```bash
+cd backend
+
+# 开发模式
+npm run start:dev
+
+# 构建生产版本
+npm run build
+
+# 启动生产服务
+npm run start:prod
+
+# 运行测试
+npm run test
+npm run test:watch
+npm run test:e2e
+npm run test:cov
+```
+
+### Docker
+
+```bash
+# 构建镜像
+docker build -t lvjiang-backend ./backend
+docker build -t lvjiang-frontend ./frontend
+
+# 本地测试
+docker-compose -f deploy/docker-compose.yml up -d
+
+# 查看日志
+docker-compose logs -f
+```
 
 ## 开发指南
 
@@ -358,66 +323,6 @@ export const useStore = create<StoreState>((set) => ({
 }));
 ```
 
-### 代码检查
-
-```bash
-# ESLint 检查
-npm run lint
-
-# TypeScript 类型检查
-npm run check
-```
-
-## 常用命令
-
-### 前端
-
-```bash
-cd frontend
-
-# 开发模式
-npm run dev
-
-# 构建生产版本
-npm run build
-
-# 预览生产构建
-npm run preview
-
-# 代码检查
-npm run lint
-npm run check
-```
-
-### 后端
-
-```bash
-cd backend
-
-# 开发模式
-npm run dev
-
-# 构建生产版本
-npm run build
-
-# 启动生产服务
-npm run start:prod
-```
-
-### Docker
-
-```bash
-# 构建镜像
-docker build -t lvjiang-backend ./backend
-docker build -t lvjiang-frontend ./frontend
-
-# 本地测试
-docker-compose -f deploy/docker-compose.yml up -d
-
-# 查看日志
-docker-compose logs -f
-```
-
 ## 许可证
 
 MIT License
@@ -434,18 +339,11 @@ MIT License
 
 ## 相关文档
 
-- [快速部署指南](deploy/QUICKSTART.md)
+- [部署指南](deploy/README.md)
 - [Nginx Proxy Manager 配置](deploy/npm/README.md)
-- [多应用部署方案](deploy/multi-app-deployment.md)
+- [项目文档索引](docs/README.md)
 
 ## 联系方式
 
 - 作者：ForzenFox
-- 邮箱：forzenfox@example.com
 - 项目地址：https://github.com/forzenfox/lvjiang-cup
-
----
-
-**注意**：
-- 当前版本使用模拟数据（mock data）进行开发演示，生产环境需要接入真实后端 API。
-- 生产环境部署前请仔细阅读 [QUICKSTART.md](deploy/QUICKSTART.md) 并配置好环境变量。

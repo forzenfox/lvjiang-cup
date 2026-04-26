@@ -9,6 +9,7 @@ import {
   validatePlayerStats,
   validateTeamNamesMatch,
   validateParsedMatchData,
+  validateSheetDataIntegrity,
 } from '../../src/modules/utils/match-excel.util';
 
 describe('match-excel.util', () => {
@@ -612,6 +613,73 @@ describe('match-excel.util', () => {
       expect(result.valid).toBe(false);
       expect(result.errors[0]).toContain('击杀数不能为负数');
     });
+
+    it('应该拒绝空的战队名称', () => {
+      const invalidData = {
+        side: 'red',
+        teamName: '',
+        kills: 25,
+        deaths: 18,
+        assists: 47,
+        gold: 65000,
+        towers: 9,
+        dragons: 3,
+        barons: 1,
+      };
+
+      const result = validateTeamStats(invalidData, 4);
+      expect(result.valid).toBe(false);
+      expect(result.errors.some((e) => e.includes('战队名称不能为空'))).toBe(true);
+    });
+
+    it('应该拒绝仅包含空格的战队名称', () => {
+      const invalidData = {
+        side: 'red',
+        teamName: '   ',
+        kills: 25,
+        deaths: 18,
+        assists: 47,
+        gold: 65000,
+        towers: 9,
+        dragons: 3,
+        barons: 1,
+      };
+
+      const result = validateTeamStats(invalidData, 4);
+      expect(result.valid).toBe(false);
+      expect(result.errors.some((e) => e.includes('红方战队名称不能为空'))).toBe(true);
+    });
+
+    it('错误信息应包含阵营信息', () => {
+      const invalidDataRed = {
+        side: 'red',
+        teamName: '',
+        kills: 25,
+        deaths: 18,
+        assists: 47,
+        gold: 65000,
+        towers: 9,
+        dragons: 3,
+        barons: 1,
+      };
+      const invalidDataBlue = {
+        side: 'blue',
+        teamName: '',
+        kills: 25,
+        deaths: 18,
+        assists: 47,
+        gold: 65000,
+        towers: 9,
+        dragons: 3,
+        barons: 1,
+      };
+
+      const resultRed = validateTeamStats(invalidDataRed, 4);
+      const resultBlue = validateTeamStats(invalidDataBlue, 5);
+
+      expect(resultRed.errors.some((e) => e.includes('红方战队名称不能为空'))).toBe(true);
+      expect(resultBlue.errors.some((e) => e.includes('蓝方战队名称不能为空'))).toBe(true);
+    });
   });
 
   describe('validatePlayerStats', () => {
@@ -1047,4 +1115,198 @@ describe('match-excel.util', () => {
       expect(result.errors).toHaveLength(0);
     });
   });
+
+  describe('validateSheetDataIntegrity', () => {
+    it('应该检测出空数据', () => {
+      const result = validateSheetDataIntegrity([]);
+      expect(result.valid).toBe(false);
+      expect(result.errors).toContain('Excel文件数据为空');
+    });
+
+    it('应该检测出行数不足的情况', () => {
+      const sheetData = [['header']];
+      const result = validateSheetDataIntegrity(sheetData);
+      expect(result.valid).toBe(false);
+      expect(result.errors.some((e) => e.includes('行数不足'))).toBe(true);
+    });
+
+    it('应该检测出战队名为空的情况', () => {
+      const sheetData = createValidSheetData();
+      sheetData[3][1] = '';
+      sheetData[4][1] = '';
+
+      const result = validateSheetDataIntegrity(sheetData);
+      expect(result.valid).toBe(false);
+      expect(result.errors.some((e) => e.includes('第4行') && e.includes('战队名称不能为空'))).toBe(
+        true,
+      );
+      expect(result.errors.some((e) => e.includes('第5行') && e.includes('战队名称不能为空'))).toBe(
+        true,
+      );
+    });
+
+    it('应该检测出选手昵称为空的情况', () => {
+      const sheetData = createValidSheetData();
+      sheetData[6][2] = '';
+
+      const result = validateSheetDataIntegrity(sheetData);
+      expect(result.valid).toBe(false);
+      expect(result.errors.some((e) => e.includes('选手昵称不能为空'))).toBe(true);
+    });
+
+    it('应该检测出英雄名为空的情况', () => {
+      const sheetData = createValidSheetData();
+      sheetData[6][3] = '';
+
+      const result = validateSheetDataIntegrity(sheetData);
+      expect(result.valid).toBe(false);
+      expect(result.errors.some((e) => e.includes('使用英雄不能为空'))).toBe(true);
+    });
+
+    it('当数据完整时应通过验证', () => {
+      const sheetData = createValidSheetData();
+      const result = validateSheetDataIntegrity(sheetData);
+      expect(result.valid).toBe(true);
+      expect(result.errors).toHaveLength(0);
+    });
+
+    it('应该检测出MatchInfo行为undefined的情况', () => {
+      const sheetData = createValidSheetData();
+      (sheetData as any[])[1] = undefined;
+
+      const result = validateSheetDataIntegrity(sheetData);
+      expect(result.valid).toBe(false);
+      expect(result.errors.some((e) => e.includes('第2行'))).toBe(true);
+    });
+
+    it('应该检测出TeamStats行为undefined的情况', () => {
+      const sheetData = createValidSheetData();
+      (sheetData as any[])[3] = undefined;
+
+      const result = validateSheetDataIntegrity(sheetData);
+      expect(result.valid).toBe(false);
+      expect(result.errors.some((e) => e.includes('第4行'))).toBe(true);
+    });
+
+    it('应该检测出PlayerStats行为undefined的情况', () => {
+      const sheetData = createValidSheetData();
+      (sheetData as any[])[6] = undefined;
+
+      const result = validateSheetDataIntegrity(sheetData);
+      expect(result.valid).toBe(false);
+      expect(result.errors.some((e) => e.includes('第7行'))).toBe(true);
+    });
+
+    it('应该检测出BAN数据行为undefined的情况', () => {
+      const sheetData = createValidSheetData();
+      (sheetData as any[])[16] = undefined;
+      (sheetData as any[])[17] = undefined;
+
+      const result = validateSheetDataIntegrity(sheetData);
+      // validateSheetDataIntegrity 现在会检查BAN行
+      expect(result.valid).toBe(false);
+      expect(result.errors.some((e) => e.includes('第17行') || e.includes('第18行'))).toBe(true);
+    });
+  });
 });
+
+function createValidSheetData(): any[][] {
+  const matchInfoHeaders = [
+    'teamA',
+    'teamB',
+    '局数',
+    '比赛时间',
+    '游戏时长',
+    '获胜方',
+    'MVP',
+    '视频BV号',
+  ];
+  const matchInfoData = [
+    'BLG',
+    'WBG',
+    1,
+    '2026-04-16 14:00',
+    '32:45',
+    'red',
+    'Knight',
+    'BV1Ab4y1X7zK',
+  ];
+  const teamStatsHeaders = [
+    '阵营',
+    '战队名',
+    '总击杀',
+    '总死亡',
+    '总助攻',
+    '总经济',
+    '推塔数',
+    '控龙数',
+    '控 Baron 数',
+  ];
+  const redTeamStats = ['red', 'BLG', 25, 18, 47, 65000, 9, 3, 1];
+  const blueTeamStats = ['blue', 'WBG', 18, 25, 35, 58000, 3, 1, 0];
+  const playerStatsHeaders = [
+    '阵营',
+    '位置',
+    '选手昵称',
+    '英雄名',
+    '击杀',
+    '死亡',
+    '助攻',
+    '补刀',
+    '经济',
+    '伤害',
+    '承伤',
+    '等级',
+    '视野得分',
+    '插眼数',
+    '排眼数',
+  ];
+  const players = [
+    ['red', 'TOP', 'Bin', '格温', 2, 2, 11, 349, 17315, 28500, 32000, 18, 45, 12, 12],
+    ['red', 'JUNGLE', 'Xun', '潘森', 4, 7, 10, 261, 14855, 22000, 28000, 16, 38, 8, 8],
+    ['red', 'MID', 'Knight', '奎桑提', 13, 0, 11, 339, 19592, 35000, 18000, 18, 42, 6, 6],
+    ['red', 'ADC', 'Viper', '艾希', 7, 3, 10, 368, 19385, 32000, 21000, 18, 35, 4, 4],
+    ['red', 'SUPPORT', 'ON', '萨勒芬妮', 0, 3, 22, 47, 11580, 8500, 15000, 15, 78, 18, 18],
+    ['blue', 'TOP', 'TheShy', '奎桑提', 1, 3, 8, 289, 15200, 21000, 35000, 17, 42, 10, 10],
+    ['blue', 'JUNGLE', 'Tian', '蔚', 3, 5, 9, 198, 12500, 18000, 26000, 15, 36, 9, 9],
+    ['blue', 'MID', 'Rookie', '阿狸', 5, 6, 7, 312, 16800, 25000, 19000, 17, 38, 5, 5],
+    ['blue', 'ADC', 'Hope', '厄斐琉斯', 6, 5, 6, 352, 17500, 28000, 22000, 18, 32, 3, 3],
+    ['blue', 'SUPPORT', 'Crisp', '烈娜塔', 3, 6, 5, 38, 9800, 7500, 18000, 14, 82, 20, 20],
+  ];
+  const banHeaders = [
+    '红方BAN1',
+    '红方BAN2',
+    '红方BAN3',
+    '红方BAN4',
+    '红方BAN5',
+    '蓝方BAN1',
+    '蓝方BAN2',
+    '蓝方BAN3',
+    '蓝方BAN4',
+    '蓝方BAN5',
+  ];
+  const banData = [
+    '亚托克斯',
+    '格雷福斯',
+    '阿狸',
+    '卡莎',
+    '锤石',
+    '雷克顿',
+    '李青',
+    '辛德拉',
+    '厄斐琉斯',
+    '蕾欧娜',
+  ];
+
+  return [
+    matchInfoHeaders,
+    matchInfoData,
+    teamStatsHeaders,
+    redTeamStats,
+    blueTeamStats,
+    playerStatsHeaders,
+    ...players,
+    banHeaders,
+    banData,
+  ];
+}

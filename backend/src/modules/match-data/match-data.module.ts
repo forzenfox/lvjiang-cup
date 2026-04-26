@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { MulterModule } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
-import { v4 as uuidv4 } from 'uuid';
+import { memoryStorage } from 'multer';
 import { MatchDataController } from './match-data.controller';
 import { MatchDataAdminController } from './match-data-admin.controller';
 import { MatchDataService } from './match-data.service';
@@ -12,14 +11,7 @@ import { CacheModule } from '../../cache/cache.module';
 import { AuthModule } from '../auth/auth.module';
 
 const multerConfig = {
-  storage: diskStorage({
-    destination: './uploads/temp',
-    filename: (req, file, cb) => {
-      const uniqueSuffix = uuidv4();
-      const ext = file.originalname.split('.').pop();
-      cb(null, `match-data-${uniqueSuffix}.${ext}`);
-    },
-  }),
+  storage: memoryStorage(),
   limits: {
     fileSize: 10 * 1024 * 1024, // 10MB
   },

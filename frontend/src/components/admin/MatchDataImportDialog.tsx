@@ -60,6 +60,8 @@ const MatchDataImportDialog: React.FC<MatchDataImportDialogProps> = ({
   const [preview, setPreview] = useState<ImportMatchDataResponse | null>(null);
   const [multiGameResults, setMultiGameResults] = useState<SingleGameImportResult[] | null>(null);
   const [downloadingReport, setDownloadingReport] = useState(false);
+  const [dryRunSuccess, setDryRunSuccess] = useState(false);
+  const [isDryRunPreview, setIsDryRunPreview] = useState(false); // 区分预检预览与实际导入
 
   // 局数不一致告警状态
   const [warnings, setWarnings] = useState<GameNumberWarning[]>([]);
@@ -77,6 +79,8 @@ const MatchDataImportDialog: React.FC<MatchDataImportDialogProps> = ({
     setError(null);
     setWarnings([]);
     setShowWarningDialog(false);
+    setDryRunSuccess(false);
+    setIsDryRunPreview(false);
   }, []);
 
   /**
@@ -94,6 +98,8 @@ const MatchDataImportDialog: React.FC<MatchDataImportDialogProps> = ({
     setDownloadingReport(false);
     setWarnings([]);
     setShowWarningDialog(false);
+    setDryRunSuccess(false);
+    setIsDryRunPreview(false);
   }, []);
 
   const validateFile = (file: File): string | null => {
@@ -247,7 +253,10 @@ const MatchDataImportDialog: React.FC<MatchDataImportDialogProps> = ({
   /**
    * 执行实际导入（带 confirmWarnings）
    */
-  const executeImport = async (options?: { dryRun?: boolean; confirmWarnings?: boolean }) => {
+  const executeImport = async (
+    options?: { dryRun?: boolean; confirmWarnings?: boolean },
+    onSuccessCallback?: (result: ImportMatchDataResponse | MultiGameImportResponse) => void,
+  ) => {
     if (!file) return;
 
     // 跟踪导入开始事件
@@ -274,11 +283,27 @@ const MatchDataImportDialog: React.FC<MatchDataImportDialogProps> = ({
         return;
       }
 
+      // 预检模式成功：标记 dryRunSuccess，展示预览结果，不实际导入
+      if (options?.dryRun) {
+        setDryRunSuccess(true);
+        setIsDryRunPreview(true); // 标记为预检预览
+        handleImportSuccess(result, toastId);
+        setUploading(false);
+        return;
+      }
+
       // 正式导入成功
       handleImportSuccess(result, toastId);
 
       // 导入成功后清除文件
       setFile(null);
+
+      // 调用成功回调（用于 handleConfirm 场景）
+      if (onSuccessCallback) {
+        setTimeout(() => {
+          onSuccessCallback(result);
+        }, 100); // 给 React 状态更新留一点时间
+      }
     } catch (err: any) {
       // 校验失败时清除文件
       clearFileState();
@@ -369,7 +394,30 @@ const MatchDataImportDialog: React.FC<MatchDataImportDialogProps> = ({
     }
   };
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
+    // 如果 dryRun 预检成功，执行实际导入
+    if (dryRunSuccess) {
+      setDryRunSuccess(false);
+      setIsDryRunPreview(false); // 清除预检标记
+      // 传递 onSuccess 作为回调，导入成功后自动关闭对话框
+      await executeImport(undefined, (result) => {
+        if (isMultiGameResponse(result)) {
+          const finalResult: ImportMatchDataResponse = {
+            imported: result.results.every(r => r.imported),
+            gameNumber: result.results[0]?.gameNumber || 1,
+            playerCount: result.results.reduce((sum, r) => sum + r.playerCount, 0),
+          };
+          onSuccess(finalResult);
+          handleClose();
+        } else {
+          onSuccess(result);
+          handleClose();
+        }
+      });
+      return;
+    }
+
+    // 兼容旧格式：单局导入直接确认
     if (preview) {
       onSuccess(preview);
       handleClose();
@@ -516,13 +564,22 @@ const MatchDataImportDialog: React.FC<MatchDataImportDialogProps> = ({
           {/* 多局导入结果展示 */}
           {multiGameResults && multiGameResults.length > 0 && (
             <div className="p-4 border rounded-lg bg-green-500/10 border-green-500/20">
-              <h4 className="font-medium text-green-400 mb-3">导入结果</h4>
+              <h4 className="font-medium text-green-400 mb-3">
+                {isDryRunPreview ? '预检结果' : '导入结果'}
+              </h4>
+              {isDryRunPreview && (
+                <p className="text-sm text-gray-400 mb-3">
+                  以下数据验证通过，点击"完成"将执行实际导入
+                </p>
+              )}
               <div className="space-y-2">
                 {multiGameResults.map(result => (
                   <div
                     key={result.gameNumber}
                     className={`flex items-center justify-between p-3 rounded-lg text-sm ${
-                      result.imported
+                      isDryRunPreview
+                        ? 'bg-blue-500/10 border border-blue-500/20' // 预检待导入
+                        : result.imported
                         ? result.overwritten
                           ? 'bg-amber-500/10 border border-amber-500/20'
                           : 'bg-gray-800/50 border border-gray-700'
@@ -531,7 +588,11 @@ const MatchDataImportDialog: React.FC<MatchDataImportDialogProps> = ({
                   >
                     <div className="flex items-center gap-2">
                       <span className="text-white font-medium">第 {result.gameNumber} 局</span>
-                      {result.imported ? (
+                      {isDryRunPreview ? (
+                        <span className="text-blue-400">
+                          {result.playerCount} 名选手数据（待导入）
+                        </span>
+                      ) : result.imported ? (
                         <span className="text-green-400">
                           {result.playerCount} 名选手数据
                           {result.overwritten ? '（覆盖已有数据）' : ''}
@@ -544,7 +605,9 @@ const MatchDataImportDialog: React.FC<MatchDataImportDialogProps> = ({
                         </span>
                       )}
                     </div>
-                    {result.imported ? (
+                    {isDryRunPreview ? (
+                      <span className="text-blue-400 text-xs">待导入</span>
+                    ) : result.imported ? (
                       <span className="text-green-400 text-xs">
                         {result.failedCount && result.failedCount > 0
                           ? `${result.failedCount} 个失败`

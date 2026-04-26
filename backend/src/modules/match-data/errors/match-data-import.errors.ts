@@ -138,3 +138,35 @@ export class InvalidScoreException extends HttpException {
     super(response, 400);
   }
 }
+
+/**
+ * Excel数据格式错误异常
+ * 当Excel文件中的数据格式不符合要求时抛出（如行数不足、行为空等）
+ * 错误码：40014，HTTP状态码：400
+ */
+export class ExcelDataFormatException extends HttpException {
+  constructor(errors: string[]) {
+    const response: MatchDataErrorResponse = {
+      code: 40014,
+      message: 'Excel数据格式错误',
+      errors,
+    };
+    super(response, 400);
+  }
+}
+
+/**
+ * Excel数据验证失败异常
+ * 当Excel中的数据内容验证不通过时抛出（如战队名为空、选手昵称为空等）
+ * 错误码：40015，HTTP状态码：400
+ */
+export class ExcelDataValidationException extends HttpException {
+  constructor(message: string, errors: string[]) {
+    const response: MatchDataErrorResponse = {
+      code: 40015,
+      message,
+      errors,
+    };
+    super(response, 400);
+  }
+}
