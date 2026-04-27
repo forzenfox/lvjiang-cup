@@ -197,9 +197,7 @@ const MatchDataList: React.FC = () => {
 
     if (importedMatchId) {
       setMatches(prev =>
-        prev.map(m =>
-          m.id === importedMatchId ? { ...m, checkingMatchData: true } : m
-        )
+        prev.map(m => (m.id === importedMatchId ? { ...m, checkingMatchData: true } : m))
       );
 
       try {

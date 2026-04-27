@@ -19,22 +19,22 @@ const SwissMatchCardMobile: React.FC<SwissMatchCardMobileProps> = ({
 }) => {
   const teamA = teams.find(t => t.id === match.teamAId);
   const teamB = teams.find(t => t.id === match.teamBId);
-  const _isFinished = match.status === 'finished';
 
   return (
     <div
-      className={`flex flex-col items-center p-4 bg-[#0F172A] border-b border-[#1E293B] transition-colors ${
+      className={`flex flex-col items-center p-3 bg-[#0F172A] border-b border-[#1E293B] transition-colors active:scale-[0.98] transition-transform duration-100 touch-manipulation ${
         onClick ? 'cursor-pointer hover:bg-gray-800/50' : ''
       } ${className}`}
       onClick={onClick}
       data-testid={testId}
     >
-      <div className="flex items-center gap-4 w-full">
-        <div className="flex flex-col items-center gap-1">
-          <SwissTeamLogo team={teamA} size={48} />
+      <div className="flex items-center gap-3 w-full">
+        {/* 左侧队伍 */}
+        <div className="flex flex-col items-center gap-0.5 flex-1">
+          <SwissTeamLogo team={teamA} size={40} />
           <span
-            className={`text-base font-medium ${
-              match.winnerId === match.teamAId ? 'text-yellow-400' : 'text-gray-300'
+            className={`text-sm font-medium ${
+              match.winnerId === match.teamAId ? 'text-white' : 'text-gray-400'
             }`}
             data-testid={`${testId}-team-a-name`}
           >
@@ -42,31 +42,36 @@ const SwissMatchCardMobile: React.FC<SwissMatchCardMobileProps> = ({
           </span>
         </div>
 
-        <div className="flex-1 flex items-center justify-center">
+        {/* 中间比分 */}
+        <div className="flex items-center justify-center gap-1 flex-shrink-0">
           <span
-            className={`text-2xl font-bold ${
-              match.winnerId === match.teamAId ? 'text-yellow-400' : 'text-white'
+            className={`text-xl font-bold ${
+              match.winnerId === match.teamAId ? 'text-[#F59E0B]' : 'text-white'
             }`}
             data-testid={`${testId}-score-a`}
           >
             {match.scoreA ?? '--'}
           </span>
-          <span className="text-gray-500 text-xl mx-2">:</span>
+          <span className="text-gray-500 text-sm">:</span>
           <span
-            className={`text-2xl font-bold ${
-              match.winnerId === match.teamBId ? 'text-yellow-400' : 'text-white'
+            className={`text-xl font-bold ${
+              match.winnerId === match.teamBId ? 'text-[#F59E0B]' : 'text-white'
             }`}
             data-testid={`${testId}-score-b`}
           >
             {match.scoreB ?? '--'}
           </span>
+          {match.boFormat && (
+            <span className="text-[10px] text-gray-500 ml-1">{match.boFormat}</span>
+          )}
         </div>
 
-        <div className="flex flex-col items-center gap-1">
-          <SwissTeamLogo team={teamB} size={48} />
+        {/* 右侧队伍 */}
+        <div className="flex flex-col items-center gap-0.5 flex-1">
+          <SwissTeamLogo team={teamB} size={40} />
           <span
-            className={`text-base font-medium ${
-              match.winnerId === match.teamBId ? 'text-yellow-400' : 'text-gray-300'
+            className={`text-sm font-medium ${
+              match.winnerId === match.teamBId ? 'text-white' : 'text-gray-400'
             }`}
             data-testid={`${testId}-team-b-name`}
           >

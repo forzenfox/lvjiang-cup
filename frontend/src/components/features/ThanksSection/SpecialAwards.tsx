@@ -159,8 +159,6 @@ export const SpecialAwards: React.FC<SpecialAwardsProps> = ({ sponsors }) => {
           {shouldScroll && awardItems}
         </div>
       </div>
-
-
     </div>
   );
 };

@@ -65,6 +65,13 @@ const SwissStageMobile: React.FC<SwissStageMobileProps> = ({
     );
   };
 
+  // 渲染战绩分组标题
+  const renderRecordTitle = (roundLabel: string, record: string) => (
+    <h4 className="flex items-center gap-2 text-sm font-medium text-gray-300 mb-2 pl-3 border-l-2 border-[#F59E0B]">
+      {roundLabel} {record}
+    </h4>
+  );
+
   // 渲染前5轮的对战信息
   const renderRoundContent = () => {
     if (!currentRoundConfig) return null;
@@ -78,11 +85,9 @@ const SwissStageMobile: React.FC<SwissStageMobileProps> = ({
           if (selectedRound === 3) {
             if (record === '2-0') {
               return (
-                <div key={record} className="mb-4">
-                  <h4 className="text-sm text-gray-400 mb-2 uppercase tracking-wider">
-                    第三轮 2-0
-                  </h4>
-                  <div className="space-y-2">
+                <div key={record} className="mb-3">
+                  {renderRecordTitle('第三轮', '2-0')}
+                  <div className="space-y-1">
                     {recordMatches.map((match, index) => (
                       <SwissMatchCardMobile
                         key={match.id}
@@ -98,11 +103,9 @@ const SwissStageMobile: React.FC<SwissStageMobileProps> = ({
             }
             if (record === '0-2') {
               return (
-                <div key={record} className="mb-4">
-                  <h4 className="text-sm text-gray-400 mb-2 uppercase tracking-wider">
-                    第三轮 0-2
-                  </h4>
-                  <div className="space-y-2">
+                <div key={record} className="mb-3">
+                  {renderRecordTitle('第三轮', '0-2')}
+                  <div className="space-y-1">
                     {recordMatches.map((match, index) => (
                       <SwissMatchCardMobile
                         key={match.id}
@@ -122,11 +125,9 @@ const SwissStageMobile: React.FC<SwissStageMobileProps> = ({
           if (selectedRound === 4) {
             if (record === '2-1') {
               return (
-                <div key={record} className="mb-4">
-                  <h4 className="text-sm text-gray-400 mb-2 uppercase tracking-wider">
-                    第四轮 2-1
-                  </h4>
-                  <div className="space-y-2">
+                <div key={record} className="mb-3">
+                  {renderRecordTitle('第四轮', '2-1')}
+                  <div className="space-y-1">
                     {recordMatches.map((match, index) => (
                       <SwissMatchCardMobile
                         key={match.id}
@@ -142,11 +143,9 @@ const SwissStageMobile: React.FC<SwissStageMobileProps> = ({
             }
             if (record === '1-2') {
               return (
-                <div key={record} className="mb-4">
-                  <h4 className="text-sm text-gray-400 mb-2 uppercase tracking-wider">
-                    第四轮 1-2
-                  </h4>
-                  <div className="space-y-2">
+                <div key={record} className="mb-3">
+                  {renderRecordTitle('第四轮', '1-2')}
+                  <div className="space-y-1">
                     {recordMatches.map((match, index) => (
                       <SwissMatchCardMobile
                         key={match.id}
@@ -166,11 +165,9 @@ const SwissStageMobile: React.FC<SwissStageMobileProps> = ({
           if (selectedRound === 5) {
             if (record === '2-2') {
               return (
-                <div key={record} className="mb-4">
-                  <h4 className="text-sm text-gray-400 mb-2 uppercase tracking-wider">
-                    第五轮 2-2
-                  </h4>
-                  <div className="space-y-2">
+                <div key={record} className="mb-3">
+                  {renderRecordTitle('第五轮', '2-2')}
+                  <div className="space-y-1">
                     {recordMatches.map((match, index) => (
                       <SwissMatchCardMobile
                         key={match.id}
@@ -188,11 +185,9 @@ const SwissStageMobile: React.FC<SwissStageMobileProps> = ({
 
           // 默认显示对战信息
           return (
-            <div key={record} className="mb-4" data-testid={`${testId}-round-${record}`}>
-              <h4 className="text-sm text-gray-400 mb-2 uppercase tracking-wider">
-                {currentRoundConfig?.label} {record}
-              </h4>
-              <div className="space-y-2">
+            <div key={record} className="mb-3" data-testid={`${testId}-round-${record}`}>
+              {renderRecordTitle(currentRoundConfig?.label || '', record)}
+              <div className="space-y-1">
                 {recordMatches.map((match, index) => (
                   <SwissMatchCardMobile
                     key={match.id}

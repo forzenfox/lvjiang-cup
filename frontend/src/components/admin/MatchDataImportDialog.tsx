@@ -560,10 +560,10 @@ const MatchDataImportDialog: React.FC<MatchDataImportDialogProps> = ({
                       isDryRunPreview
                         ? 'bg-blue-500/10 border border-blue-500/20' // 预检待导入
                         : result.imported
-                        ? result.overwritten
-                          ? 'bg-amber-500/10 border border-amber-500/20'
-                          : 'bg-gray-800/50 border border-gray-700'
-                        : 'bg-red-500/10 border border-red-500/20'
+                          ? result.overwritten
+                            ? 'bg-amber-500/10 border border-amber-500/20'
+                            : 'bg-gray-800/50 border border-gray-700'
+                          : 'bg-red-500/10 border border-red-500/20'
                     }`}
                   >
                     <div className="flex items-center gap-2">
