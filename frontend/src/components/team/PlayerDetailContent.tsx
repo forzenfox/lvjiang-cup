@@ -76,7 +76,7 @@ const ChampionIcon: React.FC<{ championId: string; index: number }> = ({ champio
 
 const PlayerDetailContent: React.FC<PlayerDetailContentProps> = ({ player }) => {
   return (
-    <div className="p-6 overflow-y-auto" style={{ maxHeight: 'calc(90vh - 64px)' }}>
+    <div className="p-6">
       <div className="flex flex-col items-center mb-6">
         <div
           className="w-28 h-28 rounded-full border-4 overflow-hidden mb-4"

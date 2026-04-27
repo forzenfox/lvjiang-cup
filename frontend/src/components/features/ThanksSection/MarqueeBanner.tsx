@@ -102,7 +102,7 @@ export const MarqueeBanner: React.FC<MarqueeBannerProps> = ({ sponsors }) => {
         data-testid="marquee-container"
         role="marquee"
         aria-label="赞助鸣谢滚动展示"
-        className="relative h-[52px] md:h-[60px] overflow-hidden rounded-xl border border-amber-500/30 bg-gradient-to-r from-pink-900/30 via-black/70 to-pink-900/30 backdrop-blur-sm cursor-pointer group"
+        className="relative h-[52px] md:h-[60px] overflow-hidden rounded-xl border border-amber-500/30 bg-gradient-to-r from-pink-900/30 via-black/70 to-pink-900/30 backdrop-blur-sm cursor-pointer group max-w-full"
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
       >
@@ -132,6 +132,7 @@ export const MarqueeBanner: React.FC<MarqueeBannerProps> = ({ sponsors }) => {
           style={{
             animationDuration: `${scrollDuration}s`,
             width: 'fit-content',
+            maxWidth: '100%',
           }}
         >
           {/* 三组内容实现无缝循环：当前组 + 下一组 + 上一组(用于循环衔接) */}

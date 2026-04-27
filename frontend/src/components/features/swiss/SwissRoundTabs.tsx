@@ -44,7 +44,7 @@ const SwissRoundTabs: React.FC<SwissRoundTabsProps> = ({
             key={round.round}
             onClick={() => onRoundChange(round.round)}
             className={`
-              flex-shrink-0 px-4 py-2 rounded text-sm font-medium whitespace-nowrap transition-all duration-200
+              flex-shrink-0 px-4 py-2.5 rounded text-sm font-medium whitespace-nowrap transition-all duration-200 min-h-[44px]
               ${
                 selectedRound === round.round
                   ? 'bg-[#1E3A8A] text-white shadow-lg shadow-blue-500/20 border-b-2 border-[#F59E0B]'

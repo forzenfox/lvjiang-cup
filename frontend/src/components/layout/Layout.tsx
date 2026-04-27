@@ -6,6 +6,12 @@ import { adminPath } from '../../constants/routes';
 
 // 隐藏滚动条的样式 + 全屏滚动吸附
 const styles = `
+  /* 防止水平溢出 */
+  html, body {
+    overflow-x: hidden;
+    max-width: 100vw;
+  }
+
   /* 隐藏垂直滚动条 */
   body::-webkit-scrollbar {
     display: none;
@@ -15,16 +21,28 @@ const styles = `
     -ms-overflow-style: none;
   }
 
-  /* 全屏滚动吸附样式 - 所有设备统一 */
-  html {
-    scroll-snap-type: y mandatory;
-    overflow-y: scroll;
+  /* PC端全屏滚动吸附样式 */
+  @media (min-width: 768px) {
+    html {
+      scroll-snap-type: y mandatory;
+      overflow-y: scroll;
+    }
+    section[id] {
+      scroll-snap-align: start;
+      scroll-snap-stop: always;
+      scroll-margin-top: 96px;
+    }
   }
-  section[id] {
-    scroll-snap-align: start;
-    scroll-snap-stop: always;
-    /* 为PC端固定导航栏预留空间，防止内容被遮挡 */
-    scroll-margin-top: 96px;
+
+  /* 移动端平滑滚动，无吸附 */
+  @media (max-width: 767px) {
+    html {
+      scroll-snap-type: none;
+      overflow-y: scroll;
+    }
+    section[id] {
+      scroll-margin-top: 0;
+    }
   }
 `;
 
@@ -49,8 +67,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
       window.scrollTo({
         top: offsetPosition,
-        // 所有设备都使用 instant，配合 CSS scroll snap 实现直接定位
-        behavior: 'instant',
+        behavior: isMobile ? 'smooth' : 'instant',
       });
       setActiveSection(id);
     }
@@ -237,8 +254,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         </div>
       </nav>
 
-      {/* PC端页脚 */}
-      <Footer />
+      {/* PC端页脚 - 移动端不显示 */}
+      <div className="hidden md:block">
+        <Footer />
+      </div>
     </div>
   );
 };

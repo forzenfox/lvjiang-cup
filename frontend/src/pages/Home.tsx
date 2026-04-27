@@ -16,7 +16,7 @@ const LazyVideoCarousel = lazy(() =>
 );
 
 const SectionSkeleton: React.FC = () => (
-  <div className="h-[calc(100vh-96px)] flex items-center justify-center bg-black">
+  <div className="min-h-[calc(100vh-96px)] md:h-[calc(100vh-96px)] flex items-center justify-center bg-black">
     <Loader2 className="w-8 h-8 text-yellow-400 animate-spin" />
   </div>
 );
@@ -38,7 +38,7 @@ const VideoSection: React.FC = () => {
     return (
       <section
         id="videos"
-        className="h-[calc(100vh-96px)] bg-gradient-to-b from-[#0a0a0a] to-[#1a1a2e] flex items-center justify-center"
+        className="min-h-[calc(100vh-96px)] md:h-[calc(100vh-96px)] bg-gradient-to-b from-[#0a0a0a] to-[#1a1a2e] flex items-center justify-center"
       >
         <SectionSkeleton />
       </section>
@@ -48,7 +48,7 @@ const VideoSection: React.FC = () => {
   return (
     <section
       id="videos"
-      className="h-[calc(100vh-96px)] bg-gradient-to-b from-[#0a0a0a] to-[#1a1a2e] flex items-center justify-center"
+      className="min-h-[calc(100vh-96px)] md:h-[calc(100vh-96px)] bg-gradient-to-b from-[#0a0a0a] to-[#1a1a2e] flex items-center justify-center"
     >
       <div className="container mx-auto px-4 w-full h-full flex flex-col justify-center">
         {videoItems.length > 0 ? (

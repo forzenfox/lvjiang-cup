@@ -49,7 +49,7 @@ const HeroSection: React.FC = () => {
     return (
       <section
         id="hero"
-        className="relative h-[calc(100vh-96px)] flex items-center justify-center overflow-hidden"
+        className="relative min-h-[calc(100vh-96px)] md:h-[calc(100vh-96px)] flex items-center justify-center overflow-hidden"
       >
         <div className="absolute inset-0 z-0">
           <img
@@ -76,7 +76,7 @@ const HeroSection: React.FC = () => {
     return (
       <section
         id="hero"
-        className="relative h-[calc(100vh-96px)] flex items-center justify-center overflow-hidden"
+        className="relative min-h-[calc(100vh-96px)] md:h-[calc(100vh-96px)] flex items-center justify-center overflow-hidden"
       >
         <div className="absolute inset-0 z-0">
           <img
@@ -109,7 +109,7 @@ const HeroSection: React.FC = () => {
   return (
     <section
       id="hero"
-      className="relative h-[calc(100vh-96px)] flex items-center justify-center overflow-hidden"
+      className="relative min-h-[calc(100vh-96px)] md:h-[calc(100vh-96px)] flex items-center justify-center overflow-hidden"
     >
       <div className="absolute inset-0 z-0">
         <img

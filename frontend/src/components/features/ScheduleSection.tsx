@@ -187,8 +187,14 @@ const ScheduleSection: React.FC = () => {
     setActiveTab(value);
   };
 
-  // 动态计算缩放比例（优化：使用 requestAnimationFrame 减少布局抖动）
+  // 动态计算缩放比例（仅PC端使用，移动端不需要）
   useEffect(() => {
+    // 移动端禁用缩放
+    if (window.innerWidth < 768) {
+      setScale(1);
+      return;
+    }
+
     let rafId: number;
     const calculateScale = () => {
       if (rafId) cancelAnimationFrame(rafId);
@@ -218,8 +224,8 @@ const ScheduleSection: React.FC = () => {
   }, [activeTab]);
 
   return (
-    <section id="schedule" className="h-screen flex flex-col bg-black">
-      <div className="max-w-7xl mx-auto px-4 flex-1 flex flex-col justify-center min-h-0">
+    <section id="schedule" className="min-h-screen md:h-screen flex flex-col bg-black">
+      <div className="max-w-7xl mx-auto px-4 flex-1 flex flex-col justify-center min-h-0 w-full">
         {loading && matches.length === 0 ? (
           // 加载骨架屏
           <ScheduleSkeleton />

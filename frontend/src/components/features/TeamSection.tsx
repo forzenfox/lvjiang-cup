@@ -172,11 +172,11 @@ const TeamSection: React.FC = () => {
   }, []);
 
   return (
-    <section id="teams" className="h-[calc(100vh-96px)] flex flex-col bg-black relative">
+    <section id="teams" className="min-h-[calc(100vh-96px)] md:h-[calc(100vh-96px)] flex flex-col bg-black relative">
       <div className="container mx-auto px-4 flex-1 flex flex-col justify-center min-h-0 py-8">
         {/* 加载骨架屏 */}
         {loading && teams.length === 0 ? (
-          <div className="grid grid-cols-4 gap-4 max-w-5xl mx-auto w-full">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 max-w-5xl mx-auto w-full">
             {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16].map(i => (
               <TeamCardSkeleton key={i} />
             ))}
@@ -187,7 +187,7 @@ const TeamSection: React.FC = () => {
           </div>
         ) : (
           /* 正常数据展示（4行4列正方形卡片布局，队标队名占比更大） */
-          <div className="grid grid-cols-4 gap-4 max-w-3xl mx-auto w-full" data-testid="teams-grid">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 max-w-3xl mx-auto w-full" data-testid="teams-grid">
             {teams.map(team => (
               <div
                 key={team.id}
@@ -195,18 +195,17 @@ const TeamSection: React.FC = () => {
                 data-testid="team-card"
                 onClick={() => handleTeamClick(team)}
               >
-                {/* 队标和队名在同一区域垂直居中显示，图标队名占比更大 */}
                 <div className="h-full flex flex-col items-center justify-center p-2 gap-1">
                   <img
                     src={team.logo}
                     alt={team.name}
                     loading="lazy"
                     decoding="async"
-                    className="w-16 h-16 object-contain drop-shadow-lg transform group-hover:scale-110 transition-transform duration-300"
+                    className="w-16 h-16 md:w-16 md:h-16 object-contain drop-shadow-lg transform group-hover:scale-110 transition-transform duration-300"
                     data-testid="team-logo"
                   />
                   <span
-                    className="text-sm text-center text-gray-300 group-hover:text-white transition-colors truncate font-medium max-w-full"
+                    className="text-xs md:text-sm text-center text-gray-300 group-hover:text-white transition-colors truncate font-medium max-w-full"
                     data-testid="team-name"
                   >
                     {team.name}

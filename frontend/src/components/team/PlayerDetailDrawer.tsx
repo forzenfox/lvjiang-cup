@@ -59,9 +59,9 @@ const PlayerDetailDrawer: React.FC<PlayerDetailDrawerProps> = ({ player, onClose
 
       {/* 抽屉内容 */}
       <motion.div
-        className={`absolute ${
+        className={`absolute flex flex-col overflow-hidden ${
           isMobile
-            ? 'bottom-0 left-0 right-0 h-[70vh] rounded-t-2xl'
+            ? 'bottom-0 left-0 right-0 h-[85vh] rounded-t-2xl'
             : 'right-0 top-0 h-full sm:w-[320px] md:w-[350px] lg:w-[400px]'
         }`}
         data-testid="player-drawer"
@@ -74,7 +74,7 @@ const PlayerDetailDrawer: React.FC<PlayerDetailDrawerProps> = ({ player, onClose
       >
         {/* 关闭按钮 */}
         <div
-          className="flex items-center justify-between px-4 py-3 border-b border-white/10"
+          className="flex items-center justify-between px-4 py-3 border-b border-white/10 flex-shrink-0"
           style={{
             background: 'linear-gradient(90deg, rgba(220, 38, 38, 0.2) 0%, transparent 50%)',
           }}
@@ -92,8 +92,10 @@ const PlayerDetailDrawer: React.FC<PlayerDetailDrawerProps> = ({ player, onClose
           </button>
         </div>
 
-        {/* 详情内容 */}
-        <PlayerDetailContent player={player} />
+        {/* 详情内容 - flex-1 填满剩余空间，overflow-y-auto 实现内部滚动 */}
+        <div className="flex-1 overflow-y-auto">
+          <PlayerDetailContent player={player} />
+        </div>
       </motion.div>
     </motion.div>
   );

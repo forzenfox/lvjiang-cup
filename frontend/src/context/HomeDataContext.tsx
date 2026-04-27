@@ -171,7 +171,7 @@ export const HomeDataProvider: React.FC<HomeDataProviderProps> = ({ children }) 
     setLoading('videos', true);
     const promise = getVideos({ isEnabled: true })
       .then(data => {
-        const videoList = data.list || [];
+        const videoList = Array.isArray(data) ? data : (data.list || []);
         const videoItems: VideoItem[] = videoList.map(v => ({
           id: v.id,
           title: v.title,

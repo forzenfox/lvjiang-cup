@@ -1,8 +1,32 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import React from 'react';
 import TeamSection from '@/components/features/TeamSection';
 import type { Team as ApiTeam, Player } from '@/api/types';
+
+const mockFetchTeams = vi.fn().mockResolvedValue(undefined);
+const mockRefresh = vi.fn().mockResolvedValue(undefined);
+
+let mockHomeData = {
+  stream: null as unknown,
+  teams: [] as unknown[],
+  matches: [],
+  videos: [],
+  streamers: [],
+  isLoading: { stream: false, teams: false, matches: false, videos: false, streamers: false },
+  fetchStream: vi.fn(),
+  fetchTeams: mockFetchTeams,
+  fetchMatches: vi.fn(),
+  fetchVideos: vi.fn(),
+  fetchStreamers: vi.fn(),
+  refresh: mockRefresh,
+};
+
+vi.mock('@/context/HomeDataContext', () => ({
+  useHomeData: () => mockHomeData,
+  HomeDataProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+}));
 
 const mockPlayer: Player = {
   id: 'player-1',
@@ -109,22 +133,49 @@ vi.mock('@/utils/upload', () => ({
   getUploadUrl: (url: string) => url,
 }));
 
+vi.mock('@/components/team/PlayerDetailModal', () => ({
+  PlayerDetailModal: () => null,
+}));
+
+vi.mock('@/components/team/TeamMemberModal', () => ({
+  TeamMemberModal: ({ isOpen }: { isOpen: boolean }) =>
+    isOpen ? <div data-testid="team-member-modal">Modal</div> : null,
+}));
+
+vi.mock('@/components/team/PlayerDetailDrawer', () => ({
+  default: () => null,
+}));
+
 describe('TeamSection 响应式布局', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockHomeData = {
+      stream: null,
+      teams: mockTeams,
+      matches: [],
+      videos: [],
+      streamers: [],
+      isLoading: { stream: false, teams: false, matches: false, videos: false, streamers: false },
+      fetchStream: vi.fn(),
+      fetchTeams: mockFetchTeams,
+      fetchMatches: vi.fn(),
+      fetchVideos: vi.fn(),
+      fetchStreamers: vi.fn(),
+      refresh: mockRefresh,
+    };
   });
 
   describe('网格列数响应式', () => {
-    it('默认显示4列网格', async () => {
+    it('默认显示2列网格（移动端优先）', async () => {
       render(<TeamSection />);
 
       await screen.findByTestId('teams-grid');
 
       const grid = screen.getByTestId('teams-grid');
-      expect(grid.className).toContain('grid-cols-4');
+      expect(grid.className).toContain('grid-cols-2');
     });
 
-    it('平板端网格正确渲染', async () => {
+    it('平板端网格显示4列', async () => {
       window.innerWidth = 768;
       window.dispatchEvent(new Event('resize'));
 
@@ -133,7 +184,7 @@ describe('TeamSection 响应式布局', () => {
       await screen.findByTestId('teams-grid');
 
       const grid = screen.getByTestId('teams-grid');
-      expect(grid).toBeInTheDocument();
+      expect(grid.className).toContain('md:grid-cols-4');
     });
 
     it('大屏网格正确渲染', async () => {
@@ -157,7 +208,7 @@ describe('TeamSection 响应式布局', () => {
       await screen.findByTestId('teams-grid');
 
       const grid = screen.getByTestId('teams-grid');
-      expect(grid.className).toContain('grid-cols-4');
+      expect(grid.className).toContain('md:grid-cols-4');
     });
   });
 

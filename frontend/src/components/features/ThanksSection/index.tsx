@@ -48,6 +48,12 @@ export const ThanksSection: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    // 移动端禁用缩放，使用自然滚动
+    if (window.innerWidth < 768) {
+      setScale(1);
+      return;
+    }
+
     const calculateScale = () => {
       const viewportHeight = window.innerHeight;
       const headerHeight = 96;
@@ -71,7 +77,7 @@ export const ThanksSection: React.FC = () => {
     <motion.section
       id="thanks"
       data-testid="thanks-section"
-      className="relative h-[calc(100vh-96px)] flex flex-col bg-gradient-to-b from-black via-gray-950 to-black overflow-hidden"
+      className="relative min-h-[calc(100vh-96px)] md:h-[calc(100vh-96px)] flex flex-col bg-gradient-to-b from-black via-gray-950 to-black overflow-hidden"
       initial="hidden"
       whileInView="visible"
       viewport={{ once: true, amount: 0.1 }}
@@ -109,10 +115,10 @@ export const ThanksSection: React.FC = () => {
       <div className="relative container mx-auto px-4 flex-1 flex flex-col justify-center min-h-0 py-8">
         <div
           ref={contentRef}
+          className="w-full"
           style={{
             transform: `scale(${scale})`,
             transformOrigin: 'top center',
-            width: '100%',
           }}
         >
           {/* 标题区域 */}

@@ -8,29 +8,15 @@ interface SpecialAwardsProps {
 }
 
 export const SpecialAwards: React.FC<SpecialAwardsProps> = ({ sponsors }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
   const [shouldScroll, setShouldScroll] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const scrollContentRef = useRef<HTMLDivElement>(null);
 
-  // 检测是否为移动端
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
-
   // 筛选有特殊奖项的赞助商
   const awards = sponsors.filter(s => s.specialAward);
 
-  // 移动端默认只显示前3条
-  const displayAwards = isMobile && !isExpanded ? awards.slice(0, 3) : awards;
-  const hasMoreAwards = awards.length > 3;
+  // 显示全部奖项（已支持滚动效果）
+  const displayAwards = awards;
 
   // 检测内容是否溢出，需要滚动
   useEffect(() => {
@@ -58,7 +44,7 @@ export const SpecialAwards: React.FC<SpecialAwardsProps> = ({ sponsors }) => {
       window.removeEventListener('resize', checkOverflow);
       window.removeEventListener('load', checkOverflow);
     };
-  }, [sponsors, isMobile, isExpanded]);
+  }, [sponsors]);
 
   // Hook 必须在条件判断之前调用
   const { containerRef, visibleItems } = useStaggeredAnimation(displayAwards.length, 100);
@@ -174,43 +160,7 @@ export const SpecialAwards: React.FC<SpecialAwardsProps> = ({ sponsors }) => {
         </div>
       </div>
 
-      {/* 展开/收起按钮 */}
-      {isMobile && hasMoreAwards && (
-        <button
-          data-testid="expand-button"
-          className="relative mt-4 w-full py-2.5 rounded-xl border border-amber-500/30 bg-gradient-to-r from-amber-500/10 to-pink-500/10 text-amber-400 hover:text-amber-300 hover:border-amber-500/50 hover:from-amber-500/20 hover:to-pink-500/20 transition-all duration-300 text-sm font-medium"
-          style={{ fontFamily: 'Chakra Petch, sans-serif' }}
-          onClick={() => setIsExpanded(!isExpanded)}
-        >
-          <span className="flex items-center justify-center gap-2">
-            {isExpanded ? (
-              <>
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M5 15l7-7 7 7"
-                  />
-                </svg>
-                收起
-              </>
-            ) : (
-              <>
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19 9l-7 7-7-7"
-                  />
-                </svg>
-                查看更多 ({awards.length - 3} 条)
-              </>
-            )}
-          </span>
-        </button>
-      )}
+
     </div>
   );
 };
