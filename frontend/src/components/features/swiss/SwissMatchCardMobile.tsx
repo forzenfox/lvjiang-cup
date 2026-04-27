@@ -22,7 +22,7 @@ const SwissMatchCardMobile: React.FC<SwissMatchCardMobileProps> = ({
 
   return (
     <div
-      className={`flex flex-col items-center p-3 bg-[#0F172A] border-b border-[#1E293B] transition-colors active:scale-[0.98] transition-transform duration-100 touch-manipulation ${
+      className={`flex flex-col items-center p-3 bg-[#0F172A] transition-colors active:scale-[0.98] transition-transform duration-100 touch-manipulation ${
         onClick ? 'cursor-pointer hover:bg-gray-800/50' : ''
       } ${className}`}
       onClick={onClick}

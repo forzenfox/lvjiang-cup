@@ -32,7 +32,7 @@ const SwissFinalResultMobile: React.FC<SwissFinalResultMobileProps> = ({
   return (
     <div className={`space-y-6 ${className}`} data-testid={testId}>
       {/* 晋级队伍区域 */}
-      <div className="bg-[#1a1a2e] rounded-lg overflow-hidden border border-blue-500/30">
+      <div className="bg-[#1a1a2e] rounded-lg overflow-hidden">
         {/* 标题栏 */}
         <div className="bg-blue-600/80 py-2.5 px-4">
           <h3 className="text-white font-bold text-center">晋级队伍</h3>

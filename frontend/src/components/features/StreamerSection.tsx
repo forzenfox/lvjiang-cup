@@ -240,11 +240,13 @@ const StreamerSection: React.FC<StreamerSectionProps> = () => {
               </div>
             )}
 
-            <StreamerIndicator
-              streamers={filteredStreamers}
-              currentIndex={currentIndex}
-              onSelect={setCurrentIndex}
-            />
+            {!isMobile && (
+              <StreamerIndicator
+                streamers={filteredStreamers}
+                currentIndex={currentIndex}
+                onSelect={setCurrentIndex}
+              />
+            )}
           </div>
         )}
 

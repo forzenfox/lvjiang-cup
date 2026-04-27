@@ -56,13 +56,10 @@ const SwissRoundTabs: React.FC<SwissRoundTabsProps> = ({
 
   return (
     <div className={`relative ${className}`} data-testid={testId}>
-      {/* 渐变遮罩 - 左侧 */}
-      <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-[#0a0a0a] to-transparent z-10 pointer-events-none" />
-
       {/* 可滑动的标签容器 */}
       <div
         ref={scrollContainerRef}
-        className="flex overflow-x-auto gap-2 px-4 py-1 -mx-4 scrollbar-hide"
+        className="flex overflow-x-auto gap-2 px-2 py-1 scrollbar-hide"
         style={{
           scrollSnapType: 'x mandatory',
           WebkitOverflowScrolling: 'touch',
@@ -92,12 +89,9 @@ const SwissRoundTabs: React.FC<SwissRoundTabsProps> = ({
         ))}
       </div>
 
-      {/* 渐变遮罩 - 右侧 */}
-      <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-[#0a0a0a] to-transparent z-10 pointer-events-none" />
-
       {/* 滚动指示器 */}
       {canScrollRight && (
-        <div className="absolute right-2 top-1/2 -translate-y-1/2 z-20 animate-pulse pointer-events-none">
+        <div className="absolute right-1 top-1/2 -translate-y-1/2 z-20 animate-pulse pointer-events-none">
           <ChevronRight className="w-4 h-4 text-gray-500" />
         </div>
       )}
