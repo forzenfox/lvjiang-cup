@@ -24,9 +24,9 @@ const TeamCardSkeleton: React.FC = () => (
     className="aspect-square bg-[#1a1a2e] border border-white/10 rounded-lg overflow-hidden animate-pulse"
     data-testid="team-card-skeleton"
   >
-    <div className="h-full flex flex-col items-center justify-center p-2 gap-1">
-      <div className="w-16 h-16 rounded-lg bg-white/10" />
-      <div className="h-4 w-16 bg-white/10 rounded" />
+    <div className="h-full flex flex-col items-center justify-center p-3 md:p-4 gap-1 md:gap-2">
+      <div className="w-20 h-20 md:w-24 md:h-24 lg:w-28 lg:h-28 rounded-lg bg-white/10" />
+      <div className="h-4 w-20 md:w-24 lg:w-28 bg-white/10 rounded" />
     </div>
   </div>
 );
@@ -172,7 +172,10 @@ const TeamSection: React.FC = () => {
   }, []);
 
   return (
-    <section id="teams" className="min-h-[calc(100vh-96px)] md:h-[calc(100vh-96px)] flex flex-col bg-black relative">
+    <section
+      id="teams"
+      className="min-h-[calc(100vh-96px)] md:h-[calc(100vh-96px)] flex flex-col bg-black relative"
+    >
       <div className="container mx-auto px-4 flex-1 flex flex-col justify-center min-h-0 py-8">
         {/* 加载骨架屏 */}
         {loading && teams.length === 0 ? (
@@ -187,7 +190,10 @@ const TeamSection: React.FC = () => {
           </div>
         ) : (
           /* 正常数据展示（4行4列正方形卡片布局，队标队名占比更大） */
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 max-w-3xl mx-auto w-full" data-testid="teams-grid">
+          <div
+            className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 max-w-3xl mx-auto w-full"
+            data-testid="teams-grid"
+          >
             {teams.map(team => (
               <div
                 key={team.id}
@@ -195,17 +201,17 @@ const TeamSection: React.FC = () => {
                 data-testid="team-card"
                 onClick={() => handleTeamClick(team)}
               >
-                <div className="h-full flex flex-col items-center justify-center p-2 gap-1">
+                <div className="h-full flex flex-col items-center justify-center p-3 md:p-4 gap-1 md:gap-2">
                   <img
                     src={team.logo}
                     alt={team.name}
                     loading="lazy"
                     decoding="async"
-                    className="w-16 h-16 md:w-16 md:h-16 object-contain drop-shadow-lg transform group-hover:scale-110 transition-transform duration-300"
+                    className="w-20 h-20 md:w-24 md:h-24 lg:w-28 lg:h-28 object-contain drop-shadow-lg transform group-hover:scale-110 transition-transform duration-300"
                     data-testid="team-logo"
                   />
                   <span
-                    className="text-xs md:text-sm text-center text-gray-300 group-hover:text-white transition-colors truncate font-medium max-w-full"
+                    className="text-sm md:text-base lg:text-lg text-center text-gray-300 group-hover:text-white transition-colors truncate font-medium max-w-full"
                     data-testid="team-name"
                   >
                     {team.name}
