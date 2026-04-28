@@ -2,23 +2,9 @@ import React from 'react';
 import { CheckCircle, XCircle, AlertTriangle, Download, ExternalLink } from 'lucide-react';
 import { Button } from '../ui/button';
 import Modal from '../ui/Modal';
-import { downloadErrorReport } from '@/api/teams-import';
+import { downloadErrorReport, type ImportResult, type ImportError } from '@/api/teams-import';
 
-export interface ImportResult {
-  total: number;
-  created: number;
-  updated?: number;
-  failed: number;
-  errors?: Array<{
-    row: number;
-    [key: string]: unknown;
-  }>;
-  externalUrlItems?: string[];
-  errorDownloadFn?: (errors: ImportResult['errors']) => Promise<Blob>;
-  errorReportFileName?: string;
-  successLabel?: string;
-  unitLabel?: string;
-}
+export type { ImportResult, ImportError };
 
 interface ImportResultDialogProps {
   open: boolean;
@@ -43,7 +29,7 @@ export const ImportResultDialog: React.FC<ImportResultDialogProps> = ({
     try {
       const blob = result.errorDownloadFn
         ? await result.errorDownloadFn(result.errors)
-        : await downloadErrorReport(result.errors as any[]);
+        : await downloadErrorReport(result.errors as ImportError[]);
       const fileName =
         result.errorReportFileName ||
         `导入错误报告_${new Date().toISOString().slice(0, 10).replace(/-/g, '')}.txt`;
@@ -192,12 +178,12 @@ export const ImportResultDialog: React.FC<ImportResultDialogProps> = ({
                   <tr key={idx} className="hover:bg-gray-800/50">
                     <td className="px-3 py-2 text-gray-300">{error.row || '-'}</td>
                     <td className="px-3 py-2 text-gray-300">
-                      {error.nickname || error.teamName || '-'}
+                      {('teamName' in error ? error.teamName : '') || '-'}
                     </td>
                     <td className="px-3 py-2 text-gray-300">
-                      {error.field || error.position || '-'}
+                      {('position' in error ? error.position : '') || '-'}
                     </td>
-                    <td className="px-3 py-2 text-red-400">{error.message}</td>
+                    <td className="px-3 py-2 text-red-400">{error.message || '-'}</td>
                   </tr>
                 ))}
               </tbody>

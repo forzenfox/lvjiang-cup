@@ -16,6 +16,10 @@ export interface ImportResult {
   failed: number;
   errors?: ImportError[];
   externalUrlItems?: string[];
+  successLabel?: string;
+  unitLabel?: string;
+  errorDownloadFn?: (errors: ImportError[]) => Promise<Blob>;
+  errorReportFileName?: string;
 }
 
 export async function downloadTemplate(): Promise<Blob> {

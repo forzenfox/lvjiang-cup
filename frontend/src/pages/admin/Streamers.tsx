@@ -23,7 +23,11 @@ import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { ZIndexLayers } from '@/constants/zIndex';
 import Modal from '../../components/ui/Modal';
 import { StreamerImportDialog } from '@/components/import/StreamerImportDialog';
-import { downloadStreamerErrorReport, downloadStreamerTemplate, type StreamerImportResult } from '@/api/streamers-import';
+import {
+  downloadStreamerErrorReport,
+  downloadStreamerTemplate,
+  type StreamerImportResult,
+} from '@/api/streamers-import';
 import {
   DndContext,
   closestCenter,
@@ -764,15 +768,9 @@ const AdminStreamers: React.FC = () => {
                 <div>
                   <p className="text-green-300 font-medium">导入成功</p>
                   <div className="mt-2 text-sm text-green-200/80 space-y-1">
-                    <p>
-                      总计: {importResult.total} 条
-                    </p>
-                    <p>
-                      成功: {importResult.created} 条
-                    </p>
-                    <p>
-                      失败: {importResult.failed} 条
-                    </p>
+                    <p>总计: {importResult.total} 条</p>
+                    <p>成功: {importResult.created} 条</p>
+                    <p>失败: {importResult.failed} 条</p>
                   </div>
                 </div>
               </div>

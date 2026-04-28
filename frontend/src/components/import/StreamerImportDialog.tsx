@@ -2,10 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { Upload, X, FileText, AlertCircle } from 'lucide-react';
 import { Button } from '../ui/button';
 import Modal from '../ui/Modal';
-import {
-  importStreamers,
-  type StreamerImportResult,
-} from '@/api/streamers-import';
+import { importStreamers, type StreamerImportResult } from '@/api/streamers-import';
 
 interface StreamerImportDialogProps {
   open: boolean;
