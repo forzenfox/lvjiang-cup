@@ -5,10 +5,25 @@ import apiClient from '@/api/axios';
 import { Streamer, StreamerType } from '@/api/types';
 import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
-import { Plus, Trash2, Edit2, Save, RefreshCw, User, GripVertical } from 'lucide-react';
+import {
+  Plus,
+  Trash2,
+  Edit2,
+  Save,
+  RefreshCw,
+  User,
+  GripVertical,
+  Upload,
+  Download,
+  CheckCircle,
+  ExternalLink,
+} from 'lucide-react';
 import { toast } from 'sonner';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { ZIndexLayers } from '@/constants/zIndex';
+import Modal from '../../components/ui/Modal';
+import { StreamerImportDialog } from '@/components/import/StreamerImportDialog';
+import { downloadStreamerErrorReport, downloadStreamerTemplate, type StreamerImportResult } from '@/api/streamers-import';
 import {
   DndContext,
   closestCenter,
@@ -435,6 +450,9 @@ const AdminStreamers: React.FC = () => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [streamerToDelete, setStreamerToDelete] = useState<string | null>(null);
   const [hasLoaded, setHasLoaded] = useState(false);
+  const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
+  const [importResult, setImportResult] = useState<StreamerImportResult | null>(null);
+  const [isResultDialogOpen, setIsResultDialogOpen] = useState(false);
 
   const [expandedStreamerId, setExpandedStreamerId] = useState<string | null>(null);
   const [editingStreamerId, setEditingStreamerId] = useState<string | null>(null);
@@ -468,6 +486,22 @@ const AdminStreamers: React.FC = () => {
       toast.error('加载主播列表失败');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDownloadTemplate = async () => {
+    try {
+      const blob = await downloadStreamerTemplate();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `驴酱杯_主播导入模板_${new Date().toISOString().slice(0, 10).replace(/-/g, '')}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch {
+      toast.error('模板下载失败，请重试');
     }
   };
 
@@ -632,6 +666,22 @@ const AdminStreamers: React.FC = () => {
           <Button onClick={handleCreateNew} disabled={loading}>
             <Plus className="w-4 h-4 mr-2" /> 添加主播
           </Button>
+          <Button
+            variant="outline"
+            onClick={handleDownloadTemplate}
+            className="border-gray-600 text-gray-300 hover:bg-gray-700"
+          >
+            <Download className="w-4 h-4 mr-2" />
+            下载模板
+          </Button>
+          <Button
+            onClick={() => setIsImportDialogOpen(true)}
+            disabled={loading}
+            className="bg-gradient-to-r from-yellow-400 to-yellow-600 text-black border-yellow-300 hover:shadow-[0_0_15px_rgba(250,204,21,0.5)]"
+          >
+            <Upload className="w-4 h-4 mr-2" />
+            批量导入
+          </Button>
         </div>
       </div>
 
@@ -688,6 +738,126 @@ const AdminStreamers: React.FC = () => {
           setStreamerToDelete(null);
         }}
       />
+
+      <StreamerImportDialog
+        open={isImportDialogOpen}
+        onClose={() => setIsImportDialogOpen(false)}
+        onSuccess={result => {
+          setImportResult(result);
+          setIsResultDialogOpen(true);
+          loadStreamers();
+        }}
+      />
+
+      <Modal
+        visible={isResultDialogOpen}
+        onClose={() => setIsResultDialogOpen(false)}
+        title="导入结果"
+        className="max-w-2xl"
+      >
+        {importResult && (
+          <div className="space-y-4">
+            {/* 成功/失败统计 */}
+            <div className="p-4 bg-green-500/10 border border-green-500/20 rounded-lg">
+              <div className="flex items-start gap-3">
+                <CheckCircle className="w-6 h-6 text-green-400 flex-shrink-0" />
+                <div>
+                  <p className="text-green-300 font-medium">导入成功</p>
+                  <div className="mt-2 text-sm text-green-200/80 space-y-1">
+                    <p>
+                      总计: {importResult.total} 条
+                    </p>
+                    <p>
+                      成功: {importResult.created} 条
+                    </p>
+                    <p>
+                      失败: {importResult.failed} 条
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* 外链URL提醒 */}
+            {importResult.externalUrlItems && importResult.externalUrlItems.length > 0 && (
+              <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+                <div className="flex items-start gap-3">
+                  <ExternalLink className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-blue-300 font-medium mb-1">外链URL项</p>
+                    <p className="text-sm text-blue-200/80">
+                      以下URL为外部链接，请手动上传到图床后更新：
+                    </p>
+                    <ul className="mt-2 space-y-1 text-sm text-blue-200/80 max-h-32 overflow-y-auto">
+                      {importResult.externalUrlItems.map((item, i) => (
+                        <li key={i} className="break-all">
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 失败详情表格 */}
+            {importResult.errors && importResult.errors.length > 0 && (
+              <div className="max-h-64 overflow-y-auto border border-gray-700 rounded-lg">
+                <table className="w-full text-sm">
+                  <thead className="bg-gray-800 sticky top-0">
+                    <tr>
+                      <th className="px-3 py-2 text-left text-gray-400 font-medium">行号</th>
+                      <th className="px-3 py-2 text-left text-gray-400 font-medium">主播昵称</th>
+                      <th className="px-3 py-2 text-left text-gray-400 font-medium">字段</th>
+                      <th className="px-3 py-2 text-left text-gray-400 font-medium">错误</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-700">
+                    {importResult.errors.map((error, idx) => (
+                      <tr key={idx} className="hover:bg-gray-800/50">
+                        <td className="px-3 py-2 text-gray-300">{error.row || '-'}</td>
+                        <td className="px-3 py-2 text-gray-300">{error.nickname || '-'}</td>
+                        <td className="px-3 py-2 text-gray-300">{error.field || '-'}</td>
+                        <td className="px-3 py-2 text-red-400">{error.message}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            <div className="flex justify-between pt-2">
+              <div>
+                {importResult.errors && importResult.errors.length > 0 && (
+                  <Button
+                    variant="outline"
+                    onClick={async () => {
+                      try {
+                        const blob = await downloadStreamerErrorReport(importResult.errors!);
+                        const url = window.URL.createObjectURL(blob);
+                        const link = document.createElement('a');
+                        link.href = url;
+                        link.download = `驴酱杯_主播导入错误报告_${new Date().toISOString().slice(0, 10).replace(/-/g, '')}.txt`;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                        window.URL.revokeObjectURL(url);
+                      } catch {
+                        toast.error('错误报告下载失败');
+                      }
+                    }}
+                    className="border-gray-600 text-gray-300 hover:bg-gray-700"
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    下载错误报告
+                  </Button>
+                )}
+              </div>
+              <Button onClick={() => setIsResultDialogOpen(false)}>关闭</Button>
+            </div>
+          </div>
+        )}
+      </Modal>
     </AdminLayout>
   );
 };

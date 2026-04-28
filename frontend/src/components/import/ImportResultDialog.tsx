@@ -2,7 +2,23 @@ import React from 'react';
 import { CheckCircle, XCircle, AlertTriangle, Download, ExternalLink } from 'lucide-react';
 import { Button } from '../ui/button';
 import Modal from '../ui/Modal';
-import { downloadErrorReport, type ImportResult } from '@/api/teams-import';
+import { downloadErrorReport } from '@/api/teams-import';
+
+export interface ImportResult {
+  total: number;
+  created: number;
+  updated?: number;
+  failed: number;
+  errors?: Array<{
+    row: number;
+    [key: string]: unknown;
+  }>;
+  externalUrlItems?: string[];
+  errorDownloadFn?: (errors: ImportResult['errors']) => Promise<Blob>;
+  errorReportFileName?: string;
+  successLabel?: string;
+  unitLabel?: string;
+}
 
 interface ImportResultDialogProps {
   open: boolean;
@@ -19,15 +35,22 @@ export const ImportResultDialog: React.FC<ImportResultDialogProps> = ({
 
   const hasErrors = result.errors && result.errors.length > 0;
   const isSuccess = result.failed === 0 && result.total > 0;
+  const successLabel = result.successLabel || '导入成功';
+  const unitLabel = result.unitLabel || '条';
 
   const handleDownloadErrorReport = async () => {
     if (!result.errors) return;
     try {
-      const blob = await downloadErrorReport(result.errors);
+      const blob = result.errorDownloadFn
+        ? await result.errorDownloadFn(result.errors)
+        : await downloadErrorReport(result.errors as any[]);
+      const fileName =
+        result.errorReportFileName ||
+        `导入错误报告_${new Date().toISOString().slice(0, 10).replace(/-/g, '')}.txt`;
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `驴酱杯_导入错误报告_${new Date().toISOString().slice(0, 10).replace(/-/g, '')}.txt`;
+      a.download = fileName;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -49,11 +72,33 @@ export const ImportResultDialog: React.FC<ImportResultDialogProps> = ({
             <div className="flex items-start gap-3">
               <CheckCircle className="w-6 h-6 text-green-400 flex-shrink-0" />
               <div>
-                <p className="text-green-300 font-medium">导入成功</p>
+                <p className="text-green-300 font-medium">{successLabel}</p>
                 <div className="mt-2 text-sm text-green-200/80 space-y-1">
-                  <p>新增战队: {result.created} 支</p>
-                  <p>覆盖战队: {result.updated} 支</p>
-                  <p>总处理: {result.total} 支</p>
+                  {result.updated !== undefined ? (
+                    <>
+                      <p>
+                        新增: {result.created} {unitLabel}
+                      </p>
+                      <p>
+                        覆盖: {result.updated} {unitLabel}
+                      </p>
+                      <p>
+                        总处理: {result.total} {unitLabel}
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <p>
+                        总计: {result.total} {unitLabel}
+                      </p>
+                      <p>
+                        成功: {result.created} {unitLabel}
+                      </p>
+                      <p>
+                        失败: {result.failed} {unitLabel}
+                      </p>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
@@ -65,8 +110,12 @@ export const ImportResultDialog: React.FC<ImportResultDialogProps> = ({
               <div>
                 <p className="text-red-300 font-medium">导入失败</p>
                 <div className="mt-2 text-sm text-red-200/80 space-y-1">
-                  <p>失败: {result.failed} 条</p>
-                  <p>成功: {result.total - result.failed} 条</p>
+                  <p>
+                    失败: {result.failed} {unitLabel}
+                  </p>
+                  <p>
+                    成功: {result.total - result.failed} {unitLabel}
+                  </p>
                 </div>
               </div>
             </div>
@@ -78,9 +127,28 @@ export const ImportResultDialog: React.FC<ImportResultDialogProps> = ({
               <div>
                 <p className="text-yellow-300 font-medium">部分成功</p>
                 <div className="mt-2 text-sm text-yellow-200/80 space-y-1">
-                  <p>新增: {result.created} 支</p>
-                  <p>覆盖: {result.updated} 支</p>
-                  <p>失败: {result.failed} 支</p>
+                  {result.updated !== undefined ? (
+                    <>
+                      <p>
+                        新增: {result.created} {unitLabel}
+                      </p>
+                      <p>
+                        覆盖: {result.updated} {unitLabel}
+                      </p>
+                      <p>
+                        失败: {result.failed} {unitLabel}
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <p>
+                        成功: {result.created} {unitLabel}
+                      </p>
+                      <p>
+                        失败: {result.failed} {unitLabel}
+                      </p>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
@@ -108,25 +176,27 @@ export const ImportResultDialog: React.FC<ImportResultDialogProps> = ({
           </div>
         )}
 
-        {hasErrors && (
+        {hasErrors && result.errors && (
           <div className="max-h-64 overflow-y-auto border border-gray-700 rounded-lg">
             <table className="w-full text-sm">
               <thead className="bg-gray-800 sticky top-0">
                 <tr>
                   <th className="px-3 py-2 text-left text-gray-400 font-medium">行号</th>
-                  <th className="px-3 py-2 text-left text-gray-400 font-medium">战队</th>
-                  <th className="px-3 py-2 text-left text-gray-400 font-medium">位置</th>
+                  <th className="px-3 py-2 text-left text-gray-400 font-medium">名称</th>
                   <th className="px-3 py-2 text-left text-gray-400 font-medium">字段</th>
                   <th className="px-3 py-2 text-left text-gray-400 font-medium">错误</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-700">
-                {result.errors?.map((error, idx) => (
+                {result.errors.map((error, idx) => (
                   <tr key={idx} className="hover:bg-gray-800/50">
                     <td className="px-3 py-2 text-gray-300">{error.row || '-'}</td>
-                    <td className="px-3 py-2 text-gray-300">{error.teamName || '-'}</td>
-                    <td className="px-3 py-2 text-gray-300">{error.position || '-'}</td>
-                    <td className="px-3 py-2 text-gray-300">{error.field}</td>
+                    <td className="px-3 py-2 text-gray-300">
+                      {error.nickname || error.teamName || '-'}
+                    </td>
+                    <td className="px-3 py-2 text-gray-300">
+                      {error.field || error.position || '-'}
+                    </td>
                     <td className="px-3 py-2 text-red-400">{error.message}</td>
                   </tr>
                 ))}
