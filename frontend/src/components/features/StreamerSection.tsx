@@ -151,7 +151,7 @@ const StreamerSection: React.FC<StreamerSectionProps> = () => {
   return (
     <section
       id="streamers"
-      className="min-h-[calc(100vh-96px)] md:h-[calc(100vh-96px)] flex flex-col bg-gradient-to-b from-background via-[#0f1420] to-black relative"
+      className="min-h-[calc(100vh-96px)] flex flex-col bg-gradient-to-b from-background via-[#0f1420] to-black relative"
     >
       <div className="container mx-auto px-6 flex-1 flex flex-col justify-center min-h-0 py-16">
         <div className="flex justify-center mb-12">

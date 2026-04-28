@@ -165,4 +165,139 @@ describe('StreamerIndicator', () => {
 
     expect(screen.getAllByTestId('indicator-dot')).toHaveLength(1);
   });
+
+  /**
+   * 用户旅程4：大数据量时限制可见圆点数量
+   * 作为移动端用户，当主播数量很多时，我希望指示器不会超出屏幕
+   * 以便能够正常看到和点击圆点
+   */
+  it('limits visible dots to maxVisible when streamer count exceeds limit', () => {
+    const manyStreamers = Array.from({ length: 42 }, (_, i) => ({
+      ...mockStreamers[0],
+      id: `streamer-${i}`,
+      nickname: `主播${i + 1}`,
+    }));
+
+    render(
+      <StreamerIndicator
+        streamers={manyStreamers}
+        currentIndex={0}
+        onSelect={vi.fn()}
+        maxVisible={7}
+      />
+    );
+
+    const dots = screen.getAllByTestId('indicator-dot');
+    expect(dots).toHaveLength(7);
+  });
+
+  it('centers current index in visible window', () => {
+    const manyStreamers = Array.from({ length: 42 }, (_, i) => ({
+      ...mockStreamers[0],
+      id: `streamer-${i}`,
+      nickname: `主播${i + 1}`,
+    }));
+
+    render(
+      <StreamerIndicator
+        streamers={manyStreamers}
+        currentIndex={20}
+        onSelect={vi.fn()}
+        maxVisible={7}
+      />
+    );
+
+    const dots = screen.getAllByTestId('indicator-dot');
+    // 当前索引20应该在可见窗口的中间（第4个位置，0-based index 3）
+    expect(dots[3]).toHaveAttribute('aria-label', '跳转到主播 主播21');
+  });
+
+  it('shows all dots when streamer count is within maxVisible limit', () => {
+    const fewStreamers = Array.from({ length: 5 }, (_, i) => ({
+      ...mockStreamers[0],
+      id: `streamer-${i}`,
+      nickname: `主播${i + 1}`,
+    }));
+
+    render(
+      <StreamerIndicator
+        streamers={fewStreamers}
+        currentIndex={2}
+        onSelect={vi.fn()}
+        maxVisible={7}
+      />
+    );
+
+    const dots = screen.getAllByTestId('indicator-dot');
+    expect(dots).toHaveLength(5);
+  });
+
+  it('calls onSelect with correct original index when clicking visible dot', () => {
+    const manyStreamers = Array.from({ length: 42 }, (_, i) => ({
+      ...mockStreamers[0],
+      id: `streamer-${i}`,
+      nickname: `主播${i + 1}`,
+    }));
+
+    const handleSelect = vi.fn();
+    render(
+      <StreamerIndicator
+        streamers={manyStreamers}
+        currentIndex={20}
+        onSelect={handleSelect}
+        maxVisible={7}
+      />
+    );
+
+    const dots = screen.getAllByTestId('indicator-dot');
+    // 点击可见窗口中的最后一个圆点（对应原始索引23）
+    fireEvent.click(dots[6]);
+    expect(handleSelect).toHaveBeenCalledWith(23);
+  });
+
+  it('handles edge case when current index is near the start', () => {
+    const manyStreamers = Array.from({ length: 42 }, (_, i) => ({
+      ...mockStreamers[0],
+      id: `streamer-${i}`,
+      nickname: `主播${i + 1}`,
+    }));
+
+    render(
+      <StreamerIndicator
+        streamers={manyStreamers}
+        currentIndex={1}
+        onSelect={vi.fn()}
+        maxVisible={7}
+      />
+    );
+
+    const dots = screen.getAllByTestId('indicator-dot');
+    expect(dots).toHaveLength(7);
+    // 第一个可见圆点应该对应原始索引0
+    expect(dots[0]).toHaveAttribute('aria-label', '跳转到主播 主播1');
+  });
+
+  it('handles edge case when current index is near the end', () => {
+    const manyStreamers = Array.from({ length: 42 }, (_, i) => ({
+      ...mockStreamers[0],
+      id: `streamer-${i}`,
+      nickname: `主播${i + 1}`,
+    }));
+
+    render(
+      <StreamerIndicator
+        streamers={manyStreamers}
+        currentIndex={40}
+        onSelect={vi.fn()}
+        maxVisible={7}
+      />
+    );
+
+    const dots = screen.getAllByTestId('indicator-dot');
+    expect(dots).toHaveLength(7);
+    // 当前索引40，窗口调整为35-41，最后一个可见圆点对应原始索引41（主播42）
+    expect(dots[6]).toHaveAttribute('aria-label', '跳转到主播 主播42');
+    // 当前选中的圆点在窗口的第6个位置（40-35=5，0-based index 5）
+    expect(dots[5]).toHaveAttribute('aria-label', '跳转到主播 主播41');
+  });
 });
