@@ -92,13 +92,18 @@ const MatchEditDialog: React.FC<MatchEditDialogProps> = ({
       return;
     }
 
-    if (formData.status === 'finished' && !formData.winnerId) {
+    // 如果状态不是'已结束'，清除 winnerId
+    if (formData.status !== 'finished') {
+      formData.winnerId = null;
+    } else if (!formData.winnerId) {
+      // 如果是'已结束'但没有 winnerId，根据比分自动设置
       if (formData.scoreA > formData.scoreB) {
         formData.winnerId = formData.teamAId;
       } else if (formData.scoreB > formData.scoreA) {
         formData.winnerId = formData.teamBId;
       }
     }
+
     const result = await onSave(formData);
     if (result !== false) {
       onClose();
@@ -108,11 +113,15 @@ const MatchEditDialog: React.FC<MatchEditDialogProps> = ({
   const handleQuickStatus = (status: MatchStatus) => {
     const updated = { ...formData, status };
     if (status === 'finished') {
+      // 设置为'已结束'时，根据比分自动设置 winnerId
       if (updated.scoreA > updated.scoreB) {
         updated.winnerId = updated.teamAId;
       } else if (updated.scoreB > updated.scoreA) {
         updated.winnerId = updated.teamBId;
       }
+    } else {
+      // 修改为'未开始'或'进行中'时，清除 winnerId
+      updated.winnerId = null;
     }
     setFormData(updated);
   };

@@ -153,12 +153,15 @@ const MatchDataImportDialog: React.FC<MatchDataImportDialogProps> = ({
     setDragging(false);
   }, []);
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setDragging(false);
-    const droppedFile = e.dataTransfer.files?.[0] || null;
-    processFileAndResetStates(droppedFile);
-  }, [processFileAndResetStates]);
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      setDragging(false);
+      const droppedFile = e.dataTransfer.files?.[0] || null;
+      processFileAndResetStates(droppedFile);
+    },
+    [processFileAndResetStates]
+  );
 
   const parseErrorDetails = (err: any): ImportErrorDetail[] => {
     // Try to extract error details from different response formats
@@ -216,14 +219,26 @@ const MatchDataImportDialog: React.FC<MatchDataImportDialogProps> = ({
       );
 
       if (allSuccess) {
-        toast.success(isDryRun ? '预检通过，可执行实际导入' : `成功导入 ${result.totalGames} 局数据，请预览确认`, { id: toastId });
+        toast.success(
+          isDryRun
+            ? '预检通过，可执行实际导入'
+            : `成功导入 ${result.totalGames} 局数据，请预览确认`,
+          { id: toastId }
+        );
       } else if (hasFailed) {
-        toast.warning(isDryRun ? '预检发现部分局数存在问题，请查看详情' : `导入完成，部分局数导入失败，请查看详情`, {
-          id: toastId,
-          duration: 5000,
-        });
+        toast.warning(
+          isDryRun
+            ? '预检发现部分局数存在问题，请查看详情'
+            : `导入完成，部分局数导入失败，请查看详情`,
+          {
+            id: toastId,
+            duration: 5000,
+          }
+        );
       } else {
-        toast.success(isDryRun ? '预检通过，可执行实际导入' : '数据导入成功，请预览确认', { id: toastId });
+        toast.success(isDryRun ? '预检通过，可执行实际导入' : '数据导入成功，请预览确认', {
+          id: toastId,
+        });
       }
 
       // 跟踪导入成功事件（使用第一局的数据）
@@ -440,8 +455,7 @@ const MatchDataImportDialog: React.FC<MatchDataImportDialogProps> = ({
   /**
    * 检查预检是否有错误（预检模式下 imported 固定为 false，不应作为错误判断依据）
    */
-  const hasDryRunErrors =
-    isDryRunPreview && multiGameResults?.some(isResultFailed);
+  const hasDryRunErrors = isDryRunPreview && multiGameResults?.some(isResultFailed);
 
   /**
    * 获取多局导入结果容器的样式类名
@@ -751,9 +765,7 @@ const MatchDataImportDialog: React.FC<MatchDataImportDialogProps> = ({
                             )}
                           </div>
                         ) : (
-                          <span className="text-blue-400">
-                            {result.playerCount} 名选手数据
-                          </span>
+                          <span className="text-blue-400">{result.playerCount} 名选手数据</span>
                         )
                       ) : result.imported ? (
                         <span className="text-green-400">

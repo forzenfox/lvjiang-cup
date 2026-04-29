@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { describe, it, expect, vi } from 'vitest';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import MatchEditDialog from '@/pages/admin/components/MatchEditDialog';
 import type { Match, Team, SwissAdvancementResult } from '@/types';
 
@@ -303,5 +303,223 @@ describe('MatchEditDialog', () => {
     // 验证未晋级队伍不显示
     expect(screen.queryByText('IC')).not.toBeInTheDocument();
     expect(screen.queryByText('小熊')).not.toBeInTheDocument();
+  });
+
+  it('点击"已结束"按钮时，根据比分自动设置 winnerId', async () => {
+    const match = createMockMatch('match-1', 'team1', 'team2');
+    match.scoreA = 2;
+    match.scoreB = 1;
+    match.status = 'finished';
+
+    const mockOnSave = vi.fn(() => true);
+    const mockOnClose = vi.fn();
+
+    render(
+      <MatchEditDialog
+        match={match}
+        teams={mockTeams}
+        isOpen={true}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
+      />
+    );
+
+    // 找到保存按钮并点击
+    fireEvent.click(screen.getByText('保存'));
+
+    await waitFor(() => {
+      expect(mockOnSave).toHaveBeenCalledTimes(1);
+      // 验证 winnerId 被设置为 team1（因为 scoreA > scoreB）
+      expect(mockOnSave).toHaveBeenCalledWith(
+        expect.objectContaining({
+          winnerId: 'team1',
+          status: 'finished',
+        })
+      );
+    });
+  });
+
+  it('点击"未开始"按钮时，清除 winnerId', async () => {
+    const match = createMockMatch('match-1', 'team1', 'team2');
+    match.scoreA = 2;
+    match.scoreB = 1;
+    match.status = 'finished';
+    match.winnerId = 'team1';
+
+    const mockOnSave = vi.fn(() => true);
+    const mockOnClose = vi.fn();
+
+    render(
+      <MatchEditDialog
+        match={match}
+        teams={mockTeams}
+        isOpen={true}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
+      />
+    );
+
+    // 找到"未开始"按钮并点击
+    fireEvent.click(screen.getByText('未开始'));
+
+    // 找到保存按钮并点击
+    fireEvent.click(screen.getByText('保存'));
+
+    await waitFor(() => {
+      expect(mockOnSave).toHaveBeenCalledTimes(1);
+      // 验证 winnerId 被清除为 null
+      expect(mockOnSave).toHaveBeenCalledWith(
+        expect.objectContaining({
+          winnerId: null,
+          status: 'upcoming',
+        })
+      );
+    });
+  });
+
+  it('点击"进行中"按钮时，清除 winnerId', async () => {
+    const match = createMockMatch('match-1', 'team1', 'team2');
+    match.scoreA = 2;
+    match.scoreB = 1;
+    match.status = 'finished';
+    match.winnerId = 'team1';
+
+    const mockOnSave = vi.fn(() => true);
+    const mockOnClose = vi.fn();
+
+    render(
+      <MatchEditDialog
+        match={match}
+        teams={mockTeams}
+        isOpen={true}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
+      />
+    );
+
+    // 找到"进行中"按钮并点击
+    fireEvent.click(screen.getByText('进行中'));
+
+    // 找到保存按钮并点击
+    fireEvent.click(screen.getByText('保存'));
+
+    await waitFor(() => {
+      expect(mockOnSave).toHaveBeenCalledTimes(1);
+      // 验证 winnerId 被清除为 null
+      expect(mockOnSave).toHaveBeenCalledWith(
+        expect.objectContaining({
+          winnerId: null,
+          status: 'ongoing',
+        })
+      );
+    });
+  });
+
+  it('保存时状态不是"已结束"，清除 winnerId', async () => {
+    const match = createMockMatch('match-1', 'team1', 'team2');
+    match.scoreA = 2;
+    match.scoreB = 1;
+    match.status = 'upcoming';
+    match.winnerId = 'team1'; // 之前设置的 winnerId
+
+    const mockOnSave = vi.fn(() => true);
+    const mockOnClose = vi.fn();
+
+    render(
+      <MatchEditDialog
+        match={match}
+        teams={mockTeams}
+        isOpen={true}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
+      />
+    );
+
+    // 直接点击保存按钮（不改变状态）
+    fireEvent.click(screen.getByText('保存'));
+
+    await waitFor(() => {
+      expect(mockOnSave).toHaveBeenCalledTimes(1);
+      // 验证即使比分有差异，因为状态不是 finished，winnerId 被清除
+      expect(mockOnSave).toHaveBeenCalledWith(
+        expect.objectContaining({
+          winnerId: null,
+          status: 'upcoming',
+        })
+      );
+    });
+  });
+
+  it('保存时状态是"已结束"且比分为平局，winnerId 保持 null', async () => {
+    const match = createMockMatch('match-1', 'team1', 'team2');
+    match.scoreA = 1;
+    match.scoreB = 1;
+    match.status = 'finished';
+    match.winnerId = null;
+
+    const mockOnSave = vi.fn(() => true);
+    const mockOnClose = vi.fn();
+
+    render(
+      <MatchEditDialog
+        match={match}
+        teams={mockTeams}
+        isOpen={true}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
+      />
+    );
+
+    // 点击保存按钮
+    fireEvent.click(screen.getByText('保存'));
+
+    await waitFor(() => {
+      expect(mockOnSave).toHaveBeenCalledTimes(1);
+      // 验证平局时 winnerId 保持 null
+      expect(mockOnSave).toHaveBeenCalledWith(
+        expect.objectContaining({
+          winnerId: null,
+          status: 'finished',
+        })
+      );
+    });
+  });
+
+  it('从"已结束"切换回"未开始"后保存，winnerId 被清除', async () => {
+    const match = createMockMatch('match-1', 'team1', 'team2');
+    match.scoreA = 2;
+    match.scoreB = 1;
+    match.status = 'finished';
+    match.winnerId = 'team1';
+
+    const mockOnSave = vi.fn(() => true);
+    const mockOnClose = vi.fn();
+
+    render(
+      <MatchEditDialog
+        match={match}
+        teams={mockTeams}
+        isOpen={true}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
+      />
+    );
+
+    // 先点击"未开始"按钮
+    fireEvent.click(screen.getByText('未开始'));
+
+    // 再点击保存按钮
+    fireEvent.click(screen.getByText('保存'));
+
+    await waitFor(() => {
+      expect(mockOnSave).toHaveBeenCalledTimes(1);
+      // 验证 winnerId 被清除
+      expect(mockOnSave).toHaveBeenCalledWith(
+        expect.objectContaining({
+          winnerId: null,
+          status: 'upcoming',
+        })
+      );
+    });
   });
 });
