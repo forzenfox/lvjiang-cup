@@ -3,7 +3,8 @@ import { Upload, X, FileText, AlertCircle, Loader2, Download } from 'lucide-reac
 import { Button } from '../ui/button';
 import Modal from '../ui/Modal';
 import { ConfirmDialog } from '../ui/confirm-dialog';
-import { importMatchData, downloadMatchDataErrorReport } from '@/api/matchData';
+import { matchDataService } from '@/services/matchDataService';
+import { downloadMatchDataErrorReport } from '@/api/matchData';
 import type {
   ImportMatchDataResponse,
   MultiGameImportResponse,
@@ -68,9 +69,10 @@ const MatchDataImportDialog: React.FC<MatchDataImportDialogProps> = ({
   const [showWarningDialog, setShowWarningDialog] = useState(false);
 
   /**
-   * 清除文件及相关状态
+   * 清理导入相关的业务状态（文件、预览、错误、告警等）
+   * 不清理 UI 交互状态（dragging、uploading、downloadingReport）
    */
-  const clearFileState = useCallback(() => {
+  const clearImportState = useCallback(() => {
     setFile(null);
     setPreview(null);
     setMultiGameResults(null);
@@ -84,23 +86,21 @@ const MatchDataImportDialog: React.FC<MatchDataImportDialogProps> = ({
   }, []);
 
   /**
-   * 重置所有状态（关闭对话框时使用）
+   * 清除文件及相关状态（文件选择/拖拽时使用）
+   */
+  const clearFileState = useCallback(() => {
+    clearImportState();
+  }, [clearImportState]);
+
+  /**
+   * 重置所有状态到初始值（关闭对话框时使用）
    */
   const resetState = useCallback(() => {
-    setFile(null);
+    clearImportState();
     setDragging(false);
     setUploading(false);
-    setError(null);
-    setErrorDetails([]);
-    setValidationErrors([]);
-    setPreview(null);
-    setMultiGameResults(null);
     setDownloadingReport(false);
-    setWarnings([]);
-    setShowWarningDialog(false);
-    setDryRunSuccess(false);
-    setIsDryRunPreview(false);
-  }, []);
+  }, [clearImportState]);
 
   const validateFile = (file: File): string | null => {
     const extension = file.name.split('.').pop()?.toLowerCase();
@@ -113,25 +113,34 @@ const MatchDataImportDialog: React.FC<MatchDataImportDialogProps> = ({
     return null;
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0];
-    if (selectedFile) {
-      const validationError = validateFile(selectedFile);
-      if (validationError) {
-        setError(validationError);
-        setErrorDetails([]);
-        setValidationErrors([]);
-        return;
-      }
-      setFile(selectedFile);
-      setPreview(null);
-      setMultiGameResults(null);
-      setError(null);
+  /**
+   * 处理文件验证并重置相关状态
+   * 用于统一处理文件选择和拖拽上传的文件处理逻辑
+   */
+  const processFileAndResetStates = useCallback((newFile: File | null) => {
+    if (!newFile) return;
+
+    const validationError = validateFile(newFile);
+    if (validationError) {
+      setError(validationError);
       setErrorDetails([]);
       setValidationErrors([]);
-      setWarnings([]);
-      setShowWarningDialog(false);
+      return;
     }
+
+    setFile(newFile);
+    setPreview(null);
+    setMultiGameResults(null);
+    setError(null);
+    setErrorDetails([]);
+    setValidationErrors([]);
+    setWarnings([]);
+    setShowWarningDialog(false);
+  }, []);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0] || null;
+    processFileAndResetStates(selectedFile);
   };
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
@@ -147,25 +156,9 @@ const MatchDataImportDialog: React.FC<MatchDataImportDialogProps> = ({
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setDragging(false);
-    const droppedFile = e.dataTransfer.files?.[0];
-    if (droppedFile) {
-      const validationError = validateFile(droppedFile);
-      if (validationError) {
-        setError(validationError);
-        setErrorDetails([]);
-        setValidationErrors([]);
-        return;
-      }
-      setFile(droppedFile);
-      setPreview(null);
-      setMultiGameResults(null);
-      setError(null);
-      setErrorDetails([]);
-      setValidationErrors([]);
-      setWarnings([]);
-      setShowWarningDialog(false);
-    }
-  }, []);
+    const droppedFile = e.dataTransfer.files?.[0] || null;
+    processFileAndResetStates(droppedFile);
+  }, [processFileAndResetStates]);
 
   const parseErrorDetails = (err: any): ImportErrorDetail[] => {
     // Try to extract error details from different response formats
@@ -199,11 +192,15 @@ const MatchDataImportDialog: React.FC<MatchDataImportDialogProps> = ({
    */
   const handleImportSuccess = (
     result: ImportMatchDataResponse | MultiGameImportResponse,
-    toastId: string | number
+    toastId: string | number,
+    isDryRun?: boolean
   ) => {
     if (isMultiGameResponse(result)) {
       // 多局导入结果
       setMultiGameResults(result.results);
+      if (!isDryRun) {
+        setIsDryRunPreview(false); // 清除预检标记，显示导入结果
+      }
 
       // 预检模式下 imported 固定为 false，不能用其判断失败
       // 应基于 failedPlayers 和 errorDetails 判断
@@ -219,14 +216,14 @@ const MatchDataImportDialog: React.FC<MatchDataImportDialogProps> = ({
       );
 
       if (allSuccess) {
-        toast.success(`成功导入 ${result.totalGames} 局数据，请预览确认`, { id: toastId });
+        toast.success(isDryRun ? '预检通过，可执行实际导入' : `成功导入 ${result.totalGames} 局数据，请预览确认`, { id: toastId });
       } else if (hasFailed) {
-        toast.warning(`导入完成，部分局数导入失败，请查看详情`, {
+        toast.warning(isDryRun ? '预检发现部分局数存在问题，请查看详情' : `导入完成，部分局数导入失败，请查看详情`, {
           id: toastId,
           duration: 5000,
         });
       } else {
-        toast.success('数据导入成功，请预览确认', { id: toastId });
+        toast.success(isDryRun ? '预检通过，可执行实际导入' : '数据导入成功，请预览确认', { id: toastId });
       }
 
       // 跟踪导入成功事件（使用第一局的数据）
@@ -237,6 +234,9 @@ const MatchDataImportDialog: React.FC<MatchDataImportDialogProps> = ({
     } else {
       // 单局导入结果（兼容旧格式）
       setPreview(result);
+      if (!isDryRun) {
+        setIsDryRunPreview(false); // 清除预检标记
+      }
 
       // 检查是否为覆盖导入
       if (result.overwritten) {
@@ -276,7 +276,7 @@ const MatchDataImportDialog: React.FC<MatchDataImportDialogProps> = ({
     const toastId = toast.loading(options?.dryRun ? '正在预检比赛数据...' : '正在导入比赛数据...');
 
     try {
-      const result = await importMatchData(matchId, file, options);
+      const result = await matchDataService.importMatchData(matchId, file, options);
 
       // dryRun 模式：检查是否有告警
       const multiGameResult = result as MultiGameImportResponse;
@@ -294,13 +294,13 @@ const MatchDataImportDialog: React.FC<MatchDataImportDialogProps> = ({
       if (options?.dryRun) {
         setDryRunSuccess(true);
         setIsDryRunPreview(true); // 标记为预检预览
-        handleImportSuccess(result, toastId);
+        handleImportSuccess(result, toastId, true);
         setUploading(false);
         return;
       }
 
       // 正式导入成功
-      handleImportSuccess(result, toastId);
+      handleImportSuccess(result, toastId, false);
 
       // 导入成功后清除文件
       setFile(null);
@@ -427,14 +427,161 @@ const MatchDataImportDialog: React.FC<MatchDataImportDialogProps> = ({
   const hasErrors = errorDetails.length > 0 || validationErrors.length > 0;
   const hasResult = preview !== null || (multiGameResults !== null && multiGameResults.length > 0);
 
-  // 检查预检是否有错误（预检模式下 imported 固定为 false，不应作为错误判断依据）
-  const hasDryRunErrors =
-    isDryRunPreview &&
-    multiGameResults?.some(
-      r =>
-        (r.failedPlayers && r.failedPlayers.length > 0) ||
-        (r.errorDetails && r.errorDetails.length > 0)
+  /**
+   * 检查单个导入结果是否失败
+   */
+  const isResultFailed = (result: SingleGameImportResult): boolean => {
+    return (
+      (result.failedPlayers && result.failedPlayers.length > 0) ||
+      (result.errorDetails && result.errorDetails.length > 0)
     );
+  };
+
+  /**
+   * 检查预检是否有错误（预检模式下 imported 固定为 false，不应作为错误判断依据）
+   */
+  const hasDryRunErrors =
+    isDryRunPreview && multiGameResults?.some(isResultFailed);
+
+  /**
+   * 获取多局导入结果容器的样式类名
+   */
+  const getResultsContainerClassName = (): string => {
+    if (isDryRunPreview && hasDryRunErrors) {
+      return 'bg-red-500/10 border-red-500/20';
+    }
+    if (isDryRunPreview) {
+      return 'bg-blue-500/10 border-blue-500/20';
+    }
+    return 'bg-green-500/10 border-green-500/20';
+  };
+
+  /**
+   * 获取多局导入结果标题的样式类名
+   */
+  const getResultsTitleClassName = (): string => {
+    if (isDryRunPreview && hasDryRunErrors) {
+      return 'text-red-400';
+    }
+    if (isDryRunPreview) {
+      return 'text-blue-400';
+    }
+    return 'text-green-400';
+  };
+
+  /**
+   * 获取单个结果卡片的样式类名
+   */
+  const getResultCardClassName = (result: SingleGameImportResult): string => {
+    if (isDryRunPreview) {
+      return 'bg-blue-500/10 border border-blue-500/20';
+    }
+    if (result.imported) {
+      return result.overwritten
+        ? 'bg-amber-500/10 border border-amber-500/20'
+        : 'bg-gray-800/50 border border-gray-700';
+    }
+    return 'bg-red-500/10 border border-red-500/20';
+  };
+
+  /**
+   * 渲染错误报告下载按钮
+   */
+  const renderErrorReportDownloadButton = (): React.ReactNode => (
+    <Button
+      variant="outline"
+      size="sm"
+      onClick={handleDownloadErrorReport}
+      disabled={downloadingReport}
+      className="border-red-500/30 text-red-400 hover:bg-red-500/10"
+    >
+      <Download className="w-4 h-4 mr-2" />
+      {downloadingReport ? '下载中...' : '下载错误报告'}
+    </Button>
+  );
+
+  /**
+   * 渲染操作按钮（根据当前状态显示不同的按钮）
+   */
+  const renderActionButton = (): React.ReactNode => {
+    // 错误状态
+    if (hasErrors) {
+      return (
+        <Button
+          onClick={handleClose}
+          className="bg-gradient-to-r from-gray-600 to-gray-700 text-white"
+        >
+          关闭
+        </Button>
+      );
+    }
+
+    // 单局预览状态（兼容旧格式）
+    if (preview) {
+      return (
+        <Button
+          onClick={handleConfirm}
+          className="bg-gradient-to-r from-green-500 to-green-600 text-white"
+        >
+          确认导入
+        </Button>
+      );
+    }
+
+    // 预检状态
+    if (isDryRunPreview) {
+      if (hasDryRunErrors) {
+        return (
+          <Button
+            onClick={() => {
+              clearFileState();
+            }}
+            className="bg-gradient-to-r from-gray-500 to-gray-600 text-white"
+          >
+            返回修改
+          </Button>
+        );
+      }
+      return (
+        <Button
+          onClick={handleConfirm}
+          className="bg-gradient-to-r from-green-500 to-green-600 text-white"
+        >
+          继续导入
+        </Button>
+      );
+    }
+
+    // 多局导入完成状态
+    if (multiGameResults) {
+      return (
+        <Button
+          onClick={handleConfirm}
+          className="bg-gradient-to-r from-green-500 to-green-600 text-white"
+        >
+          完成
+        </Button>
+      );
+    }
+
+    // 默认上传状态
+    return (
+      <Button
+        onClick={handleImport}
+        disabled={!file || uploading}
+        className="bg-gradient-to-r from-blue-500 to-blue-600 text-white"
+      >
+        {uploading ? (
+          <>
+            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            导入中...
+          </>
+        ) : (
+          '开始导入'
+        )}
+      </Button>
+    );
+  };
 
   return (
     <>
@@ -558,67 +705,23 @@ const MatchDataImportDialog: React.FC<MatchDataImportDialogProps> = ({
 
           {/* 多局导入结果展示 */}
           {multiGameResults && multiGameResults.length > 0 && (
-            <div
-              className={`p-4 border rounded-lg ${
-                isDryRunPreview &&
-                multiGameResults.some(
-                  r =>
-                    (r.failedPlayers && r.failedPlayers.length > 0) ||
-                    (r.errorDetails && r.errorDetails.length > 0)
-                )
-                  ? 'bg-red-500/10 border-red-500/20'
-                  : isDryRunPreview
-                    ? 'bg-blue-500/10 border-blue-500/20'
-                    : 'bg-green-500/10 border-green-500/20'
-              }`}
-            >
-              <h4
-                className={`font-medium mb-3 ${
-                  isDryRunPreview &&
-                  multiGameResults.some(
-                    r =>
-                      (r.failedPlayers && r.failedPlayers.length > 0) ||
-                      (r.errorDetails && r.errorDetails.length > 0)
-                  )
-                    ? 'text-red-400'
-                    : isDryRunPreview
-                      ? 'text-blue-400'
-                      : 'text-green-400'
-                }`}
-              >
+            <div className={`p-4 border rounded-lg ${getResultsContainerClassName()}`}>
+              <h4 className={`font-medium mb-3 ${getResultsTitleClassName()}`}>
                 {isDryRunPreview ? '预检结果' : '导入结果'}
               </h4>
-              {isDryRunPreview &&
-                !multiGameResults.some(
-                  r =>
-                    (r.failedPlayers && r.failedPlayers.length > 0) ||
-                    (r.errorDetails && r.errorDetails.length > 0)
-                ) && (
-                  <p className="text-sm text-gray-400 mb-3">
-                    以下数据验证通过，点击"继续导入"将执行实际导入
-                  </p>
-                )}
-              {isDryRunPreview &&
-                multiGameResults.some(
-                  r =>
-                    (r.failedPlayers && r.failedPlayers.length > 0) ||
-                    (r.errorDetails && r.errorDetails.length > 0)
-                ) && (
-                  <p className="text-sm text-red-300 mb-3">预检发现以下问题，请修正后重新上传</p>
-                )}
+              {isDryRunPreview && !hasDryRunErrors && (
+                <p className="text-sm text-gray-400 mb-3">
+                  以下数据验证通过，点击"继续导入"将执行实际导入
+                </p>
+              )}
+              {isDryRunPreview && hasDryRunErrors && (
+                <p className="text-sm text-red-300 mb-3">预检发现以下问题，请修正后重新上传</p>
+              )}
               <div className="space-y-2">
                 {multiGameResults.map(result => (
                   <div
                     key={result.gameNumber}
-                    className={`flex items-center justify-between p-3 rounded-lg text-sm ${
-                      isDryRunPreview
-                        ? 'bg-blue-500/10 border border-blue-500/20' // 预检待导入
-                        : result.imported
-                          ? result.overwritten
-                            ? 'bg-amber-500/10 border border-amber-500/20'
-                            : 'bg-gray-800/50 border border-gray-700'
-                          : 'bg-red-500/10 border border-red-500/20'
-                    }`}
+                    className={`flex items-center justify-between p-3 rounded-lg text-sm ${getResultCardClassName(result)}`}
                   >
                     <div className="flex items-center gap-2">
                       <span className="text-white font-medium">第 {result.gameNumber} 局</span>
@@ -649,7 +752,7 @@ const MatchDataImportDialog: React.FC<MatchDataImportDialogProps> = ({
                           </div>
                         ) : (
                           <span className="text-blue-400">
-                            {result.playerCount} 名选手数据（待导入）
+                            {result.playerCount} 名选手数据
                           </span>
                         )
                       ) : result.imported ? (
@@ -698,16 +801,7 @@ const MatchDataImportDialog: React.FC<MatchDataImportDialogProps> = ({
                     验证错误：发现 {validationErrors.length} 个问题
                   </span>
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleDownloadErrorReport}
-                  disabled={downloadingReport}
-                  className="border-red-500/30 text-red-400 hover:bg-red-500/10"
-                >
-                  <Download className="w-4 h-4 mr-2" />
-                  {downloadingReport ? '下载中...' : '下载错误报告'}
-                </Button>
+                {renderErrorReportDownloadButton()}
               </div>
               <div className="max-h-64 overflow-y-auto p-4">
                 <ul className="space-y-2">
@@ -732,16 +826,7 @@ const MatchDataImportDialog: React.FC<MatchDataImportDialogProps> = ({
                     导入失败：{errorDetails.length} 个错误
                   </span>
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleDownloadErrorReport}
-                  disabled={downloadingReport}
-                  className="border-red-500/30 text-red-400 hover:bg-red-500/10"
-                >
-                  <Download className="w-4 h-4 mr-2" />
-                  {downloadingReport ? '下载中...' : '下载错误报告'}
-                </Button>
+                {renderErrorReportDownloadButton()}
               </div>
               <div className="max-h-64 overflow-y-auto p-4">
                 <table className="w-full text-sm">
@@ -792,59 +877,7 @@ const MatchDataImportDialog: React.FC<MatchDataImportDialogProps> = ({
             <Button variant="ghost" onClick={handleClose} disabled={uploading}>
               取消
             </Button>
-            {hasErrors ? (
-              <Button
-                onClick={handleClose}
-                className="bg-gradient-to-r from-gray-600 to-gray-700 text-white"
-              >
-                关闭
-              </Button>
-            ) : preview ? (
-              <Button
-                onClick={handleConfirm}
-                className="bg-gradient-to-r from-green-500 to-green-600 text-white"
-              >
-                确认导入
-              </Button>
-            ) : isDryRunPreview && hasDryRunErrors ? (
-              <Button
-                onClick={() => {
-                  clearFileState();
-                }}
-                className="bg-gradient-to-r from-gray-500 to-gray-600 text-white"
-              >
-                返回修改
-              </Button>
-            ) : isDryRunPreview ? (
-              <Button
-                onClick={handleConfirm}
-                className="bg-gradient-to-r from-green-500 to-green-600 text-white"
-              >
-                继续导入
-              </Button>
-            ) : multiGameResults ? (
-              <Button
-                onClick={handleConfirm}
-                className="bg-gradient-to-r from-green-500 to-green-600 text-white"
-              >
-                完成
-              </Button>
-            ) : (
-              <Button
-                onClick={handleImport}
-                disabled={!file || uploading}
-                className="bg-gradient-to-r from-blue-500 to-blue-600 text-white"
-              >
-                {uploading ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    导入中...
-                  </>
-                ) : (
-                  '开始导入'
-                )}
-              </Button>
-            )}
+            {renderActionButton()}
           </div>
         </div>
       </Modal>

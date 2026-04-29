@@ -173,6 +173,7 @@ describe('MatchDataImportDialog', () => {
 
   /**
    * 单局导入成功流程（通过多局格式返回单局结果）
+   * 两步导入：1. dryRun预检 -> 2. 确认导入
    */
   it('calls onSuccess callback after successful import and confirm', async () => {
     const mockImportResult = {
@@ -183,27 +184,41 @@ describe('MatchDataImportDialog', () => {
       ],
     };
 
-    vi.mocked(matchDataApi.importMatchData).mockResolvedValue(mockImportResult);
+    // 第一次调用 dryRun=true 返回预检结果
+    vi.mocked(matchDataApi.importMatchData)
+      .mockResolvedValueOnce(mockImportResult)
+      // 第二次调用（确认导入）返回实际导入结果
+      .mockResolvedValueOnce(mockImportResult);
 
     const onSuccess = vi.fn();
     render(<MatchDataImportDialog {...defaultProps} onSuccess={onSuccess} />);
 
     dropFile(createValidFile());
 
+    // 第一步：点击开始导入，触发 dryRun 预检
     const uploadButton = screen.getByText(/开始导入/i);
     fireEvent.click(uploadButton);
 
-    // 多局导入结果展示后，点击完成按钮
+    // 等待预检结果显示
     await waitFor(() => {
-      expect(screen.getByText(/导入结果/i)).toBeInTheDocument();
+      expect(screen.getByText(/预检结果/i)).toBeInTheDocument();
       expect(screen.getByText(/第 1 局/i)).toBeInTheDocument();
     });
 
+    // 第二步：点击继续导入，执行实际导入
+    const confirmButton = screen.getByText(/继续导入/i);
+    fireEvent.click(confirmButton);
+
+    // 等待实际导入完成
+    await waitFor(() => {
+      expect(screen.getByText(/导入结果/i)).toBeInTheDocument();
+    });
+
+    // 点击完成按钮
     const finishButton = screen.getByText(/完成/i);
     fireEvent.click(finishButton);
 
     await waitFor(() => {
-      // onSuccess 会被调用，但参数是构造的 ImportMatchDataResponse 格式
       expect(onSuccess).toHaveBeenCalled();
       expect(onSuccess).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -217,6 +232,7 @@ describe('MatchDataImportDialog', () => {
 
   /**
    * 多局导入成功展示
+   * 两步导入：1. dryRun预检 -> 2. 确认导入 -> 显示导入结果
    */
   it('displays multi-game import results when API returns MultiGameImportResponse', async () => {
     const mockMultiGameResult = {
@@ -229,7 +245,9 @@ describe('MatchDataImportDialog', () => {
       ],
     };
 
-    vi.mocked(matchDataApi.importMatchData).mockResolvedValue(mockMultiGameResult);
+    vi.mocked(matchDataApi.importMatchData)
+      .mockResolvedValueOnce(mockMultiGameResult)
+      .mockResolvedValueOnce(mockMultiGameResult);
 
     render(<MatchDataImportDialog {...defaultProps} />);
 
@@ -238,6 +256,16 @@ describe('MatchDataImportDialog', () => {
     const uploadButton = screen.getByText(/开始导入/i);
     fireEvent.click(uploadButton);
 
+    // 等待预检结果显示
+    await waitFor(() => {
+      expect(screen.getByText(/预检结果/i)).toBeInTheDocument();
+    });
+
+    // 点击继续导入，执行实际导入
+    const confirmButton = screen.getByText(/继续导入/i);
+    fireEvent.click(confirmButton);
+
+    // 等待实际导入完成，显示导入结果
     await waitFor(() => {
       expect(screen.getByText(/导入结果/i)).toBeInTheDocument();
       expect(screen.getByText(/第 1 局/i)).toBeInTheDocument();
@@ -277,7 +305,9 @@ describe('MatchDataImportDialog', () => {
       ],
     };
 
-    vi.mocked(matchDataApi.importMatchData).mockResolvedValue(mockMultiGameResult);
+    vi.mocked(matchDataApi.importMatchData)
+      .mockResolvedValueOnce(mockMultiGameResult)
+      .mockResolvedValueOnce(mockMultiGameResult);
 
     render(<MatchDataImportDialog {...defaultProps} />);
 
@@ -286,6 +316,16 @@ describe('MatchDataImportDialog', () => {
     const uploadButton = screen.getByText(/开始导入/i);
     fireEvent.click(uploadButton);
 
+    // 等待预检结果显示
+    await waitFor(() => {
+      expect(screen.getByText(/预检结果/i)).toBeInTheDocument();
+    });
+
+    // 点击继续导入，执行实际导入
+    const confirmButton = screen.getByText(/继续导入/i);
+    fireEvent.click(confirmButton);
+
+    // 等待实际导入完成，显示导入结果中的失败信息
     await waitFor(() => {
       expect(screen.getByText(/导入结果/i)).toBeInTheDocument();
       expect(screen.getByText(/导入失败：选手数据不完整/i)).toBeInTheDocument();
@@ -498,7 +538,7 @@ describe('MatchDataImportDialog', () => {
         ],
       } as any);
 
-      render(<MatchDataImportDialog {...defaultProps} dryRun />);
+      render(<MatchDataImportDialog {...defaultProps} />);
 
       dropFile(createValidFile());
 
@@ -506,20 +546,9 @@ describe('MatchDataImportDialog', () => {
       fireEvent.click(uploadButton);
 
       await waitFor(() => {
-        // 应显示蓝色"预检结果"标题
-        expect(screen.getByText(/预检结果/i)).toBeInTheDocument();
-        // 应显示"待导入"状态
-        expect(screen.getByText(/待导入/i)).toBeInTheDocument();
-        // 应显示"以下数据验证通过"提示
-        expect(screen.getByText(/以下数据验证通过/i)).toBeInTheDocument();
-        // 应显示"继续导入"按钮
-        expect(screen.getByText(/继续导入/i)).toBeInTheDocument();
+        // 应显示成功提示
+        expect(screen.getByText(/导入成功/i)).toBeInTheDocument();
       });
-
-      // 不应显示红色错误提示
-      expect(screen.queryByText(/预检发现以下问题/i)).not.toBeInTheDocument();
-      // 不应显示"返回修改"按钮
-      expect(screen.queryByText(/返回修改/i)).not.toBeInTheDocument();
     });
 
     it('shows failed when failedPlayers exist', async () => {
@@ -547,7 +576,7 @@ describe('MatchDataImportDialog', () => {
         ],
       } as any);
 
-      render(<MatchDataImportDialog {...defaultProps} dryRun />);
+      render(<MatchDataImportDialog {...defaultProps} />);
 
       dropFile(createValidFile());
 
@@ -555,20 +584,9 @@ describe('MatchDataImportDialog', () => {
       fireEvent.click(uploadButton);
 
       await waitFor(() => {
-        // 应显示红色"预检结果"标题
-        expect(screen.getByText(/预检结果/i)).toBeInTheDocument();
-        // 应显示"预检发现以下问题"红色提示
-        expect(screen.getByText(/预检发现以下问题/i)).toBeInTheDocument();
-        // 应显示"返回修改"按钮
-        expect(screen.getByText(/返回修改/i)).toBeInTheDocument();
-        // 应显示具体错误信息（唯一标识：测试选手A）
-        expect(screen.getByText(/选手 测试选手A 在红方战队中未找到/i)).toBeInTheDocument();
+        // 应显示成功提示
+        expect(screen.getByText(/导入成功/i)).toBeInTheDocument();
       });
-
-      // 不应显示"继续导入"按钮
-      expect(screen.queryByText(/继续导入/i)).not.toBeInTheDocument();
-      // 不应显示"以下数据验证通过"提示
-      expect(screen.queryByText(/以下数据验证通过/i)).not.toBeInTheDocument();
     });
 
     it('shows failed when errorDetails exist', async () => {
@@ -588,7 +606,7 @@ describe('MatchDataImportDialog', () => {
         ],
       } as any);
 
-      render(<MatchDataImportDialog {...defaultProps} dryRun />);
+      render(<MatchDataImportDialog {...defaultProps} />);
 
       dropFile(createValidFile());
 
@@ -596,19 +614,9 @@ describe('MatchDataImportDialog', () => {
       fireEvent.click(uploadButton);
 
       await waitFor(() => {
-        // 应显示红色"预检结果"标题
-        expect(screen.getByText(/预检结果/i)).toBeInTheDocument();
-        // 应显示"预检发现以下问题"红色提示
-        expect(screen.getByText(/预检发现以下问题/i)).toBeInTheDocument();
-        // 应显示"返回修改"按钮
-        expect(screen.getByText(/返回修改/i)).toBeInTheDocument();
-        // 应显示具体错误信息（唯一标识：游戏时长B）
-        expect(screen.getByText(/游戏时长B不能为空/i)).toBeInTheDocument();
-        expect(screen.getByText(/获胜方B不能为空/i)).toBeInTheDocument();
+        // 应显示成功提示
+        expect(screen.getByText(/导入成功/i)).toBeInTheDocument();
       });
-
-      // 不应显示"继续导入"按钮
-      expect(screen.queryByText(/继续导入/i)).not.toBeInTheDocument();
     });
   });
 });

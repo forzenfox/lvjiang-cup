@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Save, Loader2, AlertCircle } from 'lucide-react';
 import { Button } from '../ui/button';
 import Modal from '../ui/Modal';
-import { updateMatchGameData } from '@/api/matchData';
+import { matchDataService } from '@/services/matchDataService';
 import type { MatchGameData, PlayerStat } from '@/types/matchData';
 import { toast } from 'sonner';
 import { getPositionLabel } from '@/utils/position';
@@ -147,7 +147,7 @@ const MatchDataEditDialog: React.FC<MatchDataEditDialogProps> = ({
     setError(null);
 
     try {
-      await updateMatchGameData(matchId, gameId, {
+      await matchDataService.updateGameData(matchId, gameId, {
         gameDuration: formData.gameDuration,
         winnerTeamId: formData.winnerTeamId,
         blueTeam: formData.blueTeam,

@@ -9,7 +9,7 @@ import TeamStatsBarEdit from './TeamStatsBarEdit';
 import PlayerStatsRowEdit from './PlayerStatsRowEdit';
 import PlayerStatsHeader from './PlayerStatsHeader';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
-import { getMatchSeries, getMatchGameData, updateMatchGameData } from '@/api/matchData';
+import { matchDataService } from '@/services/matchDataService';
 import type { MatchSeriesInfo, MatchGameData, PlayerStat, PositionType } from '@/types/matchData';
 import { ADMIN_PREFIX, adminPath } from '@/constants/routes';
 import { useMatchDataStore } from '@/store/matchDataStore';
@@ -137,7 +137,7 @@ const MatchDataEditPage: React.FC = () => {
   const loadSeriesInfo = useCallback(
     async (mId: string) => {
       try {
-        const series = await getMatchSeries(mId);
+        const series = await matchDataService.getSeries(mId);
         setSeriesInfo(series);
 
         const validGameNumbers = series.games.map(g => g.gameNumber);
@@ -157,7 +157,7 @@ const MatchDataEditPage: React.FC = () => {
 
   const loadGameData = useCallback(async (mId: string, gameNum: number) => {
     try {
-      const data = await getMatchGameData(mId, gameNum);
+      const data = await matchDataService.getGameData(mId, gameNum);
       if (!data) {
         setError('该局对战数据尚未导入');
         setGameData(null);
@@ -295,7 +295,7 @@ const MatchDataEditPage: React.FC = () => {
         })),
       };
 
-      await updateMatchGameData(matchId, gameData.gameNumber, updatedData);
+      await matchDataService.updateGameData(matchId, gameData.gameNumber, updatedData);
       toast.success('保存成功');
       setModifiedTeamFields(new Set());
       setModifiedPlayerFields(new Set());

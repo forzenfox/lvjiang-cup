@@ -7,7 +7,7 @@ import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { Edit2, Trash2, RefreshCw, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import MatchDataImportDialog from '../../components/admin/MatchDataImportDialog';
-import { getMatchSeries, deleteMatchGameData } from '@/api/matchData';
+import { matchDataService } from '@/services/matchDataService';
 import type { MatchSeriesInfo, GameSummary } from '@/types/matchData';
 import { adminPath } from '@/constants/routes';
 
@@ -34,7 +34,7 @@ const MatchDataManagement: React.FC = () => {
 
     setLoading(true);
     try {
-      const series = await getMatchSeries(matchId);
+      const series = await matchDataService.getSeries(matchId);
       setSeriesInfo(series);
     } catch (error) {
       console.error('Failed to load series data:', error);
@@ -67,7 +67,7 @@ const MatchDataManagement: React.FC = () => {
 
     setLoading(true);
     try {
-      await deleteMatchGameData(matchId, gameToDelete);
+      await matchDataService.deleteGameData(matchId, gameToDelete);
       toast.success('删除成功');
       await loadSeriesData();
     } catch (error) {

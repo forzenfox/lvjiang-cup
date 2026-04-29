@@ -169,9 +169,16 @@ export async function downloadMatchDataTemplate(
   const contentDisposition = response.headers['content-disposition'];
   let fileName: string | null = null;
   if (contentDisposition) {
-    const fileNameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
-    if (fileNameMatch && fileNameMatch[1]) {
-      fileName = decodeURIComponent(fileNameMatch[1].replace(/['"]/g, ''));
+    // 首先尝试匹配 RFC 5987 格式: filename*=UTF-8''encoded-text
+    const rfc5987Match = contentDisposition.match(/filename\*=UTF-8''([^;]+)/i);
+    if (rfc5987Match && rfc5987Match[1]) {
+      fileName = decodeURIComponent(rfc5987Match[1]);
+    } else {
+      // 回退到普通格式: filename="name" 或 filename=name
+      const fileNameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+      if (fileNameMatch && fileNameMatch[1]) {
+        fileName = decodeURIComponent(fileNameMatch[1].replace(/['"]/g, ''));
+      }
     }
   }
 
