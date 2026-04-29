@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,
@@ -16,6 +16,7 @@ import { cn } from '../../lib/utils';
 import { Button } from '../ui/button';
 import { useAuth } from '../../hooks/useAuth';
 import { adminPath } from '../../constants/routes';
+import { disableFrontendCache } from '@/utils/requestCache';
 
 /**
  * AdminLayout 组件属性接口
@@ -43,6 +44,11 @@ interface AdminLayoutProps {
 const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
   const location = useLocation();
   const { logout, user, loading } = useAuth();
+
+  // 进入管理后台时禁用前端缓存，确保数据实时性
+  useEffect(() => {
+    disableFrontendCache();
+  }, []);
 
   /**
    * 处理登出

@@ -44,7 +44,7 @@ export async function getAll(): Promise<Stream[]> {
  */
 export async function update(data: UpdateStreamRequest): Promise<Stream> {
   const { id, ...updateData } = data;
-  const response = await apiClient.patch<ApiResponse<Stream>>(`/streams/${id}`, updateData);
+  const response = await apiClient.patch<ApiResponse<Stream>>(`/admin/streams/${id}`, updateData);
   const responseData = response.data;
 
   if (!responseData.success || !responseData.data) {
@@ -60,7 +60,7 @@ export async function update(data: UpdateStreamRequest): Promise<Stream> {
  * @returns 创建的直播信息
  */
 export async function create(data: Partial<Stream>): Promise<Stream> {
-  const response = await apiClient.post<ApiResponse<Stream>>('/streams', data);
+  const response = await apiClient.post<ApiResponse<Stream>>('/admin/streams', data);
   const responseData = response.data;
 
   if (!responseData.success || !responseData.data) {
@@ -75,7 +75,7 @@ export async function create(data: Partial<Stream>): Promise<Stream> {
  * @param id 直播 ID
  */
 export async function remove(id: string): Promise<void> {
-  const response = await apiClient.delete<ApiResponse<void>>(`/streams/${id}`);
+  const response = await apiClient.delete<ApiResponse<void>>(`/admin/streams/${id}`);
   const responseData = response.data;
 
   if (!responseData.success) {

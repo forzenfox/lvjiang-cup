@@ -535,16 +535,23 @@ export class MatchDataService {
 
     // 预检模式
     if (dryRun) {
+      const dryRunResults: SingleGameImportResult[] = [];
+      for (const parsedData of parsedResults) {
+        const validationResult = await this.validateGameData(matchId, parsedData);
+        dryRunResults.push({
+          gameNumber: parsedData.matchInfo.gameNumber,
+          imported: false,
+          playerCount: validationResult.valid ? parsedData.playerStats.length : 0,
+          failedCount: validationResult.failedPlayers?.length || 0,
+          overwritten: false,
+          failedPlayers: validationResult.failedPlayers,
+          errorDetails: validationResult.errors || [],
+        });
+      }
       return {
         imported: false,
         totalGames: sortedSheets.length,
-        results: parsedResults.map((parsedData, index) => ({
-          gameNumber: parsedData.matchInfo.gameNumber,
-          imported: false, // dryRun 不实际导入
-          playerCount: parsedData.playerStats.length, // 返回预估选手数量
-          failedCount: 0,
-          overwritten: false,
-        })),
+        results: dryRunResults,
       };
     }
 
@@ -555,13 +562,19 @@ export class MatchDataService {
         const result = await this.importSingleGameData(matchId, parsedData, adminId);
         results.push(result);
       } catch (error) {
+        // 提取详细错误信息
+        const errorResponse =
+          error instanceof BadRequestException ? (error.getResponse() as any) : null;
+
         results.push({
           gameNumber: parsedData.matchInfo.gameNumber,
           imported: false,
           playerCount: 0,
-          failedCount: 0,
+          failedCount: errorResponse?.failedPlayers?.length || 0,
           overwritten: false,
+          failedPlayers: errorResponse?.failedPlayers,
           error: error.message,
+          errorDetails: errorResponse?.errors || [],
         });
       }
     }
@@ -1530,6 +1543,153 @@ export class MatchDataService {
         message: 'Excel数据验证失败',
         errors,
       });
+    }
+  }
+
+  /**
+   * dryRun模式下验证游戏数据（不写入数据库）
+   * 复用现有验证逻辑，执行除数据库写入外的所有验证
+   */
+  private async validateGameData(
+    matchId: string,
+    parsedData: ParsedMatchData,
+  ): Promise<{ valid: boolean; failedPlayers?: any[]; errors?: string[] }> {
+    try {
+      // 1. 基础数据验证
+      this.validateTeamDataBeforeImport(parsedData);
+
+      // 2. 获取对战中的战队信息
+      const match = await this.databaseService.get<any>(
+        'SELECT id, team_a_id, team_b_id, bo_format FROM matches WHERE id = ?',
+        [matchId],
+      );
+
+      if (!match) {
+        return { valid: false, errors: [`对战ID ${matchId} 不存在`] };
+      }
+
+      const teamA = await this.databaseService.get<any>('SELECT id, name FROM teams WHERE id = ?', [
+        match.team_a_id,
+      ]);
+      const teamB = await this.databaseService.get<any>('SELECT id, name FROM teams WHERE id = ?', [
+        match.team_b_id,
+      ]);
+
+      if (!teamA || !teamB) {
+        return { valid: false, errors: ['对战中的战队信息不完整'] };
+      }
+
+      // 3. 战队名称匹配验证
+      const teamNamesValidation = validateTeamNamesMatch(
+        parsedData.matchInfo.teamAName,
+        parsedData.matchInfo.teamBName,
+        teamA.name,
+        teamB.name,
+      );
+
+      if (!teamNamesValidation.valid) {
+        return { valid: false, errors: teamNamesValidation.errors };
+      }
+
+      // 4. MatchInfo验证
+      const matchInfoValidation = validateMatchInfo(parsedData.matchInfo);
+      if (!matchInfoValidation.valid) {
+        return { valid: false, errors: matchInfoValidation.errors };
+      }
+
+      // 5. Game Number验证
+      const maxGames = this.getMaxGames(match.bo_format);
+      if (parsedData.matchInfo.gameNumber > maxGames) {
+        return {
+          valid: false,
+          errors: [`局数 ${parsedData.matchInfo.gameNumber} 超出赛制限制 (${maxGames})`],
+        };
+      }
+
+      // 6. TeamStats验证
+      for (let i = 0; i < parsedData.teamStats.length; i++) {
+        const validation = validateTeamStats(parsedData.teamStats[i], i + 1);
+        if (!validation.valid) {
+          return { valid: false, errors: validation.errors };
+        }
+      }
+
+      // 7. PlayerStats验证
+      for (let i = 0; i < parsedData.playerStats.length; i++) {
+        const validation = validatePlayerStats(parsedData.playerStats[i], i + 1);
+        if (!validation.valid) {
+          return { valid: false, errors: validation.errors };
+        }
+      }
+
+      // 8. 英雄名称验证（BAN和选手使用英雄）
+      const championValidation = validateParsedMatchData(parsedData);
+      if (!championValidation.valid) {
+        return { valid: false, errors: championValidation.errors };
+      }
+
+      // 9. 选手昵称匹配验证（查询数据库，但不写入）
+      const redTeamName = this.normalizeTeamName(
+        parsedData.teamStats.find((ts) => ts.side === 'red' || ts.side === '红方')?.teamName || '',
+      );
+      const blueTeamName = this.normalizeTeamName(
+        parsedData.teamStats.find((ts) => ts.side === 'blue' || ts.side === '蓝方')?.teamName || '',
+      );
+
+      const blueTeamId = await this.matchTeamName(blueTeamName);
+      const redTeamId = await this.matchTeamName(redTeamName);
+
+      if (!blueTeamId || !redTeamId) {
+        return {
+          valid: false,
+          errors: ['无法匹配战队名称，请检查Excel中的战队名称是否正确'],
+        };
+      }
+
+      // 验证选手昵称匹配
+      const failedPlayers: any[] = [];
+      for (let i = 0; i < parsedData.playerStats.length; i++) {
+        const ps = parsedData.playerStats[i];
+        const excelRow = 7 + i;
+
+        const expectedTeamId = this.normalizeTeamName(ps.side).includes('red')
+          ? redTeamId
+          : blueTeamId;
+
+        const player = await this.matchPlayerNicknameWithTeam(ps.nickname, expectedTeamId);
+
+        if (!player) {
+          failedPlayers.push({
+            row: excelRow,
+            nickname: ps.nickname,
+            side: ps.side,
+            type: 'player_not_found',
+            message: `选手 ${ps.nickname} 在${ps.side === 'red' ? '红方' : '蓝方'}战队中未找到`,
+          });
+        } else if (player.team_id !== expectedTeamId) {
+          failedPlayers.push({
+            row: excelRow,
+            nickname: ps.nickname,
+            side: ps.side,
+            type: 'team_mismatch',
+            message: `选手 ${ps.nickname} 的战队与预期的${ps.side === 'red' ? '红方' : '蓝方'}方战队不匹配`,
+          });
+        }
+      }
+
+      return {
+        valid: failedPlayers.length === 0,
+        failedPlayers: failedPlayers.length > 0 ? failedPlayers : undefined,
+      };
+    } catch (error) {
+      // 捕获验证过程中的异常
+      const errorResponse =
+        error instanceof BadRequestException ? (error.getResponse() as any) : null;
+
+      return {
+        valid: false,
+        errors: errorResponse?.errors || [error.message || '验证过程中发生未知错误'],
+      };
     }
   }
 

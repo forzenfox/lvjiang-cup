@@ -242,6 +242,8 @@ export interface SingleGameImportResult {
   failedPlayers?: any[];
   /** 错误信息（导入失败时） */
   error?: string;
+  /** 详细错误信息列表 */
+  errorDetails?: string[];
 }
 
 /**

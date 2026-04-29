@@ -1,6 +1,6 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import MatchDataImportDialog from '@/components/admin/MatchDataImportDialog';
 import * as matchDataApi from '@/api/matchData';
 
@@ -65,6 +65,12 @@ const dropFile = (file: File) => {
 describe('MatchDataImportDialog', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.resetAllMocks();
+  });
+
+  afterEach(() => {
+    cleanup();
+    vi.resetAllMocks();
   });
 
   it('renders nothing when open is false', () => {
@@ -468,5 +474,141 @@ describe('MatchDataImportDialog', () => {
 
     fireEvent.dragLeave(dropZone);
     expect(dropZone).toHaveClass('border-gray-600');
+  });
+
+  /**
+   * dryRun 预检通过时，应显示"待导入"而非"预检失败"
+   * Bug 修复测试：预检模式下 imported 固定为 false，不应被误判为错误
+   */
+  describe.sequential('dryRun pre-check', () => {
+    it('shows success when no validation errors exist', async () => {
+      // 预检通过：imported=false（预检模式固定），但 errorDetails=[] 且 failedPlayers 不存在
+      vi.mocked(matchDataApi.importMatchData).mockResolvedValue({
+        imported: false,
+        totalGames: 1,
+        results: [
+          {
+            gameNumber: 1,
+            imported: false,
+            playerCount: 10,
+            failedCount: 0,
+            overwritten: false,
+            errorDetails: [],
+          },
+        ],
+      } as any);
+
+      render(<MatchDataImportDialog {...defaultProps} dryRun />);
+
+      dropFile(createValidFile());
+
+      const uploadButton = screen.getByText(/开始导入/i);
+      fireEvent.click(uploadButton);
+
+      await waitFor(() => {
+        // 应显示蓝色"预检结果"标题
+        expect(screen.getByText(/预检结果/i)).toBeInTheDocument();
+        // 应显示"待导入"状态
+        expect(screen.getByText(/待导入/i)).toBeInTheDocument();
+        // 应显示"以下数据验证通过"提示
+        expect(screen.getByText(/以下数据验证通过/i)).toBeInTheDocument();
+        // 应显示"继续导入"按钮
+        expect(screen.getByText(/继续导入/i)).toBeInTheDocument();
+      });
+
+      // 不应显示红色错误提示
+      expect(screen.queryByText(/预检发现以下问题/i)).not.toBeInTheDocument();
+      // 不应显示"返回修改"按钮
+      expect(screen.queryByText(/返回修改/i)).not.toBeInTheDocument();
+    });
+
+    it('shows failed when failedPlayers exist', async () => {
+      // 预检失败：存在 failedPlayers
+      vi.mocked(matchDataApi.importMatchData).mockResolvedValue({
+        imported: false,
+        totalGames: 1,
+        results: [
+          {
+            gameNumber: 1,
+            imported: false,
+            playerCount: 0,
+            failedCount: 1,
+            overwritten: false,
+            failedPlayers: [
+              {
+                row: 7,
+                nickname: '测试选手A',
+                side: 'red',
+                type: 'player_not_found',
+                message: '选手 测试选手A 在红方战队中未找到',
+              },
+            ],
+          },
+        ],
+      } as any);
+
+      render(<MatchDataImportDialog {...defaultProps} dryRun />);
+
+      dropFile(createValidFile());
+
+      const uploadButton = screen.getByText(/开始导入/i);
+      fireEvent.click(uploadButton);
+
+      await waitFor(() => {
+        // 应显示红色"预检结果"标题
+        expect(screen.getByText(/预检结果/i)).toBeInTheDocument();
+        // 应显示"预检发现以下问题"红色提示
+        expect(screen.getByText(/预检发现以下问题/i)).toBeInTheDocument();
+        // 应显示"返回修改"按钮
+        expect(screen.getByText(/返回修改/i)).toBeInTheDocument();
+        // 应显示具体错误信息（唯一标识：测试选手A）
+        expect(screen.getByText(/选手 测试选手A 在红方战队中未找到/i)).toBeInTheDocument();
+      });
+
+      // 不应显示"继续导入"按钮
+      expect(screen.queryByText(/继续导入/i)).not.toBeInTheDocument();
+      // 不应显示"以下数据验证通过"提示
+      expect(screen.queryByText(/以下数据验证通过/i)).not.toBeInTheDocument();
+    });
+
+    it('shows failed when errorDetails exist', async () => {
+      // 预检失败：存在 errorDetails
+      vi.mocked(matchDataApi.importMatchData).mockResolvedValue({
+        imported: false,
+        totalGames: 1,
+        results: [
+          {
+            gameNumber: 1,
+            imported: false,
+            playerCount: 0,
+            failedCount: 0,
+            overwritten: false,
+            errorDetails: ['游戏时长B不能为空', '获胜方B不能为空'],
+          },
+        ],
+      } as any);
+
+      render(<MatchDataImportDialog {...defaultProps} dryRun />);
+
+      dropFile(createValidFile());
+
+      const uploadButton = screen.getByText(/开始导入/i);
+      fireEvent.click(uploadButton);
+
+      await waitFor(() => {
+        // 应显示红色"预检结果"标题
+        expect(screen.getByText(/预检结果/i)).toBeInTheDocument();
+        // 应显示"预检发现以下问题"红色提示
+        expect(screen.getByText(/预检发现以下问题/i)).toBeInTheDocument();
+        // 应显示"返回修改"按钮
+        expect(screen.getByText(/返回修改/i)).toBeInTheDocument();
+        // 应显示具体错误信息（唯一标识：游戏时长B）
+        expect(screen.getByText(/游戏时长B不能为空/i)).toBeInTheDocument();
+        expect(screen.getByText(/获胜方B不能为空/i)).toBeInTheDocument();
+      });
+
+      // 不应显示"继续导入"按钮
+      expect(screen.queryByText(/继续导入/i)).not.toBeInTheDocument();
+    });
   });
 });

@@ -5,7 +5,6 @@ import {
   validateExcelHeaders,
   getExcelRowCount,
   STREAMER_TYPE_MAP,
-  REQUIRED_HEADERS,
   SHEET_NAME,
   HEADER_ROW_NUMBER,
   DATA_START_ROW_NUMBER,

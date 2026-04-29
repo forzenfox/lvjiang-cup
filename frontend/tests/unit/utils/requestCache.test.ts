@@ -1,9 +1,15 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { requestCache, CACHE_TTL } from '@/utils/requestCache';
+import {
+  requestCache,
+  CACHE_TTL,
+  disableFrontendCache,
+  enableFrontendCache,
+} from '@/utils/requestCache';
 
 describe('requestCache', () => {
   beforeEach(() => {
     requestCache.clear();
+    requestCache.enable(); // 确保每次测试前缓存是启用的
     vi.useFakeTimers();
   });
 
@@ -90,6 +96,75 @@ describe('requestCache', () => {
     it('获取指定 key 的 TTL', () => {
       expect(requestCache.getTTL('teams')).toBe(300_000);
       expect(requestCache.getTTL('stream')).toBe(15_000);
+    });
+  });
+
+  // 新增测试：全局开关功能
+  describe('全局缓存开关', () => {
+    it('默认状态下缓存是启用的', () => {
+      expect(requestCache.isEnabled()).toBe(true);
+    });
+
+    it('disable() 后缓存被禁用', () => {
+      requestCache.disable();
+      expect(requestCache.isEnabled()).toBe(false);
+    });
+
+    it('disable() 后 get 返回 null', () => {
+      requestCache.set('test-key', 'cached-data');
+      requestCache.disable();
+
+      const result = requestCache.get('test-key', 60_000);
+      expect(result).toBeNull();
+    });
+
+    it('disable() 后 set 不存储数据', () => {
+      requestCache.disable();
+      requestCache.set('test-key', 'new-data');
+
+      requestCache.enable();
+      const result = requestCache.get('test-key', 60_000);
+      expect(result).toBeNull();
+    });
+
+    it('disable() 会清空现有缓存', () => {
+      requestCache.set('key1', 'data1');
+      requestCache.set('key2', 'data2');
+
+      requestCache.disable();
+
+      requestCache.enable();
+      expect(requestCache.get('key1', 60_000)).toBeNull();
+      expect(requestCache.get('key2', 60_000)).toBeNull();
+    });
+
+    it('enable() 后缓存恢复工作', () => {
+      requestCache.disable();
+      requestCache.enable();
+
+      requestCache.set('test-key', 'cached-data');
+      const result = requestCache.get('test-key', 60_000);
+      expect(result).toBe('cached-data');
+    });
+
+    it('enable() 后 isEnabled() 返回 true', () => {
+      requestCache.disable();
+      requestCache.enable();
+      expect(requestCache.isEnabled()).toBe(true);
+    });
+  });
+
+  // 新增测试：便捷导出函数
+  describe('便捷导出函数', () => {
+    it('disableFrontendCache() 禁用缓存', () => {
+      disableFrontendCache();
+      expect(requestCache.isEnabled()).toBe(false);
+    });
+
+    it('enableFrontendCache() 启用缓存', () => {
+      disableFrontendCache();
+      enableFrontendCache();
+      expect(requestCache.isEnabled()).toBe(true);
     });
   });
 });

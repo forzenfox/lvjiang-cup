@@ -1,5 +1,7 @@
 import * as teamApi from '@/api/teams';
+import * as teamImportApi from '@/api/teams-import';
 import type { Team, CreateTeamRequest, UpdateTeamRequest } from '@/api/types';
+import type { ImportResult, ImportError } from '@/api/teams-import';
 import { requestCache, CACHE_TTL } from '@/utils/requestCache';
 
 /**
@@ -30,6 +32,12 @@ interface TeamService {
   update: (data: UpdateTeamRequest) => Promise<Team>;
   /** 删除战队 */
   remove: (id: string) => Promise<void>;
+  /** 导入战队 */
+  importTeams: (file: File) => Promise<ImportResult>;
+  /** 下载导入模板 */
+  downloadTemplate: () => Promise<Blob>;
+  /** 下载错误报告 */
+  downloadErrorReport: (errors: ImportError[]) => Promise<Blob>;
   /** 获取服务状态 */
   getState: () => TeamServiceState;
   /** 清除错误 */
@@ -230,6 +238,41 @@ export const teamService: TeamService = {
     } catch (error) {
       handleError(error, '删除战队失败');
     }
+  },
+
+  /**
+   * 导入战队数据
+   * @param file Excel 文件
+   * @returns 导入结果统计
+   */
+  async importTeams(file: File): Promise<ImportResult> {
+    setState({ loading: true, error: null });
+
+    try {
+      const result = await teamImportApi.importTeams(file);
+      requestCache.clear('teams');
+      setState({ loading: false });
+      return result;
+    } catch (error) {
+      handleError(error, '导入战队失败');
+    }
+  },
+
+  /**
+   * 下载导入模板
+   * @returns Excel 模板 Blob
+   */
+  async downloadTemplate(): Promise<Blob> {
+    return await teamImportApi.downloadTemplate();
+  },
+
+  /**
+   * 下载错误报告
+   * @param errors 导入错误列表
+   * @returns 错误报告 Excel Blob
+   */
+  async downloadErrorReport(errors: ImportError[]): Promise<Blob> {
+    return await teamImportApi.downloadErrorReport(errors);
   },
 
   /**

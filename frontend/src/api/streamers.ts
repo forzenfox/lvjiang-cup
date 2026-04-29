@@ -18,21 +18,21 @@ export const streamersApi = {
   },
 
   async create(data: CreateStreamerRequest): Promise<Streamer> {
-    const response = await apiClient.post('/streamers', data);
+    const response = await apiClient.post('/admin/streamers', data);
     return response.data.data;
   },
 
   async update(id: string, data: UpdateStreamerRequest): Promise<Streamer> {
-    const response = await apiClient.patch(`/streamers/${id}`, data);
+    const response = await apiClient.patch(`/admin/streamers/${id}`, data);
     return response.data.data;
   },
 
   async remove(id: string): Promise<void> {
-    await apiClient.delete(`/streamers/${id}`);
+    await apiClient.delete(`/admin/streamers/${id}`);
   },
 
   async updateSort(orders: StreamerOrder[]): Promise<void> {
-    await apiClient.patch('/streamers/sort', { orders });
+    await apiClient.patch('/admin/streamers/sort', { orders });
   },
 };
 

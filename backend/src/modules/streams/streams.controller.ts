@@ -7,37 +7,37 @@ import { Stream } from './entities/stream.entity';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @ApiTags('直播管理')
-@Controller('streams')
+@Controller()
 export class StreamsController {
   constructor(private readonly streamsService: StreamsService) {}
 
   // 保留旧接口以兼容 - 静态路由必须在参数化路由之前
-  @Get('stream')
+  @Get('streams/stream')
   @ApiOperation({ summary: '获取直播信息（兼容旧接口）' })
   async findOne(): Promise<StreamInfo> {
     return this.streamsService.findOne();
   }
 
-  @Get('active')
+  @Get('streams/active')
   @ApiOperation({ summary: '获取当前活跃直播' })
   async findActive(): Promise<Stream> {
     return this.streamsService.findActive();
   }
 
-  @Get()
+  @Get('streams')
   @ApiOperation({ summary: '获取所有直播列表' })
   async findAll(): Promise<Stream[]> {
     return this.streamsService.findAll();
   }
 
-  @Get(':id')
+  @Get('streams/:id')
   @ApiOperation({ summary: '获取指定直播' })
   @ApiParam({ name: 'id', description: '直播ID' })
   async findById(@Param('id') id: string): Promise<Stream> {
     return this.streamsService.findById(id);
   }
 
-  @Post()
+  @Post('admin/streams')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: '创建直播（需认证）' })
@@ -45,7 +45,7 @@ export class StreamsController {
     return this.streamsService.create(createStreamDto);
   }
 
-  @Patch(':id')
+  @Patch('admin/streams/:id')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: '更新直播（需认证）' })
@@ -54,7 +54,7 @@ export class StreamsController {
     return this.streamsService.update(id, updateStreamDto);
   }
 
-  @Delete(':id')
+  @Delete('admin/streams/:id')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: '删除直播（需认证）' })

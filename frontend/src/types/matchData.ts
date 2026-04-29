@@ -282,6 +282,10 @@ export interface SingleGameImportResult {
   overwritten?: boolean;
   /** 失败详情列表 */
   failedPlayers?: MatchDataImportError[];
+  /** 错误信息（导入失败时） */
+  error?: string;
+  /** 详细错误信息列表 */
+  errorDetails?: string[];
 }
 
 /**

@@ -6,6 +6,29 @@ import type { ApiResponse, UpdateMemberRequest } from './types';
  */
 
 /**
+ * 添加队员
+ * @param teamId 战队 ID
+ * @param data 队员数据
+ * @returns 创建的队员信息
+ */
+export async function createMember(
+  teamId: string,
+  data: { name: string; role?: string }
+): Promise<unknown> {
+  const response = await apiClient.post<ApiResponse<unknown>>(
+    `/admin/teams/${teamId}/members`,
+    data
+  );
+  const responseData = response.data;
+
+  if (!responseData.success) {
+    throw new Error(responseData.message || '添加队员失败');
+  }
+
+  return responseData.data;
+}
+
+/**
  * 更新队员信息
  * @param id 队员 ID
  * @param data 更新数据
@@ -36,6 +59,7 @@ export async function removeMember(id: string): Promise<void> {
 }
 
 export default {
+  createMember,
   updateMember,
   removeMember,
 };

@@ -1,13 +1,14 @@
 import * as fs from 'fs';
+import * as pathModule from 'path';
 
 // Mock fs for exceljs writeFile in Jest environment
-const originalWriteFile = fs.writeFile;
+const _originalWriteFile = fs.writeFile;
 
 jest.mock('fs', () => {
   const actualFs = jest.requireActual('fs');
   return {
     ...actualFs,
-    createWriteStream: jest.fn((path: string, options?: any) => {
+    createWriteStream: jest.fn((_path: string, _options?: any) => {
       // Return a mock write stream that works with exceljs
       const chunks: Buffer[] = [];
       const stream = {
@@ -21,7 +22,7 @@ jest.mock('fs', () => {
           }
           // Write to actual file
           const data = Buffer.concat(chunks);
-          actualFs.writeFileSync(path, data);
+          actualFs.writeFileSync(_path, data);
           if (stream.onEnd) stream.onEnd();
         }),
         on: jest.fn((event: string, callback: any) => {

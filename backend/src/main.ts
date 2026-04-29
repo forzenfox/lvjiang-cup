@@ -162,14 +162,16 @@ async function bootstrap() {
       .build();
     const document = SwaggerModule.createDocument(app, config);
     SwaggerModule.setup('api/docs', app, document);
-    logger.log(`Swagger 文档地址：http://0.0.0.0:${port}/api/docs`);
+    logger.log(`Swagger 文档地址：http://localhost:${port}/api/docs`);
   } else {
     logger.log('Swagger 文档已禁用 (设置 ENABLE_SWAGGER=true 启用)');
   }
 
   await app.listen(port, '0.0.0.0');
-  logger.log(`应用启动于 http://0.0.0.0:${port}/api`);
-  logger.log(`Swagger 文档地址：http://0.0.0.0:${port}/api/docs`);
+  logger.log(`应用启动于 http://localhost:${port}/api`);
+  if (enableSwagger) {
+    logger.log(`Swagger 文档地址：http://localhost:${port}/api/docs`);
+  }
 }
 
 bootstrap();

@@ -61,7 +61,7 @@ export class TeamsController {
     return this.teamsService.findMembersByTeamId(id);
   }
 
-  @Post('teams/:id/members')
+  @Post('admin/teams/:id/members')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: '添加队员（需认证）' })

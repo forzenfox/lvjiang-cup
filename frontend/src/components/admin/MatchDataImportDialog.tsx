@@ -205,8 +205,18 @@ const MatchDataImportDialog: React.FC<MatchDataImportDialogProps> = ({
       // 多局导入结果
       setMultiGameResults(result.results);
 
-      const hasFailed = result.results.some(r => !r.imported);
-      const allSuccess = result.results.every(r => r.imported);
+      // 预检模式下 imported 固定为 false，不能用其判断失败
+      // 应基于 failedPlayers 和 errorDetails 判断
+      const hasFailed = result.results.some(
+        r =>
+          (r.failedPlayers && r.failedPlayers.length > 0) ||
+          (r.errorDetails && r.errorDetails.length > 0)
+      );
+      const allSuccess = result.results.every(
+        r =>
+          !(r.failedPlayers && r.failedPlayers.length > 0) &&
+          !(r.errorDetails && r.errorDetails.length > 0)
+      );
 
       if (allSuccess) {
         toast.success(`成功导入 ${result.totalGames} 局数据，请预览确认`, { id: toastId });
@@ -398,18 +408,14 @@ const MatchDataImportDialog: React.FC<MatchDataImportDialogProps> = ({
       onSuccess(preview);
       handleClose();
     } else if (multiGameResults) {
-      // 多局导入完成后不自动关闭，让用户查看导入结果
-      // 用户再次点击"完成"时才关闭
-      if (multiGameResults.every(r => r.imported) || multiGameResults.some(r => r.imported)) {
-        // 已有导入结果，用户点击"完成"才关闭
-        const result: ImportMatchDataResponse = {
-          imported: multiGameResults.every(r => r.imported),
-          gameNumber: multiGameResults[0]?.gameNumber || 1,
-          playerCount: multiGameResults.reduce((sum, r) => sum + r.playerCount, 0),
-        };
-        onSuccess(result);
-        handleClose();
-      }
+      // 多局导入完成后，无论成功还是失败都允许关闭弹框
+      const result: ImportMatchDataResponse = {
+        imported: multiGameResults.every(r => r.imported),
+        gameNumber: multiGameResults[0]?.gameNumber || 1,
+        playerCount: multiGameResults.reduce((sum, r) => sum + r.playerCount, 0),
+      };
+      onSuccess(result);
+      handleClose();
     }
   };
 
@@ -420,6 +426,15 @@ const MatchDataImportDialog: React.FC<MatchDataImportDialogProps> = ({
 
   const hasErrors = errorDetails.length > 0 || validationErrors.length > 0;
   const hasResult = preview !== null || (multiGameResults !== null && multiGameResults.length > 0);
+
+  // 检查预检是否有错误（预检模式下 imported 固定为 false，不应作为错误判断依据）
+  const hasDryRunErrors =
+    isDryRunPreview &&
+    multiGameResults?.some(
+      r =>
+        (r.failedPlayers && r.failedPlayers.length > 0) ||
+        (r.errorDetails && r.errorDetails.length > 0)
+    );
 
   return (
     <>
@@ -543,15 +558,54 @@ const MatchDataImportDialog: React.FC<MatchDataImportDialogProps> = ({
 
           {/* 多局导入结果展示 */}
           {multiGameResults && multiGameResults.length > 0 && (
-            <div className="p-4 border rounded-lg bg-green-500/10 border-green-500/20">
-              <h4 className="font-medium text-green-400 mb-3">
+            <div
+              className={`p-4 border rounded-lg ${
+                isDryRunPreview &&
+                multiGameResults.some(
+                  r =>
+                    (r.failedPlayers && r.failedPlayers.length > 0) ||
+                    (r.errorDetails && r.errorDetails.length > 0)
+                )
+                  ? 'bg-red-500/10 border-red-500/20'
+                  : isDryRunPreview
+                    ? 'bg-blue-500/10 border-blue-500/20'
+                    : 'bg-green-500/10 border-green-500/20'
+              }`}
+            >
+              <h4
+                className={`font-medium mb-3 ${
+                  isDryRunPreview &&
+                  multiGameResults.some(
+                    r =>
+                      (r.failedPlayers && r.failedPlayers.length > 0) ||
+                      (r.errorDetails && r.errorDetails.length > 0)
+                  )
+                    ? 'text-red-400'
+                    : isDryRunPreview
+                      ? 'text-blue-400'
+                      : 'text-green-400'
+                }`}
+              >
                 {isDryRunPreview ? '预检结果' : '导入结果'}
               </h4>
-              {isDryRunPreview && (
-                <p className="text-sm text-gray-400 mb-3">
-                  以下数据验证通过，点击"完成"将执行实际导入
-                </p>
-              )}
+              {isDryRunPreview &&
+                !multiGameResults.some(
+                  r =>
+                    (r.failedPlayers && r.failedPlayers.length > 0) ||
+                    (r.errorDetails && r.errorDetails.length > 0)
+                ) && (
+                  <p className="text-sm text-gray-400 mb-3">
+                    以下数据验证通过，点击"继续导入"将执行实际导入
+                  </p>
+                )}
+              {isDryRunPreview &&
+                multiGameResults.some(
+                  r =>
+                    (r.failedPlayers && r.failedPlayers.length > 0) ||
+                    (r.errorDetails && r.errorDetails.length > 0)
+                ) && (
+                  <p className="text-sm text-red-300 mb-3">预检发现以下问题，请修正后重新上传</p>
+                )}
               <div className="space-y-2">
                 {multiGameResults.map(result => (
                   <div
@@ -569,20 +623,52 @@ const MatchDataImportDialog: React.FC<MatchDataImportDialogProps> = ({
                     <div className="flex items-center gap-2">
                       <span className="text-white font-medium">第 {result.gameNumber} 局</span>
                       {isDryRunPreview ? (
-                        <span className="text-blue-400">
-                          {result.playerCount} 名选手数据（待导入）
-                        </span>
+                        result.failedPlayers && result.failedPlayers.length > 0 ? (
+                          <div className="flex flex-col gap-1">
+                            <span className="text-red-400 font-medium">预检失败</span>
+                            {result.failedPlayers.slice(0, 2).map((fp, idx) => (
+                              <span key={idx} className="text-red-300 text-xs">
+                                第{fp.row}行 - {fp.message}
+                              </span>
+                            ))}
+                            {result.failedPlayers.length > 2 && (
+                              <span className="text-red-300 text-xs">
+                                ...及其他 {result.failedPlayers.length - 2} 个错误
+                              </span>
+                            )}
+                          </div>
+                        ) : result.errorDetails && result.errorDetails.length > 0 ? (
+                          <div className="flex flex-col gap-1">
+                            <span className="text-red-400 font-medium">预检失败</span>
+                            <span className="text-red-300 text-xs">{result.errorDetails[0]}</span>
+                            {result.errorDetails.length > 1 && (
+                              <span className="text-red-300 text-xs">
+                                ...及其他 {result.errorDetails.length - 1} 个错误
+                              </span>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-blue-400">
+                            {result.playerCount} 名选手数据（待导入）
+                          </span>
+                        )
                       ) : result.imported ? (
                         <span className="text-green-400">
                           {result.playerCount} 名选手数据
                           {result.overwritten ? '（覆盖已有数据）' : ''}
                         </span>
                       ) : (
-                        <span className="text-red-400">
-                          {result.failedPlayers && result.failedPlayers.length > 0
-                            ? `导入失败：${result.failedPlayers[0].message}`
-                            : '导入失败'}
-                        </span>
+                        <div className="flex flex-col gap-1">
+                          <span className="text-red-400">{result.error || '导入失败'}</span>
+                          {result.errorDetails && result.errorDetails.length > 0 && (
+                            <span className="text-red-300 text-xs">{result.errorDetails[0]}</span>
+                          )}
+                          {result.failedPlayers && result.failedPlayers.length > 0 && (
+                            <span className="text-red-300 text-xs">
+                              {result.failedPlayers[0].message}
+                            </span>
+                          )}
+                        </div>
                       )}
                     </div>
                     {isDryRunPreview ? (
@@ -719,6 +805,15 @@ const MatchDataImportDialog: React.FC<MatchDataImportDialogProps> = ({
                 className="bg-gradient-to-r from-green-500 to-green-600 text-white"
               >
                 确认导入
+              </Button>
+            ) : isDryRunPreview && hasDryRunErrors ? (
+              <Button
+                onClick={() => {
+                  clearFileState();
+                }}
+                className="bg-gradient-to-r from-gray-500 to-gray-600 text-white"
+              >
+                返回修改
               </Button>
             ) : isDryRunPreview ? (
               <Button

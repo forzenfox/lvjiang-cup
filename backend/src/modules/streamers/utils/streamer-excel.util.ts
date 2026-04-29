@@ -11,12 +11,12 @@ export const DATA_START_ROW_NUMBER = 4;
 
 // 列索引（ExcelJS的row.values返回的数组索引，索引0为null占位）
 export const COLUMN_INDEX = {
-  SEQUENCE: 1,       // 序号
-  STREAMER_TYPE: 2,  // 主播类型
-  NICKNAME: 3,       // 主播昵称
-  POSTER_URL: 4,     // 海报URL
-  LIVE_ROOM: 5,      // 直播间号
-  BIO: 6,            // 个人简介
+  SEQUENCE: 1, // 序号
+  STREAMER_TYPE: 2, // 主播类型
+  NICKNAME: 3, // 主播昵称
+  POSTER_URL: 4, // 海报URL
+  LIVE_ROOM: 5, // 直播间号
+  BIO: 6, // 个人简介
 };
 
 export const STREAMER_TYPE_MAP: Record<string, 'internal' | 'guest'> = {

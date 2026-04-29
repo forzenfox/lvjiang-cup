@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
-import * as path from 'path';
-import * as crypto from 'crypto';
+import * as _path from 'path';
+import * as _crypto from 'crypto';
 import { UploadService } from '../../src/modules/upload/upload.service';
 import { DatabaseService } from '../../src/database/database.service';
 

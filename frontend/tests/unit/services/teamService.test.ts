@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { teamService } from '@/services/teamService';
 import * as teamApi from '@/api/teams';
+import * as teamImportApi from '@/api/teams-import';
 import { requestCache } from '@/utils/requestCache';
 
 vi.mock('@/api/teams', () => ({
@@ -9,6 +10,12 @@ vi.mock('@/api/teams', () => ({
   create: vi.fn(),
   update: vi.fn(),
   remove: vi.fn(),
+}));
+
+vi.mock('@/api/teams-import', () => ({
+  importTeams: vi.fn(),
+  downloadTemplate: vi.fn(),
+  downloadErrorReport: vi.fn(),
 }));
 
 vi.mock('@/utils/requestCache', () => ({
@@ -123,6 +130,66 @@ describe('teamService 缓存清除测试', () => {
 
       expect(teamApi.getAll).not.toHaveBeenCalled();
       expect(result).toEqual([mockTeam]);
+    });
+  });
+
+  describe('importTeams() 成功后清除缓存', () => {
+    it('导入战队成功后，应该清除 teams 缓存', async () => {
+      const importResult = {
+        total: 10,
+        success: 8,
+        failed: 2,
+        errors: [],
+      };
+      (teamImportApi.importTeams as ReturnType<typeof vi.fn>).mockResolvedValue(importResult);
+
+      const file = new File(['test'], 'test.xlsx', {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
+      const result = await teamService.importTeams(file);
+
+      expect(requestCache.clear).toHaveBeenCalledWith('teams');
+      expect(result).toEqual(importResult);
+    });
+
+    it('导入战队失败时，不应该清除缓存', async () => {
+      (teamImportApi.importTeams as ReturnType<typeof vi.fn>).mockRejectedValue(
+        new Error('导入失败')
+      );
+
+      const file = new File(['test'], 'test.xlsx', {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
+      await expect(teamService.importTeams(file)).rejects.toThrow('导入失败');
+
+      expect(requestCache.clear).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('downloadTemplate()', () => {
+    it('应该调用 teamImportApi.downloadTemplate', async () => {
+      const mockBlob = new Blob(['template']);
+      (teamImportApi.downloadTemplate as ReturnType<typeof vi.fn>).mockResolvedValue(mockBlob);
+
+      const result = await teamService.downloadTemplate();
+
+      expect(teamImportApi.downloadTemplate).toHaveBeenCalled();
+      expect(result).toBe(mockBlob);
+    });
+  });
+
+  describe('downloadErrorReport()', () => {
+    it('应该调用 teamImportApi.downloadErrorReport', async () => {
+      const mockBlob = new Blob(['error report']);
+      const errors = [
+        { row: 1, teamName: '测试战队', position: '上单', field: 'name', message: '错误' },
+      ];
+      (teamImportApi.downloadErrorReport as ReturnType<typeof vi.fn>).mockResolvedValue(mockBlob);
+
+      const result = await teamService.downloadErrorReport(errors);
+
+      expect(teamImportApi.downloadErrorReport).toHaveBeenCalledWith(errors);
+      expect(result).toBe(mockBlob);
     });
   });
 });

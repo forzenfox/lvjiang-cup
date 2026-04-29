@@ -10,33 +10,33 @@ import {
   HttpStatus,
   UseGuards,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiParam, ApiBearerAuth } from '@nestjs/swagger';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import {
   StreamersService,
   CreateStreamerDto,
   UpdateStreamerDto,
   UpdateStreamerSortDto,
 } from './streamers.service';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @ApiTags('streamers')
-@Controller('streamers')
+@Controller()
 export class StreamersController {
   constructor(private readonly streamersService: StreamersService) {}
 
-  @Get()
+  @Get('streamers')
   @ApiOperation({ summary: '获取所有主播列表' })
   async findAll() {
     return this.streamersService.findAll();
   }
 
-  @Get(':id')
+  @Get('streamers/:id')
   @ApiOperation({ summary: '获取单个主播详情' })
   async findOne(@Param('id') id: string) {
     return this.streamersService.findOne(id);
   }
 
-  @Post()
+  @Post('admin/streamers')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: '创建主播（需认证）' })
@@ -44,7 +44,7 @@ export class StreamersController {
     return this.streamersService.create(createStreamerDto);
   }
 
-  @Patch('sort')
+  @Patch('admin/streamers/sort')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @HttpCode(HttpStatus.OK)
@@ -53,7 +53,7 @@ export class StreamersController {
     return this.streamersService.updateSort(updateStreamerSortDto);
   }
 
-  @Patch(':id')
+  @Patch('admin/streamers/:id')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: '更新主播（需认证）' })
@@ -61,10 +61,13 @@ export class StreamersController {
     return this.streamersService.update(id, updateStreamerDto);
   }
 
-  @Delete(':id')
+  @Delete('admin/streamers/:id')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ summary: '删除主播' })
-  async remove(@Param('id') id: string) {
+  @ApiOperation({ summary: '删除主播（需认证）' })
+  @ApiParam({ name: 'id', description: '主播ID' })
+  async remove(@Param('id') id: string): Promise<void> {
     return this.streamersService.remove(id);
   }
 }
