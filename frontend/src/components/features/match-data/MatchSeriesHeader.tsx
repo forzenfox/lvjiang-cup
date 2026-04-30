@@ -121,9 +121,17 @@ const MatchSeriesHeader: React.FC<MatchSeriesHeaderProps> = ({ seriesInfo, gameD
         <div className="flex flex-col items-center gap-4 bg-[#2a2a3e] rounded-xl px-16 py-6 min-w-[320px]">
           {/* 总比分 - 放大字体 */}
           <div className="flex items-center gap-8">
-            <span className="text-8xl font-bold text-white font-mono">{redScore}</span>
+            <span
+              className={`text-8xl font-bold font-mono ${redScore > blueScore ? 'text-[#0febc1]' : 'text-white'}`}
+            >
+              {redScore}
+            </span>
             <span className="text-5xl text-gray-500 font-light">:</span>
-            <span className="text-8xl font-bold text-[#0febc1] font-mono">{blueScore}</span>
+            <span
+              className={`text-8xl font-bold font-mono ${blueScore > redScore ? 'text-[#0febc1]' : 'text-white'}`}
+            >
+              {blueScore}
+            </span>
           </div>
 
           {/* 日期和状态 */}

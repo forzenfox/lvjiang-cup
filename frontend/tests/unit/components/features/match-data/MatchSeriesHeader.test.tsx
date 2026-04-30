@@ -219,4 +219,185 @@ describe('MatchSeriesHeader', () => {
       expect(blueScore).toBeDefined();
     });
   });
+
+  describe('比分颜色显示', () => {
+    it('红色方领先时，红色方比分应显示为青色，蓝色方显示为白色', () => {
+      const seriesInfo: MatchSeriesInfo = {
+        matchId: 'match1',
+        teamA: { id: 'team1', name: 'BLG' },
+        teamB: { id: 'team2', name: 'WBG' },
+        format: 'BO3',
+        games: [
+          { gameNumber: 1, winnerTeamId: 'team2', gameDuration: '32:45', hasData: true },
+          { gameNumber: 2, winnerTeamId: 'team2', gameDuration: '28:30', hasData: true },
+        ],
+      };
+      const gameData = createMockGameData({
+        redTeam: {
+          teamId: 'team2',
+          teamName: 'WBG',
+          side: 'red',
+          kills: 18,
+          gold: 58000,
+          towers: 5,
+          dragons: 1,
+          barons: 0,
+          isWinner: false,
+        },
+        blueTeam: {
+          teamId: 'team1',
+          teamName: 'BLG',
+          side: 'blue',
+          kills: 25,
+          gold: 65000,
+          towers: 9,
+          dragons: 3,
+          barons: 1,
+          isWinner: true,
+        },
+      });
+      const { container } = render(
+        <MatchSeriesHeader seriesInfo={seriesInfo} gameData={gameData} />
+      );
+
+      // 红色方2:0领先，应该显示青色
+      const scoreElements = container.querySelectorAll('.text-8xl');
+      expect(scoreElements[0].classList.contains('text-[#0febc1]')).toBe(true);
+      // 蓝色方落后，应该显示白色
+      expect(scoreElements[1].classList.contains('text-white')).toBe(true);
+    });
+
+    it('蓝色方领先时，红色方比分应显示为白色，蓝色方显示为青色', () => {
+      const seriesInfo: MatchSeriesInfo = {
+        matchId: 'match1',
+        teamA: { id: 'team1', name: 'BLG' },
+        teamB: { id: 'team2', name: 'WBG' },
+        format: 'BO3',
+        games: [
+          { gameNumber: 1, winnerTeamId: 'team1', gameDuration: '32:45', hasData: true },
+          { gameNumber: 2, winnerTeamId: 'team1', gameDuration: '28:30', hasData: true },
+        ],
+      };
+      const gameData = createMockGameData({
+        redTeam: {
+          teamId: 'team2',
+          teamName: 'WBG',
+          side: 'red',
+          kills: 18,
+          gold: 58000,
+          towers: 5,
+          dragons: 1,
+          barons: 0,
+          isWinner: false,
+        },
+        blueTeam: {
+          teamId: 'team1',
+          teamName: 'BLG',
+          side: 'blue',
+          kills: 25,
+          gold: 65000,
+          towers: 9,
+          dragons: 3,
+          barons: 1,
+          isWinner: true,
+        },
+      });
+      const { container } = render(
+        <MatchSeriesHeader seriesInfo={seriesInfo} gameData={gameData} />
+      );
+
+      // 红色方落后，应该显示白色
+      const scoreElements = container.querySelectorAll('.text-8xl');
+      expect(scoreElements[0].classList.contains('text-white')).toBe(true);
+      // 蓝色方2:0领先，应该显示青色
+      expect(scoreElements[1].classList.contains('text-[#0febc1]')).toBe(true);
+    });
+
+    it('比分平局时，双方比分都应显示为白色', () => {
+      const seriesInfo: MatchSeriesInfo = {
+        matchId: 'match1',
+        teamA: { id: 'team1', name: 'BLG' },
+        teamB: { id: 'team2', name: 'WBG' },
+        format: 'BO3',
+        games: [
+          { gameNumber: 1, winnerTeamId: 'team1', gameDuration: '32:45', hasData: true },
+          { gameNumber: 2, winnerTeamId: 'team2', gameDuration: '28:30', hasData: true },
+        ],
+      };
+      const gameData = createMockGameData({
+        redTeam: {
+          teamId: 'team2',
+          teamName: 'WBG',
+          side: 'red',
+          kills: 18,
+          gold: 58000,
+          towers: 5,
+          dragons: 1,
+          barons: 0,
+          isWinner: false,
+        },
+        blueTeam: {
+          teamId: 'team1',
+          teamName: 'BLG',
+          side: 'blue',
+          kills: 25,
+          gold: 65000,
+          towers: 9,
+          dragons: 3,
+          barons: 1,
+          isWinner: true,
+        },
+      });
+      const { container } = render(
+        <MatchSeriesHeader seriesInfo={seriesInfo} gameData={gameData} />
+      );
+
+      // 平局1:1，双方都应该显示白色
+      const scoreElements = container.querySelectorAll('.text-8xl');
+      expect(scoreElements[0].classList.contains('text-white')).toBe(true);
+      expect(scoreElements[1].classList.contains('text-white')).toBe(true);
+    });
+
+    it('初始状态0:0时，双方比分都应显示为白色', () => {
+      const seriesInfo: MatchSeriesInfo = {
+        matchId: 'match1',
+        teamA: { id: 'team1', name: 'BLG' },
+        teamB: { id: 'team2', name: 'WBG' },
+        format: 'BO3',
+        games: [],
+      };
+      const gameData = createMockGameData({
+        redTeam: {
+          teamId: 'team2',
+          teamName: 'WBG',
+          side: 'red',
+          kills: 18,
+          gold: 58000,
+          towers: 5,
+          dragons: 1,
+          barons: 0,
+          isWinner: false,
+        },
+        blueTeam: {
+          teamId: 'team1',
+          teamName: 'BLG',
+          side: 'blue',
+          kills: 25,
+          gold: 65000,
+          towers: 9,
+          dragons: 3,
+          barons: 1,
+          isWinner: true,
+        },
+      });
+      const { container } = render(
+        <MatchSeriesHeader seriesInfo={seriesInfo} gameData={gameData} />
+      );
+
+      // 0:0，双方都应该显示白色
+      const scoreElements = container.querySelectorAll('.text-8xl');
+      expect(scoreElements[0].classList.contains('text-white')).toBe(true);
+      expect(scoreElements[1].classList.contains('text-white')).toBe(true);
+    });
+  });
 });

@@ -251,7 +251,7 @@ const AdminTeams: React.FC = () => {
     setEditingTeamData({
       name: team.name,
       logo: team.logo || team.logoUrl,
-      battleCry: team.battleCry,
+      battleCry: team.battleCry || '',
     });
   };
 
