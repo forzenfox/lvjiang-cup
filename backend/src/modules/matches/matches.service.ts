@@ -2,7 +2,7 @@ import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { DatabaseService } from '../../database/database.service';
 import { CacheService } from '../../cache/cache.service';
 import { BaseCachedService } from '../../common/services/base-cached.service';
-import { UpdateMatchDto } from './dto/update-match.dto';
+import { UpdateMatchDto, MatchStatus } from './dto/update-match.dto';
 import { Team } from '../teams/teams.service';
 
 export interface Match {
@@ -163,13 +163,57 @@ export class MatchesService extends BaseCachedService<Match, string> {
       updates.push('score_b = ?');
       values.push(updateMatchDto.scoreB);
     }
+
+    // 获取当前比赛状态（用于判断是否需要自动修正 winner_id）
+    const currentMatch = await this.databaseService.get<any>(
+      'SELECT status FROM matches WHERE id = ?',
+      [id],
+    );
+    const isFinished =
+      updateMatchDto.status === MatchStatus.FINISHED ||
+      (!updateMatchDto.status && currentMatch?.status === 'finished');
+
     if (updateMatchDto.winnerId !== undefined) {
       updates.push('winner_id = ?');
       values.push(updateMatchDto.winnerId);
+    } else if (
+      isFinished &&
+      (updateMatchDto.scoreA !== undefined || updateMatchDto.scoreB !== undefined)
+    ) {
+      // 已结束状态且修改了比分，但没有显式传递 winnerId：
+      // 需要查询当前比分，自动计算 winner_id
+      const matchScores = await this.databaseService.get<any>(
+        'SELECT score_a, score_b, team_a_id, team_b_id FROM matches WHERE id = ?',
+        [id],
+      );
+      const finalScoreA =
+        updateMatchDto.scoreA !== undefined ? updateMatchDto.scoreA : (matchScores?.score_a ?? 0);
+      const finalScoreB =
+        updateMatchDto.scoreB !== undefined ? updateMatchDto.scoreB : (matchScores?.score_b ?? 0);
+      const teamAId =
+        updateMatchDto.teamAId !== undefined ? updateMatchDto.teamAId : matchScores?.team_a_id;
+      const teamBId =
+        updateMatchDto.teamBId !== undefined ? updateMatchDto.teamBId : matchScores?.team_b_id;
+
+      if (finalScoreA > finalScoreB && teamAId) {
+        updates.push('winner_id = ?');
+        values.push(teamAId);
+      } else if (finalScoreB > finalScoreA && teamBId) {
+        updates.push('winner_id = ?');
+        values.push(teamBId);
+      } else if (finalScoreA === finalScoreB) {
+        updates.push('winner_id = NULL');
+      }
     }
+
     if (updateMatchDto.status !== undefined) {
       updates.push('status = ?');
       values.push(updateMatchDto.status);
+
+      // 防御性：如果状态不是 'finished'，自动清空 winner_id
+      if (updateMatchDto.status !== MatchStatus.FINISHED) {
+        updates.push('winner_id = NULL');
+      }
     }
     if (updateMatchDto.startTime !== undefined) {
       updates.push('start_time = ?');

@@ -9,6 +9,7 @@ import type {
   ImportOptions,
 } from '@/types/matchData';
 import { requestCache, CACHE_TTL } from '@/utils/requestCache';
+import { matchDataCache } from '@/utils/matchDataCache';
 
 /**
  * 对战数据服务状态接口
@@ -102,6 +103,16 @@ function clearMatchCache(matchId: string): void {
   requestCache.clear(`matchSeries_${matchId}`);
   for (let i = 1; i <= 10; i++) {
     requestCache.clear(`matchGame_${matchId}_${i}`);
+  }
+}
+
+/**
+ * 清除指定 matchId 的 localStorage 缓存
+ */
+function clearLocalMatchCache(matchId: string): void {
+  matchDataCache.remove(matchDataCache.getMatchSeriesKey(matchId));
+  for (let i = 1; i <= 10; i++) {
+    matchDataCache.remove(matchDataCache.getGameDataKey(matchId, i));
   }
 }
 
@@ -229,6 +240,7 @@ export const matchDataService: MatchDataService = {
 
       // 清除缓存，确保下次获取时从后端拉取最新数据
       clearMatchCache(matchId);
+      clearLocalMatchCache(matchId);
 
       setState({ loading: false });
 
@@ -258,6 +270,7 @@ export const matchDataService: MatchDataService = {
       // 清除相关缓存
       requestCache.clear(`matchSeries_${matchId}`);
       requestCache.clear(`matchGame_${matchId}_${gameId}`);
+      clearLocalMatchCache(matchId);
 
       setState({ loading: false });
 
@@ -285,6 +298,7 @@ export const matchDataService: MatchDataService = {
       // 清除相关缓存
       requestCache.clear(`matchSeries_${matchId}`);
       requestCache.clear(`matchGame_${matchId}_${gameNumber}`);
+      clearLocalMatchCache(matchId);
 
       setState({ loading: false });
 

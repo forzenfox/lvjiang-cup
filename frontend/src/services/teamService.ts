@@ -3,6 +3,7 @@ import * as teamImportApi from '@/api/teams-import';
 import type { Team, CreateTeamRequest, UpdateTeamRequest } from '@/api/types';
 import type { ImportResult, ImportError } from '@/api/teams-import';
 import { requestCache, CACHE_TTL } from '@/utils/requestCache';
+import { matchDataCache } from '@/utils/matchDataCache';
 
 /**
  * 战队服务状态接口
@@ -171,6 +172,7 @@ export const teamService: TeamService = {
 
       // 清除缓存，确保下次获取时从后端拉取最新数据
       requestCache.clear('teams');
+      matchDataCache.clear();
 
       // 更新本地列表
       setState({
@@ -202,6 +204,7 @@ export const teamService: TeamService = {
 
       // 清除缓存，确保下次获取时从后端拉取最新数据
       requestCache.clear('teams');
+      matchDataCache.clear();
 
       // 更新本地列表中的战队
       setState({
@@ -228,6 +231,7 @@ export const teamService: TeamService = {
 
       // 清除缓存，确保下次获取时从后端拉取最新数据
       requestCache.clear('teams');
+      matchDataCache.clear();
 
       // 从本地列表中移除
       setState({
@@ -251,6 +255,7 @@ export const teamService: TeamService = {
     try {
       const result = await teamImportApi.importTeams(file);
       requestCache.clear('teams');
+      matchDataCache.clear();
       setState({ loading: false });
       return result;
     } catch (error) {

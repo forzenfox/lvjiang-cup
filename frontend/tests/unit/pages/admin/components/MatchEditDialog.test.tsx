@@ -522,4 +522,86 @@ describe('MatchEditDialog', () => {
       );
     });
   });
+
+  it('已结束状态修改比分后，winnerId 应根据新比分自动修正', async () => {
+    const match = createMockMatch('match-1', 'team1', 'team2');
+    match.scoreA = 1;
+    match.scoreB = 2;
+    match.status = 'finished';
+    match.winnerId = 'team2'; // 原胜者是 team2
+
+    const mockOnSave = vi.fn(() => true);
+    const mockOnClose = vi.fn();
+
+    render(
+      <MatchEditDialog
+        match={match}
+        teams={mockTeams}
+        isOpen={true}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
+      />
+    );
+
+    // 修改比分 A 为 3，使其大于 B
+    const scoreAInput = screen.getByText('比分 A').nextElementSibling as HTMLInputElement;
+    fireEvent.change(scoreAInput, { target: { value: '3' } });
+
+    // 点击保存按钮
+    fireEvent.click(screen.getByText('保存'));
+
+    await waitFor(() => {
+      expect(mockOnSave).toHaveBeenCalledTimes(1);
+      // 验证 winnerId 根据新比分修正为 team1
+      expect(mockOnSave).toHaveBeenCalledWith(
+        expect.objectContaining({
+          winnerId: 'team1',
+          status: 'finished',
+          scoreA: 3,
+          scoreB: 2,
+        })
+      );
+    });
+  });
+
+  it('已结束状态修改比分为平局后，winnerId 应清空', async () => {
+    const match = createMockMatch('match-1', 'team1', 'team2');
+    match.scoreA = 2;
+    match.scoreB = 1;
+    match.status = 'finished';
+    match.winnerId = 'team1';
+
+    const mockOnSave = vi.fn(() => true);
+    const mockOnClose = vi.fn();
+
+    render(
+      <MatchEditDialog
+        match={match}
+        teams={mockTeams}
+        isOpen={true}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
+      />
+    );
+
+    // 修改比分 B 为 2，使其平局
+    const scoreBInput = screen.getByText('比分 B').nextElementSibling as HTMLInputElement;
+    fireEvent.change(scoreBInput, { target: { value: '2' } });
+
+    // 点击保存按钮
+    fireEvent.click(screen.getByText('保存'));
+
+    await waitFor(() => {
+      expect(mockOnSave).toHaveBeenCalledTimes(1);
+      // 验证平局时 winnerId 被清空
+      expect(mockOnSave).toHaveBeenCalledWith(
+        expect.objectContaining({
+          winnerId: null,
+          status: 'finished',
+          scoreA: 2,
+          scoreB: 2,
+        })
+      );
+    });
+  });
 });

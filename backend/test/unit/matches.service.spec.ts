@@ -218,6 +218,52 @@ describe('MatchesService', () => {
 
       expect(mockDatabaseService.run).not.toHaveBeenCalled();
     });
+
+    it('当更新状态为 upcoming 时，应自动清空 winner_id', async () => {
+      mockDatabaseService.get.mockResolvedValueOnce({ id: '1' });
+      mockDatabaseService.get.mockResolvedValueOnce({
+        id: '1',
+        status: 'upcoming',
+        winner_id: null,
+      });
+
+      await service.update('1', { status: MatchStatus.UPCOMING });
+
+      expect(mockDatabaseService.run).toHaveBeenCalledWith(
+        expect.stringContaining('winner_id = NULL'),
+        expect.any(Array),
+      );
+    });
+
+    it('当更新状态为 ongoing 时，应自动清空 winner_id', async () => {
+      mockDatabaseService.get.mockResolvedValueOnce({ id: '1' });
+      mockDatabaseService.get.mockResolvedValueOnce({
+        id: '1',
+        status: 'ongoing',
+        winner_id: null,
+      });
+
+      await service.update('1', { status: MatchStatus.ONGOING });
+
+      expect(mockDatabaseService.run).toHaveBeenCalledWith(
+        expect.stringContaining('winner_id = NULL'),
+        expect.any(Array),
+      );
+    });
+
+    it('当更新状态为 finished 时，不应自动清空 winner_id', async () => {
+      mockDatabaseService.get.mockResolvedValueOnce({ id: '1' });
+      mockDatabaseService.get.mockResolvedValueOnce({
+        id: '1',
+        status: 'finished',
+        winner_id: 'team-a',
+      });
+
+      await service.update('1', { status: MatchStatus.FINISHED, winnerId: 'team-a' });
+
+      const runCall = mockDatabaseService.run.mock.calls[0];
+      expect(runCall[0]).not.toContain('winner_id = NULL');
+    });
   });
 
   describe('clearScores', () => {
@@ -292,25 +338,38 @@ describe('MatchesService', () => {
 
   describe('比赛状态转换', () => {
     it('应该支持 upcoming → in_progress → finished 状态流转', async () => {
-      mockDatabaseService.get.mockResolvedValueOnce({ id: '1', status: 'upcoming' });
-      mockDatabaseService.get.mockResolvedValueOnce({
-        id: '1',
-        status: 'in_progress',
-        score_a: 0,
-        score_b: 0,
-      });
+      // 第一次调用：更新为 ongoing
+      mockDatabaseService.get
+        .mockResolvedValueOnce({ id: '1' }) // 存在性检查
+        .mockResolvedValueOnce({ status: 'upcoming' }) // 查询当前状态
+        .mockResolvedValueOnce({
+          id: '1',
+          status: 'in_progress',
+          score_a: 0,
+          score_b: 0,
+        }); // 返回更新后的数据
 
       const result1 = await service.update('1', { status: MatchStatus.ONGOING });
 
       expect(result1.status).toBe('in_progress');
 
-      mockDatabaseService.get.mockResolvedValueOnce({ id: '1', status: 'in_progress' });
-      mockDatabaseService.get.mockResolvedValueOnce({
-        id: '1',
-        status: 'finished',
-        score_a: 2,
-        score_b: 1,
-      });
+      // 第二次调用：更新为 finished（同时更新比分）
+      mockDatabaseService.get
+        .mockResolvedValueOnce({ id: '1' }) // 存在性检查
+        .mockResolvedValueOnce({ status: 'in_progress' }) // 查询当前状态
+        .mockResolvedValueOnce({
+          score_a: 0,
+          score_b: 0,
+          team_a_id: 'team-a',
+          team_b_id: 'team-b',
+        }) // 查询当前比分和队伍
+        .mockResolvedValueOnce({
+          id: '1',
+          status: 'finished',
+          score_a: 2,
+          score_b: 1,
+          winner_id: 'team-a',
+        }); // 返回更新后的数据
 
       const result2 = await service.update('1', {
         status: MatchStatus.FINISHED,
@@ -322,13 +381,15 @@ describe('MatchesService', () => {
     });
 
     it('应该在状态更新时清除缓存', async () => {
-      mockDatabaseService.get.mockResolvedValueOnce({ id: '1', status: 'upcoming' });
-      mockDatabaseService.get.mockResolvedValueOnce({
-        id: '1',
-        status: 'in_progress',
-        score_a: 0,
-        score_b: 0,
-      });
+      mockDatabaseService.get
+        .mockResolvedValueOnce({ id: '1' }) // 存在性检查
+        .mockResolvedValueOnce({ status: 'upcoming' }) // 查询当前状态
+        .mockResolvedValueOnce({
+          id: '1',
+          status: 'in_progress',
+          score_a: 0,
+          score_b: 0,
+        }); // 返回更新后的数据
 
       await service.update('1', { status: MatchStatus.ONGOING });
 
@@ -337,13 +398,15 @@ describe('MatchesService', () => {
     });
 
     it('应该处理空比赛状态更新', async () => {
-      mockDatabaseService.get.mockResolvedValueOnce({ id: '1', status: 'upcoming' });
-      mockDatabaseService.get.mockResolvedValueOnce({
-        id: '1',
-        status: 'upcoming',
-        score_a: 0,
-        score_b: 0,
-      });
+      mockDatabaseService.get
+        .mockResolvedValueOnce({ id: '1' }) // 存在性检查
+        .mockResolvedValueOnce({ status: 'upcoming' }) // 查询当前状态（但无更新字段，不会查询）
+        .mockResolvedValueOnce({
+          id: '1',
+          status: 'upcoming',
+          score_a: 0,
+          score_b: 0,
+        }); // 返回更新后的数据
 
       const result = await service.update('1', {});
 
@@ -353,13 +416,15 @@ describe('MatchesService', () => {
 
   describe('比分更新业务规则', () => {
     it('应该更新比赛比分', async () => {
-      mockDatabaseService.get.mockResolvedValueOnce({ id: '1' });
-      mockDatabaseService.get.mockResolvedValueOnce({
-        id: '1',
-        score_a: 2,
-        score_b: 1,
-        status: 'finished',
-      });
+      mockDatabaseService.get
+        .mockResolvedValueOnce({ id: '1' }) // 存在性检查
+        .mockResolvedValueOnce({ status: 'upcoming' }) // 查询当前状态（非 finished，不会自动修正 winner_id）
+        .mockResolvedValueOnce({
+          id: '1',
+          score_a: 2,
+          score_b: 1,
+          status: 'upcoming',
+        }); // 返回更新后的数据
 
       const result = await service.update('1', { scoreA: 2, scoreB: 1 });
 
@@ -367,14 +432,71 @@ describe('MatchesService', () => {
       expect(result.scoreB).toBe(1);
     });
 
+    it('已结束状态修改比分后，winner_id 应根据新比分自动修正', async () => {
+      // 第一次 get 用于存在性检查，第二次用于查询当前状态，第三次用于查询比分和队伍，第四次用于返回更新后的数据
+      mockDatabaseService.get
+        .mockResolvedValueOnce({ id: '1' }) // 存在性检查
+        .mockResolvedValueOnce({ status: 'finished' }) // 查询当前状态
+        .mockResolvedValueOnce({
+          score_a: 1,
+          score_b: 2,
+          team_a_id: 'team-a',
+          team_b_id: 'team-b',
+        }) // 查询当前比分和队伍
+        .mockResolvedValueOnce({
+          id: '1',
+          score_a: 3,
+          score_b: 2,
+          winner_id: 'team-a',
+          status: 'finished',
+        }); // 返回更新后的数据
+
+      const result = await service.update('1', { scoreA: 3 });
+
+      expect(mockDatabaseService.run).toHaveBeenCalledWith(
+        expect.stringContaining('winner_id = ?'),
+        expect.arrayContaining(['team-a']),
+      );
+      expect(result.winnerId).toBe('team-a');
+    });
+
+    it('已结束状态修改比分为平局后，winner_id 应清空', async () => {
+      mockDatabaseService.get
+        .mockResolvedValueOnce({ id: '1' }) // 存在性检查
+        .mockResolvedValueOnce({ status: 'finished' }) // 查询当前状态
+        .mockResolvedValueOnce({
+          score_a: 2,
+          score_b: 1,
+          team_a_id: 'team-a',
+          team_b_id: 'team-b',
+        }) // 查询当前比分和队伍
+        .mockResolvedValueOnce({
+          id: '1',
+          score_a: 2,
+          score_b: 2,
+          winner_id: null,
+          status: 'finished',
+        }); // 返回更新后的数据
+
+      const result = await service.update('1', { scoreB: 2 });
+
+      expect(mockDatabaseService.run).toHaveBeenCalledWith(
+        expect.stringContaining('winner_id = NULL'),
+        expect.any(Array),
+      );
+      expect(result.winnerId).toBeNull();
+    });
+
     it('应该允许相同比分（平局场景）', async () => {
-      mockDatabaseService.get.mockResolvedValueOnce({ id: '1' });
-      mockDatabaseService.get.mockResolvedValueOnce({
-        id: '1',
-        score_a: 1,
-        score_b: 1,
-        status: 'finished',
-      });
+      mockDatabaseService.get
+        .mockResolvedValueOnce({ id: '1' }) // 存在性检查
+        .mockResolvedValueOnce({ status: 'upcoming' }) // 查询当前状态（非 finished）
+        .mockResolvedValueOnce({
+          id: '1',
+          score_a: 1,
+          score_b: 1,
+          status: 'upcoming',
+        }); // 返回更新后的数据
 
       const result = await service.update('1', { scoreA: 1, scoreB: 1 });
 
@@ -383,13 +505,15 @@ describe('MatchesService', () => {
     });
 
     it('应该支持清零比分', async () => {
-      mockDatabaseService.get.mockResolvedValueOnce({ id: '1' });
-      mockDatabaseService.get.mockResolvedValueOnce({
-        id: '1',
-        score_a: 0,
-        score_b: 0,
-        status: 'upcoming',
-      });
+      mockDatabaseService.get
+        .mockResolvedValueOnce({ id: '1' }) // 存在性检查
+        .mockResolvedValueOnce({ status: 'upcoming' }) // 查询当前状态
+        .mockResolvedValueOnce({
+          id: '1',
+          score_a: 0,
+          score_b: 0,
+          status: 'upcoming',
+        }); // 返回更新后的数据
 
       const result = await service.update('1', { scoreA: 0, scoreB: 0 });
 
@@ -398,13 +522,15 @@ describe('MatchesService', () => {
     });
 
     it('应该单独更新 A 队比分', async () => {
-      mockDatabaseService.get.mockResolvedValueOnce({ id: '1' });
-      mockDatabaseService.get.mockResolvedValueOnce({
-        id: '1',
-        score_a: 3,
-        score_b: 0,
-        status: 'upcoming',
-      });
+      mockDatabaseService.get
+        .mockResolvedValueOnce({ id: '1' }) // 存在性检查
+        .mockResolvedValueOnce({ status: 'upcoming' }) // 查询当前状态
+        .mockResolvedValueOnce({
+          id: '1',
+          score_a: 3,
+          score_b: 0,
+          status: 'upcoming',
+        }); // 返回更新后的数据
 
       const result = await service.update('1', { scoreA: 3 });
 
@@ -412,13 +538,15 @@ describe('MatchesService', () => {
     });
 
     it('应该单独更新 B 队比分', async () => {
-      mockDatabaseService.get.mockResolvedValueOnce({ id: '1' });
-      mockDatabaseService.get.mockResolvedValueOnce({
-        id: '1',
-        score_a: 0,
-        score_b: 2,
-        status: 'upcoming',
-      });
+      mockDatabaseService.get
+        .mockResolvedValueOnce({ id: '1' }) // 存在性检查
+        .mockResolvedValueOnce({ status: 'upcoming' }) // 查询当前状态
+        .mockResolvedValueOnce({
+          id: '1',
+          score_a: 0,
+          score_b: 2,
+          status: 'upcoming',
+        }); // 返回更新后的数据
 
       const result = await service.update('1', { scoreB: 2 });
 
@@ -428,13 +556,15 @@ describe('MatchesService', () => {
 
   describe('边界值测试', () => {
     it('应该处理负数比分更新', async () => {
-      mockDatabaseService.get.mockResolvedValueOnce({ id: '1' });
-      mockDatabaseService.get.mockResolvedValueOnce({
-        id: '1',
-        score_a: -1,
-        score_b: 0,
-        status: 'upcoming',
-      });
+      mockDatabaseService.get
+        .mockResolvedValueOnce({ id: '1' }) // 存在性检查
+        .mockResolvedValueOnce({ status: 'upcoming' }) // 查询当前状态
+        .mockResolvedValueOnce({
+          id: '1',
+          score_a: -1,
+          score_b: 0,
+          status: 'upcoming',
+        }); // 返回更新后的数据
 
       await service.update('1', { scoreA: -1 });
 
@@ -442,13 +572,15 @@ describe('MatchesService', () => {
     });
 
     it('应该处理极大比分值', async () => {
-      mockDatabaseService.get.mockResolvedValueOnce({ id: '1' });
-      mockDatabaseService.get.mockResolvedValueOnce({
-        id: '1',
-        score_a: 999999,
-        score_b: 0,
-        status: 'upcoming',
-      });
+      mockDatabaseService.get
+        .mockResolvedValueOnce({ id: '1' }) // 存在性检查
+        .mockResolvedValueOnce({ status: 'upcoming' }) // 查询当前状态
+        .mockResolvedValueOnce({
+          id: '1',
+          score_a: 999999,
+          score_b: 0,
+          status: 'upcoming',
+        }); // 返回更新后的数据
 
       await service.update('1', { scoreA: 999999 });
 
@@ -472,13 +604,15 @@ describe('MatchesService', () => {
     });
 
     it('应该处理小数比分值', async () => {
-      mockDatabaseService.get.mockResolvedValueOnce({ id: '1' });
-      mockDatabaseService.get.mockResolvedValueOnce({
-        id: '1',
-        score_a: 1.5,
-        score_b: 0,
-        status: 'upcoming',
-      });
+      mockDatabaseService.get
+        .mockResolvedValueOnce({ id: '1' }) // 存在性检查
+        .mockResolvedValueOnce({ status: 'upcoming' }) // 查询当前状态
+        .mockResolvedValueOnce({
+          id: '1',
+          score_a: 1.5,
+          score_b: 0,
+          status: 'upcoming',
+        }); // 返回更新后的数据
 
       await service.update('1', { scoreA: 1.5 } as any);
 
@@ -486,13 +620,15 @@ describe('MatchesService', () => {
     });
 
     it('应该处理零比分更新', async () => {
-      mockDatabaseService.get.mockResolvedValueOnce({ id: '1' });
-      mockDatabaseService.get.mockResolvedValueOnce({
-        id: '1',
-        score_a: 0,
-        score_b: 0,
-        status: 'upcoming',
-      });
+      mockDatabaseService.get
+        .mockResolvedValueOnce({ id: '1' }) // 存在性检查
+        .mockResolvedValueOnce({ status: 'upcoming' }) // 查询当前状态
+        .mockResolvedValueOnce({
+          id: '1',
+          score_a: 0,
+          score_b: 0,
+          status: 'upcoming',
+        }); // 返回更新后的数据
 
       const result = await service.update('1', { scoreA: 0, scoreB: 0 });
 

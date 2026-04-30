@@ -92,19 +92,25 @@ const MatchEditDialog: React.FC<MatchEditDialogProps> = ({
       return;
     }
 
+    // 创建新的对象副本，避免直接修改 state
+    const dataToSave = { ...formData };
+
     // 如果状态不是'已结束'，清除 winnerId
-    if (formData.status !== 'finished') {
-      formData.winnerId = null;
-    } else if (!formData.winnerId) {
-      // 如果是'已结束'但没有 winnerId，根据比分自动设置
-      if (formData.scoreA > formData.scoreB) {
-        formData.winnerId = formData.teamAId;
-      } else if (formData.scoreB > formData.scoreA) {
-        formData.winnerId = formData.teamBId;
+    if (dataToSave.status !== 'finished') {
+      dataToSave.winnerId = null;
+    } else {
+      // 已结束状态：根据当前比分重新计算 winnerId
+      if (dataToSave.scoreA > dataToSave.scoreB) {
+        dataToSave.winnerId = dataToSave.teamAId;
+      } else if (dataToSave.scoreB > dataToSave.scoreA) {
+        dataToSave.winnerId = dataToSave.teamBId;
+      } else {
+        // 平局时清空 winnerId
+        dataToSave.winnerId = null;
       }
     }
 
-    const result = await onSave(formData);
+    const result = await onSave(dataToSave);
     if (result !== false) {
       onClose();
     }
