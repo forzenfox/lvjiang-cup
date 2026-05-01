@@ -64,7 +64,7 @@ window.THANKS_DATA = {
     { id: 6, sponsorName: "尊师hkl", sponsorContent: "2K" },
     { id: 7, sponsorName: "为何如此衰", sponsorContent: "8K", specialAward: "8强每个队伍1K" },
     { id: 8, sponsorName: "董B登", sponsorContent: "1K", specialAward: "冠军队伍每人750g蓝莓果干+250g参片" },
-    { id: 9, sponsorName: "只会打炉石的SteveD", sponsorContent: "1K" },
+    { id: 9, sponsorName: "只会打炉石的SteveD", sponsorContent: "1.5K", specialAward: "FMVP 1K，冠军上单 500" },
     { id: 10, sponsorName: "深红", sponsorContent: "2K" },
     { id: 11, sponsorName: "MT", sponsorContent: "2K", specialAward: "4强队伍每人一份贡菜千层肚" },
     { id: 12, sponsorName: "不减到75kg不改名", sponsorContent: "1K", specialAward: "最佳C/D级（参赛选手评）" },
