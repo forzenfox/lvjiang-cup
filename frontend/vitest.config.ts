@@ -7,7 +7,7 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     globals: true,
-    setupFiles: ['./tests/setup.ts'],
+    setupFiles: ['./tests/setup.tsx'],
     outputFile: './tests/reports/test-results.xml',
     reporters: ['default', 'junit'],
     exclude: ['node_modules', 'tests/e2e/**/*'],

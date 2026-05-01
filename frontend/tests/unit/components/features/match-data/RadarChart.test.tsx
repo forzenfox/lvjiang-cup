@@ -1,28 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-vi.mock('echarts/core', () => ({
-  __esModule: true,
-  use: vi.fn(),
-  init: vi.fn(() => ({
-    setOption: vi.fn(),
-    resize: vi.fn(),
-    dispose: vi.fn(),
-  })),
-}));
-
-vi.mock('echarts/charts', () => ({
-  RadarChart: {},
-}));
-
-vi.mock('echarts/components', () => ({
-  TooltipComponent: {},
-  GridComponent: {},
-}));
-
-vi.mock('echarts/renderers', () => ({
-  CanvasRenderer: {},
-}));
-
 import { render, screen } from '@testing-library/react';
 import RadarChart from '@/components/features/match-data/RadarChart';
 import type { PlayerStat, TeamGameData } from '@/types/matchData';
