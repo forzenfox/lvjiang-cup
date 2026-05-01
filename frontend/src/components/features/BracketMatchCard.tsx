@@ -1,24 +1,23 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Match, Team, MatchStatus } from '@/types';
 import { ELIMINATION_THEME } from '@/constants/eliminationTheme';
-import MatchDetailModal from './MatchDetailModal';
 
 interface BracketMatchCardProps {
   match: Match;
   teams: Team[];
   testId?: string;
+  onMatchClick?: (match: Match) => void;
 }
 
-// 状态徽章组件 - 官方UI风格
 const BracketStatusBadge: React.FC<{ status: MatchStatus }> = ({ status }) => {
   const getStatusStyle = () => {
     switch (status) {
       case 'upcoming':
-        return { bg: 'rgb(59, 130, 246)', text: 'rgb(255, 255, 255)' }; // 蓝色
+        return { bg: 'rgb(59, 130, 246)', text: 'rgb(255, 255, 255)' };
       case 'ongoing':
-        return { bg: 'rgb(34, 197, 94)', text: 'rgb(255, 255, 255)' }; // 绿色
+        return { bg: 'rgb(34, 197, 94)', text: 'rgb(255, 255, 255)' };
       case 'finished':
-        return { bg: 'rgb(107, 114, 128)', text: 'rgb(255, 255, 255)' }; // 灰色
+        return { bg: 'rgb(107, 114, 128)', text: 'rgb(255, 255, 255)' };
       default:
         return { bg: 'rgb(59, 130, 246)', text: 'rgb(255, 255, 255)' };
     }
@@ -53,7 +52,6 @@ const BracketStatusBadge: React.FC<{ status: MatchStatus }> = ({ status }) => {
   );
 };
 
-// 队伍Logo组件
 const BracketTeamLogo: React.FC<{ team?: Team; size?: number }> = ({ team, size = 32 }) => {
   if (team?.logo) {
     return (
@@ -68,7 +66,6 @@ const BracketTeamLogo: React.FC<{ team?: Team; size?: number }> = ({ team, size 
   return <div className="rounded-full bg-gray-600" style={{ width: size, height: size }} />;
 };
 
-// 单行队伍组件 - 参考官方设计
 const TeamRow: React.FC<{
   team?: Team;
   score: number;
@@ -85,11 +82,10 @@ const TeamRow: React.FC<{
           : isLoser
             ? ELIMINATION_THEME.loserBg
             : 'transparent',
-        height: '55px', // 增大的行高
+        height: '55px',
       }}
       data-testid={testId}
     >
-      {/* 左侧：队标 + 队名 */}
       <div className="flex items-center gap-4">
         <BracketTeamLogo team={team} size={32} />
         <span
@@ -105,7 +101,6 @@ const TeamRow: React.FC<{
         </span>
       </div>
 
-      {/* 右侧：小分 */}
       <span
         className="font-bold text-xl w-8 text-center"
         style={{
@@ -120,89 +115,72 @@ const TeamRow: React.FC<{
 };
 
 const BracketMatchCard = React.forwardRef<HTMLDivElement, BracketMatchCardProps>(
-  ({ match, teams, testId }, ref) => {
+  ({ match, teams, testId, onMatchClick }, ref) => {
     const teamA = teams.find(t => t.id === match.teamAId);
     const teamB = teams.find(t => t.id === match.teamBId);
     const isFinished = match.status === 'finished';
-    const [isModalOpen, setIsModalOpen] = useState(false);
 
     const isTeamAWinner = isFinished && match.winnerId === match.teamAId;
     const isTeamBWinner = isFinished && match.winnerId === match.teamBId;
     const hasWinner = isFinished && match.winnerId;
 
     const handleCardClick = () => {
-      setIsModalOpen(true);
+      if (onMatchClick) {
+        onMatchClick(match);
+      }
     };
 
     return (
-      <>
-        <div
-          ref={ref}
-          className="flex flex-col cursor-pointer hover:opacity-90"
-          style={{
-            width: ELIMINATION_THEME.cardWidth,
-          }}
-          data-testid={testId || 'bracket-match'}
-          onClick={handleCardClick}
-        >
-          {/* 顶部信息栏：时间（左）+ 状态（右） */}
-          <div className="flex items-center justify-between mb-1" style={{ height: '28px' }}>
-            {/* 左侧：时间显示 */}
-            <span
-              className="text-base whitespace-nowrap"
-              style={{ color: ELIMINATION_THEME.loserText }}
-              data-testid="match-time"
-            >
-              {match.startTime ? formatMatchTime(match.startTime) : '待定'}
-            </span>
-
-            {/* 右侧：状态徽章 */}
-            <BracketStatusBadge status={match.status} />
-          </div>
-
-          {/* 比赛卡片主体 */}
-          <div
-            style={{
-              backgroundColor: ELIMINATION_THEME.cardBackground,
-              height: ELIMINATION_THEME.matchCardHeight,
-            }}
+      <div
+        ref={ref}
+        className="flex flex-col cursor-pointer hover:opacity-90"
+        style={{
+          width: ELIMINATION_THEME.cardWidth,
+        }}
+        data-testid={testId || 'bracket-match'}
+        onClick={handleCardClick}
+      >
+        <div className="flex items-center justify-between mb-1" style={{ height: '28px' }}>
+          <span
+            className="text-base whitespace-nowrap"
+            style={{ color: ELIMINATION_THEME.loserText }}
+            data-testid="match-time"
           >
-            {/* 战队1 - 上方 */}
-            <TeamRow
-              team={teamA}
-              score={match.scoreA}
-              isWinner={isTeamAWinner}
-              isLoser={hasWinner && !isTeamAWinner}
-              testId={`${testId}-team-a`}
-            />
+            {match.startTime ? formatMatchTime(match.startTime) : '待定'}
+          </span>
 
-            {/* 分隔线 */}
-            <div className="mx-5 h-px" style={{ backgroundColor: ELIMINATION_THEME.cardBorder }} />
-
-            {/* 战队2 - 下方 */}
-            <TeamRow
-              team={teamB}
-              score={match.scoreB}
-              isWinner={isTeamBWinner}
-              isLoser={hasWinner && !isTeamBWinner}
-              testId={`${testId}-team-b`}
-            />
-          </div>
+          <BracketStatusBadge status={match.status} />
         </div>
 
-        {/* 对战详情弹框 */}
-        <MatchDetailModal
-          visible={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-          match={match}
-          teams={teams}
-        />
-      </>
+        <div
+          style={{
+            backgroundColor: ELIMINATION_THEME.cardBackground,
+            height: ELIMINATION_THEME.matchCardHeight,
+          }}
+        >
+          <TeamRow
+            team={teamA}
+            score={match.scoreA}
+            isWinner={isTeamAWinner}
+            isLoser={hasWinner && !isTeamAWinner}
+            testId={`${testId}-team-a`}
+          />
+
+          <div className="mx-5 h-px" style={{ backgroundColor: ELIMINATION_THEME.cardBorder }} />
+
+          <TeamRow
+            team={teamB}
+            score={match.scoreB}
+            isWinner={isTeamBWinner}
+            isLoser={hasWinner && !isTeamBWinner}
+            testId={`${testId}-team-b`}
+          />
+        </div>
+      </div>
     );
   }
 );
 
-// 格式化比赛时间
 const formatMatchTime = (startTime: string): string => {
   if (!startTime) return '待定';
   try {

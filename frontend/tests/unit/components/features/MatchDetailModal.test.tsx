@@ -55,27 +55,25 @@ const createMockMatch = (overrides: Partial<Match> = {}): Match => ({
 });
 
 describe('MatchDetailModal', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockCheckMatchDataExists.mockResolvedValue({ hasData: false, gameCount: 0 });
+  });
+
   it('当visible为false时不应该渲染', () => {
-    mockCheckMatchDataExists.mockResolvedValueOnce({ hasData: false, gameCount: 0 });
     const match = createMockMatch();
-    const { container } = render(
-      <MatchDetailModal visible={false} onClose={vi.fn()} match={match} teams={mockTeams} />
-    );
+    render(<MatchDetailModal visible={false} onClose={vi.fn()} match={match} teams={mockTeams} />);
 
     expect(screen.queryByText('对战详情')).not.toBeInTheDocument();
   });
 
   it('当match为null时不应该渲染', () => {
-    mockCheckMatchDataExists.mockResolvedValueOnce({ hasData: false, gameCount: 0 });
-    const { container } = render(
-      <MatchDetailModal visible={true} onClose={vi.fn()} match={null} teams={mockTeams} />
-    );
+    render(<MatchDetailModal visible={true} onClose={vi.fn()} match={null} teams={mockTeams} />);
 
     expect(screen.queryByText('对战详情')).not.toBeInTheDocument();
   });
 
   it('应该显示弹框标题', () => {
-    mockCheckMatchDataExists.mockResolvedValueOnce({ hasData: false, gameCount: 0 });
     const match = createMockMatch();
     render(<MatchDetailModal visible={true} onClose={vi.fn()} match={match} teams={mockTeams} />);
 
@@ -83,7 +81,6 @@ describe('MatchDetailModal', () => {
   });
 
   it('应该显示对战时间', () => {
-    mockCheckMatchDataExists.mockResolvedValueOnce({ hasData: false, gameCount: 0 });
     const match = createMockMatch({ startTime: '2026-01-01T14:30:00' });
     render(<MatchDetailModal visible={true} onClose={vi.fn()} match={match} teams={mockTeams} />);
 
@@ -91,7 +88,6 @@ describe('MatchDetailModal', () => {
   });
 
   it('当没有startTime时应该显示待定', () => {
-    mockCheckMatchDataExists.mockResolvedValueOnce({ hasData: false, gameCount: 0 });
     const match = createMockMatch({ startTime: '' });
     render(<MatchDetailModal visible={true} onClose={vi.fn()} match={match} teams={mockTeams} />);
 
@@ -99,7 +95,6 @@ describe('MatchDetailModal', () => {
   });
 
   it('应该显示对战状态', () => {
-    mockCheckMatchDataExists.mockResolvedValueOnce({ hasData: false, gameCount: 0 });
     const match = createMockMatch({ status: 'ongoing' });
     render(<MatchDetailModal visible={true} onClose={vi.fn()} match={match} teams={mockTeams} />);
 
@@ -107,7 +102,6 @@ describe('MatchDetailModal', () => {
   });
 
   it('应该显示不同状态的比赛', () => {
-    mockCheckMatchDataExists.mockResolvedValue({ hasData: false, gameCount: 0 });
     const upcomingMatch = createMockMatch({ status: 'upcoming' });
     const { rerender } = render(
       <MatchDetailModal visible={true} onClose={vi.fn()} match={upcomingMatch} teams={mockTeams} />
@@ -122,7 +116,6 @@ describe('MatchDetailModal', () => {
   });
 
   it('应该显示双方队伍名称', () => {
-    mockCheckMatchDataExists.mockResolvedValueOnce({ hasData: false, gameCount: 0 });
     const match = createMockMatch();
     render(<MatchDetailModal visible={true} onClose={vi.fn()} match={match} teams={mockTeams} />);
 
@@ -131,7 +124,6 @@ describe('MatchDetailModal', () => {
   });
 
   it('应该显示比分', () => {
-    mockCheckMatchDataExists.mockResolvedValueOnce({ hasData: false, gameCount: 0 });
     const match = createMockMatch({ scoreA: 3, scoreB: 2 });
     render(<MatchDetailModal visible={true} onClose={vi.fn()} match={match} teams={mockTeams} />);
 
@@ -142,7 +134,6 @@ describe('MatchDetailModal', () => {
   });
 
   it('应该显示胜者标签', () => {
-    mockCheckMatchDataExists.mockResolvedValueOnce({ hasData: false, gameCount: 0 });
     const match = createMockMatch({ winnerId: 'team1', status: 'finished' });
     render(<MatchDetailModal visible={true} onClose={vi.fn()} match={match} teams={mockTeams} />);
 
@@ -151,7 +142,6 @@ describe('MatchDetailModal', () => {
   });
 
   it('应该显示队员对阵信息', () => {
-    mockCheckMatchDataExists.mockResolvedValueOnce({ hasData: false, gameCount: 0 });
     const match = createMockMatch();
     render(<MatchDetailModal visible={true} onClose={vi.fn()} match={match} teams={mockTeams} />);
 
@@ -162,7 +152,6 @@ describe('MatchDetailModal', () => {
   });
 
   it('应该显示队员昵称', () => {
-    mockCheckMatchDataExists.mockResolvedValueOnce({ hasData: false, gameCount: 0 });
     const match = createMockMatch();
     render(<MatchDetailModal visible={true} onClose={vi.fn()} match={match} teams={mockTeams} />);
 
@@ -171,7 +160,6 @@ describe('MatchDetailModal', () => {
   });
 
   it('当队员昵称为空时应该显示待定', () => {
-    mockCheckMatchDataExists.mockResolvedValueOnce({ hasData: false, gameCount: 0 });
     const teamsWithEmptyNickname: Team[] = [
       {
         id: 'team1',
@@ -210,7 +198,6 @@ describe('MatchDetailModal', () => {
   });
 
   it('应该正确区分队员昵称和位置信息', () => {
-    mockCheckMatchDataExists.mockResolvedValueOnce({ hasData: false, gameCount: 0 });
     const match = createMockMatch();
     render(<MatchDetailModal visible={true} onClose={vi.fn()} match={match} teams={mockTeams} />);
 
@@ -224,24 +211,20 @@ describe('MatchDetailModal', () => {
   });
 
   it('应该显示位置图标代替位置文字', () => {
-    mockCheckMatchDataExists.mockResolvedValueOnce({ hasData: false, gameCount: 0 });
     const match = createMockMatch();
     render(<MatchDetailModal visible={true} onClose={vi.fn()} match={match} teams={mockTeams} />);
 
-    // 不应该显示位置文字
     expect(screen.queryByText('上单')).not.toBeInTheDocument();
     expect(screen.queryByText('打野')).not.toBeInTheDocument();
     expect(screen.queryByText('中单')).not.toBeInTheDocument();
     expect(screen.queryByText('ADC')).not.toBeInTheDocument();
     expect(screen.queryByText('辅助')).not.toBeInTheDocument();
 
-    // 应该渲染img元素（位置图标）
     const images = document.querySelectorAll('img');
     expect(images.length).toBeGreaterThan(0);
   });
 
   it('应该显示赛制信息', () => {
-    mockCheckMatchDataExists.mockResolvedValueOnce({ hasData: false, gameCount: 0 });
     const match = createMockMatch({ boFormat: 'BO5' });
     render(<MatchDetailModal visible={true} onClose={vi.fn()} match={match} teams={mockTeams} />);
 
@@ -249,7 +232,6 @@ describe('MatchDetailModal', () => {
   });
 
   it('点击关闭按钮应该调用onClose', () => {
-    mockCheckMatchDataExists.mockResolvedValueOnce({ hasData: false, gameCount: 0 });
     const match = createMockMatch();
     const handleClose = vi.fn();
     render(
@@ -263,7 +245,6 @@ describe('MatchDetailModal', () => {
   });
 
   it('点击遮罩层应该调用onClose', () => {
-    mockCheckMatchDataExists.mockResolvedValueOnce({ hasData: false, gameCount: 0 });
     const match = createMockMatch();
     const handleClose = vi.fn();
     const { container } = render(
@@ -278,10 +259,6 @@ describe('MatchDetailModal', () => {
   });
 
   describe('对战数据按钮', () => {
-    beforeEach(() => {
-      vi.clearAllMocks();
-    });
-
     it('已上传数据时应显示按钮', async () => {
       mockCheckMatchDataExists.mockResolvedValueOnce({ hasData: true, gameCount: 3 });
 
@@ -294,8 +271,6 @@ describe('MatchDetailModal', () => {
     });
 
     it('未上传数据时不应显示按钮', async () => {
-      mockCheckMatchDataExists.mockResolvedValueOnce({ hasData: false, gameCount: 0 });
-
       const match = createMockMatch({ status: 'finished' });
       render(<MatchDetailModal visible={true} onClose={vi.fn()} match={match} teams={mockTeams} />);
 

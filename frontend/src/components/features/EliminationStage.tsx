@@ -19,6 +19,7 @@ interface EliminationStageProps {
   teams: Team[];
   editable?: boolean;
   onMatchUpdate?: (match: Match) => void;
+  onMatchClick?: (match: Match) => void;
 }
 
 // 淘汰赛比赛编号到真实ID的映射（8队单败：4QF + 2SF + 1F）
@@ -37,6 +38,7 @@ const EliminationStage: React.FC<EliminationStageProps> = ({
   teams,
   editable = false,
   onMatchUpdate,
+  onMatchClick,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerWidth, setContainerWidth] = useState(1200);
@@ -114,7 +116,12 @@ const EliminationStage: React.FC<EliminationStageProps> = ({
             allMatches={matches}
           />
         ) : (
-          <BracketMatchCard match={displayMatch} teams={teams} testId={testId} />
+          <BracketMatchCard
+            match={displayMatch}
+            teams={teams}
+            testId={testId}
+            onMatchClick={onMatchClick}
+          />
         )}
       </div>
     );

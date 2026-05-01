@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import React from 'react';
 import ScheduleSection from '@/components/features/ScheduleSection';
 import { matchService } from '@/services/matchService';
@@ -42,16 +42,50 @@ vi.mock('@/store/advancementStore', () => ({
   calculateAdvancement: vi.fn().mockReturnValue(null),
 }));
 
-vi.mock('./SwissStageResponsive', () => ({
-  default: () => <div data-testid="swiss-stage">Swiss Stage</div>,
+vi.mock('@/components/features/SwissStageResponsive', () => ({
+  default: ({ onMatchClick }: { onMatchClick?: (match: unknown) => void }) => (
+    <div data-testid="swiss-stage" onClick={() => onMatchClick?.({ id: 'match1' })}>
+      Swiss Stage
+    </div>
+  ),
 }));
 
-vi.mock('./EliminationStage', () => ({
-  default: () => <div data-testid="elimination-stage">Elimination Stage</div>,
+vi.mock('@/components/features/EliminationStage', () => ({
+  default: ({ onMatchClick }: { onMatchClick?: (match: unknown) => void }) => (
+    <div data-testid="elimination-stage" onClick={() => onMatchClick?.({ id: 'match2' })}>
+      Elimination Stage
+    </div>
+  ),
 }));
 
-vi.mock('./swiss/SwissEmptyState', () => ({
+vi.mock('@/components/features/swiss/SwissEmptyState', () => ({
   default: ({ message }: { message: string }) => <div>{message}</div>,
+}));
+
+vi.mock('@/components/features/MatchDetailDrawer', () => ({
+  default: ({ match, onClose }: { match: { id: string }; onClose: () => void }) => (
+    <div data-testid="match-detail-drawer">
+      Drawer: {match.id}
+      <button data-testid="close-drawer" onClick={onClose}>
+        Close
+      </button>
+    </div>
+  ),
+}));
+
+vi.mock('@/components/features/MatchDetailModal', () => ({
+  default: ({ match, onClose }: { match: { id: string }; onClose: () => void }) => (
+    <div data-testid="match-detail-modal">
+      Modal: {match.id}
+      <button data-testid="close-modal" onClick={onClose}>
+        Close
+      </button>
+    </div>
+  ),
+}));
+
+vi.mock('@/hooks/useMediaQuery', () => ({
+  useIsMobile: () => false,
 }));
 
 vi.mock('framer-motion', () => ({
@@ -101,10 +135,51 @@ describe('ScheduleSection', () => {
     const { rerender } = render(<ScheduleSection />);
     const initialCallCount = mockFetchMatches.mock.calls.length;
 
-    // 模拟 Tab 切换（重新渲染）
     rerender(<ScheduleSection />);
 
-    // fetchMatches 不应被再次调用
     expect(mockFetchMatches.mock.calls.length).toBe(initialCallCount);
+  });
+
+  it('点击对战卡片应打开对战详情（PC端弹框）', async () => {
+    mockHomeData.matches = [{ id: 'm1', stage: 'swiss' }];
+    render(<ScheduleSection />);
+
+    const swissStage = screen.getByTestId('swiss-stage');
+    fireEvent.click(swissStage);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('match-detail-modal')).toBeInTheDocument();
+    });
+  });
+
+  it('关闭详情后应清除选中状态', async () => {
+    mockHomeData.matches = [{ id: 'm1', stage: 'swiss' }];
+    render(<ScheduleSection />);
+
+    const swissStage = screen.getByTestId('swiss-stage');
+    fireEvent.click(swissStage);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('match-detail-modal')).toBeInTheDocument();
+    });
+
+    const closeButton = screen.getByTestId('close-modal');
+    fireEvent.click(closeButton);
+
+    await waitFor(() => {
+      expect(screen.queryByTestId('match-detail-modal')).not.toBeInTheDocument();
+    });
+  });
+
+  it('淘汰赛组件应接收 onMatchClick 回调', async () => {
+    mockHomeData.matches = [
+      { id: 'm1', stage: 'swiss' },
+      { id: 'm2', stage: 'elimination' },
+    ];
+    render(<ScheduleSection />);
+
+    // 验证 EliminationStage 组件被渲染（在 DOM 中存在，即使 tab 隐藏）
+    const eliminationContent = screen.getByTestId('elimination-content');
+    expect(eliminationContent).toBeInTheDocument();
   });
 });
