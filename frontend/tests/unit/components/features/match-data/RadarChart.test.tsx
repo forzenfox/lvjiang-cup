@@ -4,6 +4,22 @@ import { render, screen } from '@testing-library/react';
 import RadarChart from '@/components/features/match-data/RadarChart';
 import type { PlayerStat, TeamGameData } from '@/types/matchData';
 
+vi.mock('@/utils/radarCalculations', () => ({
+  normalizeRadarValue: vi.fn((v: number) => v),
+  calculateRadarDimension: vi.fn(() => [0.5, 0.6, 0.7, 0.8, 0.9, 0.5]),
+  getRadarDimensionConfig: vi.fn(() => [
+    { key: 'csPerMin', label: '分均补刀' },
+    { key: 'dmgRatio', label: '伤害占比' },
+    { key: 'takenRatio', label: '承伤占比' },
+    { key: 'teamFight', label: '参团率' },
+    { key: 'dmgEff', label: '伤转' },
+    { key: 'kda', label: 'KDA' },
+  ]),
+  formatDimensionValue: vi.fn((v: number) => String(v)),
+  getDimensionUnit: vi.fn(() => ''),
+  parseGameDuration: vi.fn(() => 1800),
+}));
+
 const createMockPlayer = (
   overrides: Partial<PlayerStat> & { playerName: string; position: string }
 ): PlayerStat =>
