@@ -68,15 +68,16 @@ window.THANKS_DATA = {
     { id: 9, sponsorName: "只会打炉石的SteveD", sponsorContent: "1.5K", specialAward: "FMVP 1K，冠军上单 500" },
     { id: 10, sponsorName: "深红", sponsorContent: "2K" },
     { id: 11, sponsorName: "MT", sponsorContent: "2K", specialAward: "4强队伍每人一份贡菜千层肚" },
-    { id: 12, sponsorName: "不减到75kg不改名", sponsorContent: "1K", specialAward: "最佳C/D级（参赛选手评）" },
-    { id: 13, sponsorName: "你真的是厉害", sponsorContent: "500", specialAward: "爆种奖" },
+    { id: 12, sponsorName: "不减到75kg不改名", sponsorContent: "1K", specialAward: "最佳C/D级（参赛选手评）1K" },
+    { id: 13, sponsorName: "你真的是厉害", sponsorContent: "500", specialAward: "爆种奖 500" },
     { id: 14, sponsorName: "直播间最漂亮的寡妇", sponsorContent: "1K", specialAward: "最拉辅助和最强辅助，一人500" },
     { id: 15, sponsorName: "热心市民小曹", sponsorContent: "2K" },
     { id: 16, sponsorName: "斗驴启动", sponsorContent: "1K", specialAward: "亚军SVP 1K" },
     { id: 17, sponsorName: "小金拉黑属实不行", sponsorContent: "500", specialAward: "爆种奖 500" },
     { id: 18, sponsorName: "丶苏唐", sponsorContent: "1K", specialAward: "瑞士轮第一个淘汰的队伍5人平分1K" },
     { id: 19, sponsorName: "c酱的骚刚", sponsorContent: "600", specialAward: "弹幕票选表现最差A/S，300R/人" },
-    { id: 20, sponsorName: "人生梦想", sponsorContent: "1K", specialAward: "冠军打野 1K" }
+    { id: 20, sponsorName: "人生梦想", sponsorContent: "1K", specialAward: "冠军打野 1K" },
+    { id: 21, sponsorName: "大乌龟的小黑头", sponsorContent: "500", specialAward: "8强最具性价比上单(凯哥评选) 500" }
   ],
   staff: [
     { id: 1, name: "帅小伙山月", role: "大总管" },
@@ -87,6 +88,30 @@ window.THANKS_DATA = {
     { id: 6, name: "梅怡阁诗人", role: "技术支持" }
   ]
 };
+console.debug('[ThanksData] 鸣谢模块数据已加载');
+
+window.PRIZE_POOL_DATA = {
+  prizePoolTotal: 125600,
+  regular: {
+    total: 109000,
+    championRatio: 0.7,
+    runnerUpRatio: 0.3,
+  },
+  specialAwards: [
+    { id: 1, content: "8强每个队伍1K" },
+    { id: 2, content: "冠军队伍每人750g蓝莓果干+250g参片" },
+    { id: 3, content: "FMVP 1K，冠军上单 500" },
+    { id: 4, content: "4强队伍每人一份贡菜千层肚" },
+    { id: 5, content: "最佳C/D级（参赛选手评）" },
+    { id: 6, content: "最拉辅助和最强辅助，一人500" },
+    { id: 7, content: "亚军SVP 1K" },
+    { id: 8, content: "爆种奖 500+500" },
+    { id: 9, content: "瑞士轮第一个淘汰的队伍5人平分1K" },
+    { id: 10, content: "弹幕票选表现最差A/S，300R/人" },
+    { id: 11, content: "冠军打野 1K" },
+    { id: 12, content: "8强最具性价比上单(凯哥评选) 500" }
+  ],
+};
+console.debug('[PrizePool] 奖金池数据已加载');
 
 console.debug('[Config] 生产环境配置已加载');
-console.debug('[ThanksData] 鸣谢模块数据已加载');

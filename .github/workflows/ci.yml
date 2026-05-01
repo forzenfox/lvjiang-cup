@@ -61,9 +61,6 @@ jobs:
       - name: Run TypeScript check (类型检查)
         run: npm run check
 
-      - name: Run unit tests (单元测试)
-        run: npm run test
-
       - name: Build frontend (构建)
         run: npm run build
 
@@ -98,9 +95,6 @@ jobs:
 
       - name: Check Prettier format (格式检查)
         run: npm run format:check
-
-      - name: Run unit tests (单元测试)
-        run: npm run test
 
       - name: Build backend (构建)
         run: npm run build

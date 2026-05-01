@@ -22,6 +22,7 @@ export const AlertTriangle = MockIcon;
 export const ExternalLink = MockIcon;
 export const ChevronRight = MockIcon;
 export const Trophy = MockIcon;
+export const Medal = MockIcon;
 export const Search = MockIcon;
 export const Clock = MockIcon;
 export const Plus = MockIcon;
