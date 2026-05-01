@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { Match, Team, MatchStatus } from '@/types';
 import { SWISS_THEME } from '@/constants/swissTheme';
-import { BarChart3 } from 'lucide-react';
+import { BarChart3, Monitor } from 'lucide-react';
 import { checkMatchDataExists } from '@/api/matchData';
 import { useSpriteUrl } from '@/components/icons/PositionIcons';
+import { useIsMobile } from '@/hooks/useMediaQuery';
 
 export interface MatchDetailContentProps {
   match: Match;
@@ -91,6 +92,7 @@ const MatchDetailContent: React.FC<MatchDetailContentProps> = ({ match, teams })
   const [hasMatchData, setHasMatchData] = useState(false);
   const [checkingMatchData, setCheckingMatchData] = useState(false);
   const spriteUrl = useSpriteUrl();
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     if (match && match.status === 'finished') {
@@ -164,28 +166,23 @@ const MatchDetailContent: React.FC<MatchDetailContentProps> = ({ match, teams })
       {/* 对战双方头部 */}
       <div className="flex items-center justify-between px-4">
         {/* 左侧队伍 */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-1 min-w-0">
           <TeamLogo team={teamA} size={48} />
-          <div className="flex flex-col">
+          <div className="flex flex-col min-w-0">
             <span
-              className="font-semibold text-lg"
+              className={`font-semibold truncate ${isMobile ? 'text-sm' : 'text-lg'}`}
               style={{
                 color: isTeamAWinner ? SWISS_THEME.winnerText : SWISS_THEME.loserText,
               }}
             >
               {teamA?.name || '待定'}
             </span>
-            {isTeamAWinner && (
-              <span className="text-xs" style={{ color: SWISS_THEME.scoreActive }}>
-                胜者
-              </span>
-            )}
           </div>
         </div>
 
         {/* 比分 */}
         <div
-          className="flex items-center gap-2 px-6 py-2 bg-gray-800 rounded-lg"
+          className="flex items-center gap-2 px-4 py-2 bg-gray-800 rounded-lg flex-shrink-0 mx-2"
           style={{
             fontFamily: 'dinbold, sans-serif',
             fontWeight: 'bold',
@@ -218,21 +215,16 @@ const MatchDetailContent: React.FC<MatchDetailContentProps> = ({ match, teams })
         </div>
 
         {/* 右侧队伍 */}
-        <div className="flex items-center gap-3">
-          <div className="flex flex-col items-end">
+        <div className="flex items-center gap-3 flex-1 min-w-0 justify-end">
+          <div className="flex flex-col items-end min-w-0">
             <span
-              className="font-semibold text-lg"
+              className={`font-semibold truncate ${isMobile ? 'text-sm' : 'text-lg'}`}
               style={{
                 color: isTeamBWinner ? SWISS_THEME.winnerText : SWISS_THEME.loserText,
               }}
             >
               {teamB?.name || '待定'}
             </span>
-            {isTeamBWinner && (
-              <span className="text-xs" style={{ color: SWISS_THEME.scoreActive }}>
-                胜者
-              </span>
-            )}
           </div>
           <TeamLogo team={teamB} size={48} />
         </div>
@@ -328,8 +320,8 @@ const MatchDetailContent: React.FC<MatchDetailContentProps> = ({ match, teams })
         </div>
       )}
 
-      {/* 对战数据按钮 */}
-      {hasMatchData && !checkingMatchData && (
+      {/* 对战数据按钮（仅PC端显示） */}
+      {hasMatchData && !checkingMatchData && !isMobile && (
         <button
           onClick={() => window.open(`/match/${match.id}/games`, '_blank')}
           className="w-full h-11 mt-4 flex items-center justify-center gap-2
@@ -342,6 +334,14 @@ const MatchDetailContent: React.FC<MatchDetailContentProps> = ({ match, teams })
           <BarChart3 className="w-5 h-5" />
           对战数据
         </button>
+      )}
+
+      {/* 移动端提示（始终显示） */}
+      {isMobile && (
+        <div className="mt-4 px-4 py-3 bg-blue-500/20 border border-blue-400/30 rounded-lg flex items-center gap-3">
+          <Monitor className="w-5 h-5 text-blue-400 flex-shrink-0" />
+          <span className="text-blue-300 text-sm">完整对战数据请前往 PC 端查看</span>
+        </div>
       )}
     </div>
   );

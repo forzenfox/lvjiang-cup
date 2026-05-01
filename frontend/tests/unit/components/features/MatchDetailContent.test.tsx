@@ -3,6 +3,12 @@ import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import MatchDetailContent from '@/components/features/MatchDetailContent';
 import type { Match, Team } from '@/types';
 
+let mockIsMobile = false;
+
+vi.mock('@/hooks/useMediaQuery', () => ({
+  useIsMobile: () => mockIsMobile,
+}));
+
 vi.mock('@/api/matchData', () => ({
   checkMatchDataExists: vi.fn(),
 }));
@@ -57,6 +63,7 @@ const createMockMatch = (overrides: Partial<Match> = {}): Match => ({
 describe('MatchDetailContent', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockIsMobile = false;
   });
 
   it('应显示对战时间', () => {
@@ -114,13 +121,21 @@ describe('MatchDetailContent', () => {
     expect(scores2.length).toBeGreaterThan(0);
   });
 
-  it('已结束比赛应显示胜者标签', () => {
+  it('已结束比赛胜者队名应为金色，败者队名应为灰色', () => {
     mockCheckMatchDataExists.mockResolvedValueOnce({ hasData: false, gameCount: 0 });
     const match = createMockMatch({ winnerId: 'team1', status: 'finished' });
-    render(<MatchDetailContent match={match} teams={mockTeams} />);
+    const { container } = render(<MatchDetailContent match={match} teams={mockTeams} />);
 
-    const winnerLabels = screen.getAllByText('胜者');
-    expect(winnerLabels.length).toBeGreaterThan(0);
+    // 胜者队名（team1 - 驴酱）应为金色 rgb(200, 170, 110)
+    const winnerName = screen.getByText('驴酱');
+    expect(winnerName).toHaveStyle({ color: 'rgb(200, 170, 110)' });
+
+    // 败者队名（team2 - 雨酱）应为灰色
+    const loserName = screen.getByText('雨酱');
+    expect(loserName).toHaveStyle({ color: 'rgb(150, 150, 150)' });
+
+    // 不应再显示"胜者"文本标签
+    expect(screen.queryByText('胜者')).not.toBeInTheDocument();
   });
 
   it('应显示队员对阵信息', () => {
@@ -207,7 +222,8 @@ describe('MatchDetailContent', () => {
     expect(screen.getByText('暂无队员信息')).toBeInTheDocument();
   });
 
-  it('点击对战数据按钮应打开新页面', async () => {
+  it('PC端点击对战数据按钮应打开新页面', async () => {
+    mockIsMobile = false;
     const openSpy = vi.spyOn(window, 'open').mockImplementation(() => null);
     mockCheckMatchDataExists.mockResolvedValueOnce({ hasData: true, gameCount: 1 });
 
@@ -221,5 +237,24 @@ describe('MatchDetailContent', () => {
 
     expect(openSpy).toHaveBeenCalledWith('/match/match123/games', '_blank');
     openSpy.mockRestore();
+  });
+
+  it('移动端应始终显示PC端查看提示', () => {
+    mockIsMobile = true;
+    render(<MatchDetailContent match={createMockMatch()} teams={mockTeams} />);
+
+    expect(screen.getByText('完整对战数据请前往 PC 端查看')).toBeInTheDocument();
+  });
+
+  it('移动端应隐藏对战数据按钮', async () => {
+    mockIsMobile = true;
+    mockCheckMatchDataExists.mockResolvedValueOnce({ hasData: true, gameCount: 1 });
+
+    const match = createMockMatch({ status: 'finished' });
+    render(<MatchDetailContent match={match} teams={mockTeams} />);
+
+    await waitFor(() => {
+      expect(screen.queryByText('对战数据')).not.toBeInTheDocument();
+    });
   });
 });
