@@ -64,10 +64,7 @@ describe('StreamersImportController', () => {
       const result = await controller.importStreamers(mockFile);
 
       expect(service.importFromExcel).toHaveBeenCalledWith('/uploads/test.xlsx');
-      expect(result).toEqual({
-        success: true,
-        data: new ImportResultDto(10, 10, 0, [], []),
-      });
+      expect(result).toEqual(new ImportResultDto(10, 10, 0, [], []));
     });
 
     it('无文件时应抛出错误', async () => {

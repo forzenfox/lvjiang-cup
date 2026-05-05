@@ -3,22 +3,9 @@ import { StreamersService, StreamerType } from '../../src/modules/streamers/stre
 import { DatabaseService } from '../../src/database/database.service';
 import { CacheService } from '../../src/cache/cache.service';
 import { NotFoundException } from '@nestjs/common';
-import * as _fs from 'fs';
-
-jest.mock('fs', () => ({
-  existsSync: jest.fn().mockReturnValue(true),
-  unlinkSync: jest.fn(),
-}));
-
-jest.mock('path', () => ({
-  basename: jest.fn((p: string) => p.split('/').pop()),
-  dirname: jest.fn((p: string) => p.split('/').slice(0, -1).join('/')),
-}));
-
-jest.mock('sqlite3', () => ({
-  Database: jest.fn(),
-  verbose: jest.fn(),
-}));
+import * as path from 'path';
+import * as fs from 'fs';
+import * as pathUtil from '../../src/common/utils/path.util';
 
 jest.mock('../../src/common/utils/path.util', () => ({
   getStreamerPosterPath: jest.fn((filename: string) => `/uploads/streamers/${filename}`),
@@ -29,11 +16,16 @@ describe('StreamersService', () => {
   let databaseService: DatabaseService;
   let cacheService: CacheService;
 
+  let existsSyncSpy: jest.SpyInstance;
+  let unlinkSyncSpy: jest.SpyInstance;
+  let basenameSpy: jest.SpyInstance;
+  let getStreamerPosterPathSpy: jest.SpyInstance;
+
   const mockDatabaseService = {
     all: jest.fn(),
     get: jest.fn(),
-    run: jest.fn(),
-    deleteFileHashByPath: jest.fn(),
+    run: jest.fn().mockResolvedValue({ changes: 0 }),
+    deleteFileHashByPath: jest.fn().mockResolvedValue(undefined),
   };
 
   const mockCacheService = {
@@ -68,6 +60,27 @@ describe('StreamersService', () => {
   };
 
   beforeEach(async () => {
+    mockDatabaseService.all.mockReset();
+    mockDatabaseService.get.mockReset();
+    mockDatabaseService.run.mockReset();
+    mockDatabaseService.run.mockResolvedValue({ changes: 0 });
+    mockDatabaseService.deleteFileHashByPath.mockReset();
+    mockDatabaseService.deleteFileHashByPath.mockResolvedValue(undefined);
+
+    mockCacheService.get.mockReset();
+    mockCacheService.set.mockReset();
+    mockCacheService.del.mockReset();
+    mockCacheService.flush.mockReset();
+
+    existsSyncSpy = jest.spyOn(fs, 'existsSync').mockReturnValue(true);
+    unlinkSyncSpy = jest.spyOn(fs, 'unlinkSync').mockImplementation(() => undefined);
+    basenameSpy = jest
+      .spyOn(path, 'basename')
+      .mockImplementation((p: string) => p.split('/').pop());
+    getStreamerPosterPathSpy = jest
+      .spyOn(pathUtil, 'getStreamerPosterPath')
+      .mockImplementation((filename: string) => `/uploads/streamers/${filename}`);
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         StreamersService,
@@ -85,12 +98,17 @@ describe('StreamersService', () => {
     service = module.get<StreamersService>(StreamersService);
     databaseService = module.get<DatabaseService>(DatabaseService);
     cacheService = module.get<CacheService>(CacheService);
-
-    jest.clearAllMocks();
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    mockDatabaseService.all.mockReset();
+    mockDatabaseService.get.mockReset();
+    mockDatabaseService.run.mockReset();
+    mockDatabaseService.deleteFileHashByPath.mockReset();
+    mockCacheService.get.mockReset();
+    mockCacheService.set.mockReset();
+    mockCacheService.del.mockReset();
+    mockCacheService.flush.mockReset();
   });
 
   describe('基类集成', () => {

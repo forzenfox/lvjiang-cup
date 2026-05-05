@@ -1,21 +1,44 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
-
-jest.mock('fs', () => ({
-  existsSync: jest.fn(),
-  mkdirSync: jest.fn(),
-}));
+import * as fs from 'fs';
 
 const mockRun = jest.fn();
 const mockGet = jest.fn();
 const mockAll = jest.fn();
 const mockClose = jest.fn();
 
+jest.mock('sqlite3', () => ({
+  Database: jest.fn().mockImplementation(function (
+    dbPath: string,
+    callback?: (err: Error | null) => void,
+  ) {
+    if (callback) {
+      process.nextTick(() => callback(null));
+    }
+    return {
+      run: mockRun,
+      get: mockGet,
+      all: mockAll,
+      close: mockClose,
+    };
+  }),
+  verbose: jest.fn().mockReturnThis(),
+}));
+
+import { DatabaseService } from '../../src/database/database.service';
+
+let existsSyncSpy: jest.SpyInstance;
+let mkdirSyncSpy: jest.SpyInstance;
+
 const resetMocks = () => {
+  jest.restoreAllMocks();
   mockRun.mockReset();
   mockGet.mockReset();
   mockAll.mockReset();
   mockClose.mockReset();
+
+  existsSyncSpy = jest.spyOn(fs, 'existsSync').mockReturnValue(true);
+  mkdirSyncSpy = jest.spyOn(fs, 'mkdirSync').mockImplementation(() => undefined);
 
   mockRun.mockImplementation(function (this: any, sql: string, params: any[], callback: any) {
     callback.call({ lastID: 1, changes: 1 }, null);
@@ -31,29 +54,6 @@ const resetMocks = () => {
   });
 };
 
-jest.mock('sqlite3', () => {
-  return {
-    Database: jest.fn().mockImplementation(function (
-      dbPath: string,
-      callback?: (err: Error | null) => void,
-    ) {
-      if (callback) {
-        process.nextTick(() => callback(null));
-      }
-      return {
-        run: mockRun,
-        get: mockGet,
-        all: mockAll,
-        close: mockClose,
-      };
-    }),
-    verbose: jest.fn().mockReturnThis(),
-  };
-});
-
-import * as fs from 'fs';
-import { DatabaseService } from '../../src/database/database.service';
-
 describe('DatabaseService', () => {
   let service: DatabaseService;
   let configService: ConfigService;
@@ -62,9 +62,6 @@ describe('DatabaseService', () => {
 
   beforeEach(async () => {
     resetMocks();
-    jest.clearAllMocks();
-
-    (fs.existsSync as jest.Mock).mockReturnValue(true);
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -83,8 +80,7 @@ describe('DatabaseService', () => {
   });
 
   afterEach(() => {
-    resetMocks();
-    jest.clearAllMocks();
+    jest.restoreAllMocks();
   });
 
   describe('数据库连接', () => {
@@ -94,9 +90,9 @@ describe('DatabaseService', () => {
     });
 
     it('当数据目录不存在时应该创建目录', async () => {
-      (fs.existsSync as jest.Mock).mockReturnValue(false);
+      existsSyncSpy.mockReturnValue(false);
       await service.onModuleInit();
-      expect(fs.mkdirSync).toHaveBeenCalledWith(expect.any(String), { recursive: true });
+      expect(mkdirSyncSpy).toHaveBeenCalledWith(expect.any(String), { recursive: true });
     });
   });
 
