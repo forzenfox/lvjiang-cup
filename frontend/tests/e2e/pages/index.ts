@@ -15,3 +15,4 @@ export { AdvancementPage } from './AdvancementPage';
 export { SwissStageEditorPage } from './SwissStageEditorPage';
 export { MatchDataPage } from './MatchDataPage';
 export { MatchDataListPage } from './MatchDataListPage';
+export { StreamersPage } from './StreamersPage';
