@@ -1,18 +1,12 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication, ValidationPipe } from '@nestjs/common';
+import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
-import { ConfigModule } from '@nestjs/config';
-import { MatchesModule } from '../../src/modules/matches/matches.module';
 import { TeamsModule } from '../../src/modules/teams/teams.module';
-import { AuthModule } from '../../src/modules/auth/auth.module';
-import { DatabaseModule } from '../../src/database/database.module';
-import { CacheModule } from '../../src/cache/cache.module';
+import { MatchesModule } from '../../src/modules/matches/matches.module';
 import { MatchesService } from '../../src/modules/matches/matches.service';
-import { HttpExceptionFilter } from '../../src/common/filters/http-exception.filter';
-import { TransformInterceptor } from '../../src/common/interceptors/transform.interceptor';
+import { createTestApp, closeTestApp, TestAppResult } from '../helpers/test-app';
 import { v4 as uuidv4 } from 'uuid';
 
-describe('Matches API (e2e)', () => {
+describe('Matches API 集成测试', () => {
   let app: INestApplication;
   let authToken: string;
   let matchId: string;
@@ -20,60 +14,12 @@ describe('Matches API (e2e)', () => {
   let teamBId: string;
 
   beforeAll(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [
-        ConfigModule.forRoot({
-          isGlobal: true,
-          ignoreEnvFile: true,
-          load: [
-            () => ({
-              jwt: {
-                secret: 'test-secret-key-for-jwt-signing-in-test-environment',
-                expiresIn: '1h',
-              },
-              database: {
-                path: ':memory:',
-              },
-              cache: {
-                ttl: 60,
-              },
-              admin: {
-                username: 'admin',
-                password: 'admin123',
-              },
-            }),
-          ],
-        }),
-        DatabaseModule,
-        CacheModule,
-        AuthModule,
-        TeamsModule,
-        MatchesModule,
-      ],
-    }).compile();
-
-    app = moduleFixture.createNestApplication();
-    // 添加全局前缀与生产环境一致
-    app.setGlobalPrefix('api');
-    app.useGlobalPipes(
-      new ValidationPipe({
-        whitelist: false,
-        forbidNonWhitelisted: false,
-        transform: true,
-      }),
-    );
-    // 添加全局过滤器和拦截器
-    app.useGlobalFilters(new HttpExceptionFilter());
-    app.useGlobalInterceptors(new TransformInterceptor());
-    await app.init();
-
-    // 登录获取 token
-    const loginResponse = await request(app.getHttpServer()).post('/api/admin/auth/login').send({
-      username: 'admin',
-      password: 'admin123',
+    const result: TestAppResult = await createTestApp({
+      extraModules: [TeamsModule, MatchesModule],
+      initMatchSlots: true,
     });
-
-    authToken = loginResponse.body.data.access_token;
+    app = result.app;
+    authToken = result.authToken;
 
     // 创建两个战队用于比赛
     const teamAResponse = await request(app.getHttpServer())
@@ -98,10 +44,6 @@ describe('Matches API (e2e)', () => {
       });
     teamBId = teamBResponse.body.data.id;
 
-    // 初始化比赛槽位
-    const matchesService = moduleFixture.get<MatchesService>(MatchesService);
-    await matchesService.initSlots();
-
     // 获取一个比赛ID用于测试
     const matchesResponse = await request(app.getHttpServer()).get('/api/matches').expect(200);
 
@@ -111,7 +53,7 @@ describe('Matches API (e2e)', () => {
   });
 
   afterAll(async () => {
-    await app.close();
+    await closeTestApp(app);
   });
 
   describe('GET /api/matches', () => {
@@ -230,7 +172,6 @@ describe('Matches API (e2e)', () => {
     });
 
     it('更新状态 - 应该更新比赛状态', async () => {
-      // 先获取另一个比赛ID
       const matchesResponse = await request(app.getHttpServer()).get('/api/matches').expect(200);
 
       const anotherMatchId = matchesResponse.body.data[1]?.id || matchId;
@@ -334,7 +275,6 @@ describe('Matches API (e2e)', () => {
 
   describe('DELETE /api/admin/matches/:id/scores', () => {
     it('清空比分 - 应该清空比赛比分（需认证）', async () => {
-      // 先设置比分
       await request(app.getHttpServer())
         .put(`/api/admin/matches/${matchId}`)
         .set('Authorization', `Bearer ${authToken}`)
@@ -345,7 +285,6 @@ describe('Matches API (e2e)', () => {
           winnerId: teamAId,
         });
 
-      // 清空比分
       const response = await request(app.getHttpServer())
         .delete(`/api/admin/matches/${matchId}/scores`)
         .set('Authorization', `Bearer ${authToken}`)

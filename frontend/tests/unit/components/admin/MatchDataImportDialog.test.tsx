@@ -205,8 +205,8 @@ describe('MatchDataImportDialog', () => {
       expect(screen.getByText(/第 1 局/i)).toBeInTheDocument();
     });
 
-    // 第二步：点击继续导入，执行实际导入
-    const confirmButton = screen.getByText(/继续导入/i);
+    // 第二步：点击继续导入按钮，执行实际导入
+    const confirmButton = screen.getByRole('button', { name: /继续导入/i });
     fireEvent.click(confirmButton);
 
     // 等待实际导入完成
@@ -261,8 +261,8 @@ describe('MatchDataImportDialog', () => {
       expect(screen.getByText(/预检结果/i)).toBeInTheDocument();
     });
 
-    // 点击继续导入，执行实际导入
-    const confirmButton = screen.getByText(/继续导入/i);
+    // 点击继续导入按钮，执行实际导入
+    const confirmButton = screen.getByRole('button', { name: /继续导入/i });
     fireEvent.click(confirmButton);
 
     // 等待实际导入完成，显示导入结果
@@ -306,7 +306,6 @@ describe('MatchDataImportDialog', () => {
     };
 
     vi.mocked(matchDataApi.importMatchData)
-      .mockResolvedValueOnce(mockMultiGameResult)
       .mockResolvedValueOnce(mockMultiGameResult);
 
     render(<MatchDataImportDialog {...defaultProps} />);
@@ -316,19 +315,11 @@ describe('MatchDataImportDialog', () => {
     const uploadButton = screen.getByText(/开始导入/i);
     fireEvent.click(uploadButton);
 
-    // 等待预检结果显示
+    // 预检发现有错误，应显示"返回修改"按钮和失败信息
     await waitFor(() => {
       expect(screen.getByText(/预检结果/i)).toBeInTheDocument();
-    });
-
-    // 点击继续导入，执行实际导入
-    const confirmButton = screen.getByText(/继续导入/i);
-    fireEvent.click(confirmButton);
-
-    // 等待实际导入完成，显示导入结果中的失败信息
-    await waitFor(() => {
-      expect(screen.getByText(/导入结果/i)).toBeInTheDocument();
-      expect(screen.getByText(/导入失败：选手数据不完整/i)).toBeInTheDocument();
+      expect(screen.getByText(/预检发现以下问题/i)).toBeInTheDocument();
+      expect(screen.getByText(/预检失败/i)).toBeInTheDocument();
     });
   });
 
@@ -546,8 +537,11 @@ describe('MatchDataImportDialog', () => {
       fireEvent.click(uploadButton);
 
       await waitFor(() => {
-        // 应显示成功提示
-        expect(screen.getByText(/导入成功/i)).toBeInTheDocument();
+        // 应显示预检结果
+        expect(screen.getByText(/预检结果/i)).toBeInTheDocument();
+        expect(screen.getByText(/第 1 局/i)).toBeInTheDocument();
+        expect(screen.getByText(/10 名选手数据/i)).toBeInTheDocument();
+        expect(screen.getByText(/待导入/i)).toBeInTheDocument();
       });
     });
 
@@ -584,8 +578,10 @@ describe('MatchDataImportDialog', () => {
       fireEvent.click(uploadButton);
 
       await waitFor(() => {
-        // 应显示成功提示
-        expect(screen.getByText(/导入成功/i)).toBeInTheDocument();
+        // 应显示预检失败提示
+        expect(screen.getByText(/预检结果/i)).toBeInTheDocument();
+        expect(screen.getByText(/预检发现以下问题/i)).toBeInTheDocument();
+        expect(screen.getByText(/预检失败/i)).toBeInTheDocument();
       });
     });
 
@@ -614,8 +610,10 @@ describe('MatchDataImportDialog', () => {
       fireEvent.click(uploadButton);
 
       await waitFor(() => {
-        // 应显示成功提示
-        expect(screen.getByText(/导入成功/i)).toBeInTheDocument();
+        // 应显示预检失败提示
+        expect(screen.getByText(/预检结果/i)).toBeInTheDocument();
+        expect(screen.getByText(/预检发现以下问题/i)).toBeInTheDocument();
+        expect(screen.getByText(/预检失败/i)).toBeInTheDocument();
       });
     });
   });

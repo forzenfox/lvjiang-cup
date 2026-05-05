@@ -3,6 +3,15 @@ import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import AdminLayout from '@/components/layout/AdminLayout';
 
+// Mock useAuth
+vi.mock('@/hooks/useAuth', () => ({
+  useAuth: () => ({
+    logout: vi.fn(),
+    user: { username: 'admin', role: 'admin' },
+    loading: false,
+  }),
+}));
+
 // Mock requestCache - 必须在 vi.mock 工厂函数内定义
 vi.mock('@/utils/requestCache', () => {
   const mockDisable = vi.fn();
@@ -19,6 +28,11 @@ vi.mock('@/utils/requestCache', () => {
     enableFrontendCache: () => mockEnable(),
   };
 });
+
+// Mock routes
+vi.mock('@/constants/routes', () => ({
+  adminPath: vi.fn((path: string) => `/admin/${path}`),
+}));
 
 // 导入 mock 后的模块以获取 mock 函数
 const { requestCache } = await import('@/utils/requestCache');

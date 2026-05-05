@@ -18,7 +18,8 @@ import MatchDataSkeleton from './MatchDataSkeleton';
 
 const POSITION_ORDER: PositionType[] = ['TOP', 'JUNGLE', 'MID', 'ADC', 'SUPPORT'];
 
-const isEditDisabled = true;
+// 导出以便测试时可以 mock
+export const isEditDisabled = true;
 
 const DisabledEditPage: React.FC<{ onBack: () => void }> = ({ onBack }) => {
   return (

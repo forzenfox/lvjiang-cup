@@ -133,12 +133,13 @@ describe('MatchDetailModal', () => {
     expect(scores2.length).toBeGreaterThan(0);
   });
 
-  it('应该显示胜者标签', () => {
+  it('应该显示胜者队伍高亮样式', () => {
     const match = createMockMatch({ winnerId: 'team1', status: 'finished' });
     render(<MatchDetailModal visible={true} onClose={vi.fn()} match={match} teams={mockTeams} />);
 
-    const winnerLabels = screen.getAllByText('胜者');
-    expect(winnerLabels.length).toBeGreaterThan(0);
+    // 胜者队伍的文字颜色应该与败者不同（使用金色 #c8aa6e）
+    const winnerTeam = screen.getByText('驴酱');
+    expect(winnerTeam).toHaveStyle({ color: 'rgb(200, 170, 110)' });
   });
 
   it('应该显示队员对阵信息', () => {

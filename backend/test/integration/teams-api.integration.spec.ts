@@ -1,80 +1,24 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication, ValidationPipe } from '@nestjs/common';
+import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
-import { ConfigModule } from '@nestjs/config';
 import { TeamsModule } from '../../src/modules/teams/teams.module';
-import { AuthModule } from '../../src/modules/auth/auth.module';
-import { DatabaseModule } from '../../src/database/database.module';
-import { CacheModule } from '../../src/cache/cache.module';
-import { HttpExceptionFilter } from '../../src/common/filters/http-exception.filter';
-import { TransformInterceptor } from '../../src/common/interceptors/transform.interceptor';
+import { createTestApp, closeTestApp, TestAppResult } from '../helpers/test-app';
 import { v4 as uuidv4 } from 'uuid';
 
-describe('Teams API (e2e)', () => {
+describe('Teams API 集成测试', () => {
   let app: INestApplication;
   let authToken: string;
   let createdTeamId: string;
 
   beforeAll(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [
-        ConfigModule.forRoot({
-          isGlobal: true,
-          ignoreEnvFile: true,
-          load: [
-            () => ({
-              jwt: {
-                secret: 'test-secret-key-for-jwt-signing-in-test-environment',
-                expiresIn: '1h',
-              },
-              database: {
-                path: ':memory:',
-              },
-              cache: {
-                ttl: 60,
-              },
-              admin: {
-                username: 'admin',
-                password: 'admin123',
-              },
-            }),
-          ],
-        }),
-        DatabaseModule,
-        CacheModule,
-        AuthModule,
-        TeamsModule,
-      ],
-    }).compile();
-
-    app = moduleFixture.createNestApplication();
-    // 添加全局前缀与生产环境一致
-    app.setGlobalPrefix('api');
-    app.useGlobalPipes(
-      new ValidationPipe({
-        whitelist: false,
-        forbidNonWhitelisted: false,
-        transform: true,
-      }),
-    );
-    // 添加全局过滤器和拦截器
-    app.useGlobalFilters(new HttpExceptionFilter());
-    app.useGlobalInterceptors(new TransformInterceptor());
-    await app.init();
-
-    // 登录获取 token
-    const loginResponse = await request(app.getHttpServer()).post('/api/admin/auth/login').send({
-      username: 'admin',
-      password: 'admin123',
+    const result: TestAppResult = await createTestApp({
+      extraModules: [TeamsModule],
     });
-
-    authToken = loginResponse.body.data.access_token;
+    app = result.app;
+    authToken = result.authToken;
   });
 
   afterAll(async () => {
-    if (app) {
-      await app.close();
-    }
+    await closeTestApp(app);
   });
 
   describe('GET /api/teams', () => {
@@ -87,7 +31,6 @@ describe('Teams API (e2e)', () => {
     });
 
     it('有数据 - 应该返回战队列表', async () => {
-      // 先创建一个战队
       await request(app.getHttpServer())
         .post('/api/admin/teams')
         .set('Authorization', `Bearer ${authToken}`)
@@ -108,7 +51,6 @@ describe('Teams API (e2e)', () => {
 
   describe('GET /api/teams/:id', () => {
     it('单个战队 - 应该返回单个战队', async () => {
-      // 先创建一个战队
       const createResponse = await request(app.getHttpServer())
         .post('/api/admin/teams')
         .set('Authorization', `Bearer ${authToken}`)
@@ -177,7 +119,6 @@ describe('Teams API (e2e)', () => {
         .post('/api/admin/teams')
         .set('Authorization', `Bearer ${authToken}`)
         .send({
-          // 缺少 name
           id: uuidv4(),
           tag: 'TEST',
         })
@@ -261,7 +202,6 @@ describe('Teams API (e2e)', () => {
 
   describe('PUT /api/admin/teams/:id', () => {
     it('更新成功 - 应该更新战队信息（需认证）', async () => {
-      // 先创建一个战队用于更新
       const createResponse = await request(app.getHttpServer())
         .post('/api/admin/teams')
         .set('Authorization', `Bearer ${authToken}`)
@@ -315,7 +255,6 @@ describe('Teams API (e2e)', () => {
 
   describe('DELETE /api/admin/teams/:id', () => {
     it('删除成功 - 应该删除战队（需认证）', async () => {
-      // 先创建一个用于删除的战队
       const createResponse = await request(app.getHttpServer())
         .post('/api/admin/teams')
         .set('Authorization', `Bearer ${authToken}`)
@@ -337,7 +276,6 @@ describe('Teams API (e2e)', () => {
       expect(response.body.data).toHaveProperty('message');
       expect(response.body.data.message).toBe('Team deleted successfully');
 
-      // 验证战队已被删除
       await request(app.getHttpServer()).get(`/api/teams/${teamIdToDelete}`).expect(404);
     });
 
@@ -374,7 +312,6 @@ describe('Teams API (e2e)', () => {
         })
         .expect(201);
 
-      // 验证响应包含必要的字段
       expect(response.body).toHaveProperty('data');
       expect(response.body.data).toHaveProperty('id');
       expect(response.body.data).toHaveProperty('name');
@@ -389,13 +326,11 @@ describe('Teams API (e2e)', () => {
         .post('/api/admin/teams')
         .set('Authorization', `Bearer ${authToken}`)
         .send({
-          // 缺少必填字段
           id: uuidv4(),
           tag: 'TEST',
         })
         .expect(400);
 
-      // 验证错误响应格式
       expect(response.body).toHaveProperty('statusCode');
       expect(response.body).toHaveProperty('message');
       expect(response.body.statusCode).toBe(400);
@@ -437,7 +372,6 @@ describe('Teams API (e2e)', () => {
 
   describe('Concurrent - 并发请求测试', () => {
     it('应该处理并发读取请求', async () => {
-      // 先创建一些测试数据
       await request(app.getHttpServer())
         .post('/api/admin/teams')
         .set('Authorization', `Bearer ${authToken}`)
@@ -448,14 +382,12 @@ describe('Teams API (e2e)', () => {
           players: [{ id: uuidv4(), nickname: 'Player1', position: 'TOP' }],
         });
 
-      // 并发发起多个读取请求
       const promises = Array(10)
         .fill(null)
         .map(() => request(app.getHttpServer()).get('/api/teams'));
 
       const responses = await Promise.all(promises);
 
-      // 所有请求都应该成功
       responses.forEach((response) => {
         expect(response.status).toBe(200);
         expect(response.body).toHaveProperty('data');
@@ -480,7 +412,6 @@ describe('Teams API (e2e)', () => {
 
       const responses = await Promise.all(promises);
 
-      // 所有请求都应该成功
       responses.forEach((response, index) => {
         expect(response.status).toBe(201);
         expect(response.body).toHaveProperty('data');
@@ -497,7 +428,7 @@ describe('Teams API (e2e)', () => {
         .set('Authorization', `Bearer ${authToken}`)
         .send({
           id: uuidv4(),
-          name: 'A', // 单个字符
+          name: 'A',
           tag: 'MIN',
           players: [{ id: uuidv4(), nickname: 'Player1', position: 'TOP' }],
         })
@@ -550,7 +481,6 @@ describe('Teams API (e2e)', () => {
         })
         .expect(201);
 
-      // 服务会自动创建 5 个默认队员（上单、打野、中单、ADC、辅助）
       expect(response.body.data.members).toHaveLength(5);
     });
 
@@ -574,7 +504,6 @@ describe('Teams API (e2e)', () => {
         })
         .expect(201);
 
-      // 服务目前只会自动创建 5 个默认队员，不处理请求中的队员列表
       expect(response.body.data.members).toHaveLength(5);
     });
   });

@@ -1,80 +1,27 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication, ValidationPipe } from '@nestjs/common';
+import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
-import { ConfigModule } from '@nestjs/config';
-import { AppModule } from '../../src/app.module';
-import { DatabaseModule } from '../../src/database/database.module';
-import { CacheModule } from '../../src/cache/cache.module';
-import { AuthModule } from '../../src/modules/auth/auth.module';
 import { TeamsModule } from '../../src/modules/teams/teams.module';
 import { MatchesModule } from '../../src/modules/matches/matches.module';
-import { MatchesService } from '../../src/modules/matches/matches.service';
-import { HttpExceptionFilter } from '../../src/common/filters/http-exception.filter';
-import { TransformInterceptor } from '../../src/common/interceptors/transform.interceptor';
+import { createTestApp, closeTestApp, TestAppResult } from '../helpers/test-app';
 import { v4 as uuidv4 } from 'uuid';
 
-describe('AppController (e2e)', () => {
+describe('完整赛事管理工作流程 集成测试', () => {
   let app: INestApplication;
   let authToken: string;
   const createdTeamIds: string[] = [];
   let matchId: string;
 
   beforeAll(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [
-        ConfigModule.forRoot({
-          isGlobal: true,
-          ignoreEnvFile: true,
-          load: [
-            () => ({
-              jwt: {
-                secret: 'test-secret-key-for-jwt-signing-in-test-environment',
-                expiresIn: '1h',
-              },
-              database: {
-                path: ':memory:',
-              },
-              cache: {
-                ttl: 60,
-              },
-              admin: {
-                username: 'admin',
-                password: 'admin123',
-              },
-            }),
-          ],
-        }),
-        DatabaseModule,
-        CacheModule,
-        AuthModule,
-        TeamsModule,
-        MatchesModule,
-        AppModule,
-      ],
-    }).compile();
-
-    app = moduleFixture.createNestApplication();
-    // 添加全局前缀与生产环境一致
-    app.setGlobalPrefix('api');
-    app.useGlobalPipes(
-      new ValidationPipe({
-        whitelist: false,
-        forbidNonWhitelisted: false,
-        transform: true,
-      }),
-    );
-    // 添加全局过滤器和拦截器
-    app.useGlobalFilters(new HttpExceptionFilter());
-    app.useGlobalInterceptors(new TransformInterceptor());
-    await app.init();
-
-    // 初始化比赛槽位
-    const matchesService = moduleFixture.get<MatchesService>(MatchesService);
-    await matchesService.initSlots();
+    const result: TestAppResult = await createTestApp({
+      extraModules: [TeamsModule, MatchesModule],
+      initMatchSlots: true,
+    });
+    app = result.app;
+    authToken = result.authToken;
   });
 
   afterAll(async () => {
-    await app.close();
+    await closeTestApp(app);
   });
 
   describe('完整赛事管理工作流程', () => {
@@ -146,7 +93,6 @@ describe('AppController (e2e)', () => {
       expect(Array.isArray(response.body.data)).toBe(true);
       expect(response.body.data.length).toBe(8);
 
-      // 验证战队名称
       const teamNames = response.body.data.map((team: any) => team.name);
       expect(teamNames).toContain('驴酱战队');
       expect(teamNames).toContain('小卖部战队');
@@ -161,16 +107,13 @@ describe('AppController (e2e)', () => {
       expect(Array.isArray(response.body.data)).toBe(true);
       expect(response.body.data.length).toBeGreaterThan(0);
 
-      // 保存一个比赛ID用于后续测试
       matchId = response.body.data[0].id;
     });
 
     it('5. 更新比赛比分 - 应该成功更新比赛结果', async () => {
-      // 确保有战队ID可用
       let teamAId = createdTeamIds[0];
       let teamBId = createdTeamIds[1];
 
-      // 如果没有战队ID，创建临时战队
       if (!teamAId || !teamBId) {
         const teamAResponse = await request(app.getHttpServer())
           .post('/api/admin/teams')
@@ -217,7 +160,6 @@ describe('AppController (e2e)', () => {
     });
 
     it('6. 更新比赛状态 - 应该成功更新比赛状态为进行中', async () => {
-      // 获取另一个比赛ID
       const matchesResponse = await request(app.getHttpServer()).get('/api/matches').expect(200);
 
       const anotherMatchId = matchesResponse.body.data[1]?.id || matchId;
@@ -236,7 +178,6 @@ describe('AppController (e2e)', () => {
     });
 
     it('7. 按阶段筛选比赛 - 应该正确筛选瑞士轮和淘汰赛', async () => {
-      // 筛选瑞士轮
       const swissResponse = await request(app.getHttpServer())
         .get('/api/matches?stage=swiss')
         .expect(200);
@@ -247,7 +188,6 @@ describe('AppController (e2e)', () => {
         expect(match.stage).toBe('swiss');
       });
 
-      // 筛选淘汰赛
       const eliminationResponse = await request(app.getHttpServer())
         .get('/api/matches?stage=elimination')
         .expect(200);
@@ -260,16 +200,12 @@ describe('AppController (e2e)', () => {
     });
 
     it('8. 验证数据一致性 - 战队和比赛数据应该一致', async () => {
-      // 获取所有战队
       const teamsResponse = await request(app.getHttpServer()).get('/api/teams').expect(200);
 
-      // 获取所有比赛
       const matchesResponse = await request(app.getHttpServer()).get('/api/matches').expect(200);
 
-      // 验证所有比赛中的战队ID都存在于战队列表中
       const teamIds = new Set(teamsResponse.body.data.map((team: any) => team.id));
 
-      // 检查已分配战队的比赛
       matchesResponse.body.data.forEach((match: any) => {
         if (match.teamAId) {
           expect(teamIds.has(match.teamAId)).toBe(true);
@@ -293,10 +229,8 @@ describe('AppController (e2e)', () => {
     });
 
     it('10. 更新战队信息 - 应该成功更新战队', async () => {
-      // 确保有战队ID可用
       let teamIdToUpdate = createdTeamIds[0];
 
-      // 如果没有战队ID，先创建一个
       if (!teamIdToUpdate) {
         const createResponse = await request(app.getHttpServer())
           .post('/api/admin/teams')
@@ -325,7 +259,6 @@ describe('AppController (e2e)', () => {
     });
 
     it('11. 删除战队 - 应该成功删除战队', async () => {
-      // 创建一个新的战队用于删除
       const createResponse = await request(app.getHttpServer())
         .post('/api/admin/teams')
         .set('Authorization', `Bearer ${authToken}`)
@@ -348,7 +281,6 @@ describe('AppController (e2e)', () => {
       expect(response.body.data).toHaveProperty('message');
       expect(response.body.data.message).toBe('Team deleted successfully');
 
-      // 验证战队已被删除
       await request(app.getHttpServer()).get(`/api/teams/${teamIdToDelete}`).expect(404);
     });
   });
@@ -395,7 +327,6 @@ describe('AppController (e2e)', () => {
         .post('/api/admin/teams')
         .set('Authorization', `Bearer ${authToken}`)
         .send({
-          // 缺少必填字段 name
           id: uuidv4(),
           tag: 'TEST',
         })

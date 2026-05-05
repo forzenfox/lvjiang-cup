@@ -55,10 +55,10 @@ describe('PlayerDetailDrawer 组件', () => {
       expect(drawer).toHaveClass('right-0');
     });
 
-    it('手机端应该设置高度为 70vh', () => {
+    it('手机端应该设置高度为 85vh', () => {
       render(<PlayerDetailDrawer player={mockPlayer} onClose={vi.fn()} isMobile={true} />);
       const drawer = screen.getByTestId('player-drawer');
-      expect(drawer).toHaveClass('h-[70vh]');
+      expect(drawer).toHaveClass('h-[85vh]');
     });
 
     it('手机端应该使用底部滑入动画', () => {

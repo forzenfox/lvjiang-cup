@@ -1,5 +1,9 @@
 // Mock for lucide-react - 包含所有实际使用的图标
-const MockIcon = (props: any) => <svg {...props} data-testid="mock-icon" />;
+// 转发所有 props 包括 data-testid
+const MockIcon = (props: any) => {
+  const { children, ...rest } = props;
+  return <svg {...rest} data-testid={rest['data-testid'] || 'mock-icon'}>{children}</svg>;
+};
 
 export const BarChart3 = MockIcon;
 export const Monitor = MockIcon;
@@ -56,3 +60,6 @@ export const ArrowDown = MockIcon;
 export const Edit = MockIcon;
 export const User = MockIcon;
 export const Lock = MockIcon;
+export const LayoutDashboard = MockIcon;
+export const LogOut = MockIcon;
+export const Home = MockIcon;

@@ -60,6 +60,7 @@ vi.mock('framer-motion', async () => {
       section: ({ children, ...props }: any) => <section {...props}>{children}</section>,
       header: ({ children, ...props }: any) => <header {...props}>{children}</header>,
       nav: ({ children, ...props }: any) => <nav {...props}>{children}</nav>,
+      footer: ({ children, ...props }: any) => <footer {...props}>{children}</footer>,
     },
     AnimatePresence: ({ children }: any) => <>{children}</>,
     animate: vi.fn((motionValue, target, options) => {
@@ -72,12 +73,29 @@ vi.mock('framer-motion', async () => {
 });
 
 // 全局 Mock championUtils
-vi.mock('@/utils/championUtils', () => ({
-  initChampionMap: vi.fn(),
-  getChampionIconByEn: vi.fn(() => '/mock-icon.png'),
-  getChampionTitleByEn: vi.fn((name: string) => name),
-  getChampionNameToEn: vi.fn(() => ({})),
-}));
+vi.mock('@/utils/championUtils', () => {
+  // 英文到中文的英雄名称映射
+  const championNameMap: Record<string, string> = {
+    'Yasuo': '亚索',
+    'Irelia': '艾瑞莉娅',
+    'Yone': '永恩',
+    'Ahri': '阿狸',
+    'Zed': '劫',
+    'Gwen': '格温',
+    'Sion': '赛恩',
+    'Jinx': '金克丝',
+    'Thresh': '锤石',
+    'LeeSin': '李青',
+    'Garen': '盖伦',
+  };
+  
+  return {
+    initChampionMap: vi.fn(),
+    getChampionIconByEn: vi.fn(() => '/mock-icon.png'),
+    getChampionTitleByEn: vi.fn((name: string) => championNameMap[name] || name),
+    getChampionNameToEn: vi.fn(() => ({})),
+  };
+});
 
 // 全局 Mock upload utils
 vi.mock('@/utils/upload', () => ({

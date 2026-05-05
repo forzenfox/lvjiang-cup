@@ -2,12 +2,19 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import MatchDataImportDialog from '@/components/admin/MatchDataImportDialog';
-import * as matchDataApi from '@/api/matchData';
+import { matchDataService } from '@/services/matchDataService';
+import { downloadMatchDataErrorReport } from '@/api/matchData';
 import { AxiosError } from 'axios';
 
-// Mock API
+// Mock matchDataService
+vi.mock('@/services/matchDataService', () => ({
+  matchDataService: {
+    importMatchData: vi.fn(),
+  },
+}));
+
+// Mock downloadMatchDataErrorReport
 vi.mock('@/api/matchData', () => ({
-  importMatchData: vi.fn(),
   downloadMatchDataErrorReport: vi.fn(),
 }));
 
@@ -60,7 +67,7 @@ describe('MatchDataImportDialog - Validation Error Display', () => {
       config: {} as any,
     };
 
-    vi.mocked(matchDataApi.importMatchData).mockRejectedValue(validationError);
+    vi.mocked(matchDataService.importMatchData).mockRejectedValue(validationError);
 
     render(<MatchDataImportDialog {...defaultProps} />);
 
@@ -113,7 +120,7 @@ describe('MatchDataImportDialog - Validation Error Display', () => {
       config: {} as any,
     };
 
-    vi.mocked(matchDataApi.importMatchData).mockRejectedValue(validationError);
+    vi.mocked(matchDataService.importMatchData).mockRejectedValue(validationError);
 
     render(<MatchDataImportDialog {...defaultProps} />);
 
@@ -164,7 +171,7 @@ describe('MatchDataImportDialog - Validation Error Display', () => {
       config: {} as any,
     };
 
-    vi.mocked(matchDataApi.importMatchData).mockRejectedValue(validationError);
+    vi.mocked(matchDataService.importMatchData).mockRejectedValue(validationError);
 
     render(<MatchDataImportDialog {...defaultProps} />);
 
@@ -212,7 +219,7 @@ describe('MatchDataImportDialog - Validation Error Display', () => {
       config: {} as any,
     };
 
-    vi.mocked(matchDataApi.importMatchData).mockRejectedValue(validationError);
+    vi.mocked(matchDataService.importMatchData).mockRejectedValue(validationError);
 
     render(<MatchDataImportDialog {...defaultProps} />);
 
@@ -254,7 +261,7 @@ describe('MatchDataImportDialog - Validation Error Display', () => {
       config: {} as any,
     };
 
-    vi.mocked(matchDataApi.importMatchData).mockRejectedValue(simpleError);
+    vi.mocked(matchDataService.importMatchData).mockRejectedValue(simpleError);
 
     render(<MatchDataImportDialog {...defaultProps} />);
 

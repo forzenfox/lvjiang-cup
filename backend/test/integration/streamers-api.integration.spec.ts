@@ -1,77 +1,23 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication, ValidationPipe } from '@nestjs/common';
+import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
-import { ConfigModule } from '@nestjs/config';
 import { StreamersModule } from '../../src/modules/streamers/streamers.module';
-import { AuthModule } from '../../src/modules/auth/auth.module';
-import { DatabaseModule } from '../../src/database/database.module';
-import { CacheModule } from '../../src/cache/cache.module';
-import { HttpExceptionFilter } from '../../src/common/filters/http-exception.filter';
-import { TransformInterceptor } from '../../src/common/interceptors/transform.interceptor';
 import { StreamerType } from '../../src/modules/streamers/streamers.service';
+import { createTestApp, closeTestApp, TestAppResult } from '../helpers/test-app';
 
-describe('StreamersController E2E (e2e)', () => {
+describe('Streamers API 集成测试', () => {
   let app: INestApplication;
   let authToken: string;
 
   beforeAll(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [
-        ConfigModule.forRoot({
-          isGlobal: true,
-          ignoreEnvFile: true,
-          load: [
-            () => ({
-              jwt: {
-                secret: 'test-secret-key-for-jwt-signing-in-test-environment',
-                expiresIn: '1h',
-              },
-              database: {
-                path: ':memory:',
-              },
-              cache: {
-                ttl: 60,
-              },
-              admin: {
-                username: 'admin',
-                password: 'admin123',
-              },
-            }),
-          ],
-        }),
-        DatabaseModule,
-        CacheModule,
-        AuthModule,
-        StreamersModule,
-      ],
-    }).compile();
-
-    app = moduleFixture.createNestApplication();
-    app.setGlobalPrefix('api');
-    app.useGlobalPipes(
-      new ValidationPipe({
-        whitelist: false,
-        forbidNonWhitelisted: false,
-        transform: true,
-      }),
-    );
-    app.useGlobalFilters(new HttpExceptionFilter());
-    app.useGlobalInterceptors(new TransformInterceptor());
-    await app.init();
-
-    // 登录获取 token
-    const loginResponse = await request(app.getHttpServer()).post('/api/admin/auth/login').send({
-      username: 'admin',
-      password: 'admin123',
+    const result: TestAppResult = await createTestApp({
+      extraModules: [StreamersModule],
     });
-
-    authToken = loginResponse.body.data.access_token;
+    app = result.app;
+    authToken = result.authToken;
   });
 
   afterAll(async () => {
-    if (app) {
-      await app.close();
-    }
+    await closeTestApp(app);
   });
 
   describe('GET /api/streamers', () => {
@@ -136,7 +82,6 @@ describe('StreamersController E2E (e2e)', () => {
     });
 
     it('有 token - 应该更新主播成功', async () => {
-      // 先创建主播
       const createResponse = await request(app.getHttpServer())
         .post('/api/admin/streamers')
         .set('Authorization', `Bearer ${authToken}`)
@@ -166,7 +111,6 @@ describe('StreamersController E2E (e2e)', () => {
     });
 
     it('有 token - 应该删除主播成功', async () => {
-      // 先创建主播
       const createResponse = await request(app.getHttpServer())
         .post('/api/admin/streamers')
         .set('Authorization', `Bearer ${authToken}`)
@@ -185,7 +129,6 @@ describe('StreamersController E2E (e2e)', () => {
         .set('Authorization', `Bearer ${authToken}`)
         .expect(204);
 
-      // 验证主播已被删除
       await request(app.getHttpServer()).get(`/api/streamers/${streamerId}`).expect(404);
     });
   });
@@ -199,7 +142,6 @@ describe('StreamersController E2E (e2e)', () => {
     });
 
     it('有 token - 应该批量更新排序成功', async () => {
-      // 先创建两个主播
       const createResponse1 = await request(app.getHttpServer())
         .post('/api/admin/streamers')
         .set('Authorization', `Bearer ${authToken}`)
@@ -236,7 +178,6 @@ describe('StreamersController E2E (e2e)', () => {
         })
         .expect(200);
 
-      // updateSort 返回 void，响应中 data 为 undefined 是正常的
       expect(response.statusCode).toBe(200);
     });
   });
