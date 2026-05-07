@@ -63,25 +63,9 @@ test.describe('【第一阶段】首页基础功能测试', () => {
    * 前置条件: TEST-001
    */
   test('TEST-008: 刷新页面数据 @P1', async ({ page }) => {
-    // 检查刷新按钮是否存在（包括刷新数据按钮）
-    const refreshButton = page
-      .locator('button[title="刷新"], button:has-text("刷新"), button:has-text("刷新数据")')
-      .first();
-
-    if (await refreshButton.isVisible().catch(() => false)) {
-      // 点击刷新按钮
-      await refreshButton.click();
-
-      // 等待网络请求完成（如果有）
-      await page.waitForTimeout(500);
-
-      // 验证页面内容仍然显示（刷新后页面应仍然正常）
-      await homePage.expectPageLoaded();
-    } else {
-      // 如果没有刷新按钮，验证页面可见性变化时自动刷新
-      console.log('⚠️ 未找到刷新按钮，测试页面可见性自动刷新');
-      test.skip();
-    }
+    await page.reload();
+    await homePage.expectPageLoaded();
+    await expect(page).toHaveTitle(/驴酱杯/);
   });
 });
 
@@ -102,30 +86,20 @@ test.describe('【第三阶段-1】首页直播功能测试', () => {
    * 注意: 此测试需要在管理员配置直播信息后执行
    */
   test('TEST-002: 观看赛事直播 @P0', async ({ context }) => {
-    // 检查直播按钮是否存在
     const hasLiveButton = await homePage.liveButton.isVisible().catch(() => false);
+    test.skip(!hasLiveButton, '直播信息未配置，跳过此测试');
 
-    if (hasLiveButton) {
-      // 点击直播按钮
-      const [newPage] = await Promise.all([
-        context.waitForEvent('page'),
-        homePage.clickLiveButton(),
-      ]);
+    const [newPage] = await Promise.all([
+      context.waitForEvent('page'),
+      homePage.clickLiveButton(),
+    ]);
 
-      // 验证新页面打开
-      await newPage.waitForLoadState();
+    await newPage.waitForLoadState();
 
-      // 验证URL为配置的直播链接（douyu.com）
-      const url = newPage.url();
-      expect(url).toMatch(/douyu\.com|live\./);
+    const url = newPage.url();
+    expect(url).toMatch(/douyu\.com|live\./);
 
-      // 关闭新页面
-      await newPage.close();
-    } else {
-      // 如果没有直播按钮，记录警告并跳过
-      console.log('⚠️ 直播按钮未找到，可能未配置直播信息（依赖TEST-103）');
-      test.skip();
-    }
+    await newPage.close();
   });
 });
 
@@ -154,11 +128,7 @@ test.describe('【第三阶段-2】首页战队功能测试', () => {
     if (teamCount === 0) {
       const emptyState = page.locator('[data-testid="teams-empty"], text=暂无战队');
       const hasEmptyState = await emptyState.isVisible().catch(() => false);
-      if (hasEmptyState) {
-        await expect(emptyState).toBeVisible();
-        console.log('✅ 战队区域正确显示空状态');
-      }
-      console.log('⚠️ 未找到战队数据，验证空状态后继续');
+      expect(hasEmptyState, '无战队数据时应显示空状态提示').toBeTruthy();
     } else {
       await expect(teamCards.length).toBeGreaterThan(0);
 
@@ -168,9 +138,7 @@ test.describe('【第三阶段-2】首页战队功能测试', () => {
         .first()
         .isVisible()
         .catch(() => false);
-      if (teamExists) {
-        console.log(`✅ 找到模拟数据中的战队: ${expectedTeamName}`);
-      }
+      expect(teamExists, `应能找到模拟战队: ${expectedTeamName}`).toBeTruthy();
 
       for (const card of teamCards.slice(0, Math.min(3, teamCount))) {
         const teamName = await card.locator('[data-testid="team-name"]').textContent();
@@ -199,20 +167,17 @@ test.describe('【第三阶段-2】首页战队功能测试', () => {
   test('TEST-004: 查看战队详情 @P0', async ({ page }) => {
     await homePage.scrollToTeams();
 
-    const firstCard = page.locator('[data-testid^="team-card-"]').first();
+    const teamCards = page.locator('[data-testid^="team-card-"]');
+    const teamCount = await teamCards.count();
 
-    const hasCard = await firstCard.isVisible().catch(() => false);
-    if (!hasCard) {
+    if (teamCount === 0) {
       const emptyState = page.locator('[data-testid="teams-empty"], text=暂无战队');
       const hasEmpty = await emptyState.isVisible().catch(() => false);
-      if (hasEmpty) {
-        await expect(emptyState).toBeVisible();
-        console.log('✅ 战队区域正确显示空状态');
-      }
-      console.log('⚠️ 未找到战队数据，跳过详情验证');
+      expect(hasEmpty, '无战队数据时应显示空状态提示').toBeTruthy();
       return;
     }
 
+    const firstCard = teamCards.first();
     const teamLogo = firstCard.locator('[data-testid="team-logo"]');
     const teamName = firstCard.locator('[data-testid="team-name"]');
 
@@ -260,35 +225,15 @@ test.describe('【第三阶段-3】首页赛程功能测试', () => {
     const swissStage = page.getByTestId('swiss-stage-display');
     await expect(swissStage).toBeVisible({ timeout: 10000 });
 
-    const recordGroupIds = [
-      'swiss-record-group-2-0',
-      'swiss-record-group-2-1',
-      'swiss-record-group-losers',
-      'swiss-record-group-eliminated',
-    ];
-    let foundGroups = 0;
-    for (const groupId of recordGroupIds) {
-      const group = page.getByTestId(groupId);
-      if (await group.isVisible().catch(() => false)) {
-        foundGroups++;
-        console.log(`✅ 找到战绩分组: ${groupId}`);
-      }
-    }
+    const matches = await page.locator('[data-testid^="swiss-match-card-"]').all();
 
-    if (foundGroups === 0) {
+    if (matches.length === 0) {
       const emptyState = page.locator('[data-testid="swiss-empty"], text=暂无比赛');
       const hasEmpty = await emptyState.isVisible().catch(() => false);
-      if (hasEmpty) {
-        await expect(emptyState).toBeVisible();
-        console.log('✅ 瑞士轮区域正确显示空状态');
-      } else {
-        console.log('⚠️ 未找到瑞士轮战绩分组');
-      }
-    }
+      expect(hasEmpty, '瑞士轮无比赛时应显示空状态提示').toBeTruthy();
+    } else {
+      expect(matches.length).toBeGreaterThan(0);
 
-    const matches = await page.locator('[data-testid^="swiss-match-card-"]').all();
-    if (matches.length > 0) {
-      console.log(`✅ 找到 ${matches.length} 场瑞士轮比赛`);
       for (const match of matches.slice(0, Math.min(3, matches.length))) {
         const teamAName = await match
           .locator('[data-testid="team-a-name"]')
@@ -298,9 +243,7 @@ test.describe('【第三阶段-3】首页赛程功能测试', () => {
           .locator('[data-testid="team-b-name"]')
           .textContent()
           .catch(() => null);
-        if (teamAName && teamBName) {
-          console.log(`  - 比赛: ${teamAName} vs ${teamBName}`);
-        }
+        expect(teamAName && teamBName, '每场比赛应有两个战队名称').toBeTruthy();
 
         const status = await match
           .locator('[data-testid="match-status"]')
@@ -310,8 +253,6 @@ test.describe('【第三阶段-3】首页赛程功能测试', () => {
           expect(['未开始', '进行中', '已结束']).toContain(status);
         }
       }
-    } else {
-      console.log('⚠️ 未找到瑞士轮比赛');
     }
   });
 
@@ -334,36 +275,28 @@ test.describe('【第三阶段-3】首页赛程功能测试', () => {
     if (matches.length === 0) {
       const emptyState = page.locator('[data-testid="elimination-empty"], text=暂无淘汰赛');
       const hasEmpty = await emptyState.isVisible().catch(() => false);
-      if (hasEmpty) {
-        await expect(emptyState).toBeVisible();
-        console.log('✅ 淘汰赛区域正确显示空状态');
-      } else {
-        console.log('⚠️ 未找到淘汰赛数据');
-      }
-      return;
-    }
+      expect(hasEmpty, '淘汰赛无数据时应显示空状态提示').toBeTruthy();
+    } else {
+      expect(matches.length).toBeGreaterThan(0);
 
-    console.log(`✅ 找到 ${matches.length} 场淘汰赛比赛`);
+      for (const match of matches.slice(0, Math.min(3, matches.length))) {
+        const teamAName = await match
+          .locator('[data-testid="team-a-name"]')
+          .textContent()
+          .catch(() => null);
+        const teamBName = await match
+          .locator('[data-testid="team-b-name"]')
+          .textContent()
+          .catch(() => null);
+        expect(teamAName && teamBName, '每场比赛应有两个战队名称').toBeTruthy();
 
-    for (const match of matches.slice(0, Math.min(3, matches.length))) {
-      const teamAName = await match
-        .locator('[data-testid="team-a-name"]')
-        .textContent()
-        .catch(() => null);
-      const teamBName = await match
-        .locator('[data-testid="team-b-name"]')
-        .textContent()
-        .catch(() => null);
-      if (teamAName && teamBName) {
-        console.log(`  - 比赛: ${teamAName} vs ${teamBName}`);
-      }
-
-      const status = await match
-        .locator('[data-testid="match-status"]')
-        .textContent()
-        .catch(() => null);
-      if (status) {
-        expect(['未开始', '进行中', '已结束']).toContain(status);
+        const status = await match
+          .locator('[data-testid="match-status"]')
+          .textContent()
+          .catch(() => null);
+        if (status) {
+          expect(['未开始', '进行中', '已结束']).toContain(status);
+        }
       }
     }
   });
@@ -384,11 +317,7 @@ test.describe('【第三阶段-3】首页赛程功能测试', () => {
     if (matches.length === 0) {
       const emptyState = page.locator('[data-testid="swiss-empty"], text=暂无比赛');
       const hasEmpty = await emptyState.isVisible().catch(() => false);
-      if (hasEmpty) {
-        await expect(emptyState).toBeVisible();
-        console.log('✅ 瑞士轮区域正确显示空状态');
-      }
-      console.log('⚠️ 未找到比赛数据');
+      expect(hasEmpty, '无比赛数据时应显示空状态提示').toBeTruthy();
       return;
     }
 
@@ -404,22 +333,14 @@ test.describe('【第三阶段-3】首页赛程功能测试', () => {
 
       if (status.includes('未开始')) {
         foundUpcoming = true;
-        console.log('✅ 找到未开始的比赛');
       } else if (status.includes('进行中')) {
         foundOngoing = true;
-        console.log('✅ 找到进行中的比赛');
       } else if (status.includes('已结束')) {
         foundFinished = true;
-        console.log('✅ 找到已结束的比赛');
       }
     }
 
-    console.log(
-      `状态分布 - 未开始: ${foundUpcoming}, 进行中: ${foundOngoing}, 已结束: ${foundFinished}`
-    );
-
-    // 至少找到一种状态的比赛
-    expect(foundUpcoming || foundOngoing || foundFinished).toBeTruthy();
+    expect(foundUpcoming || foundOngoing || foundFinished, '至少应找到一种比赛状态').toBeTruthy();
   });
 });
 
@@ -443,11 +364,8 @@ test.describe('【边界测试】首页空数据状态', () => {
     const hasTeams = (await page.locator('[data-testid="team-card"]').count()) > 0;
 
     if (!hasTeams) {
-      // 如果没有战队数据，验证空状态提示
       const hasEmptyState = await teamEmptyState.isVisible().catch(() => false);
-      if (hasEmptyState) {
-        console.log('✅ 战队区域显示空状态');
-      }
+      expect(hasEmptyState, '无战队数据时应显示空状态提示').toBeTruthy();
     }
 
     // 验证赛程区域空状态
@@ -456,11 +374,8 @@ test.describe('【边界测试】首页空数据状态', () => {
     const hasMatches = (await page.locator('[data-testid="swiss-match"]').count()) > 0;
 
     if (!hasMatches) {
-      // 如果没有比赛数据，验证空状态提示
       const hasEmptyState = await scheduleEmptyState.isVisible().catch(() => false);
-      if (hasEmptyState) {
-        console.log('✅ 赛程区域显示空状态');
-      }
+      expect(hasEmptyState, '无赛程数据时应显示空状态提示').toBeTruthy();
     }
   });
 });
