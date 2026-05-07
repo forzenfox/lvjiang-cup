@@ -24,39 +24,6 @@ vi.mock('@/utils/tracking', () => ({
   trackRadarChartCollapse: vi.fn(),
 }));
 
-// Mock champion utils
-vi.mock('@/utils/championUtils', () => ({
-  initChampionMap: vi.fn(),
-  getChampionIconByEn: vi.fn(() => '/mock-icon.png'),
-  getChampionTitleByEn: vi.fn(name => name),
-  getChampionNameToEn: vi.fn(() => ({})),
-}));
-
-// Mock upload utils
-vi.mock('@/utils/upload', () => ({
-  getUploadUrl: vi.fn(url => url),
-}));
-
-// Mock framer-motion
-vi.mock('framer-motion', async () => {
-  const actual = await vi.importActual('framer-motion');
-  return {
-    ...actual,
-    motion: {
-      div: ({ children, ...props }: any) => <div {...props}>{children}</div>,
-      button: ({ children, ...props }: any) => <button {...props}>{children}</button>,
-    },
-    AnimatePresence: ({ children }: any) => <>{children}</>,
-  };
-});
-
-// Mock lucide-react
-vi.mock('lucide-react', () => ({
-  Loader2: () => <div data-testid="loader" />,
-  AlertCircle: () => <div data-testid="alert-circle" />,
-  ArrowLeft: () => <div data-testid="arrow-left" />,
-}));
-
 describe('MatchDataPage - 雷达图展开逻辑', () => {
   const mockSeriesData = {
     matchId: '123',

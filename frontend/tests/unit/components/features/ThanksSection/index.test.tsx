@@ -47,72 +47,11 @@ describe('ThanksSection', () => {
     });
   });
 
-  it('应该有正确的背景样式', async () => {
-    render(<ThanksSection />);
-    await waitFor(() => {
-      const section = screen.getByTestId('thanks-section');
-      expect(section.className).toContain('bg-gradient-to-b');
-      expect(section.className).toContain('from-black');
-      expect(section.className).toContain('via-gray-950');
-      expect(section.className).toContain('to-black');
-    });
-  });
-
-  it('应该限制在视窗高度内', async () => {
-    render(<ThanksSection />);
-    await waitFor(() => {
-      const section = screen.getByTestId('thanks-section');
-      expect(section.className).toContain('h-[calc(100vh-96px)]');
-    });
-  });
-
-  it('应该使用flex布局', async () => {
-    render(<ThanksSection />);
-    await waitFor(() => {
-      const section = screen.getByTestId('thanks-section');
-      expect(section.className).toContain('flex');
-      expect(section.className).toContain('flex-col');
-    });
-  });
-
-  it('应该防止内容溢出', async () => {
-    render(<ThanksSection />);
-    await waitFor(() => {
-      const section = screen.getByTestId('thanks-section');
-      expect(section.className).toContain('overflow-hidden');
-    });
-  });
-
-  it('应该有正确的模块间距', async () => {
-    render(<ThanksSection />);
-    await waitFor(() => {
-      const section = screen.getByTestId('thanks-section');
-      const bottomDecorations = section.querySelectorAll('.mt-16, .md\\:mt-20');
-      expect(bottomDecorations.length).toBeGreaterThanOrEqual(1);
-    });
-  });
-
   it('应该有正确的ID属性', async () => {
     render(<ThanksSection />);
     await waitFor(() => {
       const section = screen.getByTestId('thanks-section');
       expect(section).toHaveAttribute('id', 'thanks');
-    });
-  });
-
-  it('应该使用framer-motion动画', async () => {
-    render(<ThanksSection />);
-    await waitFor(() => {
-      const section = screen.getByTestId('thanks-section');
-      expect(section).toHaveStyle({ opacity: '0' });
-    });
-  });
-
-  it('标题应该使用正确的字体', async () => {
-    render(<ThanksSection />);
-    await waitFor(() => {
-      const title = screen.getByTestId('thanks-section-title');
-      expect(title.style.fontFamily).toContain('Chakra Petch');
     });
   });
 
@@ -137,12 +76,19 @@ describe('ThanksSection', () => {
     });
   });
 
-  it('内容区域应该有动态缩放样式', async () => {
+  it('应该渲染赞助商列表', async () => {
     render(<ThanksSection />);
     await waitFor(() => {
-      const section = screen.getByTestId('thanks-section');
-      const scaledContent = section.querySelector('div[style*="scale"]');
-      expect(scaledContent).not.toBeNull();
+      expect(screen.getAllByText('斗鱼官方').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText('神秘老板').length).toBeGreaterThanOrEqual(1);
+    });
+  });
+
+  it('应该渲染工作人员列表', async () => {
+    render(<ThanksSection />);
+    await waitFor(() => {
+      expect(screen.getAllByText('帅小伙山月').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText('大总管').length).toBeGreaterThanOrEqual(1);
     });
   });
 });

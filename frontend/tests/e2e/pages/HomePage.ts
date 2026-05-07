@@ -24,6 +24,12 @@ export class HomePage extends BasePage {
   readonly eliminationTab: Locator;
   readonly noScheduleMessage: Locator;
 
+  // 鸣谢区域元素
+  readonly thanksSection: Locator;
+  readonly thanksTitle: Locator;
+  readonly marqueeContainer: Locator;
+  readonly marqueeContent: Locator;
+
   constructor(page: Page) {
     super(page);
 
@@ -47,6 +53,12 @@ export class HomePage extends BasePage {
     this.swissTab = page.getByTestId('home-swiss-tab');
     this.eliminationTab = page.getByTestId('home-elimination-tab');
     this.noScheduleMessage = page.getByText(/暂无.*赛程|还没有.*赛程/);
+
+    // 鸣谢区域
+    this.thanksSection = page.locator('#thanks');
+    this.thanksTitle = page.getByRole('heading', { name: '特别鸣谢' });
+    this.marqueeContainer = page.getByTestId('marquee-container');
+    this.marqueeContent = page.getByTestId('marquee-content');
   }
 
   /**
@@ -175,5 +187,31 @@ export class HomePage extends BasePage {
     await this.page.getByRole('heading', { name: '赛程安排' }).scrollIntoViewIfNeeded();
     // 等待一下确保内容加载
     await this.page.waitForTimeout(500);
+  }
+
+  /**
+   * 滚动到鸣谢区域
+   */
+  async scrollToThanks(): Promise<void> {
+    // 滚动到特别鸣谢标题
+    await this.page.getByRole('heading', { name: '特别鸣谢' }).scrollIntoViewIfNeeded();
+    // 等待一下确保内容加载
+    await this.page.waitForTimeout(500);
+  }
+
+  /**
+   * 验证鸣谢区域显示
+   */
+  async expectThanksVisible() {
+    await expect(this.thanksSection).toBeVisible();
+    await expect(this.thanksTitle).toBeVisible();
+  }
+
+  /**
+   * 验证 Marquee 滚动容器可见
+   */
+  async expectMarqueeVisible() {
+    await expect(this.marqueeContainer).toBeVisible();
+    await expect(this.marqueeContent).toBeVisible();
   }
 }

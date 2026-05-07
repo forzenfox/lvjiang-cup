@@ -76,8 +76,8 @@ describe('Footer', () => {
       fireEvent.mouseLeave(footerContainer);
     }
 
-    const footer = screen.queryByRole('contentinfo');
-    expect(footer).not.toBeNull();
-    expect(footer).toHaveStyle('transform: translateY(100%)');
+    // 由于 AnimatePresence 被 mock 为空 fragment，footer 会立即从 DOM 移除
+    const footer = screen.queryByTestId('footer');
+    expect(footer).not.toBeInTheDocument();
   });
 });

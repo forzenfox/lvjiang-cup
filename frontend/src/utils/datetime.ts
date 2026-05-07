@@ -43,9 +43,11 @@ export function formatDateTime(dateString: string): string {
   if (!dateString) return '';
   try {
     const date = new Date(dateString);
+    // 验证日期是否有效
+    if (isNaN(date.getTime())) return '';
     return date.toLocaleString('zh-CN', DEFAULT_DATETIME_OPTIONS);
   } catch {
-    return dateString;
+    return '';
   }
 }
 
@@ -58,9 +60,11 @@ export function formatShortDate(dateString: string): string {
   if (!dateString) return '';
   try {
     const date = new Date(dateString);
+    // 验证日期是否有效
+    if (isNaN(date.getTime())) return '';
     return date.toLocaleString('zh-CN', SHORT_DATE_OPTIONS);
   } catch {
-    return dateString;
+    return '';
   }
 }
 
@@ -73,9 +77,11 @@ export function formatFullDateTime(dateString: string): string {
   if (!dateString) return '';
   try {
     const date = new Date(dateString);
+    // 验证日期是否有效
+    if (isNaN(date.getTime())) return '';
     return date.toLocaleString('zh-CN', FULL_DATETIME_OPTIONS);
   } catch {
-    return dateString;
+    return '';
   }
 }
 
@@ -88,6 +94,8 @@ export function toDateTimeLocal(dateString: string): string {
   if (!dateString) return '';
   try {
     const date = new Date(dateString);
+    // 验证日期是否有效
+    if (isNaN(date.getTime())) return '';
     // 转换为本地时间字符串，用于 datetime-local 输入框
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -96,7 +104,7 @@ export function toDateTimeLocal(dateString: string): string {
     const minutes = String(date.getMinutes()).padStart(2, '0');
     return `${year}-${month}-${day}T${hours}:${minutes}`;
   } catch {
-    return dateString;
+    return '';
   }
 }
 

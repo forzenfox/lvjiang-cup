@@ -1,76 +1,22 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication, ValidationPipe } from '@nestjs/common';
+import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
-import { ConfigModule } from '@nestjs/config';
 import { StreamsModule } from '../../src/modules/streams/streams.module';
-import { AuthModule } from '../../src/modules/auth/auth.module';
-import { DatabaseModule } from '../../src/database/database.module';
-import { CacheModule } from '../../src/cache/cache.module';
-import { HttpExceptionFilter } from '../../src/common/filters/http-exception.filter';
-import { TransformInterceptor } from '../../src/common/interceptors/transform.interceptor';
+import { createTestApp, closeTestApp, TestAppResult } from '../helpers/test-app';
 
-describe('StreamsController E2E (e2e)', () => {
+describe('Streams API 集成测试', () => {
   let app: INestApplication;
   let authToken: string;
 
   beforeAll(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [
-        ConfigModule.forRoot({
-          isGlobal: true,
-          ignoreEnvFile: true,
-          load: [
-            () => ({
-              jwt: {
-                secret: 'test-secret-key-for-jwt-signing-in-test-environment',
-                expiresIn: '1h',
-              },
-              database: {
-                path: ':memory:',
-              },
-              cache: {
-                ttl: 60,
-              },
-              admin: {
-                username: 'admin',
-                password: 'admin123',
-              },
-            }),
-          ],
-        }),
-        DatabaseModule,
-        CacheModule,
-        AuthModule,
-        StreamsModule,
-      ],
-    }).compile();
-
-    app = moduleFixture.createNestApplication();
-    app.setGlobalPrefix('api');
-    app.useGlobalPipes(
-      new ValidationPipe({
-        whitelist: false,
-        forbidNonWhitelisted: false,
-        transform: true,
-      }),
-    );
-    app.useGlobalFilters(new HttpExceptionFilter());
-    app.useGlobalInterceptors(new TransformInterceptor());
-    await app.init();
-
-    // 登录获取 token
-    const loginResponse = await request(app.getHttpServer()).post('/api/admin/auth/login').send({
-      username: 'admin',
-      password: 'admin123',
+    const result: TestAppResult = await createTestApp({
+      extraModules: [StreamsModule],
     });
-
-    authToken = loginResponse.body.data.access_token;
+    app = result.app;
+    authToken = result.authToken;
   });
 
   afterAll(async () => {
-    if (app) {
-      await app.close();
-    }
+    await closeTestApp(app);
   });
 
   describe('GET /api/streams', () => {
@@ -85,7 +31,6 @@ describe('StreamsController E2E (e2e)', () => {
   describe('GET /api/streams/active', () => {
     it('无需鉴权 - 应该返回活跃直播或404', async () => {
       const response = await request(app.getHttpServer()).get('/api/streams/active');
-      // 可能返回200（有数据）或404（无数据）
       expect([200, 404]).toContain(response.status);
     });
   });

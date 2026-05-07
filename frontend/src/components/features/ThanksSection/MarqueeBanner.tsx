@@ -1,6 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { StarBurst } from './DecorativeIcons';
 import { useScrollAnimation } from './useScrollAnimation';
+import { useMarqueeDuration } from './useMarqueeDuration';
 import type { SponsorConfig } from '@/data/types';
 
 interface MarqueeBannerProps {
@@ -11,9 +12,11 @@ export const MarqueeBanner: React.FC<MarqueeBannerProps> = ({ sponsors }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const [isPaused, setIsPaused] = useState(false);
-  const [scrollDuration, setScrollDuration] = useState(20);
   const [inViewport, setInViewport] = useState(false);
   const { ref: animationRef, isVisible } = useScrollAnimation({ threshold: 0.1 });
+
+  // 使用新的 Hook 计算动画时长
+  const scrollDuration = useMarqueeDuration({ contentRef, containerRef });
 
   // 视口检测
   useEffect(() => {
@@ -24,23 +27,6 @@ export const MarqueeBanner: React.FC<MarqueeBannerProps> = ({ sponsors }) => {
     if (containerRef.current) observer.observe(containerRef.current);
     return () => observer.disconnect();
   }, []);
-
-  // 动态计算滚动时长
-  useEffect(() => {
-    const updateDuration = () => {
-      if (contentRef.current && containerRef.current) {
-        const contentWidth = contentRef.current.scrollWidth / 2;
-        const viewportWidth = containerRef.current.offsetWidth;
-        const baseTime = window.innerWidth >= 768 ? 20 : 15;
-        const duration = (contentWidth / viewportWidth) * baseTime;
-        setScrollDuration(Math.max(duration, 10));
-      }
-    };
-
-    updateDuration();
-    window.addEventListener('resize', updateDuration);
-    return () => window.removeEventListener('resize', updateDuration);
-  }, [sponsors]);
 
   // 空状态
   if (sponsors.length === 0) {
@@ -131,11 +117,10 @@ export const MarqueeBanner: React.FC<MarqueeBannerProps> = ({ sponsors }) => {
           className={`flex items-center gap-0 will-change-transform h-full ${inViewport && !isPaused ? 'animate-marquee-rtl' : 'animate-marquee-rtl-paused'}`}
           style={{
             animationDuration: `${scrollDuration}s`,
-            width: 'fit-content',
-            maxWidth: '100%',
+            width: 'max-content',
           }}
         >
-          {/* 三组内容实现无缝循环：当前组 + 下一组 + 上一组(用于循环衔接) */}
+          {/* 两组内容实现无缝循环：当前组 + 下一组 */}
           {marqueeContent}
           {marqueeContent}
         </div>

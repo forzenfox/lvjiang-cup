@@ -123,16 +123,28 @@ describe('Performance Utils - Conditional Reporting', () => {
       const metric = { ...mockMetric, rating: 'good' };
       const { shouldReportMetric } = await import('@/utils/performance');
 
-      // 采样率 10%，多次调用应该至少有上报和不上报的情况
-      let reportedCount = 0;
-      for (let i = 0; i < 100; i++) {
-        if (shouldReportMetric(metric, mockConfig)) {
-          reportedCount++;
-        }
-      }
+      // mock Math.random() 使采样行为可预测
+      // 采样率 10%，random() < 0.1 时上报
+      const originalRandom = Math.random;
 
-      // 10% 采样，100次中应该有 0~30 次上报（有一定的随机性）
-      expect(reportedCount).toBeLessThan(50);
+      // 第一次：random = 0.05 < 0.1，应该上报
+      Math.random = vi.fn(() => 0.05);
+      expect(shouldReportMetric(metric, mockConfig)).toBe(true);
+
+      // 第二次：random = 0.5 >= 0.1，不应该上报
+      Math.random = vi.fn(() => 0.5);
+      expect(shouldReportMetric(metric, mockConfig)).toBe(false);
+
+      // 第三次：random = 0.09 < 0.1，应该上报
+      Math.random = vi.fn(() => 0.09);
+      expect(shouldReportMetric(metric, mockConfig)).toBe(true);
+
+      // 第四次：random = 0.1 >= 0.1，不应该上报（边界值）
+      Math.random = vi.fn(() => 0.1);
+      expect(shouldReportMetric(metric, mockConfig)).toBe(false);
+
+      // 恢复原始 Math.random
+      Math.random = originalRandom;
     });
   });
 

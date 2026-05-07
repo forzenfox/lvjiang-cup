@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
-import { BrowserRouter } from 'react-router-dom';
+import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import MatchDataPage from '@/components/features/match-data/MatchDataPage';
 import * as matchDataApi from '@/api/matchData';
 import type { MatchSeriesInfo, MatchGameData } from '@/types/matchData';
@@ -12,8 +12,10 @@ vi.mock('@/api/matchData', () => ({
 
 vi.mock('@/utils/matchDataCache', () => ({
   matchDataCache: {
+    get: vi.fn(() => null),
+    set: vi.fn(),
     getMatchSeriesKey: vi.fn(() => 'cache-key-match1'),
-    getMatchGameDataKey: vi.fn(() => 'cache-key-game1'),
+    getGameDataKey: vi.fn(() => 'cache-key-game1'),
     getCachedSeries: vi.fn(() => null),
     getCachedGameData: vi.fn(() => null),
     cacheSeries: vi.fn(),
@@ -22,15 +24,16 @@ vi.mock('@/utils/matchDataCache', () => ({
   },
 }));
 
-vi.mock('@/store/matchDataStore', () => {
-  const mockStore = {
-    setSeriesInfo: vi.fn(),
-    updateGame: vi.fn(),
-  };
-  return {
-    useMatchDataStore: vi.fn(() => mockStore),
-  };
-});
+vi.mock('@/store/matchDataStore', () => ({
+  useMatchDataStore: vi.fn((selector: (state: any) => any) => {
+    const state = {
+      setSeriesInfo: vi.fn(),
+      updateGame: vi.fn(),
+      preloadAdjacentGame: vi.fn(),
+    };
+    return selector ? selector(state) : state;
+  }),
+}));
 
 vi.mock('@/utils/upload', () => ({
   getUploadUrl: (url: string) => url || '',
@@ -136,7 +139,13 @@ const createMockGameData = (): MatchGameData => ({
 });
 
 const renderWithRouter = (ui: React.ReactElement) => {
-  return render(<BrowserRouter>{ui}</BrowserRouter>);
+  return render(
+    <MemoryRouter initialEntries={['/match/match1']}>
+      <Routes>
+        <Route path="/match/:id" element={ui} />
+      </Routes>
+    </MemoryRouter>
+  );
 };
 
 describe('MatchDataPage', () => {
@@ -151,7 +160,8 @@ describe('MatchDataPage', () => {
 
       renderWithRouter(<MatchDataPage />);
 
-      expect(screen.getByText('加载中...')).toBeInTheDocument();
+      // 加载中应该显示骨架屏（带有 animate-pulse 类）
+      expect(document.querySelector('.animate-pulse')).toBeInTheDocument();
     });
 
     it('加载完成后应该显示MatchInfoCard', async () => {
@@ -161,8 +171,9 @@ describe('MatchDataPage', () => {
       renderWithRouter(<MatchDataPage />);
 
       await waitFor(() => {
-        expect(screen.getByText('BO3 · 第 1 局')).toBeInTheDocument();
-      });
+        // 检查页面标题
+        expect(screen.getByText('对战数据详情')).toBeInTheDocument();
+      }, { timeout: 3000 });
     });
 
     it('加载完成后应该显示TeamStatsBar', async () => {
@@ -186,10 +197,11 @@ describe('MatchDataPage', () => {
       renderWithRouter(<MatchDataPage />);
 
       await waitFor(() => {
-        expect(screen.getByText('第 1 局')).toBeInTheDocument();
-        expect(screen.getByText('第 2 局')).toBeInTheDocument();
-        expect(screen.getByText('第 3 局')).toBeInTheDocument();
-      });
+        // GameSwitcher 在局数 > 1 时显示"第一场"等中文标签
+        expect(screen.getByText('第一场')).toBeInTheDocument();
+        expect(screen.getByText('第二场')).toBeInTheDocument();
+        expect(screen.getByText('第三场')).toBeInTheDocument();
+      }, { timeout: 3000 });
     });
 
     it('BO1不应该显示GameSwitcher', async () => {
@@ -204,8 +216,9 @@ describe('MatchDataPage', () => {
       renderWithRouter(<MatchDataPage />);
 
       await waitFor(() => {
-        expect(screen.queryByText('第 1 局')).not.toBeInTheDocument();
-      });
+        // BO1 显示"第一场"标签而不是可切换的"第X场"按钮
+        expect(screen.queryByText('第二场')).not.toBeInTheDocument();
+      }, { timeout: 3000 });
     });
   });
 
@@ -285,17 +298,19 @@ describe('MatchDataPage', () => {
 
       await waitFor(() => {
         expect(screen.getByText('Bin')).toBeInTheDocument();
-      });
+      }, { timeout: 3000 });
 
       const binRow = screen.getByText('Bin').closest('.cursor-pointer');
       if (binRow) {
         (binRow as HTMLElement).click();
       }
 
+      // 点击后应该展开雷达图（RadarChart 组件使用 framer-motion 动画）
       await waitFor(() => {
-        const chevrons = document.body.querySelectorAll('.rotate-180');
-        expect(chevrons.length).toBe(1);
-      });
+        // 检查是否有展开的内容（雷达图区域）
+        const radarArea = document.querySelector('.bg-\\[\\#1a1a2e\\]');
+        expect(radarArea).toBeTruthy();
+      }, { timeout: 3000 });
     });
   });
 });

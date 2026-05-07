@@ -104,6 +104,15 @@ export class DashboardPage extends BasePage {
   }
 
   /**
+   * 点击导航菜单项（通用方法）
+   */
+  async clickNavigation(label: string) {
+    const navItem = this.page.locator(`a:has-text("${label}")`).first();
+    await navItem.click();
+    await this.page.waitForTimeout(500);
+  }
+
+  /**
    * 导航到战队管理
    */
   async navigateToTeams() {

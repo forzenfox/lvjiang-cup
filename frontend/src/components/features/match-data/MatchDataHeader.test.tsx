@@ -47,7 +47,7 @@ describe('MatchDataHeader', () => {
         }
       />
     );
-    const actionWrapper = container.querySelector('.max-w-7xl');
+    const actionWrapper = container.querySelector('.max-w-5xl');
     expect(actionWrapper).toBeInTheDocument();
   });
 });

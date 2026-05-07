@@ -21,11 +21,9 @@ describe('datetime 工具函数', () => {
       expect(formatDateTime('')).toBe('');
     });
 
-    it('应该处理无效日期字符串', () => {
-      const invalidDate = 'invalid-date';
-      const result = formatDateTime(invalidDate);
-      // 无效日期会返回原字符串或 "Invalid Date"
-      expect(result === invalidDate || result === 'Invalid Date').toBe(true);
+    it('应该处理无效日期字符串返回空字符串', () => {
+      const result = formatDateTime('invalid-date');
+      expect(result).toBe('');
     });
 
     it('应该处理 null 值', () => {
@@ -62,10 +60,9 @@ describe('datetime 工具函数', () => {
       expect(formatShortDate('')).toBe('');
     });
 
-    it('应该处理无效日期字符串', () => {
-      const invalidDate = 'invalid-date';
-      const result = formatShortDate(invalidDate);
-      expect(result === invalidDate || result === 'Invalid Date').toBe(true);
+    it('应该处理无效日期字符串返回空字符串', () => {
+      const result = formatShortDate('invalid-date');
+      expect(result).toBe('');
     });
 
     it('应该处理 null 值', () => {
@@ -91,10 +88,9 @@ describe('datetime 工具函数', () => {
       expect(formatFullDateTime('')).toBe('');
     });
 
-    it('应该处理无效日期字符串', () => {
-      const invalidDate = 'invalid-date';
-      const result = formatFullDateTime(invalidDate);
-      expect(result === invalidDate || result === 'Invalid Date').toBe(true);
+    it('应该处理无效日期字符串返回空字符串', () => {
+      const result = formatFullDateTime('invalid-date');
+      expect(result).toBe('');
     });
 
     it('应该处理 null 值', () => {
@@ -116,11 +112,9 @@ describe('datetime 工具函数', () => {
       expect(toDateTimeLocal('')).toBe('');
     });
 
-    it('应该处理无效日期字符串', () => {
-      const invalidDate = 'invalid-date';
-      const result = toDateTimeLocal(invalidDate);
-      // 无效日期会返回原字符串或包含 NaN 的字符串
-      expect(result === invalidDate || result.includes('NaN')).toBe(true);
+    it('应该处理无效日期字符串返回空字符串', () => {
+      const result = toDateTimeLocal('invalid-date');
+      expect(result).toBe('');
     });
 
     it('应该处理 null 值', () => {

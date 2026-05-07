@@ -3,6 +3,7 @@ import { Play, Radio, Loader2 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { useHomeData } from '../../context/HomeDataContext';
 import { useVisibleRefresh } from '@/hooks/useVisibleRefresh';
+import PrizePoolPanel from './HeroSection/PrizePoolPanel';
 
 const DEFAULT_GITHUB_CDN_BASE = 'https://cdn.jsdmirror.com/gh/forzenfox/lvjiang-cup@main';
 const GITHUB_CDN_BASE = window.APP_CONFIG?.GITHUB_CDN_BASE || DEFAULT_GITHUB_CDN_BASE;
@@ -160,6 +161,7 @@ const HeroSection: React.FC = () => {
             <span className="text-sm">更新中...</span>
           </div>
         )}
+        <PrizePoolPanel data={window.PRIZE_POOL_DATA} />
       </div>
 
       <div className="absolute bottom-24 md:bottom-10 left-1/2 transform -translate-x-1/2 animate-bounce text-white/50">

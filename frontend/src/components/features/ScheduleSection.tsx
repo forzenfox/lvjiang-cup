@@ -3,26 +3,26 @@ import { motion } from 'framer-motion';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { useHomeData } from '@/context/HomeDataContext';
 import { useVisibleRefresh } from '@/hooks/useVisibleRefresh';
+import { useIsMobile } from '@/hooks/useMediaQuery';
 import type { Match as ApiMatch, Team as ApiTeam } from '@/api/types';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import SwissStage from './SwissStageResponsive';
 import EliminationStage from './EliminationStage';
+import MatchDetailModal from './MatchDetailModal';
+import MatchDetailDrawer from './MatchDetailDrawer';
 import { useAdvancementStore, calculateAdvancement } from '@/store/advancementStore';
 import { PositionType } from '@/types/position';
 import { getUploadUrl } from '@/utils/upload';
 import SwissEmptyState from './swiss/SwissEmptyState';
 import type { Match, Team, EliminationBracket, Player } from '@/types';
 
-// 将 API Match 转换为本地 Match 格式
 const convertApiMatchToLocal = (apiMatch: ApiMatch, teams: Team[]): Match => {
   const teamA = teams.find(t => t.id === apiMatch.teamAId);
   const teamB = teams.find(t => t.id === apiMatch.teamBId);
 
-  // 将 API stage 映射到本地 stage
   const stage: Match['stage'] = apiMatch.stage === 'elimination' ? 'elimination' : 'swiss';
 
-  // 将 API eliminationBracket 映射到本地格式
   const bracketMap: Record<string, EliminationBracket> = {
     quarterfinals: 'quarterfinals',
     semifinals: 'semifinals',
@@ -53,12 +53,9 @@ const convertApiMatchToLocal = (apiMatch: ApiMatch, teams: Team[]): Match => {
   };
 };
 
-// 将 API Team 转换为本地 Team 格式
 const convertApiTeamToLocal = (apiTeam: ApiTeam): Team => {
-  // 优先使用 API 返回的真实队员数据
   const apiPlayers = apiTeam.members || apiTeam.players || [];
 
-  // 如果有真实队员数据，转换为本地格式
   const players: Player[] =
     apiPlayers.length > 0
       ? apiPlayers.map(apiPlayer => ({
@@ -75,8 +72,7 @@ const convertApiTeamToLocal = (apiTeam: ApiTeam): Team => {
           liveUrl: apiPlayer.liveUrl,
           level: apiPlayer.level,
         }))
-      : // 如果没有队员数据，创建默认空位
-        (['TOP', 'JUNGLE', 'MID', 'ADC', 'SUPPORT'] as PositionType[]).map((position, index) => ({
+      : (['TOP', 'JUNGLE', 'MID', 'ADC', 'SUPPORT'] as PositionType[]).map((position, index) => ({
           id: `${apiTeam.id}-player-${index}`,
           nickname: '待定',
           avatarUrl: undefined,
@@ -95,7 +91,6 @@ const convertApiTeamToLocal = (apiTeam: ApiTeam): Team => {
   };
 };
 
-// 加载骨架屏组件
 const ScheduleSkeleton: React.FC = () => (
   <div className="w-full" data-testid="schedule-skeleton">
     <div className="flex justify-center mb-8">
@@ -112,7 +107,6 @@ const ScheduleSkeleton: React.FC = () => (
   </div>
 );
 
-// 错误状态组件
 const ErrorState: React.FC<{ message: string; onRetry: () => void }> = ({ message, onRetry }) => (
   <div className="flex flex-col items-center justify-center py-20" data-testid="schedule-error">
     <AlertCircle className="w-16 h-16 text-red-500 mb-4" />
@@ -142,6 +136,18 @@ const ScheduleSection: React.FC = () => {
   const { advancement, setAdvancement } = useAdvancementStore();
   const [scale, setScale] = useState(1);
   const contentRef = useRef<HTMLDivElement>(null);
+  const isMobile = useIsMobile();
+
+  // 对战详情状态
+  const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
+
+  const handleMatchClick = useCallback((match: Match) => {
+    setSelectedMatch(match);
+  }, []);
+
+  const handleCloseMatchDetail = useCallback(() => {
+    setSelectedMatch(null);
+  }, []);
 
   const convertedTeams = useMemo(
     () => (apiTeams as ApiTeam[]).map(convertApiTeamToLocal),
@@ -160,7 +166,6 @@ const ScheduleSection: React.FC = () => {
     fetchTeams();
   }, [fetchMatches, fetchTeams]);
 
-  // 可视区域内每60秒刷新赛程数据
   useVisibleRefresh({
     fetchFn: fetchMatches,
     intervalMs: 60_000,
@@ -187,9 +192,7 @@ const ScheduleSection: React.FC = () => {
     setActiveTab(value);
   };
 
-  // 动态计算缩放比例（仅PC端使用，移动端不需要）
   useEffect(() => {
-    // 移动端禁用缩放
     if (window.innerWidth < 768) {
       setScale(1);
       return;
@@ -227,7 +230,6 @@ const ScheduleSection: React.FC = () => {
     <section id="schedule" className="min-h-screen md:h-screen flex flex-col bg-black">
       <div className="max-w-7xl mx-auto px-4 flex-1 flex flex-col justify-center min-h-0 w-full">
         {loading && matches.length === 0 ? (
-          // 加载骨架屏
           <ScheduleSkeleton />
         ) : !loading && matches.length === 0 ? (
           <ErrorState message="获取赛程数据失败" onRetry={handleRetry} />
@@ -276,6 +278,7 @@ const ScheduleSection: React.FC = () => {
                       matches={swissMatches}
                       teams={convertedTeams}
                       advancement={advancement}
+                      onMatchClick={handleMatchClick}
                     />
                   )}
                 </motion.div>
@@ -291,7 +294,11 @@ const ScheduleSection: React.FC = () => {
                   {eliminationMatches.length === 0 ? (
                     <SwissEmptyState message="暂无淘汰赛信息" />
                   ) : (
-                    <EliminationStage matches={eliminationMatches} teams={convertedTeams} />
+                    <EliminationStage
+                      matches={eliminationMatches}
+                      teams={convertedTeams}
+                      onMatchClick={handleMatchClick}
+                    />
                   )}
                 </motion.div>
               </TabsContent>
@@ -299,7 +306,6 @@ const ScheduleSection: React.FC = () => {
           </div>
         )}
 
-        {/* 刷新指示器 */}
         {loading && matches.length > 0 && (
           <div className="mt-8 flex items-center justify-center space-x-2 text-gray-400">
             <Loader2 className="w-4 h-4 animate-spin" />
@@ -307,6 +313,23 @@ const ScheduleSection: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* 对战详情：移动端抽屉 / PC端弹框 */}
+      {isMobile && selectedMatch && (
+        <MatchDetailDrawer
+          match={selectedMatch}
+          teams={convertedTeams}
+          onClose={handleCloseMatchDetail}
+        />
+      )}
+      {!isMobile && selectedMatch && (
+        <MatchDetailModal
+          visible={!!selectedMatch}
+          onClose={handleCloseMatchDetail}
+          match={selectedMatch}
+          teams={convertedTeams}
+        />
+      )}
     </section>
   );
 };

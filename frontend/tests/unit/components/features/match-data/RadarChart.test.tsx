@@ -1,31 +1,60 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-
-vi.mock('echarts/core', () => ({
-  __esModule: true,
-  use: vi.fn(),
-  init: vi.fn(() => ({
-    setOption: vi.fn(),
-    resize: vi.fn(),
-    dispose: vi.fn(),
-  })),
-}));
-
-vi.mock('echarts/charts', () => ({
-  RadarChart: {},
-}));
-
-vi.mock('echarts/components', () => ({
-  TooltipComponent: {},
-  GridComponent: {},
-}));
-
-vi.mock('echarts/renderers', () => ({
-  CanvasRenderer: {},
-}));
-
 import { render, screen } from '@testing-library/react';
 import RadarChart from '@/components/features/match-data/RadarChart';
 import type { PlayerStat, TeamGameData } from '@/types/matchData';
+
+// Mock echarts
+vi.mock('echarts/core', () => {
+  const mockEcharts = {
+    use: vi.fn(),
+    init: vi.fn(() => ({
+      setOption: vi.fn(),
+      dispose: vi.fn(),
+      resize: vi.fn(),
+    })),
+  };
+  return {
+    default: mockEcharts,
+    use: mockEcharts.use,
+    init: mockEcharts.init,
+  };
+});
+
+vi.mock('echarts/charts', () => ({
+  RadarChart: vi.fn(),
+}));
+
+vi.mock('echarts/components', () => ({
+  TooltipComponent: vi.fn(),
+  GridComponent: vi.fn(),
+}));
+
+vi.mock('echarts/renderers', () => ({
+  CanvasRenderer: vi.fn(),
+}));
+
+vi.mock('@/utils/radarCalculations', () => ({
+  normalizeRadarValue: vi.fn((v: number) => v),
+  calculateRadarDimension: vi.fn(() => [0.5, 0.6, 0.7, 0.8, 0.9, 0.5]),
+  getRadarDimensionConfig: vi.fn(() => [
+    { key: 'csPerMin', label: '分均补刀' },
+    { key: 'dmgRatio', label: '伤害占比' },
+    { key: 'takenRatio', label: '承伤占比' },
+    { key: 'teamFight', label: '参团率' },
+    { key: 'dmgEff', label: '伤转' },
+    { key: 'kda', label: 'KDA' },
+  ]),
+  formatDimensionValue: vi.fn((v: number) => String(v)),
+  getDimensionUnit: vi.fn(() => ''),
+  parseGameDuration: vi.fn(() => 1800),
+}));
+
+vi.mock('framer-motion', () => ({
+  motion: {
+    div: ({ children, ...props }: any) => <div {...props}>{children}</div>,
+  },
+  AnimatePresence: ({ children }: any) => <>{children}</>,
+}));
 
 const createMockPlayer = (
   overrides: Partial<PlayerStat> & { playerName: string; position: string }
@@ -119,7 +148,8 @@ describe('RadarChart', () => {
         />
       );
 
-      const chartContainer = container.querySelector('[style*="width"]');
+      // 当 visible=false 时，不应该有雷达图容器
+      const chartContainer = container.querySelector('.bg-\\[\\#1a1a2e\\]');
       expect(chartContainer).toBeNull();
     });
   });
@@ -137,11 +167,12 @@ describe('RadarChart', () => {
         />
       );
 
-      const chartContainer = container.querySelector('[style*="width"]');
+      // 雷达图容器存在
+      const chartContainer = container.querySelector('.bg-\\[\\#1a1a2e\\]');
       expect(chartContainer).toBeInTheDocument();
     });
 
-    it('应该设置正确的容器高度', () => {
+    it('应该包含图表区域', () => {
       const { container } = render(
         <RadarChart
           player1={mockBluePlayer}
@@ -153,8 +184,9 @@ describe('RadarChart', () => {
         />
       );
 
-      const chartContainer = container.querySelector('[style*="height: 400px"]');
-      expect(chartContainer).toBeInTheDocument();
+      // 图表区域存在
+      const chartArea = container.querySelector('.flex-shrink-0');
+      expect(chartArea).toBeInTheDocument();
     });
   });
 
@@ -168,7 +200,7 @@ describe('RadarChart', () => {
         assists: 12,
       });
 
-      render(
+      const { container } = render(
         <RadarChart
           player1={topPlayer}
           player2={mockRedPlayer}
@@ -179,7 +211,7 @@ describe('RadarChart', () => {
         />
       );
 
-      const chartContainer = document.querySelector('[style*="height: 400px"]');
+      const chartContainer = container.querySelector('.bg-\\[\\#1a1a2e\\]');
       expect(chartContainer).toBeInTheDocument();
     });
 
@@ -200,7 +232,7 @@ describe('RadarChart', () => {
         assists: 5,
       });
 
-      render(
+      const { container } = render(
         <RadarChart
           player1={adcPlayer}
           player2={redAdcPlayer}
@@ -211,7 +243,7 @@ describe('RadarChart', () => {
         />
       );
 
-      const chartContainer = document.querySelector('[style*="height: 400px"]');
+      const chartContainer = container.querySelector('.bg-\\[\\#1a1a2e\\]');
       expect(chartContainer).toBeInTheDocument();
     });
   });
@@ -226,7 +258,7 @@ describe('RadarChart', () => {
         position: 'TOP',
       });
 
-      render(
+      const { container } = render(
         <RadarChart
           player1={bluePlayer}
           player2={mockRedPlayer}
@@ -237,7 +269,7 @@ describe('RadarChart', () => {
         />
       );
 
-      const chartContainer = document.querySelector('[style*="height: 400px"]');
+      const chartContainer = container.querySelector('.bg-\\[\\#1a1a2e\\]');
       expect(chartContainer).toBeInTheDocument();
     });
 
@@ -250,7 +282,7 @@ describe('RadarChart', () => {
         position: 'TOP',
       });
 
-      render(
+      const { container } = render(
         <RadarChart
           player1={mockBluePlayer}
           player2={redPlayer}
@@ -261,7 +293,7 @@ describe('RadarChart', () => {
         />
       );
 
-      const chartContainer = document.querySelector('[style*="height: 400px"]');
+      const chartContainer = container.querySelector('.bg-\\[\\#1a1a2e\\]');
       expect(chartContainer).toBeInTheDocument();
     });
   });

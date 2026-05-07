@@ -137,18 +137,34 @@ describe('雷达图计算工具函数', () => {
   describe('calculateRadarDimension', () => {
     describe('TOP 位置', () => {
       it('应该正确计算 TOP 位置的雷达维度', () => {
-        const dimensions = calculateRadarDimension(mockPlayer, 'TOP', mockTeamStats, '32:45');
+        // 提供完整的 teamStats 数据，包含 totalDamage 和 totalDamageTaken
+        const teamStatsWithDamage: TeamGameData = {
+          ...mockTeamStats,
+          totalDamage: 115000,
+          totalDamageTaken: 120000,
+        };
+
+        const dimensions = calculateRadarDimension(mockPlayer, 'TOP', teamStatsWithDamage, '32:45');
 
         expect(dimensions).toHaveLength(6);
 
-        // 分均补刀 = cs / gameDurationMinutes = 250 / 32.75 ≈ 7.63
-        expect(dimensions[0]).toBeCloseTo(7.63, 1);
+        // 游戏时长 = 32 + 45/60 = 32.75 分钟
+        // 分均补刀 = cs / gameDurationMinutes = 250 / 32.75 ≈ 7.634
+        expect(dimensions[0]).toBeCloseTo(7.634, 2);
 
-        // 伤害占比 = damageDealt / teamTotalDamage * 100
-        // 由于 teamStats 没有 totalDamage，应该基于已有数据计算
-        expect(dimensions[1]).toBeGreaterThanOrEqual(0);
+        // 伤害占比 = damageDealt / teamTotalDamage * 100 = 20000 / 115000 * 100 ≈ 17.391%
+        expect(dimensions[1]).toBeCloseTo(17.391, 1);
 
-        // KDA = (kills + assists) / deaths = (5 + 3) / 2 = 4
+        // 承伤占比 = damageTaken / teamTotalDamageTaken * 100 = 30000 / 120000 * 100 = 25%
+        expect(dimensions[2]).toBeCloseTo(25, 1);
+
+        // 参团率 = (kills + assists) / teamKills * 100 = (5+3)/15 * 100 ≈ 53.333%
+        expect(dimensions[3]).toBeCloseTo(53.333, 1);
+
+        // 伤转 = damageDealt / gold * 100 = 20000/12000 * 100 ≈ 166.667%
+        expect(dimensions[4]).toBeCloseTo(166.667, 1);
+
+        // KDA = (kills + assists) / deaths = (5+3)/2 = 4
         expect(dimensions[5]).toBeCloseTo(4, 1);
       });
 

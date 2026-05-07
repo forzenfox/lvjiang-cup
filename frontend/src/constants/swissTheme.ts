@@ -22,7 +22,7 @@ export const SWISS_THEME = {
 
   // 获胜方高亮 - 使用金色
   winner: 'rgb(200, 170, 110)',
-  winnerText: 'rgb(255, 255, 255)',
+  winnerText: 'rgb(200, 170, 110)',
   loserText: 'rgb(150, 150, 150)',
 
   // 比分颜色
