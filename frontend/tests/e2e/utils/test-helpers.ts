@@ -1,5 +1,17 @@
 import { Page, expect } from '@playwright/test';
 
+// Re-export all assertion utilities from assertions.ts
+export {
+  expectVisible,
+  expectExists,
+  expectTextContains,
+  expectIfPresent,
+  expectCount,
+  expectCountInRange,
+  expectUrlContains,
+  expectState,
+} from './assertions';
+
 /**
  * 测试辅助函数
  */

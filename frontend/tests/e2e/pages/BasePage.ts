@@ -18,12 +18,10 @@ export abstract class BasePage {
    * 等待页面加载完成
    */
   async waitForLoad() {
-    try {
-      await this.page.waitForLoadState('domcontentloaded');
-      await this.page.waitForTimeout(500);
-    } catch {
-      // 如果 domcontentloaded 失败，忽略错误继续
-    }
+    await Promise.all([
+      this.page.waitForLoadState('domcontentloaded'),
+      this.page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {}),
+    ]);
   }
 
   /**
@@ -65,6 +63,20 @@ export abstract class BasePage {
       .locator(selector)
       .isVisible()
       .catch(() => false);
+  }
+
+  /**
+   * 等待元素隐藏
+   */
+  async waitForHidden(selector: string, timeout?: number) {
+    await this.page.locator(selector).waitFor({ state: 'hidden', timeout });
+  }
+
+  /**
+   * 等待元素包含指定文本
+   */
+  async waitForText(selector: string, text: string | RegExp, timeout?: number) {
+    await this.page.getByText(text).waitFor({ timeout });
   }
 
   /**
