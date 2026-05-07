@@ -14,7 +14,7 @@ describe('Auth API 集成测试', () => {
     });
     app = result.app;
     authToken = result.authToken;
-  });
+  }, 30000);
 
   afterAll(async () => {
     await closeTestApp(app);

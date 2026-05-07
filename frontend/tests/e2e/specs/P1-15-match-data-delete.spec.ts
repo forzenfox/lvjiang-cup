@@ -163,7 +163,9 @@ test.describe('【P1】比赛数据管理 - 删除游戏数据测试', () => {
     await page.waitForTimeout(2000);
 
     // 获取初始列表状态
-    const gameCardsBefore = await page.locator('[data-testid^="game-card-"], .card:has-text("G")').count();
+    const gameCardsBefore = await page
+      .locator('[data-testid^="game-card-"], .card:has-text("G")')
+      .count();
 
     const deleteButtons = page.locator('button:has-text("删除"), button[title="删除数据"]');
     const deleteCount = await deleteButtons.count();
@@ -188,7 +190,9 @@ test.describe('【P1】比赛数据管理 - 删除游戏数据测试', () => {
     await page.waitForTimeout(3000);
 
     // 获取删除后的列表状态
-    const gameCardsAfter = await page.locator('[data-testid^="game-card-"], .card:has-text("G")').count();
+    const gameCardsAfter = await page
+      .locator('[data-testid^="game-card-"], .card:has-text("G")')
+      .count();
 
     console.log(`删除前游戏卡片数: ${gameCardsBefore}, 删除后: ${gameCardsAfter}`);
 

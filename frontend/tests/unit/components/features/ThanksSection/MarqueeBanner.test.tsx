@@ -111,7 +111,7 @@ describe('MarqueeBanner', () => {
       render(<MarqueeBanner sponsors={mockSponsors} />);
 
       const content = screen.getByTestId('marquee-content');
-      
+
       // 触发元素进入视口
       act(() => {
         const observer = (global.IntersectionObserver as any).mock?.instances?.[0];

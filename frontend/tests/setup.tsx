@@ -76,19 +76,19 @@ vi.mock('framer-motion', async () => {
 vi.mock('@/utils/championUtils', () => {
   // 英文到中文的英雄名称映射
   const championNameMap: Record<string, string> = {
-    'Yasuo': '亚索',
-    'Irelia': '艾瑞莉娅',
-    'Yone': '永恩',
-    'Ahri': '阿狸',
-    'Zed': '劫',
-    'Gwen': '格温',
-    'Sion': '赛恩',
-    'Jinx': '金克丝',
-    'Thresh': '锤石',
-    'LeeSin': '李青',
-    'Garen': '盖伦',
+    Yasuo: '亚索',
+    Irelia: '艾瑞莉娅',
+    Yone: '永恩',
+    Ahri: '阿狸',
+    Zed: '劫',
+    Gwen: '格温',
+    Sion: '赛恩',
+    Jinx: '金克丝',
+    Thresh: '锤石',
+    LeeSin: '李青',
+    Garen: '盖伦',
   };
-  
+
   return {
     initChampionMap: vi.fn(),
     getChampionIconByEn: vi.fn(() => '/mock-icon.png'),

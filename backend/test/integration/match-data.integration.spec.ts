@@ -62,7 +62,14 @@ describe('MatchData Integration Tests', () => {
   });
 
   async function createTables() {
-    await databaseService.run('PRAGMA foreign_keys = ON');
+    await databaseService.run('PRAGMA foreign_keys = OFF');
+
+    await databaseService.run(`
+      CREATE TABLE IF NOT EXISTS teams (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL
+      )
+    `);
 
     await databaseService.run(`
       CREATE TABLE IF NOT EXISTS matches (
@@ -124,12 +131,7 @@ describe('MatchData Integration Tests', () => {
       )
     `);
 
-    await databaseService.run(`
-      CREATE TABLE IF NOT EXISTS teams (
-        id TEXT PRIMARY KEY,
-        name TEXT NOT NULL
-      )
-    `);
+    await databaseService.run('PRAGMA foreign_keys = ON');
   }
 
   async function cleanupTables() {

@@ -48,8 +48,8 @@ test.describe('【P1】认证模块 - 登出功能测试', () => {
   test('TEST-AUTH-LOGOUT-02: 登出后清除cookie @P1', async ({ page }) => {
     // 获取登出前的cookie
     const cookiesBefore = await page.context().cookies();
-    const authCookiesBefore = cookiesBefore.filter(c =>
-      c.name.includes('token') || c.name.includes('auth') || c.name.includes('session')
+    const authCookiesBefore = cookiesBefore.filter(
+      c => c.name.includes('token') || c.name.includes('auth') || c.name.includes('session')
     );
     console.log(`登出前认证cookie数: ${authCookiesBefore.length}`);
 
@@ -59,8 +59,8 @@ test.describe('【P1】认证模块 - 登出功能测试', () => {
 
     // 获取登出后的cookie
     const cookiesAfter = await page.context().cookies();
-    const authCookiesAfter = cookiesAfter.filter(c =>
-      c.name.includes('token') || c.name.includes('auth') || c.name.includes('session')
+    const authCookiesAfter = cookiesAfter.filter(
+      c => c.name.includes('token') || c.name.includes('auth') || c.name.includes('session')
     );
 
     // 验证认证cookie被清除
@@ -81,7 +81,9 @@ test.describe('【P1】认证模块 - 登出功能测试', () => {
     const userBefore = await page.evaluate(() => localStorage.getItem('user'));
     const authTokenBefore = await page.evaluate(() => localStorage.getItem('auth-token'));
 
-    console.log(`登出前 - token: ${!!tokenBefore}, user: ${!!userBefore}, auth-token: ${!!authTokenBefore}`);
+    console.log(
+      `登出前 - token: ${!!tokenBefore}, user: ${!!userBefore}, auth-token: ${!!authTokenBefore}`
+    );
 
     // 登出
     await dashboardPage.logout();
@@ -92,7 +94,9 @@ test.describe('【P1】认证模块 - 登出功能测试', () => {
     const userAfter = await page.evaluate(() => localStorage.getItem('user'));
     const authTokenAfter = await page.evaluate(() => localStorage.getItem('auth-token'));
 
-    console.log(`登出后 - token: ${!!tokenAfter}, user: ${!!userAfter}, auth-token: ${!!authTokenAfter}`);
+    console.log(
+      `登出后 - token: ${!!tokenAfter}, user: ${!!userAfter}, auth-token: ${!!authTokenAfter}`
+    );
 
     // 验证localStorage被清除
     expect(tokenAfter).toBe(null);
@@ -144,7 +148,9 @@ test.describe('【P1】认证模块 - 登出功能测试', () => {
     await expect(page).toHaveURL(/\/admin\/login/);
 
     // 使用测试凭据重新登录
-    const usernameInput = page.locator('input[placeholder*="用户名"], input[placeholder*="账号"], input[name="username"]');
+    const usernameInput = page.locator(
+      'input[placeholder*="用户名"], input[placeholder*="账号"], input[name="username"]'
+    );
     const passwordInput = page.locator('input[placeholder*="密码"], input[name="password"]');
     const loginButton = page.locator('button:has-text("登录"), button[type="submit"]');
 

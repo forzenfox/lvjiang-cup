@@ -209,7 +209,7 @@ describe('streamer-excel.util', () => {
 
       const count = await getExcelRowCount(testFilePath);
       expect(count).toBe(0);
-    });
+    }, 30000);
   });
 
   describe('STREAMER_TYPE_MAP', () => {

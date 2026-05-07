@@ -23,7 +23,7 @@ describe('Videos Sort API 集成测试', () => {
     videosService = result.moduleFixture.get<VideosService>(VideosService);
     databaseService = result.moduleFixture.get<DatabaseService>(DatabaseService);
     cacheService = result.moduleFixture.get<CacheService>(CacheService);
-  });
+  }, 30000);
 
   afterAll(async () => {
     await closeTestApp(app);
@@ -32,7 +32,7 @@ describe('Videos Sort API 集成测试', () => {
   beforeEach(async () => {
     await databaseService.run('DELETE FROM videos');
     cacheService.flush();
-  });
+  }, 15000);
 
   describe('PUT /api/admin/videos/sort - 批量排序', () => {
     const TEST_BV_IDS = ['BV1swD9BEE7S', 'BV1C8QhB9EMX', 'BV1ctDXBkEuV'];

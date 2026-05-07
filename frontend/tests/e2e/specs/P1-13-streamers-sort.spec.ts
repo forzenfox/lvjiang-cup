@@ -113,7 +113,10 @@ test.describe('【P0】主播管理 - 拖拽排序功能测试', () => {
     // 执行拖拽 - 从A拖到B的位置
     await dragHandleA.hover();
     await page.mouse.down();
-    await page.mouse.move(initialBoxB.x + initialBoxB.width / 2, initialBoxB.y + initialBoxB.height / 2);
+    await page.mouse.move(
+      initialBoxB.x + initialBoxB.width / 2,
+      initialBoxB.y + initialBoxB.height / 2
+    );
     await page.waitForTimeout(500);
     await page.mouse.up();
     await page.waitForTimeout(2000);
@@ -151,8 +154,12 @@ test.describe('【P0】主播管理 - 拖拽排序功能测试', () => {
 
     await page.waitForTimeout(1000);
 
-    const card1 = await streamersPage.findStreamerCardByNickname(`${TEST_STREAMER_PREFIX}-persist-1`);
-    const card2 = await streamersPage.findStreamerCardByNickname(`${TEST_STREAMER_PREFIX}-persist-2`);
+    const card1 = await streamersPage.findStreamerCardByNickname(
+      `${TEST_STREAMER_PREFIX}-persist-1`
+    );
+    const card2 = await streamersPage.findStreamerCardByNickname(
+      `${TEST_STREAMER_PREFIX}-persist-2`
+    );
 
     if (!card1 || !card2) {
       console.log('⚠️ 未找到测试主播，跳过持久化测试');
@@ -266,7 +273,9 @@ test.describe('【P0】主播管理 - 拖拽排序功能测试', () => {
     await page.waitForTimeout(1000);
     await streamersPage.refresh();
 
-    const card = await streamersPage.findStreamerCardByNickname(`${TEST_STREAMER_PREFIX}-expand-drag`);
+    const card = await streamersPage.findStreamerCardByNickname(
+      `${TEST_STREAMER_PREFIX}-expand-drag`
+    );
     if (!card) {
       console.log('⚠️ 未找到测试主播，跳过展开拖拽测试');
       test.skip();
@@ -287,7 +296,10 @@ test.describe('【P0】主播管理 - 拖拽排序功能测试', () => {
     await page.waitForTimeout(500);
 
     // 验证展开状态
-    const detailVisible = await card.locator(`[data-testid="streamer-detail-${streamerIdValue}"]`).isVisible().catch(() => false);
+    const detailVisible = await card
+      .locator(`[data-testid="streamer-detail-${streamerIdValue}"]`)
+      .isVisible()
+      .catch(() => false);
     expect(detailVisible).toBe(true);
 
     // 展开状态下仍可拖拽

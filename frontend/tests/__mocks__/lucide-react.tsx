@@ -2,7 +2,11 @@
 // 转发所有 props 包括 data-testid
 const MockIcon = (props: any) => {
   const { children, ...rest } = props;
-  return <svg {...rest} data-testid={rest['data-testid'] || 'mock-icon'}>{children}</svg>;
+  return (
+    <svg {...rest} data-testid={rest['data-testid'] || 'mock-icon'}>
+      {children}
+    </svg>
+  );
 };
 
 export const BarChart3 = MockIcon;

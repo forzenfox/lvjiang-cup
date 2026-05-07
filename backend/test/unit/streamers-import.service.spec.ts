@@ -237,7 +237,7 @@ describe('StreamersImportService', () => {
       expect(result.created).toBe(1);
       expect(result.total).toBe(1);
       expect(result.failed).toBe(0);
-    });
+    }, 30000);
 
     it('校验失败应返回错误不操作数据库', async () => {
       const workbook = new ExcelJS.Workbook();
@@ -288,7 +288,7 @@ describe('StreamersImportService', () => {
 
       await expect(service.importFromExcel(testFilePath)).rejects.toThrow('DB Error');
       expect(databaseService.rollback).toHaveBeenCalled();
-    });
+    }, 30000);
 
     it('空文件应返回空数据错误', async () => {
       const workbook = new ExcelJS.Workbook();

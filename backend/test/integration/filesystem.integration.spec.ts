@@ -1,43 +1,58 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
-jest.mock('fs');
-jest.mock('path');
-
 describe('Filesystem Error Handling', () => {
+  const existsSyncSpy = jest.spyOn(fs, 'existsSync');
+  const mkdirSyncSpy = jest.spyOn(fs, 'mkdirSync');
+  const unlinkSyncSpy = jest.spyOn(fs, 'unlinkSync');
+  const readFileSyncSpy = jest.spyOn(fs, 'readFileSync');
+  const writeFileSyncSpy = jest.spyOn(fs, 'writeFileSync');
+  const basenameSpy = jest.spyOn(path, 'basename');
+  const joinSpy = jest.spyOn(path, 'join');
+
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  afterAll(() => {
+    existsSyncSpy.mockRestore();
+    mkdirSyncSpy.mockRestore();
+    unlinkSyncSpy.mockRestore();
+    readFileSyncSpy.mockRestore();
+    writeFileSyncSpy.mockRestore();
+    basenameSpy.mockRestore();
+    joinSpy.mockRestore();
   });
 
   describe('Directory Auto-creation', () => {
     it('should create directory when it does not exist', () => {
       const mockPath = '/uploads/new-directory';
-      (fs.existsSync as jest.Mock).mockReturnValue(false);
-      (fs.mkdirSync as jest.Mock).mockReturnValue(undefined);
+      existsSyncSpy.mockReturnValue(false);
+      mkdirSyncSpy.mockReturnValue(undefined as unknown as string);
 
       if (!fs.existsSync(mockPath)) {
         fs.mkdirSync(mockPath, { recursive: true });
       }
 
-      expect(fs.existsSync).toHaveBeenCalledWith(mockPath);
-      expect(fs.mkdirSync).toHaveBeenCalledWith(mockPath, { recursive: true });
+      expect(existsSyncSpy).toHaveBeenCalledWith(mockPath);
+      expect(mkdirSyncSpy).toHaveBeenCalledWith(mockPath, { recursive: true });
     });
 
     it('should not create directory when it already exists', () => {
       const mockPath = '/uploads/existing-directory';
-      (fs.existsSync as jest.Mock).mockReturnValue(true);
+      existsSyncSpy.mockReturnValue(true);
 
       if (!fs.existsSync(mockPath)) {
         fs.mkdirSync(mockPath, { recursive: true });
       }
 
-      expect(fs.mkdirSync).not.toHaveBeenCalled();
+      expect(mkdirSyncSpy).not.toHaveBeenCalled();
     });
 
     it('should handle mkdir permission errors', () => {
       const mockPath = '/protected/directory';
-      (fs.existsSync as jest.Mock).mockReturnValue(false);
-      (fs.mkdirSync as jest.Mock).mockImplementation(() => {
+      existsSyncSpy.mockReturnValue(false);
+      mkdirSyncSpy.mockImplementation(() => {
         throw new Error('EACCES: permission denied');
       });
 
@@ -48,31 +63,31 @@ describe('Filesystem Error Handling', () => {
 
     it('should handle nested directory creation', () => {
       const mockPath = '/uploads/nested/deep/directory';
-      (fs.existsSync as jest.Mock).mockReturnValue(false);
-      (fs.mkdirSync as jest.Mock).mockReturnValue(undefined);
+      existsSyncSpy.mockReturnValue(false);
+      mkdirSyncSpy.mockReturnValue(undefined as unknown as string);
 
       fs.mkdirSync(mockPath, { recursive: true });
 
-      expect(fs.mkdirSync).toHaveBeenCalledWith(mockPath, { recursive: true });
+      expect(mkdirSyncSpy).toHaveBeenCalledWith(mockPath, { recursive: true });
     });
   });
 
   describe('File Deletion Error Handling', () => {
     it('should handle file not found on delete', () => {
       const mockPath = '/uploads/nonexistent.jpg';
-      (fs.existsSync as jest.Mock).mockReturnValue(false);
+      existsSyncSpy.mockReturnValue(false);
 
       if (fs.existsSync(mockPath)) {
         fs.unlinkSync(mockPath);
       }
 
-      expect(fs.unlinkSync).not.toHaveBeenCalled();
+      expect(unlinkSyncSpy).not.toHaveBeenCalled();
     });
 
     it('should handle unlink permission errors', () => {
       const mockPath = '/uploads/protected.jpg';
-      (fs.existsSync as jest.Mock).mockReturnValue(true);
-      (fs.unlinkSync as jest.Mock).mockImplementation(() => {
+      existsSyncSpy.mockReturnValue(true);
+      unlinkSyncSpy.mockImplementation(() => {
         throw new Error('EACCES: permission denied');
       });
 
@@ -83,21 +98,21 @@ describe('Filesystem Error Handling', () => {
 
     it('should handle concurrent file deletion', () => {
       const mockPath = '/uploads/concurrent.jpg';
-      (fs.existsSync as jest.Mock).mockReturnValueOnce(true).mockReturnValue(false);
-      (fs.unlinkSync as jest.Mock).mockReturnValue(undefined);
+      existsSyncSpy.mockReturnValueOnce(true).mockReturnValue(false);
+      unlinkSyncSpy.mockReturnValue(undefined as unknown as void);
 
       if (fs.existsSync(mockPath)) {
         fs.unlinkSync(mockPath);
       }
 
-      expect(fs.unlinkSync).toHaveBeenCalledTimes(1);
+      expect(unlinkSyncSpy).toHaveBeenCalledTimes(1);
     });
   });
 
   describe('File Read Errors', () => {
     it('should handle read file not found', () => {
       const mockPath = '/uploads/missing.txt';
-      (fs.readFileSync as jest.Mock).mockImplementation(() => {
+      readFileSyncSpy.mockImplementation(() => {
         throw new Error('ENOENT: no such file or directory');
       });
 
@@ -108,7 +123,7 @@ describe('Filesystem Error Handling', () => {
 
     it('should handle read permission errors', () => {
       const mockPath = '/uploads/protected.txt';
-      (fs.readFileSync as jest.Mock).mockImplementation(() => {
+      readFileSyncSpy.mockImplementation(() => {
         throw new Error('EACCES: permission denied');
       });
 
@@ -122,7 +137,7 @@ describe('Filesystem Error Handling', () => {
     it('should handle disk full errors', () => {
       const mockPath = '/uploads/test.txt';
       const mockContent = 'test content';
-      (fs.writeFileSync as jest.Mock).mockImplementation(() => {
+      writeFileSyncSpy.mockImplementation(() => {
         throw new Error('ENOSPC: no space left on device');
       });
 
@@ -134,7 +149,7 @@ describe('Filesystem Error Handling', () => {
     it('should handle write permission errors', () => {
       const mockPath = '/protected/file.txt';
       const mockContent = 'test content';
-      (fs.writeFileSync as jest.Mock).mockImplementation(() => {
+      writeFileSyncSpy.mockImplementation(() => {
         throw new Error('EACCES: permission denied');
       });
 
@@ -147,7 +162,7 @@ describe('Filesystem Error Handling', () => {
   describe('Path Resolution', () => {
     it('should handle path.basename correctly', () => {
       const mockPath = '/uploads/images/test.jpg';
-      (path.basename as jest.Mock).mockReturnValue('test.jpg');
+      basenameSpy.mockReturnValue('test.jpg');
 
       const result = path.basename(mockPath);
 
@@ -155,7 +170,7 @@ describe('Filesystem Error Handling', () => {
     });
 
     it('should handle path.join correctly', () => {
-      (path.join as jest.Mock).mockReturnValue('/uploads/images/test.jpg');
+      joinSpy.mockReturnValue('/uploads/images/test.jpg');
 
       const result = path.join('/uploads', 'images', 'test.jpg');
 
@@ -163,7 +178,7 @@ describe('Filesystem Error Handling', () => {
     });
 
     it('should handle empty path segments', () => {
-      (path.join as jest.Mock).mockReturnValue('/uploads/test.jpg');
+      joinSpy.mockReturnValue('/uploads/test.jpg');
 
       const result = path.join('/uploads', '', 'test.jpg');
 

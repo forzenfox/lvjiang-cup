@@ -170,7 +170,9 @@ test.describe('【P0】主播管理 - 完整CRUD功能测试', () => {
     await page.waitForTimeout(2000);
     await streamersPage.refresh();
 
-    const card = await streamersPage.findStreamerCardByNickname(`${TEST_STREAMER_NICKNAME}-cancel-delete`);
+    const card = await streamersPage.findStreamerCardByNickname(
+      `${TEST_STREAMER_NICKNAME}-cancel-delete`
+    );
     if (!card) {
       console.log('⚠️ 未找到测试主播，跳过取消删除测试');
       test.skip();
@@ -267,7 +269,9 @@ test.describe('【P0】主播管理 - 完整CRUD功能测试', () => {
     await page.waitForTimeout(2000);
     await streamersPage.refresh();
 
-    const card = await streamersPage.findStreamerCardByNickname(`${TEST_STREAMER_NICKNAME}-type-test`);
+    const card = await streamersPage.findStreamerCardByNickname(
+      `${TEST_STREAMER_NICKNAME}-type-test`
+    );
     if (!card) {
       console.log('⚠️ 未找到测试主播，跳过类型切换测试');
       test.skip();

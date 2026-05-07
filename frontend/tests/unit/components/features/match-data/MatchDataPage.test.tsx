@@ -5,23 +5,27 @@ import MatchDataPage from '@/components/features/match-data/MatchDataPage';
 import * as matchDataApi from '@/api/matchData';
 import type { MatchSeriesInfo, MatchGameData } from '@/types/matchData';
 
+const mockMatchDataCache = vi.hoisted(() => ({
+  get: vi.fn(() => null),
+  set: vi.fn(),
+  getMatchSeriesKey: vi.fn(() => 'cache-key-match1'),
+  getGameDataKey: vi.fn(() => 'cache-key-game1'),
+  getCachedSeries: vi.fn(() => null),
+  getCachedGameData: vi.fn(() => null),
+  cacheSeries: vi.fn(),
+  cacheGameData: vi.fn(),
+  cleanup: vi.fn(),
+}));
+
+const mockPreloadAdjacentGame = vi.hoisted(() => vi.fn());
+
 vi.mock('@/api/matchData', () => ({
   getMatchSeries: vi.fn(),
   getMatchGameData: vi.fn(),
 }));
 
 vi.mock('@/utils/matchDataCache', () => ({
-  matchDataCache: {
-    get: vi.fn(() => null),
-    set: vi.fn(),
-    getMatchSeriesKey: vi.fn(() => 'cache-key-match1'),
-    getGameDataKey: vi.fn(() => 'cache-key-game1'),
-    getCachedSeries: vi.fn(() => null),
-    getCachedGameData: vi.fn(() => null),
-    cacheSeries: vi.fn(),
-    cacheGameData: vi.fn(),
-    cleanup: vi.fn(),
-  },
+  matchDataCache: mockMatchDataCache,
 }));
 
 vi.mock('@/store/matchDataStore', () => ({
@@ -29,7 +33,7 @@ vi.mock('@/store/matchDataStore', () => ({
     const state = {
       setSeriesInfo: vi.fn(),
       updateGame: vi.fn(),
-      preloadAdjacentGame: vi.fn(),
+      preloadAdjacentGame: mockPreloadAdjacentGame,
     };
     return selector ? selector(state) : state;
   }),
@@ -170,10 +174,13 @@ describe('MatchDataPage', () => {
 
       renderWithRouter(<MatchDataPage />);
 
-      await waitFor(() => {
-        // 检查页面标题
-        expect(screen.getByText('对战数据详情')).toBeInTheDocument();
-      }, { timeout: 3000 });
+      await waitFor(
+        () => {
+          // 检查页面标题
+          expect(screen.getByText('对战数据详情')).toBeInTheDocument();
+        },
+        { timeout: 3000 }
+      );
     });
 
     it('加载完成后应该显示TeamStatsBar', async () => {
@@ -196,12 +203,15 @@ describe('MatchDataPage', () => {
 
       renderWithRouter(<MatchDataPage />);
 
-      await waitFor(() => {
-        // GameSwitcher 在局数 > 1 时显示"第一场"等中文标签
-        expect(screen.getByText('第一场')).toBeInTheDocument();
-        expect(screen.getByText('第二场')).toBeInTheDocument();
-        expect(screen.getByText('第三场')).toBeInTheDocument();
-      }, { timeout: 3000 });
+      await waitFor(
+        () => {
+          // GameSwitcher 在局数 > 1 时显示"第一场"等中文标签
+          expect(screen.getByText('第一场')).toBeInTheDocument();
+          expect(screen.getByText('第二场')).toBeInTheDocument();
+          expect(screen.getByText('第三场')).toBeInTheDocument();
+        },
+        { timeout: 3000 }
+      );
     });
 
     it('BO1不应该显示GameSwitcher', async () => {
@@ -215,10 +225,13 @@ describe('MatchDataPage', () => {
 
       renderWithRouter(<MatchDataPage />);
 
-      await waitFor(() => {
-        // BO1 显示"第一场"标签而不是可切换的"第X场"按钮
-        expect(screen.queryByText('第二场')).not.toBeInTheDocument();
-      }, { timeout: 3000 });
+      await waitFor(
+        () => {
+          // BO1 显示"第一场"标签而不是可切换的"第X场"按钮
+          expect(screen.queryByText('第二场')).not.toBeInTheDocument();
+        },
+        { timeout: 3000 }
+      );
     });
   });
 
@@ -296,9 +309,12 @@ describe('MatchDataPage', () => {
 
       renderWithRouter(<MatchDataPage />);
 
-      await waitFor(() => {
-        expect(screen.getByText('Bin')).toBeInTheDocument();
-      }, { timeout: 3000 });
+      await waitFor(
+        () => {
+          expect(screen.getByText('Bin')).toBeInTheDocument();
+        },
+        { timeout: 3000 }
+      );
 
       const binRow = screen.getByText('Bin').closest('.cursor-pointer');
       if (binRow) {
@@ -306,11 +322,14 @@ describe('MatchDataPage', () => {
       }
 
       // 点击后应该展开雷达图（RadarChart 组件使用 framer-motion 动画）
-      await waitFor(() => {
-        // 检查是否有展开的内容（雷达图区域）
-        const radarArea = document.querySelector('.bg-\\[\\#1a1a2e\\]');
-        expect(radarArea).toBeTruthy();
-      }, { timeout: 3000 });
+      await waitFor(
+        () => {
+          // 检查是否有展开的内容（雷达图区域）
+          const radarArea = document.querySelector('.bg-\\[\\#1a1a2e\\]');
+          expect(radarArea).toBeTruthy();
+        },
+        { timeout: 3000 }
+      );
     });
   });
 });

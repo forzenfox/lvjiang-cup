@@ -51,9 +51,7 @@ export class StreamersPage {
     this.cancelButton = page.getByRole('button', { name: '取消' });
 
     this.deleteDialog = page.getByRole('alertdialog');
-    this.confirmDeleteButton = page
-      .locator('[role="alertdialog"] button:has-text("删除")')
-      .first();
+    this.confirmDeleteButton = page.locator('[role="alertdialog"] button:has-text("删除")').first();
     this.cancelDeleteButton = page.locator('[role="alertdialog"] button:has-text("取消")').first();
 
     this.importDialog = page.locator('[role="dialog"]:has-text("批量导入主播")');

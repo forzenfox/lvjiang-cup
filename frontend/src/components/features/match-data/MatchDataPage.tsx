@@ -99,21 +99,21 @@ const MatchDataPage: React.FC = () => {
    * 加载系列赛信息
    */
   const loadSeriesInfo = useCallback(
-    async (mId: string) => {
+    async (mId: string, gameNum: number) => {
       const cacheKey = matchDataCache.getMatchSeriesKey(mId);
       const cached = matchDataCache.get<MatchSeriesInfo>(cacheKey);
 
       if (cached) {
         setSeriesInfo(cached);
         const validGameNumbers = cached.games.map(g => g.gameNumber);
-        if (!validGameNumbers.includes(currentGameNumber)) {
+        if (!validGameNumbers.includes(gameNum)) {
           const firstValidGame = validGameNumbers[0];
           if (firstValidGame) {
             setSearchParams({ game: firstValidGame.toString() });
           }
         }
         const maxGames = Math.max(...validGameNumbers);
-        preloadAdjacentGame(mId, currentGameNumber, maxGames);
+        preloadAdjacentGame(mId, gameNum, maxGames);
         return;
       }
 
@@ -123,7 +123,7 @@ const MatchDataPage: React.FC = () => {
         matchDataCache.set(cacheKey, series);
 
         const validGameNumbers = series.games.map(g => g.gameNumber);
-        if (!validGameNumbers.includes(currentGameNumber)) {
+        if (!validGameNumbers.includes(gameNum)) {
           const firstValidGame = validGameNumbers[0];
           if (firstValidGame) {
             setSearchParams({ game: firstValidGame.toString() });
@@ -131,13 +131,13 @@ const MatchDataPage: React.FC = () => {
         }
 
         const maxGames = Math.max(...validGameNumbers);
-        preloadAdjacentGame(mId, currentGameNumber, maxGames);
+        preloadAdjacentGame(mId, gameNum, maxGames);
       } catch (err) {
         setError(err instanceof Error ? err.message : '获取系列赛信息失败');
         console.error('[MatchDataPage] 系列赛信息加载失败:', err);
       }
     },
-    [currentGameNumber, setSearchParams, preloadAdjacentGame]
+    [setSearchParams, preloadAdjacentGame]
   );
 
   /**
@@ -193,7 +193,10 @@ const MatchDataPage: React.FC = () => {
       setExpandedPosition(null);
 
       try {
-        await Promise.all([loadSeriesInfo(matchId), loadGameData(matchId, currentGameNumber)]);
+        await Promise.all([
+          loadSeriesInfo(matchId, currentGameNumber),
+          loadGameData(matchId, currentGameNumber),
+        ]);
       } finally {
         setLoading(false);
       }

@@ -59,7 +59,7 @@ test.describe('【P0】主播管理 - 图片上传功能测试', () => {
     // 创建一个简单的PNG文件头（最小的有效PNG）
     const minimalPNG = Buffer.from(
       '89504E470D0A1A0A0000000D4948445200000001000000010100000000376EF924' +
-      '0000000A49444154789C6300010000050001E224BC0000000049454E44AE426082',
+        '0000000A49444154789C6300010000050001E224BC0000000049454E44AE426082',
       'hex'
     );
     fs.writeFileSync(testImagePath, minimalPNG);
@@ -117,7 +117,9 @@ test.describe('【P0】主播管理 - 图片上传功能测试', () => {
     await page.waitForTimeout(2000);
     await streamersPage.refresh();
 
-    const card = await streamersPage.findStreamerCardByNickname(`${TEST_STREAMER_NICKNAME}-preview`);
+    const card = await streamersPage.findStreamerCardByNickname(
+      `${TEST_STREAMER_NICKNAME}-preview`
+    );
     if (!card) {
       console.log('⚠️ 未找到测试主播，跳过预览测试');
       test.skip();
@@ -194,7 +196,9 @@ test.describe('【P0】主播管理 - 图片上传功能测试', () => {
       return window.getComputedStyle(el).borderColor;
     });
 
-    console.log(`✅ 上传区域样式验证完成: 边框=${borderStyle.borderStyle}, 悬停边框色=${hoverBorderColor}`);
+    console.log(
+      `✅ 上传区域样式验证完成: 边框=${borderStyle.borderStyle}, 悬停边框色=${hoverBorderColor}`
+    );
   });
 
   /**
@@ -211,7 +215,9 @@ test.describe('【P0】主播管理 - 图片上传功能测试', () => {
     await page.waitForTimeout(2000);
     await streamersPage.refresh();
 
-    const card = await streamersPage.findStreamerCardByNickname(`${TEST_STREAMER_NICKNAME}-replace`);
+    const card = await streamersPage.findStreamerCardByNickname(
+      `${TEST_STREAMER_NICKNAME}-replace`
+    );
     if (!card) {
       console.log('⚠️ 未找到测试主播，跳过更换海报测试');
       test.skip();

@@ -167,13 +167,13 @@ describe('Videos API Integration Tests', () => {
     const TEST_BV_1 = 'BV1swD9BEE7S';
     const TEST_BV_2 = 'BV1C8QhB9EMX';
 
-    it('需要JWT认证', async () => {
+    it('需要 JWT 认证', async () => {
       const response = await request(app.getHttpServer()).get('/api/admin/videos').expect(401);
 
       expect(response.body.statusCode).toBe(401);
     });
 
-    it('需要有效的JWT token', async () => {
+    it('需要有效的 JWT token', async () => {
       const response = await request(app.getHttpServer())
         .get('/api/admin/videos')
         .set('Authorization', 'Bearer invalid-token')
@@ -460,6 +460,6 @@ describe('Videos API Integration Tests', () => {
         .send({ orderedIds });
 
       expect(response.status).toBe(200);
-    }, 30000);
+    });
   });
 });

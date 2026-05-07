@@ -305,8 +305,7 @@ describe('MatchDataImportDialog', () => {
       ],
     };
 
-    vi.mocked(matchDataApi.importMatchData)
-      .mockResolvedValueOnce(mockMultiGameResult);
+    vi.mocked(matchDataApi.importMatchData).mockResolvedValueOnce(mockMultiGameResult);
 
     render(<MatchDataImportDialog {...defaultProps} />);
 
