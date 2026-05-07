@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
+﻿import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
 import { DatabaseService } from '../../database/database.service';
 import { CacheService } from '../../cache/cache.service';
 import * as xlsx from 'xlsx';
@@ -12,6 +12,8 @@ import {
   validateGameNumberUniqueness,
   validateSheetsForFormat,
   validateGameNumberConsistency,
+  extractCellValue,
+  extractNumericValue,
   ImportOptions,
   ValidSheetInfo,
   GameNumberWarning,
@@ -975,9 +977,9 @@ export class MatchDataService {
       }
 
       // 检查战队名
-      const teamName = this.extractCellValue(row[1]);
+      const teamName = extractCellValue(row[1]);
       if (!teamName || teamName.trim() === '') {
-        const side = this.extractCellValue(row[0]) || '未知';
+        const side = extractCellValue(row[0]) || '未知';
         const sideText = side === 'red' ? '红方' : side === 'blue' ? '蓝方' : side;
         throw new BadRequestException({
           code: 40001,
@@ -1007,11 +1009,11 @@ export class MatchDataService {
       }
 
       // 检查选手昵称和英雄名
-      const nickname = this.extractCellValue(row[2]);
-      const champion = this.extractCellValue(row[3]);
+      const nickname = extractCellValue(row[2]);
+      const champion = extractCellValue(row[3]);
       if (!nickname || nickname.trim() === '') {
-        const side = this.extractCellValue(row[0]) || '未知';
-        const position = this.extractCellValue(row[1]) || '未知';
+        const side = extractCellValue(row[0]) || '未知';
+        const position = extractCellValue(row[1]) || '未知';
         const sideText = side === 'red' ? '红方' : side === 'blue' ? '蓝方' : side;
         throw new BadRequestException({
           code: 40001,
@@ -1020,8 +1022,8 @@ export class MatchDataService {
         });
       }
       if (!champion || champion.trim() === '') {
-        const side = this.extractCellValue(row[0]) || '未知';
-        const position = this.extractCellValue(row[1]) || '未知';
+        const side = extractCellValue(row[0]) || '未知';
+        const position = extractCellValue(row[1]) || '未知';
         const sideText = side === 'red' ? '红方' : side === 'blue' ? '蓝方' : side;
         throw new BadRequestException({
           code: 40001,
@@ -1072,8 +1074,8 @@ export class MatchDataService {
     // 8列新模板（含游戏时长）: [teamA, teamB, 局数, 比赛时间, 游戏时长, 获胜方, MVP, 视频BV号]
     // 8列旧模板（含游戏时长）: [红方战队名, 蓝方战队名, 局数, 比赛时间, 游戏时长, 获胜方, MVP, 视频BV号]
     // 7列旧模板（无游戏时长）: [红方战队名, 蓝方战队名, 局数, 比赛时间, 获胜方, MVP, 视频BV号]
-    const row4 = this.extractCellValue(row[4]);
-    const row5 = this.extractCellValue(row[5]);
+    const row4 = extractCellValue(row[4]);
+    const row5 = extractCellValue(row[5]);
 
     const is8ColumnFormat =
       row4.includes(':') &&
@@ -1082,28 +1084,28 @@ export class MatchDataService {
     if (is8ColumnFormat) {
       // 8列格式（含游戏时长，用于雷达图维度计算）
       return {
-        teamAName: this.extractCellValue(row[0]),
-        teamBName: this.extractCellValue(row[1]),
-        gameNumber: this.extractNumericValue(row[2]),
-        gameStartTime: this.extractCellValue(row[3]),
+        teamAName: extractCellValue(row[0]),
+        teamBName: extractCellValue(row[1]),
+        gameNumber: extractNumericValue(row[2]),
+        gameStartTime: extractCellValue(row[3]),
         gameDuration: row4, // E列: 游戏时长
         winner: row5, // F列: 获胜方
         firstBlood: '', // 废弃
-        mvp: this.extractCellValue(row[6]), // G列: MVP
-        videoBvid: this.extractCellValue(row[7]), // H列: 视频BV号
+        mvp: extractCellValue(row[6]), // G列: MVP
+        videoBvid: extractCellValue(row[7]), // H列: 视频BV号
       };
     } else {
       // 7列格式（无游戏时长）
       return {
-        teamAName: this.extractCellValue(row[0]),
-        teamBName: this.extractCellValue(row[1]),
-        gameNumber: this.extractNumericValue(row[2]),
-        gameStartTime: this.extractCellValue(row[3]),
+        teamAName: extractCellValue(row[0]),
+        teamBName: extractCellValue(row[1]),
+        gameNumber: extractNumericValue(row[2]),
+        gameStartTime: extractCellValue(row[3]),
         gameDuration: '', // 新格式无游戏时长（验证会失败）
         winner: row4, // E列: 获胜方
         firstBlood: '', // 废弃
         mvp: row5, // F列: MVP
-        videoBvid: this.extractCellValue(row[6]), // G列: 视频BV号
+        videoBvid: extractCellValue(row[6]), // G列: 视频BV号
       };
     }
   }
@@ -1113,15 +1115,15 @@ export class MatchDataService {
    */
   private parseTeamStatsRow(row: any[], _rowIndex: number): TeamStatsData {
     return {
-      side: this.extractCellValue(row[0]),
-      teamName: this.extractCellValue(row[1]),
-      kills: this.extractNumericValue(row[2]),
-      deaths: this.extractNumericValue(row[3]),
-      assists: this.extractNumericValue(row[4]),
-      gold: this.extractNumericValue(row[5]),
-      towers: this.extractNumericValue(row[6]),
-      dragons: this.extractNumericValue(row[7]),
-      barons: this.extractNumericValue(row[8]),
+      side: extractCellValue(row[0]),
+      teamName: extractCellValue(row[1]),
+      kills: extractNumericValue(row[2]),
+      deaths: extractNumericValue(row[3]),
+      assists: extractNumericValue(row[4]),
+      gold: extractNumericValue(row[5]),
+      towers: extractNumericValue(row[6]),
+      dragons: extractNumericValue(row[7]),
+      barons: extractNumericValue(row[8]),
     };
   }
 
@@ -1129,28 +1131,28 @@ export class MatchDataService {
    * 解析PlayerStats行数据
    */
   private parsePlayerStatsRow(row: any[], _rowIndex: number): PlayerStatsData {
-    const rawChampionName = this.extractCellValue(row[3]);
+    const rawChampionName = extractCellValue(row[3]);
     // 将中文英雄名转换为英文ID
     const { findChampionId } = require('../teams/utils/champion-map.util');
     const championId = findChampionId(rawChampionName);
 
     return {
-      side: this.extractCellValue(row[0]),
-      position: this.extractCellValue(row[1]).toUpperCase(),
-      nickname: this.extractCellValue(row[2]),
+      side: extractCellValue(row[0]),
+      position: extractCellValue(row[1]).toUpperCase(),
+      nickname: extractCellValue(row[2]),
       championName: championId || '', // 转换为英文ID，找不到则为空字符串
       championNameRaw: rawChampionName, // 保留原始值用于错误提示
-      kills: this.extractNumericValue(row[4]),
-      deaths: this.extractNumericValue(row[5]),
-      assists: this.extractNumericValue(row[6]),
-      cs: this.extractNumericValue(row[7]),
-      gold: this.extractNumericValue(row[8]),
-      damageDealt: this.extractNumericValue(row[9]),
-      damageTaken: this.extractNumericValue(row[10]),
-      level: this.extractNumericValue(row[11]),
-      visionScore: this.extractNumericValue(row[12]),
-      wardsPlaced: this.extractNumericValue(row[13]),
-      wardsCleared: this.extractNumericValue(row[14]),
+      kills: extractNumericValue(row[4]),
+      deaths: extractNumericValue(row[5]),
+      assists: extractNumericValue(row[6]),
+      cs: extractNumericValue(row[7]),
+      gold: extractNumericValue(row[8]),
+      damageDealt: extractNumericValue(row[9]),
+      damageTaken: extractNumericValue(row[10]),
+      level: extractNumericValue(row[11]),
+      visionScore: extractNumericValue(row[12]),
+      wardsPlaced: extractNumericValue(row[13]),
+      wardsCleared: extractNumericValue(row[14]),
     };
   }
 
@@ -1171,7 +1173,7 @@ export class MatchDataService {
 
     // 解析前5列为红方BAN
     for (let i = 0; i < 5; i++) {
-      const ban = this.extractCellValue(dataRow[i]);
+      const ban = extractCellValue(dataRow[i]);
       if (ban) {
         // 将中文英雄名转换为英文ID
         const championId = findChampionId(ban);
@@ -1186,7 +1188,7 @@ export class MatchDataService {
 
     // 解析后5列为蓝方BAN
     for (let i = 5; i < 10; i++) {
-      const ban = this.extractCellValue(dataRow[i]);
+      const ban = extractCellValue(dataRow[i]);
       if (ban) {
         // 将中文英雄名转换为英文ID
         const championId = findChampionId(ban);
@@ -1200,30 +1202,6 @@ export class MatchDataService {
     }
 
     return { redBans, blueBans, errors };
-  }
-
-  /**
-   * 提取单元格值
-   */
-  private extractCellValue(cellValue: any): string {
-    if (cellValue === null || cellValue === undefined) {
-      return '';
-    }
-    if (typeof cellValue === 'string') {
-      return cellValue.trim();
-    }
-    return String(cellValue).trim();
-  }
-
-  /**
-   * 提取数值
-   */
-  private extractNumericValue(cellValue: any): number {
-    if (cellValue === null || cellValue === undefined || cellValue === '') {
-      return 0;
-    }
-    const num = Number(cellValue);
-    return isNaN(num) ? 0 : num;
   }
 
   /**

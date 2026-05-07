@@ -10,6 +10,8 @@ import {
   validateTeamNamesMatch,
   validateParsedMatchData,
   validateSheetDataIntegrity,
+  extractCellValue,
+  extractNumericValue,
 } from '../../src/modules/utils/match-excel.util';
 
 describe('match-excel.util', () => {
@@ -1206,6 +1208,90 @@ describe('match-excel.util', () => {
       // validateSheetDataIntegrity 现在会检查BAN行
       expect(result.valid).toBe(false);
       expect(result.errors.some((e) => e.includes('第17行') || e.includes('第18行'))).toBe(true);
+    });
+  });
+
+  describe('extractCellValue', () => {
+    it('应该返回空字符串当输入为 null', () => {
+      expect(extractCellValue(null)).toBe('');
+    });
+
+    it('应该返回空字符串当输入为 undefined', () => {
+      expect(extractCellValue(undefined)).toBe('');
+    });
+
+    it('应该返回空字符串当输入为空字符串', () => {
+      expect(extractCellValue('')).toBe('');
+    });
+
+    it('应该去除字符串前后空格', () => {
+      expect(extractCellValue('  BLG  ')).toBe('BLG');
+    });
+
+    it('应该处理带有制表符和换行符的字符串', () => {
+      expect(extractCellValue('\tWBG\n')).toBe('WBG');
+    });
+
+    it('应该将数值转换为字符串', () => {
+      expect(extractCellValue(25)).toBe('25');
+    });
+
+    it('应该将小数转换为字符串', () => {
+      expect(extractCellValue(1.5)).toBe('1.5');
+    });
+
+    it('应该将布尔值 true 转换为字符串', () => {
+      expect(extractCellValue(true)).toBe('true');
+    });
+
+    it('应该将布尔值 false 转换为字符串', () => {
+      expect(extractCellValue(false)).toBe('false');
+    });
+
+    it('应该将 0 转换为字符串', () => {
+      expect(extractCellValue(0)).toBe('0');
+    });
+  });
+
+  describe('extractNumericValue', () => {
+    it('应该返回 0 当输入为 null', () => {
+      expect(extractNumericValue(null)).toBe(0);
+    });
+
+    it('应该返回 0 当输入为 undefined', () => {
+      expect(extractNumericValue(undefined)).toBe(0);
+    });
+
+    it('应该返回 0 当输入为空字符串', () => {
+      expect(extractNumericValue('')).toBe(0);
+    });
+
+    it('应该返回 0 当输入为非数字字符串', () => {
+      expect(extractNumericValue('abc')).toBe(0);
+    });
+
+    it('应该返回 0 当输入为时间格式字符串', () => {
+      expect(extractNumericValue('32:45')).toBe(0);
+    });
+
+    it('应该正确解析整数数值', () => {
+      expect(extractNumericValue(25)).toBe(25);
+    });
+
+    it('应该正确解析小数数值', () => {
+      expect(extractNumericValue(1.5)).toBe(1.5);
+    });
+
+    it('应该将字符串数字转换为数值', () => {
+      expect(extractNumericValue('25')).toBe(25);
+    });
+
+    it('应该去除空格后解析数值', () => {
+      expect(extractNumericValue('  25  ')).toBe(25);
+    });
+
+    it('应该返回 0 当输入为纯空格字符串', () => {
+      expect(extractNumericValue('   ')).toBe(0);
     });
   });
 });

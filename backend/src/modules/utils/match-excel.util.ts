@@ -73,7 +73,7 @@ export interface MatchResultData {
 
 // ============= 辅助函数 =============
 
-function extractCellValue(cellValue: any): string {
+export function extractCellValue(cellValue: any): string {
   if (cellValue === null || cellValue === undefined) {
     return '';
   }
@@ -83,7 +83,7 @@ function extractCellValue(cellValue: any): string {
   return String(cellValue).trim();
 }
 
-function extractNumericValue(cellValue: any): number {
+export function extractNumericValue(cellValue: any): number {
   if (cellValue === null || cellValue === undefined || cellValue === '') {
     return 0;
   }
