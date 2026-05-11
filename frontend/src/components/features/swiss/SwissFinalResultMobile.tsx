@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Team } from '@/types';
 import SwissTeamLogo from './SwissTeamLogo';
 
 interface SwissFinalResultMobileProps {
   qualifiedTeams: Team[];
   eliminatedTeams: Team[];
+  rankings?: { teamId: string; record: string; rank: number }[];
   className?: string;
   'data-testid'?: string;
 }
@@ -16,6 +17,7 @@ interface SwissFinalResultMobileProps {
 const SwissFinalResultMobile: React.FC<SwissFinalResultMobileProps> = ({
   qualifiedTeams,
   eliminatedTeams,
+  rankings,
   className = '',
   'data-testid': testId = 'swiss-final-result-mobile',
 }) => {
@@ -24,10 +26,32 @@ const SwissFinalResultMobile: React.FC<SwissFinalResultMobileProps> = ({
   // 固定8个淘汰槽位
   const eliminatedSlots = [0, 1, 2, 3, 4, 5, 6, 7];
 
-  // 晋级记录：2支3-0, 3支3-1, 3支3-2
-  const qualifiedRecords = ['3-0', '3-0', '3-1', '3-1', '3-1', '3-2', '3-2', '3-2'];
-  // 淘汰记录：2支0-3, 3支1-3, 3支2-3
-  const eliminatedRecords = ['0-3', '0-3', '1-3', '1-3', '1-3', '2-3', '2-3', '2-3'];
+  // 根据rankings获取队伍战绩
+  const getTeamRecord = (teamId: string): string | null => {
+    if (!rankings) return null;
+    const ranking = rankings.find(r => r.teamId === teamId);
+    return ranking?.record || null;
+  };
+
+  // 按rank排序晋级队伍
+  const sortedQualifiedTeams = useMemo(() => {
+    if (!rankings) return qualifiedTeams;
+    return [...qualifiedTeams].sort((a, b) => {
+      const rankA = rankings.find(r => r.teamId === a.id)?.rank ?? 999;
+      const rankB = rankings.find(r => r.teamId === b.id)?.rank ?? 999;
+      return rankA - rankB;
+    });
+  }, [qualifiedTeams, rankings]);
+
+  // 按rank排序淘汰队伍
+  const sortedEliminatedTeams = useMemo(() => {
+    if (!rankings) return eliminatedTeams;
+    return [...eliminatedTeams].sort((a, b) => {
+      const rankA = rankings.find(r => r.teamId === a.id)?.rank ?? 999;
+      const rankB = rankings.find(r => r.teamId === b.id)?.rank ?? 999;
+      return rankA - rankB;
+    });
+  }, [eliminatedTeams, rankings]);
 
   return (
     <div className={`space-y-6 ${className}`} data-testid={testId}>
@@ -41,8 +65,8 @@ const SwissFinalResultMobile: React.FC<SwissFinalResultMobileProps> = ({
         {/* 垂直列表 */}
         <div className="divide-y divide-gray-700/50">
           {qualifiedSlots.map(slotIndex => {
-            const team = qualifiedTeams[slotIndex];
-            const record = qualifiedRecords[slotIndex];
+            const team = sortedQualifiedTeams[slotIndex];
+            const record = team ? getTeamRecord(team.id) : null;
 
             return (
               <div
@@ -69,7 +93,9 @@ const SwissFinalResultMobile: React.FC<SwissFinalResultMobileProps> = ({
 
                 {/* 右侧：积分 */}
                 <div className="flex-shrink-0 ml-4">
-                  <span className="text-blue-400 font-bold text-lg">{team ? record : '?'}</span>
+                  <span className="text-blue-400 font-bold text-lg">
+                    {team ? record || '?' : '?'}
+                  </span>
                 </div>
               </div>
             );
@@ -87,8 +113,8 @@ const SwissFinalResultMobile: React.FC<SwissFinalResultMobileProps> = ({
         {/* 垂直列表 */}
         <div className="divide-y divide-gray-700/50">
           {eliminatedSlots.map(slotIndex => {
-            const team = eliminatedTeams[slotIndex];
-            const record = eliminatedRecords[slotIndex];
+            const team = sortedEliminatedTeams[slotIndex];
+            const record = team ? getTeamRecord(team.id) : null;
 
             return (
               <div
@@ -115,7 +141,9 @@ const SwissFinalResultMobile: React.FC<SwissFinalResultMobileProps> = ({
 
                 {/* 右侧：积分 */}
                 <div className="flex-shrink-0 ml-4">
-                  <span className="text-red-400 font-bold text-lg">{team ? record : '?'}</span>
+                  <span className="text-red-400 font-bold text-lg">
+                    {team ? record || '?' : '?'}
+                  </span>
                 </div>
               </div>
             );
