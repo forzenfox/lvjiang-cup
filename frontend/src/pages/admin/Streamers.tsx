@@ -831,7 +831,8 @@ const AdminStreamers: React.FC = () => {
                     variant="outline"
                     onClick={async () => {
                       try {
-                        const blob = await downloadStreamerErrorReport(importResult.errors!);
+                        if (!importResult?.errors || importResult.errors.length === 0) return;
+                        const blob = await downloadStreamerErrorReport(importResult.errors);
                         const url = window.URL.createObjectURL(blob);
                         const link = document.createElement('a');
                         link.href = url;

@@ -341,7 +341,10 @@ const MatchDataImportDialog: React.FC<MatchDataImportDialogProps> = ({
 
       // 首先尝试提取验证错误列表
       const validationErrs = parseValidationErrors(
-        (responseDetails ?? error) as { errors?: string[]; response?: { data?: { errors?: string[] } } }
+        (responseDetails ?? error) as {
+          errors?: string[];
+          response?: { data?: { errors?: string[] } };
+        }
       );
       if (validationErrs.length > 0) {
         setValidationErrors(validationErrs);

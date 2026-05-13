@@ -191,7 +191,10 @@ export async function downloadMatchDataTemplate(
  * @returns 错误报告文件 Blob
  */
 export async function downloadMatchDataErrorReport(
-  errors: Array<Record<string, unknown> | { row: number; nickname: string; side: string; type: string; message: string }>
+  errors: Array<
+    | Record<string, unknown>
+    | { row: number; nickname: string; side: string; type: string; message: string }
+  >
 ): Promise<Blob> {
   const response = await apiClient.post<Blob>(
     '/admin/matches/import/error-report',
