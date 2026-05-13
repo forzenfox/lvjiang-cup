@@ -66,9 +66,7 @@ export async function setupMatchDataMocks(page: Page, options: MatchMockOptions 
       return;
     }
 
-    const overrides = dynamicGameResponse
-      ? dynamicGameResponse(gameNum)
-      : gameResponses[gameNum];
+    const overrides = dynamicGameResponse ? dynamicGameResponse(gameNum) : gameResponses[gameNum];
 
     const gameResponse = createGameResponse(gameNum, matchData, overrides);
 

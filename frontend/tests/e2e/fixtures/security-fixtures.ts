@@ -20,7 +20,7 @@ export const xssPayloads = [
 export const sqlInjectionPayloads = [
   "'; DROP TABLE users;--",
   "1' OR '1'='1",
-  "1; SELECT * FROM users",
+  '1; SELECT * FROM users',
   "' UNION SELECT null, null--",
 ] as const;
 

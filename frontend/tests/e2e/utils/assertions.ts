@@ -30,11 +30,7 @@ import { Page, expect } from '@playwright/test';
  * @param selector CSS / data-testid 等选择器
  * @param message 可选的人类可读描述，会附加到断言错误信息中
  */
-export async function expectVisible(
-  page: Page,
-  selector: string,
-  message?: string,
-): Promise<void> {
+export async function expectVisible(page: Page, selector: string, message?: string): Promise<void> {
   const locator = page.locator(selector);
   const hint = message ? ` — ${message}` : '';
   await expect(locator.first(), `期望元素可见: ${selector}${hint}`).toBeVisible();
@@ -56,11 +52,7 @@ export async function expectVisible(
  * @param selector CSS / data-testid 等选择器
  * @param message 可选的人类可读描述
  */
-export async function expectExists(
-  page: Page,
-  selector: string,
-  message?: string,
-): Promise<void> {
+export async function expectExists(page: Page, selector: string, message?: string): Promise<void> {
   const locator = page.locator(selector);
   const hint = message ? ` — ${message}` : '';
   await expect(locator.first(), `期望元素存在于 DOM: ${selector}${hint}`).toBeAttached();
@@ -86,11 +78,13 @@ export async function expectTextContains(
   page: Page,
   selector: string,
   expected: string | RegExp,
-  message?: string,
+  message?: string
 ): Promise<void> {
   const locator = page.locator(selector);
   const hint = message ? ` — ${message}` : '';
-  await expect(locator.first(), `期望文本包含 "${expected}": ${selector}${hint}`).toContainText(expected);
+  await expect(locator.first(), `期望文本包含 "${expected}": ${selector}${hint}`).toContainText(
+    expected
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -116,7 +110,7 @@ export async function expectIfPresent<T>(
   page: Page,
   selector: string,
   assertion: (locator: ReturnType<Page['locator']>) => Promise<T>,
-  fallbackMessage?: string,
+  fallbackMessage?: string
 ): Promise<boolean> {
   const locator = page.locator(selector);
   const count = await locator.count();
@@ -150,7 +144,7 @@ export async function expectCount(
   page: Page,
   selector: string,
   expected: number,
-  message?: string,
+  message?: string
 ): Promise<void> {
   const locator = page.locator(selector);
   const hint = message ? ` — ${message}` : '';
@@ -181,18 +175,18 @@ export async function expectCountInRange(
   selector: string,
   min: number,
   max: number,
-  message?: string,
+  message?: string
 ): Promise<void> {
   const locator = page.locator(selector);
   const count = await locator.count();
   const hint = message ? ` — ${message}` : '';
   expect(
     count,
-    `期望元素数量在 [${min}, ${max}] 范围内: ${selector}, 实际为 ${count}${hint}`,
+    `期望元素数量在 [${min}, ${max}] 范围内: ${selector}, 实际为 ${count}${hint}`
   ).toBeGreaterThanOrEqual(min);
   expect(
     count,
-    `期望元素数量在 [${min}, ${max}] 范围内: ${selector}, 实际为 ${count}${hint}`,
+    `期望元素数量在 [${min}, ${max}] 范围内: ${selector}, 实际为 ${count}${hint}`
   ).toBeLessThanOrEqual(max);
 }
 
@@ -214,19 +208,13 @@ export async function expectCountInRange(
 export async function expectUrlContains(
   page: Page,
   path: string | RegExp,
-  message?: string,
+  message?: string
 ): Promise<void> {
   const hint = message ? ` — ${message}` : '';
   if (typeof path === 'string') {
-    await expect(
-      page,
-      `期望 URL 包含 "${path}"${hint}`,
-    ).toHaveURL(new RegExp(path));
+    await expect(page, `期望 URL 包含 "${path}"${hint}`).toHaveURL(new RegExp(path));
   } else {
-    await expect(
-      page,
-      `期望 URL 匹配正则 ${path}${hint}`,
-    ).toHaveURL(path);
+    await expect(page, `期望 URL 匹配正则 ${path}${hint}`).toHaveURL(path);
   }
 }
 
@@ -250,7 +238,7 @@ export async function expectState(
   page: Page,
   selector: string,
   state: 'visible' | 'hidden' | 'checked' | 'unchecked' | 'enabled' | 'disabled',
-  message?: string,
+  message?: string
 ): Promise<void> {
   const locator = page.locator(selector);
   const hint = message ? ` — ${message}` : '';

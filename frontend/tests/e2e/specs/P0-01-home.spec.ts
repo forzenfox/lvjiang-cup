@@ -89,10 +89,7 @@ test.describe('【第三阶段-1】首页直播功能测试', () => {
     const hasLiveButton = await homePage.liveButton.isVisible().catch(() => false);
     test.skip(!hasLiveButton, '直播信息未配置，跳过此测试');
 
-    const [newPage] = await Promise.all([
-      context.waitForEvent('page'),
-      homePage.clickLiveButton(),
-    ]);
+    const [newPage] = await Promise.all([context.waitForEvent('page'), homePage.clickLiveButton()]);
 
     await newPage.waitForLoadState();
 

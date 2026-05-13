@@ -1,6 +1,11 @@
 import { test, expect } from '@playwright/test';
 import { MatchDataPage } from '../pages';
-import { createMatchDataFixture, createSeriesResponse, createGameResponse, createDefaultPlayerStats } from '../fixtures/factory';
+import {
+  createMatchDataFixture,
+  createSeriesResponse,
+  createGameResponse,
+  createDefaultPlayerStats,
+} from '../fixtures/factory';
 
 test.describe('【P1】对战数据展示 - 编辑模式', () => {
   let matchDataPage: MatchDataPage;
@@ -18,22 +23,30 @@ test.describe('【P1】对战数据展示 - 编辑模式', () => {
     ];
 
     await page.route('**/api/matches/*/series', async route => {
-      await route.fulfill({ status: 200, body: JSON.stringify(createSeriesResponse(fixture, seriesGames)) });
+      await route.fulfill({
+        status: 200,
+        body: JSON.stringify(createSeriesResponse(fixture, seriesGames)),
+      });
     });
 
     await page.route('**/api/matches/*/games/*', async route => {
       await route.fulfill({
         status: 200,
-        body: JSON.stringify(createGameResponse(1, fixture, {
-          winnerTeamId: 'team-a',
-          playerStats: createDefaultPlayerStats(fixture, { useExtendedFormat: true }),
-        })),
+        body: JSON.stringify(
+          createGameResponse(1, fixture, {
+            winnerTeamId: 'team-a',
+            playerStats: createDefaultPlayerStats(fixture, { useExtendedFormat: true }),
+          })
+        ),
       });
     });
 
     await page.route('**/api/admin/matches/*/games/*', async route => {
       if (route.request().method() === 'PUT') {
-        await route.fulfill({ status: 200, body: JSON.stringify({ success: true, code: 20000, data: null }) });
+        await route.fulfill({
+          status: 200,
+          body: JSON.stringify({ success: true, code: 20000, data: null }),
+        });
       }
     });
 
@@ -58,16 +71,21 @@ test.describe('【P1】对战数据展示 - 编辑模式', () => {
     ];
 
     await page.route('**/api/matches/*/series', async route => {
-      await route.fulfill({ status: 200, body: JSON.stringify(createSeriesResponse(fixture, seriesGames)) });
+      await route.fulfill({
+        status: 200,
+        body: JSON.stringify(createSeriesResponse(fixture, seriesGames)),
+      });
     });
 
     await page.route('**/api/matches/*/games/*', async route => {
       await route.fulfill({
         status: 200,
-        body: JSON.stringify(createGameResponse(1, fixture, {
-          winnerTeamId: 'team-a',
-          playerStats: createDefaultPlayerStats(fixture, { useExtendedFormat: true }),
-        })),
+        body: JSON.stringify(
+          createGameResponse(1, fixture, {
+            winnerTeamId: 'team-a',
+            playerStats: createDefaultPlayerStats(fixture, { useExtendedFormat: true }),
+          })
+        ),
       });
     });
 
@@ -75,7 +93,10 @@ test.describe('【P1】对战数据展示 - 编辑模式', () => {
     await page.route('**/api/admin/matches/**/games/**', async route => {
       if (route.request().method() === 'PUT') {
         savedData = route.request().postDataJSON();
-        await route.fulfill({ status: 200, body: JSON.stringify({ success: true, code: 20000, data: { message: '保存成功' } }) });
+        await route.fulfill({
+          status: 200,
+          body: JSON.stringify({ success: true, code: 20000, data: { message: '保存成功' } }),
+        });
       }
     });
 
