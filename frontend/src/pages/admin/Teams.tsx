@@ -45,9 +45,12 @@ interface MemberFormData {
 const LOL_POSITIONS: PositionType[] = ['TOP', 'JUNGLE', 'MID', 'ADC', 'SUPPORT'];
 
 // 确保队员列表包含所有位置
-const ensureAllPositions = (players: any[] = [], teamId: string): any[] => {
+const ensureAllPositions = (
+  players: (Player & Record<string, unknown>)[] = [],
+  teamId: string
+): (Player & Record<string, unknown>)[] => {
   const existingPlayers = [...players];
-  const result: any[] = [];
+  const result: (Player & Record<string, unknown>)[] = [];
 
   LOL_POSITIONS.forEach((position, index) => {
     const existingPlayer = existingPlayers.find(p => p.position === position);
@@ -154,7 +157,7 @@ const AdminTeams: React.FC = () => {
     setLoading(true);
     try {
       const backendTeams = await teamService.getAll();
-      const mappedTeams = backendTeams.map((team: any) => ({
+      const mappedTeams = backendTeams.map(team => ({
         ...team,
         players: ensureAllPositions(
           (team.members || []).map(m => ({

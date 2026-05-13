@@ -10,6 +10,7 @@ import type {
   MultiGameImportResponse,
   SingleGameImportResult,
   GameNumberWarning,
+  MatchDataImportError,
 } from '@/types/matchData';
 import { toast } from 'sonner';
 import { trackAdminImportStart, trackAdminImportSuccess } from '@/utils/tracking';
@@ -163,27 +164,31 @@ const MatchDataImportDialog: React.FC<MatchDataImportDialogProps> = ({
     [processFileAndResetStates]
   );
 
-  const parseErrorDetails = (err: any): ImportErrorDetail[] => {
-    // Try to extract error details from different response formats
+  const parseErrorDetails = (err: {
+    details?: { failedPlayers?: Array<Partial<MatchDataImportError> & { reason?: string }> };
+    failedPlayers?: Array<Partial<MatchDataImportError> & { reason?: string }>;
+    message?: string;
+  }): ImportErrorDetail[] => {
     const details = err.details?.failedPlayers || err.failedPlayers || [];
-    return details.map((d: any) => ({
-      row: d.row || 0,
-      nickname: d.nickname || '未知选手',
-      side: d.side || 'unknown',
-      type: d.type || 'parse_error',
-      message: d.message || d.reason || '未知错误',
+    return details.map(d => ({
+      row: d.row ?? 0,
+      nickname: d.nickname ?? '未知选手',
+      side: d.side ?? 'unknown',
+      type: d.type ?? 'parse_error',
+      message: d.message ?? d.reason ?? '未知错误',
     }));
   };
 
   /**
    * 从错误响应中提取验证错误列表
    */
-  const parseValidationErrors = (err: any): string[] => {
-    // 优先从 errors 数组获取验证错误
+  const parseValidationErrors = (err: {
+    errors?: string[];
+    response?: { data?: { errors?: string[] } };
+  }): string[] => {
     if (err.errors && Array.isArray(err.errors) && err.errors.length > 0) {
       return err.errors;
     }
-    // 其次从 response.data.errors 获取
     if (err.response?.data?.errors && Array.isArray(err.response.data.errors)) {
       return err.response.data.errors;
     }
@@ -319,16 +324,28 @@ const MatchDataImportDialog: React.FC<MatchDataImportDialogProps> = ({
 
       // 导入成功后清除文件
       setFile(null);
-    } catch (err: any) {
+    } catch (err: unknown) {
       // 校验失败时清除文件
       clearFileState();
 
-      // Try to extract error details from the response
-      const responseDetails = err.response?.data;
-      let errorMessage = err.message || '导入失败，请重试';
+      const error = err as Record<string, unknown> & { message?: string };
+      const responseDetails = (error.response as Record<string, unknown> | undefined)?.data as
+        | {
+            message?: string;
+            errors?: string[];
+            failedPlayers?: Array<Partial<MatchDataImportError>>;
+            details?: { failedPlayers?: Array<Partial<MatchDataImportError>> };
+          }
+        | undefined;
+      let errorMessage = error.message || '导入失败，请重试';
 
       // 首先尝试提取验证错误列表
-      const validationErrs = parseValidationErrors(err.response?.data || err);
+      const validationErrs = parseValidationErrors(
+        (responseDetails ?? error) as {
+          errors?: string[];
+          response?: { data?: { errors?: string[] } };
+        }
+      );
       if (validationErrs.length > 0) {
         setValidationErrors(validationErrs);
         errorMessage = responseDetails?.message || `验证失败：发现 ${validationErrs.length} 个问题`;
