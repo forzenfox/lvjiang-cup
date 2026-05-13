@@ -33,7 +33,6 @@ describe('SwissStageVisualEditor 点击编辑功能', () => {
 
     const onMatchUpdate = vi.fn();
     const onMatchCreate = vi.fn();
-    const onAdvancementUpdate = vi.fn();
 
     render(
       <SwissStageVisualEditor

@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { DashboardPage, MatchDataPage } from '../pages';
+import { DashboardPage } from '../pages';
 
 /**
  * 比赛数据管理 - 删除游戏数据测试
@@ -14,11 +14,9 @@ import { DashboardPage, MatchDataPage } from '../pages';
 
 test.describe('【P1】比赛数据管理 - 删除游戏数据测试', () => {
   let dashboardPage: DashboardPage;
-  let matchDataPage: MatchDataPage;
 
   test.beforeEach(async ({ page }) => {
     dashboardPage = new DashboardPage(page);
-    matchDataPage = new MatchDataPage(page);
 
     await page.goto('/admin/dashboard');
     await dashboardPage.expectPageLoaded();

@@ -1,10 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { MatchDataPage, DashboardPage } from '../pages';
-import {
-  matchDataFixture,
-  matchDataFixtureBO5,
-  matchDataFixtureBO1,
-} from '../fixtures/match-data.fixture';
+import { matchDataFixture, matchDataFixtureBO1 } from '../fixtures/match-data.fixture';
 
 /**
  * 对战数据展示功能 E2E 测试

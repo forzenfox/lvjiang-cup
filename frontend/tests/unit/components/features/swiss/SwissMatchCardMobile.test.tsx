@@ -64,7 +64,7 @@ describe('SwissMatchCardMobile', () => {
 
   it('获胜方比分应高亮显示为品牌金色', () => {
     const match = createMockMatch({ winnerId: 'team1' });
-    const { container } = render(<SwissMatchCardMobile match={match} teams={mockTeams} />);
+    render(<SwissMatchCardMobile match={match} teams={mockTeams} />);
 
     const scoreA = screen.getByTestId('swiss-match-card-mobile-score-a');
     expect(scoreA.classList.toString()).toContain('text-[#F59E0B]');
@@ -107,14 +107,14 @@ describe('SwissMatchCardMobile', () => {
   });
 
   it('卡片内边距应为 p-3', () => {
-    const { container } = render(<SwissMatchCardMobile {...defaultProps} />);
+    render(<SwissMatchCardMobile {...defaultProps} />);
 
     const card = container.firstChild as HTMLElement;
     expect(card.classList.toString()).toContain('p-3');
   });
 
   it('队标大小应为 40px', () => {
-    const { container } = render(<SwissMatchCardMobile {...defaultProps} />);
+    render(<SwissMatchCardMobile {...defaultProps} />);
 
     const images = container.querySelectorAll('img');
     expect(images.length).toBe(2);

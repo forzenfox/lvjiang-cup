@@ -1,6 +1,5 @@
 import { test, expect } from '@playwright/test';
 import { DashboardPage, TeamsPage } from '../pages';
-import { testTeam, testTeamBeta } from '../fixtures/teams.fixture';
 
 /**
  * 战队数量限制测试用例

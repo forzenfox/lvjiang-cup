@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { DashboardPage, TeamsPage, SwissStageEditorPage } from '../pages';
-import { testTeam, testTeamBeta, getTestTeamForMatch } from '../fixtures/teams.fixture';
+import { getTestTeamForMatch } from '../fixtures/teams.fixture';
 
 /**
  * 瑞士轮编辑器功能测试
@@ -37,12 +37,10 @@ async function ensureTestTeams(page: any, teamsPage: TeamsPage) {
 
 test.describe('【P0】瑞士轮编辑器 - 基础功能测试', () => {
   let dashboardPage: DashboardPage;
-  let teamsPage: TeamsPage;
   let swissEditorPage: SwissStageEditorPage;
 
   test.beforeEach(async ({ page }) => {
     dashboardPage = new DashboardPage(page);
-    teamsPage = new TeamsPage(page);
     swissEditorPage = new SwissStageEditorPage(page);
 
     await page.goto('/admin/dashboard');
@@ -108,12 +106,10 @@ test.describe('【P0】瑞士轮编辑器 - 基础功能测试', () => {
 
 test.describe('【P0】瑞士轮编辑器 - 比赛编辑功能测试', () => {
   let dashboardPage: DashboardPage;
-  let teamsPage: TeamsPage;
   let swissEditorPage: SwissStageEditorPage;
 
   test.beforeEach(async ({ page }) => {
     dashboardPage = new DashboardPage(page);
-    teamsPage = new TeamsPage(page);
     swissEditorPage = new SwissStageEditorPage(page);
 
     await page.goto('/admin/dashboard');

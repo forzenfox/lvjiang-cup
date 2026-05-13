@@ -1,9 +1,9 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { describe, it, expect, vi } from 'vitest';
+import { render, screen } from '@testing-library/react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import MatchDataEditPage from '@/components/features/match-data/MatchDataEditPage';
 import { matchDataService } from '@/services/matchDataService';
-import type { MatchSeriesInfo, MatchGameData } from '@/types/matchData';
+import type { MatchSeriesInfo } from '@/types/matchData';
 
 // Mock matchDataService
 vi.mock('@/services/matchDataService', () => ({

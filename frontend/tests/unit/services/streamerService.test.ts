@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { streamerService, subscribeToStreamerService } from '@/services/streamerService';
+import { streamerService } from '@/services/streamerService';
 import { streamersApi } from '@/api/streamers';
 import * as streamersImportApi from '@/api/streamers-import';
 import { requestCache } from '@/utils/requestCache';

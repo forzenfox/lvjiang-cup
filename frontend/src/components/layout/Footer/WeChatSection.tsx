@@ -40,7 +40,7 @@ export const WeChatSection: React.FC<WeChatSectionProps> = ({ name, qrCode }) =>
       hasAttemptedLoad.current = true;
       loadImage(qrCode);
     }
-  }, [isHovered]);
+  }, [isHovered, qrCode, displaySrc, hasError]);
 
   return (
     <div

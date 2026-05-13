@@ -1,6 +1,5 @@
 import { test, expect } from '@playwright/test';
 import { DashboardPage, SchedulePage, TeamsPage, HomePage } from '../pages';
-import { testTeam, testTeamBeta } from '../fixtures/teams.fixture';
 
 /**
  * 晋级名单管理测试用例
@@ -142,9 +141,6 @@ test.describe('【第四阶段-1】瑞士轮晋级名单管理测试', () => {
     const swissEditor = page.getByTestId('swiss-stage');
     await swissEditor.isVisible().catch(() => false);
 
-    const advancementStatus = page.getByTestId('advancement-status');
-    const hasAdvancementStatus = await advancementStatus.isVisible().catch(() => false);
-
     const qualifiedGroup_3_0 = page.getByTestId('swiss-record-group-3-0');
     const hasQualifiedGroup = await qualifiedGroup_3_0.isVisible().catch(() => false);
 
@@ -180,17 +176,10 @@ test.describe('【第四阶段-1】瑞士轮晋级名单管理测试', () => {
     const swissEditor = page.getByTestId('swiss-stage');
     await swissEditor.isVisible().catch(() => false);
 
-    const backendHasAdvancement = await page
-      .getByTestId('advancement-status')
-      .isVisible()
-      .catch(() => false);
-    console.log(`✅ 后台晋级状态可见: ${backendHasAdvancement}`);
-
     await homePage.goto();
     await page.waitForTimeout(1000);
 
     const swissTab = page.getByTestId('home-swiss-tab');
-    const hasSwissTab = await swissTab.isVisible().catch(() => false);
 
     await swissTab.click();
     await page.waitForTimeout(500);
@@ -238,18 +227,10 @@ test.describe('【第四阶段-2】晋级名单同步验证测试', () => {
     const swissEditor = page.getByTestId('swiss-stage');
     await swissEditor.isVisible().catch(() => false);
 
-    const advancementStatus = page.getByTestId('advancement-status');
-    const hasAdvancementStatus = await advancementStatus.isVisible().catch(() => false);
-
-    if (hasAdvancementStatus) {
-      console.log('✅ 后台晋级状态可见');
-    }
-
     await homePage.goto();
     await page.waitForTimeout(1000);
 
     const swissTab = page.getByTestId('home-swiss-tab');
-    const hasSwissTab = await swissTab.isVisible().catch(() => false);
 
     await swissTab.click();
     await page.waitForTimeout(500);

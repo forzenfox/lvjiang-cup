@@ -3,7 +3,6 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import MatchDataImportDialog from '@/components/admin/MatchDataImportDialog';
 import { matchDataService } from '@/services/matchDataService';
-import { downloadMatchDataErrorReport } from '@/api/matchData';
 import { AxiosError } from 'axios';
 
 // Mock matchDataService

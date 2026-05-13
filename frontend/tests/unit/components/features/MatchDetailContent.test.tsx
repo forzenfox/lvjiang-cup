@@ -124,7 +124,7 @@ describe('MatchDetailContent', () => {
   it('已结束比赛胜者队名应为金色，败者队名应为灰色', () => {
     mockCheckMatchDataExists.mockResolvedValueOnce({ hasData: false, gameCount: 0 });
     const match = createMockMatch({ winnerId: 'team1', status: 'finished' });
-    const { container } = render(<MatchDetailContent match={match} teams={mockTeams} />);
+    render(<MatchDetailContent match={match} teams={mockTeams} />);
 
     // 胜者队名（team1 - 驴酱）应为金色 rgb(200, 170, 110)
     const winnerName = screen.getByText('驴酱');

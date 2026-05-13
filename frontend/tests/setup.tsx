@@ -63,7 +63,7 @@ vi.mock('framer-motion', async () => {
       footer: ({ children, ...props }: any) => <footer {...props}>{children}</footer>,
     },
     AnimatePresence: ({ children }: any) => <>{children}</>,
-    animate: vi.fn((motionValue, target, options) => {
+    animate: vi.fn((motionValue, target) => {
       if (motionValue && typeof motionValue.set === 'function') {
         motionValue.set(target);
       }
