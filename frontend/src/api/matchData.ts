@@ -190,7 +190,9 @@ export async function downloadMatchDataTemplate(
  * @param errors 错误列表
  * @returns 错误报告文件 Blob
  */
-export async function downloadMatchDataErrorReport(errors: any[]): Promise<Blob> {
+export async function downloadMatchDataErrorReport(
+  errors: Array<Record<string, unknown> | { row: number; nickname: string; side: string; type: string; message: string }>
+): Promise<Blob> {
   const response = await apiClient.post<Blob>(
     '/admin/matches/import/error-report',
     { errors },

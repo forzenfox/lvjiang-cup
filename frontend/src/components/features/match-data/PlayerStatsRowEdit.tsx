@@ -103,17 +103,20 @@ const PlayerStatsRowEdit: React.FC<PlayerStatsRowEditProps> = ({
           {/* 选手头像和昵称 - 上下布局 */}
           <div className="flex flex-col items-center gap-1" style={{ width: 100 }}>
             <div className="w-16 h-16 rounded bg-gray-700 flex items-center justify-center flex-shrink-0 overflow-hidden">
-              {getPlayerAvatar(redPlayer) ? (
-                <img
-                  src={getPlayerAvatar(redPlayer)!}
-                  alt={redPlayer.playerName}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <span className="text-lg font-bold text-gray-400">
-                  {redPlayer.playerName.slice(0, 1)}
-                </span>
-              )}
+              {(() => {
+                const avatar = getPlayerAvatar(redPlayer);
+                return avatar ? (
+                  <img
+                    src={avatar}
+                    alt={redPlayer.playerName}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <span className="text-lg font-bold text-gray-400">
+                    {redPlayer.playerName.slice(0, 1)}
+                  </span>
+                );
+              })()}
             </div>
             <span className="text-sm font-bold text-white truncate" style={{ maxWidth: 100 }}>
               {redPlayer.playerName}
@@ -246,17 +249,20 @@ const PlayerStatsRowEdit: React.FC<PlayerStatsRowEditProps> = ({
           {/* 选手头像和昵称 - 上下布局 */}
           <div className="flex flex-col items-center gap-1" style={{ width: 100 }}>
             <div className="w-16 h-16 rounded bg-gray-700 flex items-center justify-center flex-shrink-0 overflow-hidden">
-              {getPlayerAvatar(bluePlayer) ? (
-                <img
-                  src={getPlayerAvatar(bluePlayer)!}
-                  alt={bluePlayer.playerName}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <span className="text-lg font-bold text-gray-400">
-                  {bluePlayer.playerName.slice(0, 1)}
-                </span>
-              )}
+              {(() => {
+                const avatar = getPlayerAvatar(bluePlayer);
+                return avatar ? (
+                  <img
+                    src={avatar}
+                    alt={bluePlayer.playerName}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <span className="text-lg font-bold text-gray-400">
+                    {bluePlayer.playerName.slice(0, 1)}
+                  </span>
+                );
+              })()}
             </div>
             <span className="text-sm font-bold text-white truncate" style={{ maxWidth: 100 }}>
               {bluePlayer.playerName}

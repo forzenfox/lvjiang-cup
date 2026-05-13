@@ -208,14 +208,15 @@ const MatchDataEditPage: React.FC = () => {
 
   const handleGameChange = useCallback(
     async (gameNumber: number) => {
+      if (!matchId) return;
       if (modifiedTeamFields.size > 0 || modifiedPlayerFields.size > 0) {
         setShowUnsavedConfirm(true);
         setPendingNavigation(() => async () => {
-          await loadGameData(matchId!, gameNumber);
+          await loadGameData(matchId, gameNumber);
         });
         return;
       }
-      await loadGameData(matchId!, gameNumber);
+      await loadGameData(matchId, gameNumber);
     },
     [modifiedTeamFields, modifiedPlayerFields, loadGameData, matchId]
   );
