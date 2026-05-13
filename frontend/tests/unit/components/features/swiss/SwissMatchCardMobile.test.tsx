@@ -107,14 +107,14 @@ describe('SwissMatchCardMobile', () => {
   });
 
   it('卡片内边距应为 p-3', () => {
-    render(<SwissMatchCardMobile {...defaultProps} />);
+    const { container } = render(<SwissMatchCardMobile {...defaultProps} />);
 
     const card = container.firstChild as HTMLElement;
     expect(card.classList.toString()).toContain('p-3');
   });
 
   it('队标大小应为 40px', () => {
-    render(<SwissMatchCardMobile {...defaultProps} />);
+    const { container } = render(<SwissMatchCardMobile {...defaultProps} />);
 
     const images = container.querySelectorAll('img');
     expect(images.length).toBe(2);

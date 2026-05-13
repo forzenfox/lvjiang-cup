@@ -2,6 +2,8 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { TeamMemberModal } from '@/components/team/TeamMemberModal';
 import type { Team, Player } from '@/api/types';
+import type { PositionType } from '@/types/position';
+import { ZIndexLayers } from '@/constants/zIndex';
 
 const mockPlayer1: Player = {
   id: 'player-1',

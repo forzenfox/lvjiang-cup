@@ -85,7 +85,7 @@ describe('TeamStatsBar', () => {
     it('应该显示 Swords 图标表示击杀', () => {
       const blueTeam = createMockTeamData({ teamName: 'BLG', side: 'blue', kills: 25 });
       const redTeam = createMockTeamData({ teamName: 'WBG', side: 'red', kills: 18 });
-      render(<TeamStatsBar blueTeam={blueTeam} redTeam={redTeam} />);
+      const { container } = render(<TeamStatsBar blueTeam={blueTeam} redTeam={redTeam} />);
 
       // lucide-react 图标在 jsdom 中渲染为 SVG 元素
       const allSvgs = container.querySelectorAll('svg');
