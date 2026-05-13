@@ -64,7 +64,7 @@ describe('SwissMatchCardMobile', () => {
 
   it('获胜方比分应高亮显示为品牌金色', () => {
     const match = createMockMatch({ winnerId: 'team1' });
-    const { container } = render(<SwissMatchCardMobile match={match} teams={mockTeams} />);
+    render(<SwissMatchCardMobile match={match} teams={mockTeams} />);
 
     const scoreA = screen.getByTestId('swiss-match-card-mobile-score-a');
     expect(scoreA.classList.toString()).toContain('text-[#F59E0B]');

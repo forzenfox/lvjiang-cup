@@ -24,25 +24,43 @@ test.describe('【P1】对战数据展示 - 对局切换功能', () => {
     ];
 
     await page.route('**/api/matches/*/games/check', async route => {
-      await route.fulfill({ status: 200, body: JSON.stringify({ success: true, code: 20000, data: { hasData: true, gameCount: 3 } }) });
+      await route.fulfill({
+        status: 200,
+        body: JSON.stringify({ success: true, code: 20000, data: { hasData: true, gameCount: 3 } }),
+      });
     });
 
     await page.route('**/api/matches/*/series', async route => {
-      await route.fulfill({ status: 200, body: JSON.stringify(createSeriesResponse(fixture, seriesGames)) });
+      await route.fulfill({
+        status: 200,
+        body: JSON.stringify(createSeriesResponse(fixture, seriesGames)),
+      });
     });
 
     await page.route('**/api/matches/*/games/*', async route => {
-      await route.fulfill({ status: 200, body: JSON.stringify(createGameResponse(1, fixture, { playerStats: createFilledPlayerStats(10, fixture) })) });
+      await route.fulfill({
+        status: 200,
+        body: JSON.stringify(
+          createGameResponse(1, fixture, { playerStats: createFilledPlayerStats(10, fixture) })
+        ),
+      });
     });
 
     await matchDataPage.goto(fixture.matchId);
     await matchDataPage.expectPageLoaded();
 
-    const switcher = page.locator('[data-testid="game-switcher"], [class*="game-switcher"], button:has-text("第1局")');
-    const switcherVisible = await switcher.first().isVisible().catch(() => false);
+    const switcher = page.locator(
+      '[data-testid="game-switcher"], [class*="game-switcher"], button:has-text("第1局")'
+    );
+    const switcherVisible = await switcher
+      .first()
+      .isVisible()
+      .catch(() => false);
     expect(switcherVisible).toBe(true);
 
-    const game1Btn = page.locator('button:has-text("第1局"), [data-testid="game-button-1"]').first();
+    const game1Btn = page
+      .locator('button:has-text("第1局"), [data-testid="game-button-1"]')
+      .first();
     await expect(game1Btn).toBeVisible();
     console.log('✅ BO3 对局切换器正确显示');
   });
@@ -56,18 +74,31 @@ test.describe('【P1】对战数据展示 - 对局切换功能', () => {
     ];
 
     await page.route('**/api/matches/*/games/check', async route => {
-      await route.fulfill({ status: 200, body: JSON.stringify({ success: true, code: 20000, data: { hasData: true, gameCount: 3 } }) });
+      await route.fulfill({
+        status: 200,
+        body: JSON.stringify({ success: true, code: 20000, data: { hasData: true, gameCount: 3 } }),
+      });
     });
 
     await page.route('**/api/matches/*/series', async route => {
-      await route.fulfill({ status: 200, body: JSON.stringify(createSeriesResponse(fixture, seriesGames)) });
+      await route.fulfill({
+        status: 200,
+        body: JSON.stringify(createSeriesResponse(fixture, seriesGames)),
+      });
     });
 
     await page.route('**/api/matches/*/games/*', async route => {
       const url = route.request().url();
       const gameNumStr = url.split('/').pop();
       const gameNum = gameNumStr ? parseInt(gameNumStr, 10) : 1;
-      await route.fulfill({ status: 200, body: JSON.stringify(createGameResponse(gameNum, fixture, { playerStats: createFilledPlayerStats(10, fixture) })) });
+      await route.fulfill({
+        status: 200,
+        body: JSON.stringify(
+          createGameResponse(gameNum, fixture, {
+            playerStats: createFilledPlayerStats(10, fixture),
+          })
+        ),
+      });
     });
 
     await matchDataPage.goto(fixture.matchId);
@@ -90,18 +121,31 @@ test.describe('【P1】对战数据展示 - 对局切换功能', () => {
     ];
 
     await page.route('**/api/matches/*/games/check', async route => {
-      await route.fulfill({ status: 200, body: JSON.stringify({ success: true, code: 20000, data: { hasData: true, gameCount: 3 } }) });
+      await route.fulfill({
+        status: 200,
+        body: JSON.stringify({ success: true, code: 20000, data: { hasData: true, gameCount: 3 } }),
+      });
     });
 
     await page.route('**/api/matches/*/series', async route => {
-      await route.fulfill({ status: 200, body: JSON.stringify(createSeriesResponse(fixture, seriesGames)) });
+      await route.fulfill({
+        status: 200,
+        body: JSON.stringify(createSeriesResponse(fixture, seriesGames)),
+      });
     });
 
     await page.route('**/api/matches/*/games/*', async route => {
       const url = route.request().url();
       const gameNumStr = url.split('/').pop();
       const gameNum = gameNumStr ? parseInt(gameNumStr, 10) : 1;
-      await route.fulfill({ status: 200, body: JSON.stringify(createGameResponse(gameNum, fixture, { playerStats: createFilledPlayerStats(10, fixture) })) });
+      await route.fulfill({
+        status: 200,
+        body: JSON.stringify(
+          createGameResponse(gameNum, fixture, {
+            playerStats: createFilledPlayerStats(10, fixture),
+          })
+        ),
+      });
     });
 
     await matchDataPage.goto(fixture.matchId, 1);
@@ -122,22 +166,44 @@ test.describe('【P1】对战数据展示 - 对局切换功能', () => {
     const fixture = createMatchDataFixture({ matchId: 'bo1-match', boFormat: 'BO1' as const });
 
     await page.route('**/api/matches/*/games/check', async route => {
-      await route.fulfill({ status: 200, body: JSON.stringify({ success: true, code: 20000, data: { hasData: true, gameCount: 1 } }) });
+      await route.fulfill({
+        status: 200,
+        body: JSON.stringify({ success: true, code: 20000, data: { hasData: true, gameCount: 1 } }),
+      });
     });
 
     await page.route('**/api/matches/*/series', async route => {
-      await route.fulfill({ status: 200, body: JSON.stringify(createSeriesResponse(fixture, [{ gameNumber: 1, winner: 'red', duration: '25:15', status: 1 }])) });
+      await route.fulfill({
+        status: 200,
+        body: JSON.stringify(
+          createSeriesResponse(fixture, [
+            { gameNumber: 1, winner: 'red', duration: '25:15', status: 1 },
+          ])
+        ),
+      });
     });
 
     await page.route('**/api/matches/*/games/*', async route => {
-      await route.fulfill({ status: 200, body: JSON.stringify(createGameResponse(1, fixture, { playerStats: createFilledPlayerStats(10, fixture) })) });
+      await route.fulfill({
+        status: 200,
+        body: JSON.stringify(
+          createGameResponse(1, fixture, { playerStats: createFilledPlayerStats(10, fixture) })
+        ),
+      });
     });
 
     await matchDataPage.goto(fixture.matchId);
     await matchDataPage.expectPageLoaded();
 
-    const gameButtons = page.locator('button:has-text("第1局"), button:has-text("第2局"), button:has-text("第3局")');
-    const hasButtons = (await gameButtons.count()) > 0 && (await gameButtons.first().isVisible().catch(() => false));
+    const gameButtons = page.locator(
+      'button:has-text("第1局"), button:has-text("第2局"), button:has-text("第3局")'
+    );
+    const hasButtons =
+      (await gameButtons.count()) > 0 &&
+      (await gameButtons
+        .first()
+        .isVisible()
+        .catch(() => false));
 
     if (hasButtons) {
       const switcher = page.locator('[data-testid="game-switcher"]');

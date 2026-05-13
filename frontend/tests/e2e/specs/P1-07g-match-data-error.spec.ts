@@ -1,6 +1,11 @@
 import { test, expect } from '@playwright/test';
 import { MatchDataPage } from '../pages';
-import { createMatchDataFixture, createSeriesResponse, createGameResponse, createDefaultPlayerStats } from '../fixtures/factory';
+import {
+  createMatchDataFixture,
+  createSeriesResponse,
+  createGameResponse,
+  createDefaultPlayerStats,
+} from '../fixtures/factory';
 
 test.describe('【P1】对战数据展示 - 空状态与重试', () => {
   let matchDataPage: MatchDataPage;
@@ -18,15 +23,28 @@ test.describe('【P1】对战数据展示 - 空状态与重试', () => {
     ];
 
     await page.route('**/api/matches/*/games/check', async route => {
-      await route.fulfill({ status: 200, body: JSON.stringify({ success: true, code: 20000, data: { hasData: false, gameCount: 0 } }) });
+      await route.fulfill({
+        status: 200,
+        body: JSON.stringify({
+          success: true,
+          code: 20000,
+          data: { hasData: false, gameCount: 0 },
+        }),
+      });
     });
 
     await page.route('**/api/matches/*/series', async route => {
-      await route.fulfill({ status: 200, body: JSON.stringify(createSeriesResponse(fixture, seriesGames)) });
+      await route.fulfill({
+        status: 200,
+        body: JSON.stringify(createSeriesResponse(fixture, seriesGames)),
+      });
     });
 
     await page.route('**/api/matches/*/games/*', async route => {
-      await route.fulfill({ status: 200, body: JSON.stringify({ success: true, code: 20000, data: null }) });
+      await route.fulfill({
+        status: 200,
+        body: JSON.stringify({ success: true, code: 20000, data: null }),
+      });
     });
 
     await matchDataPage.goto(fixture.matchId);
@@ -45,7 +63,10 @@ test.describe('【P1】对战数据展示 - 空状态与重试', () => {
     let retryCount = 0;
 
     await page.route('**/api/matches/*/series', async route => {
-      await route.fulfill({ status: 200, body: JSON.stringify(createSeriesResponse(fixture, seriesGames)) });
+      await route.fulfill({
+        status: 200,
+        body: JSON.stringify(createSeriesResponse(fixture, seriesGames)),
+      });
     });
 
     await page.route('**/api/matches/*/games/*', async route => {
@@ -58,10 +79,12 @@ test.describe('【P1】对战数据展示 - 空状态与重试', () => {
       } else {
         await route.fulfill({
           status: 200,
-          body: JSON.stringify(createGameResponse(1, fixture, {
-            winnerTeamId: 'team-a',
-            playerStats: createDefaultPlayerStats(fixture, { useExtendedFormat: true }),
-          })),
+          body: JSON.stringify(
+            createGameResponse(1, fixture, {
+              winnerTeamId: 'team-a',
+              playerStats: createDefaultPlayerStats(fixture, { useExtendedFormat: true }),
+            })
+          ),
         });
       }
     });

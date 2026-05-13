@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, act } from '@testing-library/react';
 
 vi.mock('./DecorativeIcons', () => ({
-  StarBurst: ({ size, className, style }: any) => (
+  StarBurst: ({ className, style }: any) => (
     <span data-testid="starburst" style={style} className={className}>
       ★
     </span>

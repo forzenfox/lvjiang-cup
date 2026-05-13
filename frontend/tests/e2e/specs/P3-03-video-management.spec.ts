@@ -216,8 +216,6 @@ test.describe('【视频模块】后台视频管理测试', () => {
     await videosNav.click();
     await videosPage.expectPageLoaded();
 
-    const initialCount = await videosPage.getVideoCount();
-
     await videosPage.clickAddVideo();
     await videosPage.expectFormVisible();
 
@@ -1002,7 +1000,6 @@ test.describe('【视频模块】视频数量和排序测试', () => {
     await videosPage.clickRefresh();
     await page.waitForTimeout(1000);
 
-    const videoCount = await videosPage.getVideoCount();
     const maxVideos = 10;
 
     if (videoCount >= maxVideos) {

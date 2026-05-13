@@ -134,7 +134,10 @@ test.describe('【特殊字符边界】战队名称特殊字符测试', () => {
     if (newCount > initialCount) {
       // 战队被创建了，验证 HTML 被转义而不是被渲染
       // 检查页面上是否存在包含该文本的元素
-      const teamCard = page.locator('[data-testid^="team-card-"]').filter({ hasText: htmlTeamName }).first();
+      const teamCard = page
+        .locator('[data-testid^="team-card-"]')
+        .filter({ hasText: htmlTeamName })
+        .first();
       const teamCardVisible = await teamCard.isVisible().catch(() => false);
 
       if (teamCardVisible) {

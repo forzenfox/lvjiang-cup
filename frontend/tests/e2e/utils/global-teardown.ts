@@ -2,7 +2,7 @@ import { chromium, devices, FullConfig } from '@playwright/test';
 import { getTestConfig } from '../config/TestConfig';
 import { clearBackendData } from './backend-api';
 
-async function globalTeardown(config: FullConfig) {
+async function globalTeardown(_config: FullConfig) {
   console.log('🧹 开始全局清理...');
 
   // 加载测试配置

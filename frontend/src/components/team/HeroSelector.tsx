@@ -109,7 +109,7 @@ const HeroSelector: React.FC<HeroSelectorProps> = ({
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [visible, localSelected]);
+  }, [visible, localSelected, handleConfirm]);
 
   if (!visible) return null;
 

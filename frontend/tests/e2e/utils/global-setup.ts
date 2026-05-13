@@ -6,7 +6,7 @@ import { clearBackendData } from './backend-api';
 // 认证状态存储路径
 const authStatePath = path.resolve(process.cwd(), 'tests', 'e2e', '.auth', 'auth.json');
 
-async function globalSetup(config: FullConfig) {
+async function globalSetup(_config: FullConfig) {
   console.log('🚀 开始全局设置...');
 
   // 加载测试配置

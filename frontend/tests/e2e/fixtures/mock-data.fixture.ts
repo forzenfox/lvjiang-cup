@@ -1,10 +1,4 @@
-import type { Team, Match } from '../../../src/types';
-
-interface StreamInfo {
-  title: string;
-  url: string;
-  isLive: boolean;
-}
+import type { Team } from '../../../src/types';
 
 export interface SwissAdvancement {
   winners2_0: string[];

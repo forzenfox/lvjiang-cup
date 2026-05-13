@@ -293,7 +293,7 @@ describe('PlayerStatsRow', () => {
     it('不应该显示一血标识', () => {
       const bluePlayer = createMockPlayerStat({ firstBlood: true });
       const redPlayer = createMockPlayerStat({ firstBlood: true, mvp: false });
-      const { container } = render(
+      render(
         <PlayerStatsRow
           bluePlayer={bluePlayer}
           redPlayer={redPlayer}

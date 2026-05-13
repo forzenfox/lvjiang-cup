@@ -11,6 +11,7 @@ interface SwissStageMobileProps {
   advancement?: {
     top8: string[];
     eliminated: string[];
+    rankings?: { teamId: string; record: string; rank: number }[];
   };
   onMatchClick?: (match: Match) => void;
   className?: string;
@@ -60,6 +61,7 @@ const SwissStageMobile: React.FC<SwissStageMobileProps> = ({
       <SwissFinalResultMobile
         qualifiedTeams={allQualifiedTeams}
         eliminatedTeams={allEliminatedTeams}
+        rankings={advancement?.rankings}
         data-testid={`${testId}-final-result`}
       />
     );

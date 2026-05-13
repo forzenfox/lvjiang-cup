@@ -103,9 +103,9 @@ export const getTestTeamForMatch = (index: number = 2): Team => {
   };
 };
 
-// 获取用于瑞士轮测试的全部16支战队数据
+// 获取用于瑞士轮测试的全部 16 支战队数据
 export const getAll16TeamsForSwiss = (): Team[] => {
-  return mockTeams.map((team, index) => ({
+  return mockTeams.map(team => ({
     name: team.name,
     logo: team.logo,
     battleCry: team.battleCry,

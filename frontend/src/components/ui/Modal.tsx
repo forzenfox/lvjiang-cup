@@ -50,22 +50,23 @@ const Modal: React.FC<ModalProps> = ({ visible, onClose, title, children, classN
     >
       {/* 黑色遮罩背景 */}
       <div
-        className="absolute inset-0 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200"
+        className="absolute inset-0 bg-black/80 backdrop-blur-sm"
         onClick={onClose}
         aria-hidden="true"
+        style={{ animation: 'modalFadeIn 0.2s ease-out' }}
       />
 
       {/* 弹框内容 */}
       <div
         className={cn(
           'relative bg-gray-900 border border-gray-700 rounded-xl shadow-2xl',
-          'animate-in zoom-in-95 fade-in duration-200',
           'w-full max-w-lg mx-4',
           className
         )}
         style={{
           maxHeight: '90vh',
           zIndex: ZIndexLayers.MODAL,
+          animation: 'modalZoomIn 0.2s ease-out',
         }}
         role="dialog"
         aria-modal="true"
@@ -101,7 +102,28 @@ const Modal: React.FC<ModalProps> = ({ visible, onClose, title, children, classN
   );
 
   // 使用 Portal 将弹框渲染到 body 下，避免受父元素 transform 影响
-  return createPortal(modalContent, document.body);
+  return createPortal(
+    <>
+      {modalContent}
+      <style>{`
+        @keyframes modalFadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes modalZoomIn {
+          from {
+            opacity: 0;
+            transform: scale(0.95);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+      `}</style>
+    </>,
+    document.body
+  );
 };
 
 export default Modal;

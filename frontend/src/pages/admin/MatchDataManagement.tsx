@@ -27,7 +27,8 @@ const MatchDataManagement: React.FC = () => {
       loadSeriesData();
       setHasLoaded(true);
     }
-  }, [matchId, hasLoaded]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [matchId]);
 
   const loadSeriesData = async () => {
     if (!matchId) return;

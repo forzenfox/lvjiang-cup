@@ -96,7 +96,6 @@ test.describe('【P0】主播管理 - 拖拽排序功能测试', () => {
 
     // 获取拖拽手柄
     const dragHandleA = cardA.locator('button[aria-label="拖拽排序"]');
-    const dragHandleB = cardB.locator('button[aria-label="拖拽排序"]');
 
     // 获取初始位置
     const initialBoxA = await cardA.boundingBox();
@@ -108,9 +107,9 @@ test.describe('【P0】主播管理 - 拖拽排序功能测试', () => {
       return;
     }
 
-    console.log(`初始位置: A(y=${initialBoxA.y}), B(y=${initialBoxB.y})`);
+    console.log(`初始位置：A(y=${initialBoxA.y}), B(y=${initialBoxB.y})`);
 
-    // 执行拖拽 - 从A拖到B的位置
+    // 执行拖拽 - 从 A 拖到 B 的位置
     await dragHandleA.hover();
     await page.mouse.down();
     await page.mouse.move(

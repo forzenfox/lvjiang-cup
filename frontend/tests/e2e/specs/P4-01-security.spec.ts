@@ -44,7 +44,9 @@ test.describe('【安全测试】XSS 注入防护', () => {
       try {
         await teamsPage.clickAddTeam();
       } catch {
-        console.log(`⚠️ 无法添加战队（已有 ${initialCount} 支），跳过 payload: ${payload.substring(0, 30)}`);
+        console.log(
+          `⚠️ 无法添加战队（已有 ${initialCount} 支），跳过 payload: ${payload.substring(0, 30)}`
+        );
         break;
       }
 
@@ -193,10 +195,17 @@ test.describe('【安全测试】特殊字符处理', () => {
       await page.waitForTimeout(1500);
       await page.reload();
 
-      const isPageLoaded = await teamsPage.expectPageLoaded().then(() => true).catch(() => false);
+      const isPageLoaded = await teamsPage
+        .expectPageLoaded()
+        .then(() => true)
+        .catch(() => false);
       expect(isPageLoaded).toBe(true);
 
-      const hasError = await page.locator('text=Error, text=error, text=崩溃').first().isVisible().catch(() => false);
+      const hasError = await page
+        .locator('text=Error, text=error, text=崩溃')
+        .first()
+        .isVisible()
+        .catch(() => false);
       expect(hasError).toBe(false);
 
       console.log(`✅ 特殊字符 payload 未导致页面崩溃`);
@@ -255,7 +264,10 @@ test.describe('【安全测试】长输入截断', () => {
       await page.waitForTimeout(1500);
       await page.reload();
 
-      const isPageLoaded = await teamsPage.expectPageLoaded().then(() => true).catch(() => false);
+      const isPageLoaded = await teamsPage
+        .expectPageLoaded()
+        .then(() => true)
+        .catch(() => false);
       expect(isPageLoaded).toBe(true);
 
       const hasError = await page

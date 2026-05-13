@@ -1,11 +1,10 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, cleanup } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import { StartBox } from '@/components/features/StartBox';
 import { ZIndexLayers } from '@/constants/zIndex';
 
 vi.mock('@/components/features/StartBox/BackgroundCarousel', () => ({
-  BackgroundCarousel: ({ isExiting, onError }: { isExiting: boolean; onError: () => void }) => (
+  BackgroundCarousel: ({ isExiting }: { isExiting: boolean }) => (
     <div data-testid="background-carousel" data-exiting={isExiting}>
       BackgroundCarousel
     </div>
