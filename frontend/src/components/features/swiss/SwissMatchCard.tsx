@@ -1,8 +1,7 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { Match, Team } from '@/types';
 import SwissTeamLogo from './SwissTeamLogo';
 import { SWISS_THEME } from '@/constants/swissTheme';
-import MatchDetailModal from '@/components/features/MatchDetailModal';
 
 interface SwissMatchCardProps {
   match: Match;
@@ -29,7 +28,6 @@ const SwissMatchCard: React.FC<SwissMatchCardProps> = ({
   const teamB = teams.find(t => t.id === match.teamBId);
   const isFinished = match.status === 'finished';
   const cardRef = useRef<HTMLDivElement>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const isTeamAWinner = isFinished && match.winnerId === match.teamAId;
   const isTeamBWinner = isFinished && match.winnerId === match.teamBId;
@@ -64,7 +62,6 @@ const SwissMatchCard: React.FC<SwissMatchCardProps> = ({
   }, [onPositionChange, slotId, containerRef]);
 
   const handleCardClick = () => {
-    setIsModalOpen(true);
     onClick?.();
   };
 
@@ -158,14 +155,6 @@ const SwissMatchCard: React.FC<SwissMatchCardProps> = ({
           <SwissTeamLogo team={teamB} size={SWISS_THEME.teamLogoSize} />
         </div>
       </div>
-
-      {/* 对战详情弹框 */}
-      <MatchDetailModal
-        visible={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        match={match}
-        teams={teams}
-      />
     </>
   );
 };

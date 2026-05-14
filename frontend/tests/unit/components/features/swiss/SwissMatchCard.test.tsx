@@ -82,39 +82,4 @@ describe('SwissMatchCard', () => {
     expect(card).toBeInTheDocument();
   });
 
-  it('点击卡片应该打开对战详情弹框', () => {
-    const match = createMockMatch();
-    const { container } = render(<SwissMatchCard match={match} teams={mockTeams} />);
-
-    const card = container.querySelector('.cursor-pointer');
-    expect(card).toBeInTheDocument();
-
-    // 点击卡片
-    fireEvent.click(card!);
-
-    // 验证弹框标题显示
-    expect(screen.getByText('对战详情')).toBeInTheDocument();
   });
-
-  it('弹框应该显示对战时间', () => {
-    const match = createMockMatch({ startTime: '2026-01-01T14:30:00' });
-    const { container } = render(<SwissMatchCard match={match} teams={mockTeams} />);
-
-    const card = container.querySelector('.cursor-pointer');
-    fireEvent.click(card!);
-
-    // 验证时间显示
-    expect(screen.getByText('2026年01月01日 14:30')).toBeInTheDocument();
-  });
-
-  it('弹框应该显示对战状态', () => {
-    const match = createMockMatch({ status: 'ongoing' });
-    const { container } = render(<SwissMatchCard match={match} teams={mockTeams} />);
-
-    const card = container.querySelector('.cursor-pointer');
-    fireEvent.click(card!);
-
-    // 验证状态显示
-    expect(screen.getByText('进行中')).toBeInTheDocument();
-  });
-});
