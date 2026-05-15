@@ -81,5 +81,4 @@ describe('SwissMatchCard', () => {
     const card = container.querySelector('.custom-class');
     expect(card).toBeInTheDocument();
   });
-
-  });
+});

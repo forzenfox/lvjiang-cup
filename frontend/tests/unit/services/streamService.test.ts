@@ -76,7 +76,9 @@ describe('streamService 缓存清除测试', () => {
       const result = await streamService.get();
 
       expect(streamApi.get).toHaveBeenCalled();
-      expect(unifiedCache.set).toHaveBeenCalledWith('stream_current', mockStream, { memoryTTL: 15000 });
+      expect(unifiedCache.set).toHaveBeenCalledWith('stream_current', mockStream, {
+        memoryTTL: 15000,
+      });
       expect(result).toEqual(mockStream);
     });
 

@@ -84,7 +84,10 @@ export const advancementService: AdvancementService = {
    * @returns 晋级名单信息
    */
   async get(): Promise<Advancement> {
-    const cached = unifiedCache.get<Advancement>('advancement', { memoryTTL: 300000, storageTTL: 300000 });
+    const cached = unifiedCache.get<Advancement>('advancement', {
+      memoryTTL: 300000,
+      storageTTL: 300000,
+    });
     if (cached) {
       setState({ advancement: cached, loading: false, error: null });
       return cached;
