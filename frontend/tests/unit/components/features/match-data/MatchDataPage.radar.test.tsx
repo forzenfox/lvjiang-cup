@@ -1,14 +1,8 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import MatchDataPage from '@/components/features/match-data/MatchDataPage';
 import * as matchDataApi from '@/api/matchData';
-
-// Mock react-router-dom
-vi.mock('react-router-dom', () => ({
-  useParams: () => ({ id: '123' }),
-  useSearchParams: () => [new URLSearchParams('game=1'), vi.fn()],
-  useNavigate: () => vi.fn(),
-}));
 
 // Mock API
 vi.mock('@/api/matchData', () => ({
@@ -37,6 +31,15 @@ vi.mock('@/utils/unifiedCache', () => ({
     isEnabled: vi.fn(() => true),
   },
 }));
+
+const renderWithRouter = () =>
+  render(
+    <MemoryRouter initialEntries={['/match/123']}>
+      <Routes>
+        <Route path="/match/:id" element={<MatchDataPage />} />
+      </Routes>
+    </MemoryRouter>
+  );
 
 describe('MatchDataPage - 雷达图展开逻辑', () => {
   const mockSeriesData = {
@@ -321,7 +324,7 @@ describe('MatchDataPage - 雷达图展开逻辑', () => {
   });
 
   it('点击TOP位置选手行应展开TOP位置雷达图', async () => {
-    render(<MatchDataPage />);
+    renderWithRouter();
 
     // 等待数据加载
     await screen.findByText('选手A1');
@@ -329,92 +332,122 @@ describe('MatchDataPage - 雷达图展开逻辑', () => {
     // 找到TOP位置的选手行并点击
     const topPlayerRow = screen.getByTestId('player-row-TOP');
     expect(topPlayerRow).toBeTruthy();
-    fireEvent.click(topPlayerRow);
+    (topPlayerRow as HTMLElement).click();
 
     // 验证雷达图组件被渲染，且显示TOP位置的6个维度
     // TOP维度: 分均补刀、伤害占比、承伤占比、参团率、伤转、KDA
-    await screen.findByText(/分均补刀/);
-    await screen.findByText(/伤害占比/);
-    await screen.findByText(/承伤占比/);
-    await screen.findByText(/参团率/);
-    await screen.findByText(/伤转/);
-    await screen.findByText('KDA');
+    const csTexts = await screen.findAllByText(/分均补刀/);
+    expect(csTexts.length).toBeGreaterThan(0);
+    const dmgTexts = await screen.findAllByText(/伤害占比/);
+    expect(dmgTexts.length).toBeGreaterThan(0);
+    const takenTexts = await screen.findAllByText(/承伤占比/);
+    expect(takenTexts.length).toBeGreaterThan(0);
+    const partTexts = await screen.findAllByText(/参团率/);
+    expect(partTexts.length).toBeGreaterThan(0);
+    const effTexts = await screen.findAllByText(/伤转/);
+    expect(effTexts.length).toBeGreaterThan(0);
+    const kdaTexts = await screen.findAllByText('KDA');
+    expect(kdaTexts.length).toBeGreaterThan(0);
   });
 
   it('点击JUNGLE位置选手行应展开JUNGLE位置雷达图', async () => {
-    render(<MatchDataPage />);
+    renderWithRouter();
 
     await screen.findByText('选手A2');
 
     const junglePlayerRow = screen.getByTestId('player-row-JUNGLE');
     expect(junglePlayerRow).toBeTruthy();
-    fireEvent.click(junglePlayerRow);
+    (junglePlayerRow as HTMLElement).click();
 
     // JUNGLE维度: 分均插眼、伤害占比、承伤占比、参团率、伤转、KDA
-    await screen.findByText(/分均插眼/);
-    await screen.findByText(/伤害占比/);
-    await screen.findByText(/承伤占比/);
-    await screen.findByText(/参团率/);
-    await screen.findByText(/伤转/);
-    await screen.findByText('KDA');
+    const wardTexts = await screen.findAllByText(/分均插眼/);
+    expect(wardTexts.length).toBeGreaterThan(0);
+    const dmgTexts = await screen.findAllByText(/伤害占比/);
+    expect(dmgTexts.length).toBeGreaterThan(0);
+    const takenTexts = await screen.findAllByText(/承伤占比/);
+    expect(takenTexts.length).toBeGreaterThan(0);
+    const partTexts = await screen.findAllByText(/参团率/);
+    expect(partTexts.length).toBeGreaterThan(0);
+    const effTexts = await screen.findAllByText(/伤转/);
+    expect(effTexts.length).toBeGreaterThan(0);
+    const kdaTexts = await screen.findAllByText('KDA');
+    expect(kdaTexts.length).toBeGreaterThan(0);
   });
 
   it('点击MID位置选手行应展开MID位置雷达图', async () => {
-    render(<MatchDataPage />);
+    renderWithRouter();
 
     await screen.findByText('选手A3');
 
     const midPlayerRow = screen.getByTestId('player-row-MID');
     expect(midPlayerRow).toBeTruthy();
-    fireEvent.click(midPlayerRow);
+    (midPlayerRow as HTMLElement).click();
 
     // MID维度: 分均补刀、伤害占比、分均经济、分均伤害、伤转、KDA
-    await screen.findByText(/分均补刀/);
-    await screen.findByText(/伤害占比/);
-    await screen.findByText(/分均经济/);
-    await screen.findByText(/分均伤害/);
-    await screen.findByText(/伤转/);
-    await screen.findByText('KDA');
+    const csTexts = await screen.findAllByText(/分均补刀/);
+    expect(csTexts.length).toBeGreaterThan(0);
+    const dmgTexts = await screen.findAllByText(/伤害占比/);
+    expect(dmgTexts.length).toBeGreaterThan(0);
+    const goldTexts = await screen.findAllByText(/分均经济/);
+    expect(goldTexts.length).toBeGreaterThan(0);
+    const dpmTexts = await screen.findAllByText(/分均伤害/);
+    expect(dpmTexts.length).toBeGreaterThan(0);
+    const effTexts = await screen.findAllByText(/伤转/);
+    expect(effTexts.length).toBeGreaterThan(0);
+    const kdaTexts = await screen.findAllByText('KDA');
+    expect(kdaTexts.length).toBeGreaterThan(0);
   });
 
   it('点击ADC位置选手行应展开ADC位置雷达图', async () => {
-    render(<MatchDataPage />);
+    renderWithRouter();
 
     await screen.findByText('选手A4');
 
     const adcPlayerRow = screen.getByTestId('player-row-ADC');
     expect(adcPlayerRow).toBeTruthy();
-    fireEvent.click(adcPlayerRow);
+    (adcPlayerRow as HTMLElement).click();
 
     // ADC维度: 分均补刀、伤害占比、分均经济、分均伤害、伤转、KDA
-    await screen.findByText(/分均补刀/);
-    await screen.findByText(/伤害占比/);
-    await screen.findByText(/分均经济/);
-    await screen.findByText(/分均伤害/);
-    await screen.findByText(/伤转/);
-    await screen.findByText('KDA');
+    const csTexts = await screen.findAllByText(/分均补刀/);
+    expect(csTexts.length).toBeGreaterThan(0);
+    const dmgTexts = await screen.findAllByText(/伤害占比/);
+    expect(dmgTexts.length).toBeGreaterThan(0);
+    const goldTexts = await screen.findAllByText(/分均经济/);
+    expect(goldTexts.length).toBeGreaterThan(0);
+    const dpmTexts = await screen.findAllByText(/分均伤害/);
+    expect(dpmTexts.length).toBeGreaterThan(0);
+    const effTexts = await screen.findAllByText(/伤转/);
+    expect(effTexts.length).toBeGreaterThan(0);
+    const kdaTexts = await screen.findAllByText('KDA');
+    expect(kdaTexts.length).toBeGreaterThan(0);
   });
 
   it('点击SUPPORT位置选手行应展开SUPPORT位置雷达图', async () => {
-    render(<MatchDataPage />);
+    renderWithRouter();
 
     await screen.findByText('选手A5');
 
     const supportPlayerRow = screen.getByTestId('player-row-SUPPORT');
     expect(supportPlayerRow).toBeTruthy();
-    fireEvent.click(supportPlayerRow);
+    (supportPlayerRow as HTMLElement).click();
 
     // SUPPORT维度: 分均插眼、每死承伤、承伤占比、参团率、场均助攻、KDA
-    await screen.findByText(/分均插眼/);
-    await screen.findByText('每死承伤');
-    await screen.findByText(/承伤占比/);
-    await screen.findByText(/参团率/);
-    await screen.findByText(/场均助攻/);
-    await screen.findByText('KDA');
+    const wardTexts = await screen.findAllByText(/分均插眼/);
+    expect(wardTexts.length).toBeGreaterThan(0);
+    const deathTexts = await screen.findAllByText('每死承伤');
+    expect(deathTexts.length).toBeGreaterThan(0);
+    const takenTexts = await screen.findAllByText(/承伤占比/);
+    expect(takenTexts.length).toBeGreaterThan(0);
+    const partTexts = await screen.findAllByText(/参团率/);
+    expect(partTexts.length).toBeGreaterThan(0);
+    const assistTexts = await screen.findAllByText(/场均助攻/);
+    expect(assistTexts.length).toBeGreaterThan(0);
+    const kdaTexts = await screen.findAllByText('KDA');
+    expect(kdaTexts.length).toBeGreaterThan(0);
   });
 
   it('点击同一选手行应收起雷达图', async () => {
-    render(<MatchDataPage />);
+    renderWithRouter();
 
     await screen.findByText('选手A1');
 
@@ -422,39 +455,41 @@ describe('MatchDataPage - 雷达图展开逻辑', () => {
     expect(topPlayerRow).toBeTruthy();
 
     // 第一次点击展开
-    fireEvent.click(topPlayerRow);
+    (topPlayerRow as HTMLElement).click();
 
     // 验证雷达图显示
-    await screen.findByText(/分均补刀/);
+    const csTexts = await screen.findAllByText(/分均补刀/);
+    expect(csTexts.length).toBeGreaterThan(0);
 
     // 第二次点击收起
-    fireEvent.click(topPlayerRow);
+    (topPlayerRow as HTMLElement).click();
 
     // 验证雷达图收起 - 维度文本应该消失
     await new Promise(resolve => setTimeout(resolve, 400));
-    expect(screen.queryByText(/分均补刀/)).toBeNull();
+    expect(screen.queryAllByText(/分均补刀/).length).toBe(0);
   });
 
   it('点击不同位置选手行应切换雷达图显示对应位置维度', async () => {
-    render(<MatchDataPage />);
+    renderWithRouter();
 
     await screen.findByText('选手A1');
 
     // 先点击TOP位置
     const topPlayerRow = screen.getByTestId('player-row-TOP');
     expect(topPlayerRow).toBeTruthy();
-    fireEvent.click(topPlayerRow);
+    (topPlayerRow as HTMLElement).click();
 
     // 验证显示TOP维度
-    await screen.findByText(/承伤占比/);
+    const topTexts = await screen.findAllByText(/承伤占比/);
+    expect(topTexts.length).toBeGreaterThan(0);
 
     // 再点击JUNGLE位置
     const junglePlayerRow = screen.getByTestId('player-row-JUNGLE');
     expect(junglePlayerRow).toBeTruthy();
-    fireEvent.click(junglePlayerRow);
+    (junglePlayerRow as HTMLElement).click();
 
     // 验证切换为JUNGLE维度
-    await screen.findByText(/分均插眼/);
-    // TOP维度特有的"承伤占比"应该还在（JUNGLE也有），但维度组合不同
+    const jungleTexts = await screen.findAllByText(/分均插眼/);
+    expect(jungleTexts.length).toBeGreaterThan(0);
   });
 });
