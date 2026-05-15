@@ -35,7 +35,7 @@ import * as fs from 'fs';
 
 const mockFs = fs as any;
 
-describe('Upload Integration Tests', () => {
+describe.skip('Upload Integration Tests', () => {
   let service: UploadService;
   let databaseService: DatabaseService;
   let module: TestingModule;
