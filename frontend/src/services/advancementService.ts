@@ -1,6 +1,6 @@
 import * as advancementApi from '@/api/advancement';
 import type { Advancement, UpdateAdvancementRequest } from '@/api/types';
-import { requestCache } from '@/utils/requestCache';
+import { unifiedCache } from '@/utils/unifiedCache';
 
 /**
  * 晋级服务状态接口
@@ -84,7 +84,7 @@ export const advancementService: AdvancementService = {
    * @returns 晋级名单信息
    */
   async get(): Promise<Advancement> {
-    const cached = requestCache.get<Advancement>('advancement', 300000);
+    const cached = unifiedCache.get<Advancement>('advancement', { memoryTTL: 300000, storageTTL: 300000 });
     if (cached) {
       setState({ advancement: cached, loading: false, error: null });
       return cached;
@@ -95,7 +95,7 @@ export const advancementService: AdvancementService = {
     try {
       const advancement = await advancementApi.get();
 
-      requestCache.set('advancement', advancement);
+      unifiedCache.set('advancement', advancement, { memoryTTL: 300000, storageTTL: 300000 });
       setState({
         advancement,
         loading: false,
@@ -119,7 +119,7 @@ export const advancementService: AdvancementService = {
       const advancement = await advancementApi.update(data);
 
       // 清除缓存，确保下次获取时从后端拉取最新数据
-      requestCache.clear('advancement');
+      unifiedCache.clear('advancement');
 
       setState({
         advancement,

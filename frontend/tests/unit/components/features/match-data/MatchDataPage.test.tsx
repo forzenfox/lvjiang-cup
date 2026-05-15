@@ -5,16 +5,15 @@ import MatchDataPage from '@/components/features/match-data/MatchDataPage';
 import * as matchDataApi from '@/api/matchData';
 import type { MatchSeriesInfo, MatchGameData } from '@/types/matchData';
 
-const mockMatchDataCache = vi.hoisted(() => ({
+const mockUnifiedCache = vi.hoisted(() => ({
   get: vi.fn(() => null),
   set: vi.fn(),
-  getMatchSeriesKey: vi.fn(() => 'cache-key-match1'),
-  getGameDataKey: vi.fn(() => 'cache-key-game1'),
-  getCachedSeries: vi.fn(() => null),
-  getCachedGameData: vi.fn(() => null),
-  cacheSeries: vi.fn(),
-  cacheGameData: vi.fn(),
-  cleanup: vi.fn(),
+  clear: vi.fn(),
+  clearAll: vi.fn(),
+  clearByPrefix: vi.fn(),
+  disable: vi.fn(),
+  enable: vi.fn(),
+  isEnabled: vi.fn(() => true),
 }));
 
 const mockPreloadAdjacentGame = vi.hoisted(() => vi.fn());
@@ -24,8 +23,8 @@ vi.mock('@/api/matchData', () => ({
   getMatchGameData: vi.fn(),
 }));
 
-vi.mock('@/utils/matchDataCache', () => ({
-  matchDataCache: mockMatchDataCache,
+vi.mock('@/utils/unifiedCache', () => ({
+  unifiedCache: mockUnifiedCache,
 }));
 
 vi.mock('@/store/matchDataStore', () => ({

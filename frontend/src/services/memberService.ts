@@ -1,6 +1,6 @@
 import * as membersApi from '@/api/members';
 import type { UpdateMemberRequest } from '@/api/types';
-import { requestCache } from '@/utils/requestCache';
+import { unifiedCache } from '@/utils/unifiedCache';
 
 /**
  * 队员服务状态接口
@@ -87,7 +87,7 @@ export const memberService: MemberService = {
       const result = await membersApi.updateMember(id, data);
 
       // 队员属于战队，清除 teams 缓存以确保下次获取时从后端拉取最新数据
-      requestCache.clear('teams');
+      unifiedCache.clear('teams');
 
       setState({ loading: false });
 
@@ -108,7 +108,7 @@ export const memberService: MemberService = {
       await membersApi.removeMember(id);
 
       // 队员属于战队，清除 teams 缓存以确保下次获取时从后端拉取最新数据
-      requestCache.clear('teams');
+      unifiedCache.clear('teams');
 
       setState({ loading: false });
     } catch (error) {

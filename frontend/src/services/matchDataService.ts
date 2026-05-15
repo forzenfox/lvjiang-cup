@@ -8,8 +8,7 @@ import type {
   UpdateMatchDataResponse,
   ImportOptions,
 } from '@/types/matchData';
-import { requestCache, CACHE_TTL } from '@/utils/requestCache';
-import { matchDataCache } from '@/utils/matchDataCache';
+import { unifiedCache } from '@/utils/unifiedCache';
 
 /**
  * 对战数据服务状态接口
@@ -97,23 +96,11 @@ function handleError(error: unknown, defaultMessage: string): never {
 }
 
 /**
- * 清除指定 matchId 的所有缓存（matchSeries 和 matchGame_1 到 matchGame_10）
+ * 清除指定 matchId 的所有缓存
  */
 function clearMatchCache(matchId: string): void {
-  requestCache.clear(`matchSeries_${matchId}`);
-  for (let i = 1; i <= 10; i++) {
-    requestCache.clear(`matchGame_${matchId}_${i}`);
-  }
-}
-
-/**
- * 清除指定 matchId 的 localStorage 缓存
- */
-function clearLocalMatchCache(matchId: string): void {
-  matchDataCache.remove(matchDataCache.getMatchSeriesKey(matchId));
-  for (let i = 1; i <= 10; i++) {
-    matchDataCache.remove(matchDataCache.getGameDataKey(matchId, i));
-  }
+  unifiedCache.clearByPrefix(`matchSeries_${matchId}`);
+  unifiedCache.clearByPrefix(`matchGame_${matchId}_`);
 }
 
 /**
@@ -167,7 +154,7 @@ export const matchDataService: MatchDataService = {
    */
   async getSeries(matchId: string): Promise<MatchSeriesInfo> {
     const cacheKey = `matchSeries_${matchId}`;
-    const cached = requestCache.get<MatchSeriesInfo>(cacheKey, CACHE_TTL.matches);
+    const cached = unifiedCache.get<MatchSeriesInfo>(cacheKey);
     if (cached) {
       setState({ series: cached, loading: false, error: null });
       return cached;
@@ -178,7 +165,7 @@ export const matchDataService: MatchDataService = {
     try {
       const series = await matchDataApi.getMatchSeries(matchId);
 
-      requestCache.set(cacheKey, series);
+      unifiedCache.set(cacheKey, series);
       setState({
         series,
         loading: false,
@@ -198,7 +185,7 @@ export const matchDataService: MatchDataService = {
    */
   async getGameData(matchId: string, gameNumber: number): Promise<MatchGameData | null> {
     const cacheKey = `matchGame_${matchId}_${gameNumber}`;
-    const cached = requestCache.get<MatchGameData>(cacheKey, CACHE_TTL.matches);
+    const cached = unifiedCache.get<MatchGameData>(cacheKey);
     if (cached) {
       setState({ currentGame: cached, loading: false, error: null });
       return cached;
@@ -209,7 +196,7 @@ export const matchDataService: MatchDataService = {
     try {
       const gameData = await matchDataApi.getMatchGameData(matchId, gameNumber);
 
-      requestCache.set(cacheKey, gameData);
+      unifiedCache.set(cacheKey, gameData);
       setState({
         currentGame: gameData,
         loading: false,
@@ -240,7 +227,6 @@ export const matchDataService: MatchDataService = {
 
       // 清除缓存，确保下次获取时从后端拉取最新数据
       clearMatchCache(matchId);
-      clearLocalMatchCache(matchId);
 
       setState({ loading: false });
 
@@ -268,9 +254,7 @@ export const matchDataService: MatchDataService = {
       const result = await matchDataApi.updateMatchGameData(matchId, gameId, data);
 
       // 清除相关缓存
-      requestCache.clear(`matchSeries_${matchId}`);
-      requestCache.clear(`matchGame_${matchId}_${gameId}`);
-      clearLocalMatchCache(matchId);
+      clearMatchCache(matchId);
 
       setState({ loading: false });
 
@@ -296,9 +280,7 @@ export const matchDataService: MatchDataService = {
       const result = await matchDataApi.deleteMatchGameData(matchId, gameNumber);
 
       // 清除相关缓存
-      requestCache.clear(`matchSeries_${matchId}`);
-      requestCache.clear(`matchGame_${matchId}_${gameNumber}`);
-      clearLocalMatchCache(matchId);
+      clearMatchCache(matchId);
 
       setState({ loading: false });
 

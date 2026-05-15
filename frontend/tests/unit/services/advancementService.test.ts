@@ -1,20 +1,27 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+﻿import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { advancementService, subscribeToAdvancementService } from '@/services/advancementService';
 import * as advancementApi from '@/api/advancement';
-import { requestCache } from '@/utils/requestCache';
+import { unifiedCache } from '@/utils/unifiedCache';
 
 vi.mock('@/api/advancement', () => ({
   get: vi.fn(),
   update: vi.fn(),
 }));
 
-vi.mock('@/utils/requestCache', () => ({
-  requestCache: {
+vi.mock('@/utils/unifiedCache', () => ({
+  unifiedCache: {
     get: vi.fn(),
     set: vi.fn(),
     clear: vi.fn(),
+    clearAll: vi.fn(),
+    clearByPrefix: vi.fn(),
+    disable: vi.fn(),
+    enable: vi.fn(),
+    isEnabled: vi.fn(),
   },
-  CACHE_TTL: { advancement: 300000 },
+  UnifiedCache: vi.fn(),
+  disableFrontendCache: vi.fn(),
+  enableFrontendCache: vi.fn(),
 }));
 
 const mockAdvancement = {
@@ -34,18 +41,18 @@ describe('advancementService 缓存行为测试', () => {
 
   describe('get() 缓存行为', () => {
     it('没有缓存时，应该调用 API 并设置缓存', async () => {
-      (requestCache.get as ReturnType<typeof vi.fn>).mockReturnValue(null);
+      (unifiedCache.get as ReturnType<typeof vi.fn>).mockReturnValue(null);
       (advancementApi.get as ReturnType<typeof vi.fn>).mockResolvedValue(mockAdvancement);
 
       const result = await advancementService.get();
 
       expect(advancementApi.get).toHaveBeenCalled();
-      expect(requestCache.set).toHaveBeenCalledWith('advancement', mockAdvancement);
+      expect(unifiedCache.set).toHaveBeenCalledWith('advancement', mockAdvancement, { memoryTTL: 300000, storageTTL: 300000 });
       expect(result).toEqual(mockAdvancement);
     });
 
     it('有缓存时，应该直接返回缓存数据而不请求 API', async () => {
-      (requestCache.get as ReturnType<typeof vi.fn>).mockReturnValue(mockAdvancement);
+      (unifiedCache.get as ReturnType<typeof vi.fn>).mockReturnValue(mockAdvancement);
 
       const result = await advancementService.get();
 
@@ -60,7 +67,7 @@ describe('advancementService 缓存行为测试', () => {
 
       await advancementService.update({ top8: ['team-1'] });
 
-      expect(requestCache.clear).toHaveBeenCalledWith('advancement');
+      expect(unifiedCache.clear).toHaveBeenCalledWith('advancement');
     });
 
     it('更新晋级名单失败时，不应该清除缓存', async () => {
@@ -68,7 +75,7 @@ describe('advancementService 缓存行为测试', () => {
 
       await expect(advancementService.update({ top8: ['team-1'] })).rejects.toThrow('更新失败');
 
-      expect(requestCache.clear).not.toHaveBeenCalled();
+      expect(unifiedCache.clear).not.toHaveBeenCalled();
     });
   });
 
@@ -84,7 +91,7 @@ describe('advancementService 缓存行为测试', () => {
 
     it('clearError 应清除错误状态', () => {
       // 先触发一个错误
-      (requestCache.get as ReturnType<typeof vi.fn>).mockReturnValue(null);
+      (unifiedCache.get as ReturnType<typeof vi.fn>).mockReturnValue(null);
       (advancementApi.get as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('请求失败'));
 
       // 使用 try/catch 因为我们期望它抛出
@@ -96,7 +103,7 @@ describe('advancementService 缓存行为测试', () => {
     });
 
     it('resetState 应重置状态到初始值', async () => {
-      (requestCache.get as ReturnType<typeof vi.fn>).mockReturnValue(null);
+      (unifiedCache.get as ReturnType<typeof vi.fn>).mockReturnValue(null);
       (advancementApi.get as ReturnType<typeof vi.fn>).mockResolvedValue(mockAdvancement);
 
       await advancementService.get();
@@ -127,7 +134,7 @@ describe('advancementService 缓存行为测试', () => {
       subscribeToAdvancementService(callback);
       callback.mockClear();
 
-      (requestCache.get as ReturnType<typeof vi.fn>).mockReturnValue(null);
+      (unifiedCache.get as ReturnType<typeof vi.fn>).mockReturnValue(null);
       (advancementApi.get as ReturnType<typeof vi.fn>).mockResolvedValue(mockAdvancement);
 
       await advancementService.get();

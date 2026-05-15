@@ -6,7 +6,7 @@ import type {
   GetVideosParams,
   PaginatedVideoData,
 } from '@/api/videos';
-import { requestCache } from '@/utils/requestCache';
+import { unifiedCache } from '@/utils/unifiedCache';
 
 /**
  * 视频服务状态接口
@@ -192,7 +192,7 @@ export const videoService: VideoService = {
       const video = await videoApi.createVideo(data);
 
       // 清除缓存，确保下次获取时从后端拉取最新数据
-      requestCache.clear('videos');
+      unifiedCache.clear('videos');
 
       // 更新本地列表
       setState({
@@ -218,7 +218,7 @@ export const videoService: VideoService = {
       const video = await videoApi.updateVideo(data);
 
       // 清除缓存，确保下次获取时从后端拉取最新数据
-      requestCache.clear('videos');
+      unifiedCache.clear('videos');
 
       // 更新本地列表中的视频
       setState({
@@ -244,7 +244,7 @@ export const videoService: VideoService = {
       await videoApi.deleteVideo(id);
 
       // 清除缓存，确保下次获取时从后端拉取最新数据
-      requestCache.clear('videos');
+      unifiedCache.clear('videos');
 
       // 从本地列表中移除
       setState({
@@ -270,7 +270,7 @@ export const videoService: VideoService = {
       const video = await videoApi.toggleVideoEnabled(id, isEnabled);
 
       // 清除缓存，确保下次获取时从后端拉取最新数据
-      requestCache.clear('videos');
+      unifiedCache.clear('videos');
 
       // 更新本地列表中的视频
       setState({
@@ -296,7 +296,7 @@ export const videoService: VideoService = {
       await videoApi.reorderVideos(orderedIds);
 
       // 清除缓存，确保下次获取时从后端拉取最新数据
-      requestCache.clear('videos');
+      unifiedCache.clear('videos');
 
       setState({
         loading: false,

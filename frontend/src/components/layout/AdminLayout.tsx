@@ -16,7 +16,7 @@ import { cn } from '../../lib/utils';
 import { Button } from '../ui/button';
 import { useAuth } from '../../hooks/useAuth';
 import { adminPath } from '../../constants/routes';
-import { disableFrontendCache } from '@/utils/requestCache';
+import { disableFrontendCache } from '@/utils/unifiedCache';
 
 /**
  * AdminLayout 组件属性接口

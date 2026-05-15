@@ -1,7 +1,7 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+﻿import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { videoService } from '@/services/videoService';
 import * as videoApi from '@/api/videos';
-import { requestCache } from '@/utils/requestCache';
+import { unifiedCache } from '@/utils/unifiedCache';
 
 vi.mock('@/api/videos', () => ({
   getVideos: vi.fn(),
@@ -14,13 +14,20 @@ vi.mock('@/api/videos', () => ({
   reorderVideos: vi.fn(),
 }));
 
-vi.mock('@/utils/requestCache', () => ({
-  requestCache: {
+vi.mock('@/utils/unifiedCache', () => ({
+  unifiedCache: {
     get: vi.fn(),
     set: vi.fn(),
     clear: vi.fn(),
+    clearAll: vi.fn(),
+    clearByPrefix: vi.fn(),
+    disable: vi.fn(),
+    enable: vi.fn(),
+    isEnabled: vi.fn(),
   },
-  CACHE_TTL: { videos: 300000 },
+  UnifiedCache: vi.fn(),
+  disableFrontendCache: vi.fn(),
+  enableFrontendCache: vi.fn(),
 }));
 
 const mockVideo = {
@@ -51,8 +58,8 @@ describe('videoService 缓存清除测试', () => {
       const result = await videoService.getVideos();
 
       expect(videoApi.getVideos).toHaveBeenCalled();
-      expect(requestCache.get).not.toHaveBeenCalled();
-      expect(requestCache.set).not.toHaveBeenCalled();
+      expect(unifiedCache.get).not.toHaveBeenCalled();
+      expect(unifiedCache.set).not.toHaveBeenCalled();
       expect(result).toEqual(mockPaginatedData);
     });
   });
@@ -64,8 +71,8 @@ describe('videoService 缓存清除测试', () => {
       const result = await videoService.getAdminVideos();
 
       expect(videoApi.getAdminVideos).toHaveBeenCalled();
-      expect(requestCache.get).not.toHaveBeenCalled();
-      expect(requestCache.set).not.toHaveBeenCalled();
+      expect(unifiedCache.get).not.toHaveBeenCalled();
+      expect(unifiedCache.set).not.toHaveBeenCalled();
       expect(result).toEqual([mockVideo]);
     });
   });
@@ -78,7 +85,7 @@ describe('videoService 缓存清除测试', () => {
         url: 'https://www.bilibili.com/video/BV1xx411c7mD',
       });
 
-      expect(requestCache.clear).toHaveBeenCalledWith('videos');
+      expect(unifiedCache.clear).toHaveBeenCalledWith('videos');
     });
 
     it('创建视频失败时，不应该清除缓存', async () => {
@@ -90,7 +97,7 @@ describe('videoService 缓存清除测试', () => {
         })
       ).rejects.toThrow('创建失败');
 
-      expect(requestCache.clear).not.toHaveBeenCalled();
+      expect(unifiedCache.clear).not.toHaveBeenCalled();
     });
   });
 
@@ -103,7 +110,7 @@ describe('videoService 缓存清除测试', () => {
         customTitle: '更新后的标题',
       });
 
-      expect(requestCache.clear).toHaveBeenCalledWith('videos');
+      expect(unifiedCache.clear).toHaveBeenCalledWith('videos');
     });
 
     it('更新视频失败时，不应该清除缓存', async () => {
@@ -113,7 +120,7 @@ describe('videoService 缓存清除测试', () => {
         videoService.updateVideo({ id: 'video-1', customTitle: '新标题' })
       ).rejects.toThrow('更新失败');
 
-      expect(requestCache.clear).not.toHaveBeenCalled();
+      expect(unifiedCache.clear).not.toHaveBeenCalled();
     });
   });
 
@@ -123,7 +130,7 @@ describe('videoService 缓存清除测试', () => {
 
       await videoService.deleteVideo('video-1');
 
-      expect(requestCache.clear).toHaveBeenCalledWith('videos');
+      expect(unifiedCache.clear).toHaveBeenCalledWith('videos');
     });
 
     it('删除视频失败时，不应该清除缓存', async () => {
@@ -131,7 +138,7 @@ describe('videoService 缓存清除测试', () => {
 
       await expect(videoService.deleteVideo('video-1')).rejects.toThrow('删除失败');
 
-      expect(requestCache.clear).not.toHaveBeenCalled();
+      expect(unifiedCache.clear).not.toHaveBeenCalled();
     });
   });
 
@@ -141,7 +148,7 @@ describe('videoService 缓存清除测试', () => {
 
       await videoService.toggleEnabled('video-1', false);
 
-      expect(requestCache.clear).toHaveBeenCalledWith('videos');
+      expect(unifiedCache.clear).toHaveBeenCalledWith('videos');
     });
 
     it('切换启用状态失败时，不应该清除缓存', async () => {
@@ -151,7 +158,7 @@ describe('videoService 缓存清除测试', () => {
 
       await expect(videoService.toggleEnabled('video-1', false)).rejects.toThrow('切换失败');
 
-      expect(requestCache.clear).not.toHaveBeenCalled();
+      expect(unifiedCache.clear).not.toHaveBeenCalled();
     });
   });
 
@@ -161,7 +168,7 @@ describe('videoService 缓存清除测试', () => {
 
       await videoService.reorderVideos(['video-2', 'video-1']);
 
-      expect(requestCache.clear).toHaveBeenCalledWith('videos');
+      expect(unifiedCache.clear).toHaveBeenCalledWith('videos');
     });
 
     it('视频排序失败时，不应该清除缓存', async () => {
@@ -169,7 +176,7 @@ describe('videoService 缓存清除测试', () => {
 
       await expect(videoService.reorderVideos(['video-2', 'video-1'])).rejects.toThrow('排序失败');
 
-      expect(requestCache.clear).not.toHaveBeenCalled();
+      expect(unifiedCache.clear).not.toHaveBeenCalled();
     });
   });
 });

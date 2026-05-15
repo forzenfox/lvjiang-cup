@@ -1,5 +1,5 @@
 import * as adminApi from '@/api/admin';
-import { requestCache } from '@/utils/requestCache';
+import { unifiedCache } from '@/utils/unifiedCache';
 
 /**
  * 管理服务状态接口
@@ -78,7 +78,7 @@ export const adminService: AdminService = {
       const result = await adminApi.initSlots();
 
       // 清除 matches 缓存，确保下次获取时从后端拉取最新数据
-      requestCache.clear('matches');
+      unifiedCache.clear('matches');
 
       setState({
         loading: false,

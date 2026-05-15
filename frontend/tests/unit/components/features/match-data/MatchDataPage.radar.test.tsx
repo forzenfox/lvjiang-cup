@@ -24,6 +24,20 @@ vi.mock('@/utils/tracking', () => ({
   trackRadarChartCollapse: vi.fn(),
 }));
 
+// Mock cache
+vi.mock('@/utils/unifiedCache', () => ({
+  unifiedCache: {
+    get: vi.fn(() => null),
+    set: vi.fn(),
+    clear: vi.fn(),
+    clearAll: vi.fn(),
+    clearByPrefix: vi.fn(),
+    disable: vi.fn(),
+    enable: vi.fn(),
+    isEnabled: vi.fn(() => true),
+  },
+}));
+
 describe('MatchDataPage - 雷达图展开逻辑', () => {
   const mockSeriesData = {
     matchId: '123',

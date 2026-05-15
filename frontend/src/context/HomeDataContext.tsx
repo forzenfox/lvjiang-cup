@@ -5,7 +5,7 @@ import { teamService } from '@/services/teamService';
 import { matchService } from '@/services/matchService';
 import { getVideos } from '@/api/videos';
 import { streamersApi } from '@/api/streamers';
-import { requestCache } from '@/utils/requestCache';
+import { unifiedCache } from '@/utils/unifiedCache';
 
 /**
  * 首页统一数据 Context
@@ -226,7 +226,7 @@ export const HomeDataProvider: React.FC<HomeDataProviderProps> = ({ children }) 
     async (module: string) => {
       hasFetched.current[module] = false;
       pendingRequests.current[module] = null;
-      requestCache.clear(module);
+      unifiedCache.clear(module);
 
       const fetchMap: Record<string, () => Promise<void>> = {
         stream: fetchStream,

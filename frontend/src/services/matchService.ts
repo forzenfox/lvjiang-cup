@@ -1,6 +1,6 @@
 import * as matchApi from '@/api/matches';
 import type { Match, UpdateMatchRequest, FindMatchesByStageRequest } from '@/api/types';
-import { requestCache, CACHE_TTL } from '@/utils/requestCache';
+import { unifiedCache } from '@/utils/unifiedCache';
 
 /**
  * 比赛服务状态接口
@@ -109,7 +109,7 @@ export const matchService: MatchService = {
    * @returns 比赛列表
    */
   async getAll(): Promise<Match[]> {
-    const cached = requestCache.get<Match[]>('matches', CACHE_TTL.matches);
+    const cached = unifiedCache.get<Match[]>('matches', { memoryTTL: 60000 });
     if (cached) {
       setState({ matches: cached, loading: false, error: null });
       return cached;
@@ -120,7 +120,7 @@ export const matchService: MatchService = {
     try {
       const matches = await matchApi.getAll();
 
-      requestCache.set('matches', matches);
+      unifiedCache.set('matches', matches, { memoryTTL: 60000 });
       setState({
         matches,
         loading: false,
@@ -184,7 +184,7 @@ export const matchService: MatchService = {
       const match = await matchApi.update(data);
 
       // 清除缓存，确保下次获取时从后端拉取最新数据
-      requestCache.clear('matches');
+      unifiedCache.clear('matches');
 
       // 更新本地列表中的比赛
       const updatedMatches = state.matches.map(m => (m.id === match.id ? match : m));

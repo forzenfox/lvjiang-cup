@@ -1,19 +1,26 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+﻿import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { adminService, subscribeToAdminService } from '@/services/adminService';
 import * as adminApi from '@/api/admin';
-import { requestCache } from '@/utils/requestCache';
+import { unifiedCache } from '@/utils/unifiedCache';
 
 vi.mock('@/api/admin', () => ({
   initSlots: vi.fn(),
 }));
 
-vi.mock('@/utils/requestCache', () => ({
-  requestCache: {
+vi.mock('@/utils/unifiedCache', () => ({
+  unifiedCache: {
     get: vi.fn(),
     set: vi.fn(),
     clear: vi.fn(),
+    clearAll: vi.fn(),
+    clearByPrefix: vi.fn(),
+    disable: vi.fn(),
+    enable: vi.fn(),
+    isEnabled: vi.fn(),
   },
-  CACHE_TTL: { matches: 60000 },
+  UnifiedCache: vi.fn(),
+  disableFrontendCache: vi.fn(),
+  enableFrontendCache: vi.fn(),
 }));
 
 describe('adminService', () => {
@@ -31,7 +38,7 @@ describe('adminService', () => {
 
       await adminService.initSlots();
 
-      expect(requestCache.clear).toHaveBeenCalledWith('matches');
+      expect(unifiedCache.clear).toHaveBeenCalledWith('matches');
     });
 
     it('初始化比赛槽位失败时，不应该清除缓存', async () => {
@@ -39,7 +46,7 @@ describe('adminService', () => {
 
       await expect(adminService.initSlots()).rejects.toThrow('初始化失败');
 
-      expect(requestCache.clear).not.toHaveBeenCalled();
+      expect(unifiedCache.clear).not.toHaveBeenCalled();
     });
   });
 

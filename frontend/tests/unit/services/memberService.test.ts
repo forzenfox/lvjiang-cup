@@ -1,20 +1,27 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+﻿import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { memberService } from '@/services/memberService';
 import * as membersApi from '@/api/members';
-import { requestCache } from '@/utils/requestCache';
+import { unifiedCache } from '@/utils/unifiedCache';
 
 vi.mock('@/api/members', () => ({
   updateMember: vi.fn(),
   removeMember: vi.fn(),
 }));
 
-vi.mock('@/utils/requestCache', () => ({
-  requestCache: {
+vi.mock('@/utils/unifiedCache', () => ({
+  unifiedCache: {
     get: vi.fn(),
     set: vi.fn(),
     clear: vi.fn(),
+    clearAll: vi.fn(),
+    clearByPrefix: vi.fn(),
+    disable: vi.fn(),
+    enable: vi.fn(),
+    isEnabled: vi.fn(),
   },
-  CACHE_TTL: { teams: 300000 },
+  UnifiedCache: vi.fn(),
+  disableFrontendCache: vi.fn(),
+  enableFrontendCache: vi.fn(),
 }));
 
 describe('memberService 缓存清除测试', () => {
@@ -29,7 +36,7 @@ describe('memberService 缓存清除测试', () => {
 
       await memberService.updateMember('member-1', { nickname: '新昵称' });
 
-      expect(requestCache.clear).toHaveBeenCalledWith('teams');
+      expect(unifiedCache.clear).toHaveBeenCalledWith('teams');
     });
 
     it('更新队员失败时，不应该清除缓存', async () => {
@@ -41,7 +48,7 @@ describe('memberService 缓存清除测试', () => {
         '更新失败'
       );
 
-      expect(requestCache.clear).not.toHaveBeenCalled();
+      expect(unifiedCache.clear).not.toHaveBeenCalled();
     });
   });
 
@@ -51,7 +58,7 @@ describe('memberService 缓存清除测试', () => {
 
       await memberService.removeMember('member-1');
 
-      expect(requestCache.clear).toHaveBeenCalledWith('teams');
+      expect(unifiedCache.clear).toHaveBeenCalledWith('teams');
     });
 
     it('删除队员失败时，不应该清除缓存', async () => {
@@ -61,7 +68,7 @@ describe('memberService 缓存清除测试', () => {
 
       await expect(memberService.removeMember('member-1')).rejects.toThrow('删除失败');
 
-      expect(requestCache.clear).not.toHaveBeenCalled();
+      expect(unifiedCache.clear).not.toHaveBeenCalled();
     });
   });
 

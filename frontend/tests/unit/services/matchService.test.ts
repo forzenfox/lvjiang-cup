@@ -1,7 +1,7 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+﻿import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { matchService } from '@/services/matchService';
 import * as matchApi from '@/api/matches';
-import { requestCache } from '@/utils/requestCache';
+import { unifiedCache } from '@/utils/unifiedCache';
 
 vi.mock('@/api/matches', () => ({
   getAll: vi.fn(),
@@ -11,13 +11,20 @@ vi.mock('@/api/matches', () => ({
   findByRound: vi.fn(),
 }));
 
-vi.mock('@/utils/requestCache', () => ({
-  requestCache: {
+vi.mock('@/utils/unifiedCache', () => ({
+  unifiedCache: {
     get: vi.fn(),
     set: vi.fn(),
     clear: vi.fn(),
+    clearAll: vi.fn(),
+    clearByPrefix: vi.fn(),
+    disable: vi.fn(),
+    enable: vi.fn(),
+    isEnabled: vi.fn(),
   },
-  CACHE_TTL: { matches: 60000 },
+  UnifiedCache: vi.fn(),
+  disableFrontendCache: vi.fn(),
+  enableFrontendCache: vi.fn(),
 }));
 
 const mockMatch = {
@@ -52,7 +59,7 @@ describe('matchService 缓存清除测试', () => {
         status: 'finished',
       });
 
-      expect(requestCache.clear).toHaveBeenCalledWith('matches');
+      expect(unifiedCache.clear).toHaveBeenCalledWith('matches');
     });
 
     it('更新比赛失败时，不应该清除缓存', async () => {
@@ -68,24 +75,24 @@ describe('matchService 缓存清除测试', () => {
         })
       ).rejects.toThrow('更新失败');
 
-      expect(requestCache.clear).not.toHaveBeenCalled();
+      expect(unifiedCache.clear).not.toHaveBeenCalled();
     });
   });
 
   describe('getAll() 缓存行为', () => {
     it('没有缓存时，应该调用 API 并设置缓存', async () => {
-      (requestCache.get as ReturnType<typeof vi.fn>).mockReturnValue(null);
+      (unifiedCache.get as ReturnType<typeof vi.fn>).mockReturnValue(null);
       (matchApi.getAll as ReturnType<typeof vi.fn>).mockResolvedValue([mockMatch]);
 
       const result = await matchService.getAll();
 
       expect(matchApi.getAll).toHaveBeenCalled();
-      expect(requestCache.set).toHaveBeenCalledWith('matches', [mockMatch]);
+      expect(unifiedCache.set).toHaveBeenCalledWith('matches', [mockMatch], { memoryTTL: 60000 });
       expect(result).toEqual([mockMatch]);
     });
 
     it('有缓存时，应该直接返回缓存数据而不请求 API', async () => {
-      (requestCache.get as ReturnType<typeof vi.fn>).mockReturnValue([mockMatch]);
+      (unifiedCache.get as ReturnType<typeof vi.fn>).mockReturnValue([mockMatch]);
 
       const result = await matchService.getAll();
 
