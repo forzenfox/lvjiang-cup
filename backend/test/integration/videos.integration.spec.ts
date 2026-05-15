@@ -11,6 +11,15 @@ import { VideosService } from '../../src/modules/videos/videos.service';
 import { DatabaseService } from '../../src/database/database.service';
 import { CacheService } from '../../src/cache/cache.service';
 
+// Mock Bilibili API calls to avoid network dependency in tests
+const mockBilibiliMeta = {
+  title: 'Test Bilibili Video',
+  coverUrl: 'https://example.com/cover.jpg',
+  embedable: true,
+};
+jest.spyOn(VideosService.prototype as any, 'fetchBilibiliMeta').mockResolvedValue(mockBilibiliMeta);
+jest.spyOn(VideosService.prototype as any, 'fetchAndSaveCover').mockResolvedValue('test-cover.jpg');
+
 describe('Videos API Integration Tests', () => {
   let app: INestApplication;
   let authToken: string;

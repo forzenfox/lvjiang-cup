@@ -333,11 +333,11 @@ describe('MatchDataPage - 雷达图展开逻辑', () => {
 
     // 验证雷达图组件被渲染，且显示TOP位置的6个维度
     // TOP维度: 分均补刀、伤害占比、承伤占比、参团率、伤转、KDA
-    await screen.findByText('分均补刀');
-    await screen.findByText('伤害占比');
-    await screen.findByText('承伤占比');
-    await screen.findByText('参团率');
-    await screen.findByText('伤转');
+    await screen.findByText(/分均补刀/);
+    await screen.findByText(/伤害占比/);
+    await screen.findByText(/承伤占比/);
+    await screen.findByText(/参团率/);
+    await screen.findByText(/伤转/);
     await screen.findByText('KDA');
   });
 
@@ -351,11 +351,11 @@ describe('MatchDataPage - 雷达图展开逻辑', () => {
     fireEvent.click(junglePlayerRow);
 
     // JUNGLE维度: 分均插眼、伤害占比、承伤占比、参团率、伤转、KDA
-    await screen.findByText('分均插眼');
-    await screen.findByText('伤害占比');
-    await screen.findByText('承伤占比');
-    await screen.findByText('参团率');
-    await screen.findByText('伤转');
+    await screen.findByText(/分均插眼/);
+    await screen.findByText(/伤害占比/);
+    await screen.findByText(/承伤占比/);
+    await screen.findByText(/参团率/);
+    await screen.findByText(/伤转/);
     await screen.findByText('KDA');
   });
 
@@ -369,11 +369,11 @@ describe('MatchDataPage - 雷达图展开逻辑', () => {
     fireEvent.click(midPlayerRow);
 
     // MID维度: 分均补刀、伤害占比、分均经济、分均伤害、伤转、KDA
-    await screen.findByText('分均补刀');
-    await screen.findByText('伤害占比');
-    await screen.findByText('分均经济');
-    await screen.findByText('分均伤害');
-    await screen.findByText('伤转');
+    await screen.findByText(/分均补刀/);
+    await screen.findByText(/伤害占比/);
+    await screen.findByText(/分均经济/);
+    await screen.findByText(/分均伤害/);
+    await screen.findByText(/伤转/);
     await screen.findByText('KDA');
   });
 
@@ -387,11 +387,11 @@ describe('MatchDataPage - 雷达图展开逻辑', () => {
     fireEvent.click(adcPlayerRow);
 
     // ADC维度: 分均补刀、伤害占比、分均经济、分均伤害、伤转、KDA
-    await screen.findByText('分均补刀');
-    await screen.findByText('伤害占比');
-    await screen.findByText('分均经济');
-    await screen.findByText('分均伤害');
-    await screen.findByText('伤转');
+    await screen.findByText(/分均补刀/);
+    await screen.findByText(/伤害占比/);
+    await screen.findByText(/分均经济/);
+    await screen.findByText(/分均伤害/);
+    await screen.findByText(/伤转/);
     await screen.findByText('KDA');
   });
 
@@ -405,11 +405,11 @@ describe('MatchDataPage - 雷达图展开逻辑', () => {
     fireEvent.click(supportPlayerRow);
 
     // SUPPORT维度: 分均插眼、每死承伤、承伤占比、参团率、场均助攻、KDA
-    await screen.findByText('分均插眼');
+    await screen.findByText(/分均插眼/);
     await screen.findByText('每死承伤');
-    await screen.findByText('承伤占比');
-    await screen.findByText('参团率');
-    await screen.findByText('场均助攻');
+    await screen.findByText(/承伤占比/);
+    await screen.findByText(/参团率/);
+    await screen.findByText(/场均助攻/);
     await screen.findByText('KDA');
   });
 
@@ -425,14 +425,14 @@ describe('MatchDataPage - 雷达图展开逻辑', () => {
     fireEvent.click(topPlayerRow);
 
     // 验证雷达图显示
-    await screen.findByText('分均补刀');
+    await screen.findByText(/分均补刀/);
 
     // 第二次点击收起
     fireEvent.click(topPlayerRow);
 
     // 验证雷达图收起 - 维度文本应该消失
     await new Promise(resolve => setTimeout(resolve, 400));
-    expect(screen.queryByText('分均补刀')).toBeNull();
+    expect(screen.queryByText(/分均补刀/)).toBeNull();
   });
 
   it('点击不同位置选手行应切换雷达图显示对应位置维度', async () => {
@@ -446,7 +446,7 @@ describe('MatchDataPage - 雷达图展开逻辑', () => {
     fireEvent.click(topPlayerRow);
 
     // 验证显示TOP维度
-    await screen.findByText('承伤占比');
+    await screen.findByText(/承伤占比/);
 
     // 再点击JUNGLE位置
     const junglePlayerRow = screen.getByTestId('player-row-JUNGLE');
@@ -454,7 +454,7 @@ describe('MatchDataPage - 雷达图展开逻辑', () => {
     fireEvent.click(junglePlayerRow);
 
     // 验证切换为JUNGLE维度
-    await screen.findByText('分均插眼');
+    await screen.findByText(/分均插眼/);
     // TOP维度特有的"承伤占比"应该还在（JUNGLE也有），但维度组合不同
   });
 });
