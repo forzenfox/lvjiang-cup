@@ -53,6 +53,7 @@ class UnifiedCache {
           localStorage.removeItem(storageKey);
         }
       } catch {
+        // localStorage may be unavailable
       }
     }
 
@@ -79,6 +80,7 @@ class UnifiedCache {
         const storageKey = `unified_cache_${key}`;
         localStorage.setItem(storageKey, JSON.stringify(entry));
       } catch {
+        // localStorage may be unavailable
       }
     }
   }
@@ -89,6 +91,7 @@ class UnifiedCache {
       const storageKey = `unified_cache_${key}`;
       localStorage.removeItem(storageKey);
     } catch {
+      // localStorage may be unavailable
     }
   }
 
@@ -104,6 +107,7 @@ class UnifiedCache {
       }
       keysToRemove.forEach(key => localStorage.removeItem(key));
     } catch {
+      // localStorage may be unavailable
     }
   }
 
@@ -124,6 +128,7 @@ class UnifiedCache {
       }
       keysToRemove.forEach(key => localStorage.removeItem(key));
     } catch {
+      // localStorage may be unavailable
     }
   }
 

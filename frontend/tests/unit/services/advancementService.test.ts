@@ -47,7 +47,10 @@ describe('advancementService 缓存行为测试', () => {
       const result = await advancementService.get();
 
       expect(advancementApi.get).toHaveBeenCalled();
-      expect(unifiedCache.set).toHaveBeenCalledWith('advancement', mockAdvancement, { memoryTTL: 300000, storageTTL: 300000 });
+      expect(unifiedCache.set).toHaveBeenCalledWith('advancement', mockAdvancement, {
+        memoryTTL: 300000,
+        storageTTL: 300000,
+      });
       expect(result).toEqual(mockAdvancement);
     });
 

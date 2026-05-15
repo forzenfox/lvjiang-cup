@@ -62,7 +62,9 @@ describe('streamerService 缓存清除测试', () => {
       const result = await streamerService.getAll();
 
       expect(streamersApi.getAll).toHaveBeenCalled();
-      expect(unifiedCache.set).toHaveBeenCalledWith('streamers', [mockStreamer], { memoryTTL: 300000 });
+      expect(unifiedCache.set).toHaveBeenCalledWith('streamers', [mockStreamer], {
+        memoryTTL: 300000,
+      });
       expect(result).toEqual([mockStreamer]);
     });
 
