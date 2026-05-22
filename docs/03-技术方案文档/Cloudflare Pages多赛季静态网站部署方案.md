@@ -38,11 +38,11 @@
 ┌─────────────────────────────────────────────────────────────┐
 │                    GitHub Repository                         │
 │                                                             │
-│  main (production)         season/s1              season/s2 │
-│  ├── index.html (导航页)   ├── React SPA         ├── 任意框架  │
-│  ├── _redirects            ├── vite.config.ts    ├── 构建配置  │
-│  ├── .github/workflows/    ├── 静态数据          ├── S2 数据   │
-│  └── ...                   └── ...               └── ...       │
+│  main (production)         release/s1             release/s2 │
+│  ├── index.html (导航页)   ├── React SPA          ├── 任意框架 │
+│  ├── _redirects            ├── vite.config.ts     ├── 构建配置 │
+│  ├── .github/workflows/    ├── 静态数据           ├── S2 数据  │
+│  └── ...                   └── ...                └── ...      │
 │                                                             │
 └──────────────────────┬──────────────────────────────────────┘
                        │ git push
@@ -87,18 +87,18 @@
 | 分支名 | 用途 | 触发部署 |
 |--------|------|----------|
 | `main` | 赛季导航页 + 部署工作流 | ✅ 推送自动部署到生产环境 |
-| `season/s1` | S1 赛季静态站点源码 | ❌ 手动触发，或合入 main 时构建 |
-| `season/s2` | S2 赛季静态站点源码 | ❌ 同上 |
-| `season/s3` | （未来）S3 赛季 | ❌ 同上 |
+| `release/s1` | S1 赛季静态站点源码（基于 `release/demo` 创建） | ❌ 由 main 分支 CI 拉取构建 |
+| `release/s2` | S2 赛季静态站点源码（基于 `master` 创建） | ❌ 同上 |
+| `release/s3` | （未来）S3 赛季 | ❌ 同上 |
 
-所有 `season/*` 分支不直接触发部署，而是由 `main` 分支的 CI 工作流在构建阶段拉取这些分支的代码。
+所有 `release/*` 分支不直接触发部署，而是由 `main` 分支的 CI 工作流在构建阶段拉取这些分支的代码。
 
 ### 3.2 分支独立性规则
 
-每个 `season/*` 分支是**完全独立的项目**：
+每个 `release/*` 分支是**完全独立的项目**：
 
 ```
-season/s1/
+release/s1/
 ├── package.json        # S1 独有的依赖（React + Vite）
 ├── vite.config.ts      # base: '/s1/'  （关键！构建产物输出到 s1 子目录）
 ├── index.html
@@ -110,7 +110,7 @@ season/s1/
 │   └── config.js       # 运行时配置（如数据源）
 └── ...
 
-season/s2/
+release/s2/
 ├── package.json        # S2 可以完全不同（Vue、Astro、纯 HTML 均可）
 ├── vite.config.ts      # base: '/s2/'
 ├── src/
@@ -206,18 +206,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: season/s1
-          path: season-s1
+          ref: release/s1
+          path: release-s1
       - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
-          cache-dependency-path: season-s1/package-lock.json
+          cache-dependency-path: release-s1/package-lock.json
       - run: |
-          cd season-s1
+          cd release-s1
           npm ci
           npm run build
-      - run: mkdir -p dist/s1 && cp -r season-s1/dist/* dist/s1/
+      - run: mkdir -p dist/s1 && cp -r release-s1/dist/* dist/s1/
       - uses: actions/upload-pages-artifact@v3
         with:
           name: season-s1
@@ -230,18 +230,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: season/s2
-          path: season-s2
+          ref: release/s2
+          path: release-s2
       - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
-          cache-dependency-path: season-s2/package-lock.json
+          cache-dependency-path: release-s2/package-lock.json
       - run: |
-          cd season-s2
+          cd release-s2
           npm ci
           npm run build
-      - run: mkdir -p dist/s2 && cp -r season-s2/dist/* dist/s2/
+      - run: mkdir -p dist/s2 && cp -r release-s2/dist/* dist/s2/
       - uses: actions/upload-pages-artifact@v3
         with:
           name: season-s2
@@ -295,7 +295,7 @@ jobs:
 
 当新增 S3 赛季时，只需：
 
-1. 创建 `season/s3` 分支（独立项目，自由选技术栈）
+1. 创建 `release/s3` 分支（独立项目，自由选技术栈）
 2. 在 `main` 分支更新 `_redirects` 文件，添加 `/s3/*` 规则
 3. 在 `deploy-all-seasons.yml` 中添加 `build-s3` job
 4. 在 `assemble-and-deploy` 的 `needs` 中添加 `build-s3`
@@ -350,30 +350,24 @@ jobs:
 
 ## 7. S1 赛季迁移计划
 
-### 7.1 从 `release/demo` 迁移到 `season/s1`
+### 7.1 从 `release/demo` 迁移到 `release/s1`
 
 需要做以下变更：
 
-#### 7.1.1 创建 `season/s1` 分支
+#### 7.1.1 创建 `release/s1` 分支
 
 ```bash
-# 从 develop 分支提取 S1 前端代码（release/demo 已不存在，从 develop 重建）
-git checkout -b season/s1 develop
+# 基于 release/demo 分支创建 S1 赛季分支
+git checkout -b release/s1 origin/release/demo
 
-# 删除后端相关代码（backend 目录、后端测试等）
-rm -rf backend
-rm -rf deploy
-
-# 清理前端中与后端 API 相关的代码（改为使用静态数据）
-# ...
-
-# 修改 vite.config.ts，添加 base 路径
+# 添加 base 路径配置
+# 修改 vite.config.ts，添加 base: '/s1/'
 ```
 
 #### 7.1.2 Vite 配置变更
 
 ```typescript
-// vite.config.ts - season/s1 分支
+// vite.config.ts - release/s1 分支
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tsconfigPaths from 'vite-tsconfig-paths'
@@ -419,16 +413,17 @@ S1 的当前前端代码依赖于后端 API。需要将运行时数据预获取�
 ### 8.1 分支创建
 
 ```bash
-git checkout -b season/s2 develop
+# 基于 master 分支创建 S2 赛季分支
+git checkout -b release/s2 master
 ```
 
 ### 8.2 数据提取
 
 S2 赛季的数据导出流程：
 
-1. 从当前 `develop` 分支启动后端服务
-2. 导出数据库中的 S2 数据为 JSON 文件
-3. 将 JSON 文件作为静态数据放入 `season/s2` 分支
+1. 从当前 `master` 分支启动后端服务
+2. 通过后端 API 或数据库工具导出 S2 数据为 JSON 文件
+3. 将 JSON 文件作为静态数据放入 `release/s2` 分支
 
 ### 8.3 架构选择
 
@@ -444,7 +439,7 @@ S2 赛季可以选择任意技术栈，不受 S1 限制：
 ### 8.4 Vite 配置（如使用）
 
 ```typescript
-// vite.config.ts - season/s2 分支
+// vite.config.ts - release/s2 分支
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
@@ -472,7 +467,7 @@ S1/S2（静态化后）
 
 ```bash
 # 切换到赛季分支
-git checkout season/s2
+git checkout release/s2
 
 # 安装依赖
 cd frontend
@@ -509,22 +504,21 @@ npx serve dist
 | 1 | 在 Cloudflare Dashboard 创建 Pages 项目 `lvjiang-cup` | 运维 |
 | 2 | 生成 Cloudflare API Token（权限：Pages: Write） | 运维 |
 | 3 | 将 `CLOUDFLARE_API_TOKEN` 和 `CLOUDFLARE_ACCOUNT_ID` 配置到 GitHub Secrets | 运维 |
-| 4 | 创建 `season/s1` 分支，配置好 `base: '/s1/'` | 开发 |
-| 5 | 创建 `season/s2` 分支，配置好 `base: '/s2/'` | 开发 |
+| 4 | 创建 `release/s1` 分支，配置好 `base: '/s1/'` | 开发 |
+| 5 | 创建 `release/s2` 分支，配置好 `base: '/s2/'` | 开发 |
 | 6 | 在 `main` 分支创建 `_redirects`、`_headers` 和 `index.html` | 开发 |
 | 7 | 推送 `main` 分支，触发 CI 自动部署 | - |
 
 ### 10.2 日常更新（S2 内容变更）
 
 ```bash
-git checkout season/s2
+git checkout release/s2
 # 修改代码/数据
 git add .
 git commit -m "feat: 更新 S2 赛程数据"
-git push origin season/s2
+git push origin release/s2
 
-# 然后切换到 main 合并 season/s2 的最新提交
-# 或者手动触发 workflow_dispatch
+# 然后切换到 main 分支，手动触发 workflow_dispatch 部署
 ```
 
 ### 10.3 回滚
@@ -557,7 +551,7 @@ Cloudflare Dashboard → Pages → lvjiang-cup → 部署记录 → 选择版本
 | 风险 | 影响 | 缓解措施 |
 |------|------|----------|
 | `base` 路径配置错误 | 资源 404 | 构建后本地预览确认；CI 中增加验证步骤 |
-| `season/s1` 数据未静态化 | 页面 API 无法获取数据 | 迁移时逐一检查 API 调用，替换为静态 JSON |
+| `release/s1` 数据未静态化 | 页面 API 无法获取数据 | 迁移时逐一检查 API 调用，替换为静态 JSON |
 | CI Token 过期 | 部署失败 | 定期检查 Token 有效期，设置告警 |
 | 忘记更新 `_redirects` | SPA 刷新 404 | 部署清单中纳入 `_redirects` 检查 |
 
