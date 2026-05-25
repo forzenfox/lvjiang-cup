@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>驴酱杯 - 赛事中心</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+    }
+    .container { max-width: 800px; padding: 2rem; text-align: center; }
+    h1 { font-size: 2.5rem; margin-bottom: 0.5rem; }
+    p.subtitle { font-size: 1.1rem; color: #a8b2d1; margin-bottom: 2rem; }
+    .seasons { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; }
+    .season-card {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 2rem;
+      text-decoration: none;
+      color: #fff;
+      transition: transform 0.2s, border-color 0.2s, background 0.2s;
+    }
+    .season-card:hover {
+      transform: translateY(-4px);
+      border-color: #64ffda;
+      background: rgba(100, 255, 218, 0.05);
+    }
+    .season-card h2 { font-size: 1.5rem; margin-bottom: 0.5rem; }
+    .season-card p { color: #a8b2d1; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🏆 驴酱杯</h1>
+      <p class="subtitle">选择赛季查看赛事详情</p>
+    </header>
+    <div class="seasons">
+      <a href="/s1" class="season-card">
+        <h2>S1 赛季</h2>
+        <p>首届驴酱杯 · 2025.11.13 - 11.23</p>
+      </a>
+    </div>
+  </div>
+</body>
+</html>

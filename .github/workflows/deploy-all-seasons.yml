@@ -1,0 +1,64 @@
+name: Deploy All Seasons to Cloudflare Pages
+
+on:
+  push:
+    branches: [release/static]
+  workflow_dispatch:
+    inputs:
+      deploy_s1:
+        description: '部署 S1'
+        type: boolean
+        default: true
+
+jobs:
+  # ── Job 1: 构建 S1 ──
+  build-s1:
+    if: ${{ github.event_name == 'push' || inputs.deploy_s1 }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: release/s1
+          path: release-s1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: release-s1/package-lock.json
+      - run: |
+          cd release-s1
+          npm ci
+          npm run build
+      - run: mkdir -p dist/s1 && cp -r release-s1/dist/* dist/s1/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: season-s1
+          path: dist/s1
+
+  # ── Job 2: 汇总并部署 ──
+  assemble-and-deploy:
+    needs: [build-s1]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout release/static (for _redirects, _headers, and index.html)
+        uses: actions/checkout@v4
+        with:
+          ref: release/static
+
+      - name: Download S1 build
+        uses: actions/download-artifact@v4
+        with:
+          name: season-s1
+          path: dist/s1
+
+      - name: Copy _redirects and _headers
+        run: |
+          cp _redirects dist/
+          cp _headers dist/
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy dist --project-name=lvjiang-cup
