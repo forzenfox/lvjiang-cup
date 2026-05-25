@@ -1,8 +1,6 @@
 name: Deploy All Seasons to Cloudflare Pages
 
 on:
-  push:
-    branches: [release/static]
   workflow_dispatch:
     inputs:
       deploy_s1:
