@@ -1,7 +1,6 @@
 import React from 'react';
 import { Match, Team } from '@/types';
 import BracketMatchCard from './BracketMatchCard';
-import EditableBracketMatchCard from './EditableBracketMatchCard';
 import EliminationConnectors from './EliminationConnectors';
 import {
   BOARD_WIDTH,
@@ -14,15 +13,11 @@ import {
 interface EliminationStageProps {
   matches: Match[];
   teams: Team[];
-  editable?: boolean;
-  onMatchUpdate?: (match: Match) => void;
 }
 
 const EliminationStage: React.FC<EliminationStageProps> = ({
   matches,
   teams,
-  editable = false,
-  onMatchUpdate,
 }) => {
   // Helper to find match by game number
   const getMatch = (gameNum: number) => matches.find(m => m.eliminationGameNumber === gameNum);
@@ -35,18 +30,10 @@ const EliminationStage: React.FC<EliminationStageProps> = ({
         className="absolute"
         style={{ left: pos.x, top: pos.y }}
       >
-        {editable && onMatchUpdate ? (
-          <EditableBracketMatchCard
-            match={displayMatch}
-            teams={teams}
-            onUpdate={onMatchUpdate}
-          />
-        ) : (
-          <BracketMatchCard
-            match={displayMatch}
-            teams={teams}
-          />
-        )}
+        <BracketMatchCard
+          match={displayMatch}
+          teams={teams}
+        />
       </div>
     );
   };

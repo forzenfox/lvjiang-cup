@@ -1,6 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { mockService } from '../../mock/service';
-import { Team } from '../../types';
+import React from 'react';
+import { teams as initialTeams } from '../../data/teams';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui/card';
 import { User } from 'lucide-react';
 import { TopIcon, JungleIcon, MidIcon, AdcIcon, SupportIcon } from '../icons/PositionIcons';
@@ -17,12 +16,6 @@ const PositionIcon: React.FC<{ position: string }> = ({ position }) => {
 };
 
 const TeamSection: React.FC = () => {
-  const [teams, setTeams] = useState<Team[]>([]);
-
-  useEffect(() => {
-    mockService.getTeams().then(setTeams);
-  }, []);
-
   return (
     <section id="teams" className="min-h-screen py-20 bg-gradient-to-b from-background to-black relative">
       <div className="container mx-auto px-4">
@@ -31,7 +24,7 @@ const TeamSection: React.FC = () => {
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {teams.map((team) => (
+          {initialTeams.map((team) => (
             <Card key={team.id} className="bg-white/5 border-white/10 hover:border-secondary/50 transition-all duration-300 hover:transform hover:-translate-y-2 group overflow-hidden">
               <div className="h-32 bg-gradient-to-br from-blue-900/50 to-purple-900/50 relative flex items-center justify-center p-4">
                 <img 

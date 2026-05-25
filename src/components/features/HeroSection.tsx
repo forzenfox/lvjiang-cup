@@ -1,16 +1,15 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Play } from 'lucide-react';
 import { Button } from '../ui/button';
-import { mockService } from '../../mock/service';
 import { StreamInfo } from '../../types';
 
+const streamInfo: StreamInfo = {
+  title: '驴酱杯 2025 - 总决赛',
+  url: 'https://www.douyu.com/138243',
+  isLive: true
+};
+
 const HeroSection: React.FC = () => {
-  const [streamInfo, setStreamInfo] = useState<StreamInfo | null>(null);
-
-  useEffect(() => {
-    mockService.getStreamInfo().then(setStreamInfo);
-  }, []);
-
   const handleWatchLive = () => {
     if (streamInfo?.url) {
       window.open(streamInfo.url, '_blank');

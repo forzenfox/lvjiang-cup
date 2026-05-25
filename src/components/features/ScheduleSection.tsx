@@ -1,52 +1,18 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
-import { mockService } from '@/mock/service';
-import { Match, Team } from '@/types';
+import { matches as initialMatches } from '@/data/matches';
+import { teams as initialTeams } from '@/data/teams';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import SwissStage from './SwissStage';
 import EliminationStage from './EliminationStage';
 import { useAdvancementStore } from '@/store/advancementStore';
 
 const ScheduleSection: React.FC = () => {
-  const [matches, setMatches] = useState<Match[]>([]);
-  const [teams, setTeams] = useState<Team[]>([]);
   const advancement = useAdvancementStore(state => state.advancement);
 
-  useEffect(() => {
-    loadData();
-
-    // 轮询机制：每5秒刷新一次数据
-    const interval = setInterval(() => {
-      loadData();
-    }, 5000);
-
-    // 页面可见性检测：切换回页面时立即刷新
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        loadData();
-      }
-    };
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
-    // 清理函数
-    return () => {
-      clearInterval(interval);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, []);
-
-  const loadData = async () => {
-    const [matchesData, teamsData] = await Promise.all([
-      mockService.getMatches(),
-      mockService.getTeams()
-    ]);
-    setMatches(matchesData);
-    setTeams(teamsData);
-  };
-
   // Filter matches by stage
-  const swissMatches = matches.filter(m => m.stage === 'swiss');
-  const eliminationMatches = matches.filter(m => m.stage === 'elimination');
+  const swissMatches = initialMatches.filter(m => m.stage === 'swiss');
+  const eliminationMatches = initialMatches.filter(m => m.stage === 'elimination');
 
   return (
     <section id="schedule" className="py-20 px-4 bg-gradient-to-b from-primary via-primary to-gray-900">
@@ -74,7 +40,7 @@ const ScheduleSection: React.FC = () => {
             >
               <SwissStage 
                 matches={swissMatches} 
-                teams={teams}
+                teams={initialTeams}
                 advancement={advancement}
               />
             </motion.div>
@@ -88,7 +54,7 @@ const ScheduleSection: React.FC = () => {
             >
               <EliminationStage 
                 matches={eliminationMatches} 
-                teams={teams}
+                teams={initialTeams}
               />
             </motion.div>
           </TabsContent>

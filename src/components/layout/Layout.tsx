@@ -29,9 +29,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             <button onClick={() => scrollToSection('schedule')} className="text-xs md:text-sm font-medium text-gray-300 hover:text-secondary transition-colors">
               赛程
             </button>
-            <Link to="/admin" className="text-xs md:text-sm font-medium text-gray-300 hover:text-secondary transition-colors">
-              管理
-            </Link>
+            
           </nav>
         </div>
       </header>

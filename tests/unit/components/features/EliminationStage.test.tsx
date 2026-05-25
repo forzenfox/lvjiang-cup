@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import EliminationStage from '@/components/features/EliminationStage';
@@ -161,63 +161,5 @@ describe('EliminationStage 组件', () => {
     // 验证状态标签显示（使用 getAllByText 因为空槽位也会显示状态）
     expect(screen.getAllByText('未开始').length).toBeGreaterThan(0);
     expect(screen.getAllByText('进行中').length).toBeGreaterThan(0);
-  });
-
-  describe('editable 模式', () => {
-    it('应该在 editable=true 时渲染可编辑卡片', () => {
-      const mockMatches: Match[] = [
-        createMockMatch(1, 'team1', 'team2', 3, 2),
-      ];
-      const mockOnUpdate = vi.fn();
-
-      const { container } = render(
-        <MemoryRouter>
-          <EliminationStage
-            matches={mockMatches}
-            teams={mockTeams}
-            editable={true}
-            onMatchUpdate={mockOnUpdate}
-          />
-        </MemoryRouter>
-      );
-
-      // 验证存在可编辑卡片的特征（编辑按钮）
-      const editButtons = container.querySelectorAll('button');
-      expect(editButtons.length).toBeGreaterThan(0);
-    });
-
-    it('应该在 editable=false 时渲染只读卡片', () => {
-      const mockMatches: Match[] = [
-        createMockMatch(1, 'team1', 'team2', 3, 2),
-      ];
-
-      const { container } = render(
-        <MemoryRouter>
-          <EliminationStage matches={mockMatches} teams={mockTeams} editable={false} />
-        </MemoryRouter>
-      );
-
-      // 验证只读模式下没有可点击的编辑区域（EditableBracketMatchCard有cursor-pointer类）
-      const editableCards = container.querySelectorAll('.cursor-pointer');
-      // BracketMatchCard 没有 cursor-pointer，EditableBracketMatchCard 有
-      // 所以只读模式下应该没有 cursor-pointer 元素
-      expect(editableCards.length).toBe(0);
-    });
-
-    it('应该在 editable=true 但无 onMatchUpdate 时渲染只读卡片', () => {
-      const mockMatches: Match[] = [
-        createMockMatch(1, 'team1', 'team2', 3, 2),
-      ];
-
-      const { container } = render(
-        <MemoryRouter>
-          <EliminationStage matches={mockMatches} teams={mockTeams} editable={true} />
-        </MemoryRouter>
-      );
-
-      // 验证没有 onMatchUpdate 时渲染只读卡片（没有cursor-pointer）
-      const editableCards = container.querySelectorAll('.cursor-pointer');
-      expect(editableCards.length).toBe(0);
-    });
   });
 });
