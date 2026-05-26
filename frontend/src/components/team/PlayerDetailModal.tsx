@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { X } from 'lucide-react';
-import type { Player } from '@/api/types';
+import type { Player } from '@/types';
 import PlayerDetailContent from './PlayerDetailContent';
 import { ZIndexLayers } from '@/constants/zIndex';
 

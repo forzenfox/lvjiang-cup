@@ -1,8 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { StreamerIndicator } from '@/components/features/streamer-section/StreamerIndicator';
-import { StreamerType } from '@/api/types';
-import type { Streamer } from '@/api/types';
+import type { Streamer } from '@/types';
 
 /**
  * StreamerIndicator 组件测试
@@ -17,7 +16,8 @@ describe('StreamerIndicator', () => {
       posterUrl: 'https://example.com/poster1.jpg',
       bio: '简介1',
       liveUrl: 'https://live1.example.com',
-      streamerType: StreamerType.INTERNAL,
+      streamerType: 'internal',
+      sortOrder: 0,
     },
     {
       id: '2',
@@ -25,7 +25,8 @@ describe('StreamerIndicator', () => {
       posterUrl: 'https://example.com/poster2.jpg',
       bio: '简介2',
       liveUrl: 'https://live2.example.com',
-      streamerType: StreamerType.GUEST,
+      streamerType: 'guest',
+      sortOrder: 1,
     },
     {
       id: '3',
@@ -33,7 +34,8 @@ describe('StreamerIndicator', () => {
       posterUrl: 'https://example.com/poster3.jpg',
       bio: '简介3',
       liveUrl: 'https://live3.example.com',
-      streamerType: StreamerType.INTERNAL,
+      streamerType: 'internal',
+      sortOrder: 2,
     },
   ];
 

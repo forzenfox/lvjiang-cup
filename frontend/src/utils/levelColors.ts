@@ -1,4 +1,4 @@
-import type { PlayerLevel } from '@/api/types';
+import type { PlayerLevel } from '@/types';
 
 /**
  * 玩家徽章颜色配置

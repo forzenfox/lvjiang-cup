@@ -1,5 +1,12 @@
 import staticChampionMap from '../data/lol-champion-map.json';
-import type { Champion } from '../api/champion';
+
+// 英雄信息接口（原来自 @/api/champion）
+interface Champion {
+  id: string;
+  name: string;
+  title: string;
+  tags: string[];
+}
 
 const RIOT_CDN_BASE_URL = 'https://ddragon.leagueoflegends.com/cdn';
 const STATIC_CDN_BASE_URL = 'https://game.gtimg.cn/images/lol/act/img/champion';

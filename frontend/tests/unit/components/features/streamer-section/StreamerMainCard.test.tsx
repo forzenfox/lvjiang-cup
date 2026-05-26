@@ -1,8 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { StreamerMainCard } from '@/components/features/streamer-section/StreamerMainCard';
-import { StreamerType } from '@/api/types';
-import type { Streamer } from '@/api/types';
+import type { Streamer } from '@/types';
 
 /**
  * StreamerMainCard 组件测试
@@ -16,7 +15,8 @@ describe('StreamerMainCard', () => {
     posterUrl: 'https://example.com/poster.jpg',
     bio: '这是一个测试主播的简介',
     liveUrl: 'https://live.example.com',
-    streamerType: StreamerType.INTERNAL,
+    streamerType: 'internal',
+    sortOrder: 0,
   };
 
   /**
@@ -53,7 +53,7 @@ describe('StreamerMainCard', () => {
   it('shows "嘉宾" badge for guest streamer', () => {
     const guestStreamer: Streamer = {
       ...mockStreamer,
-      streamerType: StreamerType.GUEST,
+      streamerType: 'guest',
     };
     render(<StreamerMainCard streamer={guestStreamer} />);
 

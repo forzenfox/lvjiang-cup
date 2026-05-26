@@ -1,9 +1,72 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { login as loginApi, getCurrentUser, logout as logoutApi } from '../api/auth';
-import type { LoginRequest, UserInfo } from '../api/types';
 import { isTokenValid } from '../utils/tokenUtils';
 import { adminPath } from '../constants/routes';
+
+// 本地 API 类型定义（原 @/api/types）
+interface LoginRequest {
+  username: string;
+  password: string;
+}
+
+interface UserInfo {
+  id: string;
+  username: string;
+  role?: string;
+}
+
+interface LoginResponse {
+  access_token: string;
+  token?: string;
+  user?: UserInfo;
+}
+
+// 获取 API 基础 URL
+function getApiBaseUrl(): string {
+  if (typeof window === 'undefined') return 'http://localhost:3000';
+  try {
+    const anyWindow = window as { APP_CONFIG?: { API_BASE_URL?: string } };
+    if (anyWindow.APP_CONFIG?.API_BASE_URL) {
+      return anyWindow.APP_CONFIG.API_BASE_URL;
+    }
+  } catch {
+    // 忽略访问错误
+  }
+  if (import.meta.env.VITE_API_BASE_URL) {
+    return import.meta.env.VITE_API_BASE_URL as string;
+  }
+  return 'http://localhost:3000';
+}
+
+const API_BASE = getApiBaseUrl();
+
+// 内联 API 函数（替代原 @/api/auth）
+async function loginApi(credentials: LoginRequest): Promise<LoginResponse> {
+  const res = await fetch(`${API_BASE}/api/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(credentials),
+  });
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.message || '登录失败');
+  }
+  return res.json();
+}
+
+async function getCurrentUser(): Promise<UserInfo> {
+  const token = localStorage.getItem('token');
+  const res = await fetch(`${API_BASE}/api/auth/me`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error('获取用户信息失败');
+  return res.json();
+}
+
+function logoutApi(): void {
+  // 客户端登出，清除本地 token
+  localStorage.removeItem('token');
+}
 
 /**
  * 认证状态接口

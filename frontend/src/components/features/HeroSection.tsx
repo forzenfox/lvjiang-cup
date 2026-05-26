@@ -1,8 +1,7 @@
-import React, { useEffect, useState } from 'react';
-import { Play, Radio, Loader2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { Play, Radio } from 'lucide-react';
 import { Button } from '../ui/button';
 import { useHomeData } from '../../context/HomeDataContext';
-import { useVisibleRefresh } from '@/hooks/useVisibleRefresh';
 import PrizePoolPanel from './HeroSection/PrizePoolPanel';
 
 const DEFAULT_GITHUB_CDN_BASE = 'https://cdn.jsdmirror.com/gh/forzenfox/lvjiang-cup@main';
@@ -14,7 +13,7 @@ const HERO_IMAGE = {
 };
 
 const HeroSection: React.FC = () => {
-  const { stream: streamInfo, isLoading, fetchStream, refresh } = useHomeData();
+  const { stream: streamInfo } = useHomeData();
   const [heroImgSrc, setHeroImgSrc] = useState<string>(HERO_IMAGE.cdn);
 
   const handleHeroImageError = () => {
@@ -22,58 +21,13 @@ const HeroSection: React.FC = () => {
     setHeroImgSrc(HERO_IMAGE.local);
   };
 
-  useEffect(() => {
-    fetchStream();
-  }, [fetchStream]);
-
-  // 可视区域内每15秒刷新直播状态
-  useVisibleRefresh({
-    fetchFn: fetchStream,
-    intervalMs: 15_000,
-    isVisible: true,
-    enabled: true,
-  });
-
   const handleWatchLive = () => {
     if (streamInfo?.url) {
       window.open(streamInfo.url, '_blank');
     }
   };
 
-  const handleRetry = () => {
-    refresh('stream');
-  };
-
-  const loading = isLoading.stream;
-
-  if (loading && !streamInfo) {
-    return (
-      <section
-        id="hero"
-        className="relative min-h-[calc(100vh-96px)] md:h-[calc(100vh-96px)] flex items-center justify-center overflow-hidden"
-      >
-        <div className="absolute inset-0 z-0">
-          <img
-            src={heroImgSrc}
-            alt="Hero Background"
-            fetchPriority="high"
-            decoding="async"
-            className="w-full h-full object-cover"
-            onError={handleHeroImageError}
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-background"></div>
-        </div>
-        <div className="relative z-10 text-center px-4 max-w-4xl mx-auto">
-          <div className="flex flex-col items-center space-y-6">
-            <Loader2 className="w-12 h-12 text-yellow-400 animate-spin" />
-            <p className="text-xl text-gray-300">正在加载直播信息...</p>
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  if (!streamInfo && !loading) {
+  if (!streamInfo) {
     return (
       <section
         id="hero"
@@ -94,13 +48,6 @@ const HeroSection: React.FC = () => {
           <div className="bg-black/50 backdrop-blur-sm p-8 rounded-xl border border-red-500/30">
             <p className="text-xl text-red-400 mb-4">加载失败</p>
             <p className="text-gray-300 mb-6">获取直播信息失败</p>
-            <Button
-              variant="outline"
-              onClick={handleRetry}
-              className="border-yellow-400 text-yellow-400 hover:bg-yellow-400/10"
-            >
-              重试
-            </Button>
           </div>
         </div>
       </section>
@@ -155,12 +102,6 @@ const HeroSection: React.FC = () => {
           </div>
         )}
 
-        {loading && (
-          <div className="mt-4 flex items-center justify-center space-x-2 text-gray-400">
-            <Loader2 className="w-4 h-4 animate-spin" />
-            <span className="text-sm">更新中...</span>
-          </div>
-        )}
         <PrizePoolPanel data={window.PRIZE_POOL_DATA} />
       </div>
 

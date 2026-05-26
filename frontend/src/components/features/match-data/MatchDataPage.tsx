@@ -1,71 +1,321 @@
-import React, { useEffect, useState, useCallback, useRef, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
-import { Loader2, AlertCircle, Edit3 } from 'lucide-react';
+import { AlertCircle, Edit3 } from 'lucide-react';
 import MatchDataHeader from './MatchDataHeader';
 import MatchSeriesHeader from './MatchSeriesHeader';
 import GameSwitcher from './GameSwitcher';
 import TeamStatsBar from './TeamStatsBar';
 import PlayerStatsList from './PlayerStatsList';
-import { getMatchSeries, getMatchGameData } from '@/api/matchData';
-import type { MatchSeriesInfo, MatchGameData, PlayerStat, PositionType } from '@/types/matchData';
-import { useMatchDataStore } from '@/store/matchDataStore';
-import {
-  trackMatchDataPageView,
-  trackGameSwitch,
-  trackRadarChartExpand,
-  trackRadarChartCollapse,
-} from '@/utils/tracking';
-import { matchDataCache } from '@/utils/matchDataCache';
-import MatchDataSkeleton from './MatchDataSkeleton';
+import type {
+  MatchSeriesInfo,
+  MatchGameData,
+  PlayerStat,
+  TeamGameData,
+  BanData,
+  PositionType,
+  GameSummary,
+} from '@/types/matchData';
 import MatchDataEmptyState from './MatchDataEmptyState';
 import { initChampionMap } from '@/utils/championUtils';
 import { isTokenValid } from '@/utils/tokenUtils';
 import { adminPath } from '@/constants/routes';
 
+// 直接导入静态 JSON 数据
+import matchesData from '@/data/s2-matches.json';
+import teamsData from '@/data/s2-teams.json';
+import teamMembersData from '@/data/s2-team-members.json';
+import matchGamesData from '@/data/s2-match-games.json';
+import playerStatsData from '@/data/s2-player-stats.json';
+
 const POSITION_ORDER: PositionType[] = ['TOP', 'JUNGLE', 'MID', 'ADC', 'SUPPORT'];
+
+// 原始数据行类型定义（snake_case JSON 结构）
+interface RawMatch {
+  id: string;
+  team_a_id: string;
+  team_b_id: string;
+  score_a: number;
+  score_b: number;
+  winner_id: string | null;
+  round: string;
+  status: string;
+  start_time: string;
+  stage: string;
+  swiss_record: string | null;
+  swiss_round: number | null;
+  bo_format: string | null;
+  elimination_bracket: string | null;
+  elimination_game_number: number | null;
+}
+
+interface RawTeam {
+  id: string;
+  name: string;
+  logo: string;
+}
+
+interface RawTeamMember {
+  id: string;
+  nickname: string | null;
+  avatar_url: string | null;
+}
+
+interface RawMatchGame {
+  id: number;
+  match_id: string;
+  game_number: number;
+  winner_team_id: string | null;
+  game_duration: string;
+  game_start_time: string | null;
+  blue_team_id: string;
+  red_team_id: string;
+  blue_kills: number;
+  blue_gold: number;
+  blue_towers: number;
+  blue_dragons: number;
+  blue_barons: number;
+  red_kills: number;
+  red_gold: number;
+  red_towers: number;
+  red_dragons: number;
+  red_barons: number;
+  red_ban: string | null;
+  blue_ban: string | null;
+  status: number;
+  video_bvid: string | null;
+}
+
+interface RawPlayerStat {
+  id: number;
+  match_game_id: number;
+  player_id: string;
+  team_id: string;
+  position: string;
+  champion_name: string;
+  kills: number;
+  deaths: number;
+  assists: number;
+  cs: number;
+  gold: number;
+  damage_dealt: number;
+  damage_taken: number;
+  vision_score: number;
+  wards_placed: number;
+  level: number;
+  first_blood: number;
+  mvp: number;
+}
+
+// 构建队伍名称映射
+const teamNameMap = new Map<string, string>();
+for (const team of teamsData as RawTeam[]) {
+  teamNameMap.set(team.id, team.name);
+}
+
+// 构建队员昵称映射
+const memberNameMap = new Map<string, string>();
+const memberAvatarMap = new Map<string, string>();
+for (const member of teamMembersData as RawTeamMember[]) {
+  if (member.nickname) memberNameMap.set(member.id, member.nickname);
+  if (member.avatar_url) memberAvatarMap.set(member.id, member.avatar_url);
+}
+
+// 解析 JSON 字符串格式的 BAN 列表
+function parseBanList(banStr: string | null): string[] {
+  if (!banStr) return [];
+  try {
+    return JSON.parse(banStr) as string[];
+  } catch {
+    return [];
+  }
+}
+
+// 查找匹配的原始数据
+function findRawMatch(id: string): RawMatch | undefined {
+  return (matchesData as RawMatch[]).find(m => m.id === id);
+}
+
+function findMatchGames(matchId: string): RawMatchGame[] {
+  return (matchGamesData as RawMatchGame[]).filter(g => g.match_id === matchId);
+}
+
+function findPlayerStats(matchGameId: number): RawPlayerStat[] {
+  return (playerStatsData as RawPlayerStat[]).filter(p => p.match_game_id === matchGameId);
+}
+
+// 构建 MatchSeriesInfo
+function buildSeriesInfo(matchId: string): MatchSeriesInfo | null {
+  const rawMatch = findRawMatch(matchId);
+  if (!rawMatch) return null;
+
+  const games = findMatchGames(matchId);
+  const gameSummaries: GameSummary[] = games.map(g => ({
+    gameNumber: g.game_number,
+    winnerTeamId: g.winner_team_id,
+    gameDuration: g.game_duration,
+    hasData: true,
+  }));
+
+  return {
+    matchId: rawMatch.id,
+    teamA: {
+      id: rawMatch.team_a_id,
+      name: teamNameMap.get(rawMatch.team_a_id) || '队伍A',
+    },
+    teamB: {
+      id: rawMatch.team_b_id,
+      name: teamNameMap.get(rawMatch.team_b_id) || '队伍B',
+    },
+    format: (rawMatch.bo_format as 'BO1' | 'BO3' | 'BO5') || 'BO1',
+    games: gameSummaries,
+  };
+}
+
+// 构建单局 MatchGameData
+function buildGameData(matchId: string, gameNumber: number): MatchGameData | null {
+  const rawGames = findMatchGames(matchId);
+  const rawGame = rawGames.find(g => g.game_number === gameNumber);
+  if (!rawGame) return null;
+
+  const rawStats = findPlayerStats(rawGame.id);
+
+  const blueTeam: TeamGameData = {
+    teamId: rawGame.blue_team_id,
+    teamName: teamNameMap.get(rawGame.blue_team_id) || '蓝色方',
+    side: 'blue',
+    kills: rawGame.blue_kills,
+    gold: rawGame.blue_gold,
+    towers: rawGame.blue_towers,
+    dragons: rawGame.blue_dragons,
+    barons: rawGame.blue_barons,
+    isWinner: rawGame.winner_team_id === rawGame.blue_team_id,
+  };
+
+  const redTeam: TeamGameData = {
+    teamId: rawGame.red_team_id,
+    teamName: teamNameMap.get(rawGame.red_team_id) || '红色方',
+    side: 'red',
+    kills: rawGame.red_kills,
+    gold: rawGame.red_gold,
+    towers: rawGame.red_towers,
+    dragons: rawGame.red_dragons,
+    barons: rawGame.red_barons,
+    isWinner: rawGame.winner_team_id === rawGame.red_team_id,
+  };
+
+  const bans: BanData = {
+    red: parseBanList(rawGame.red_ban),
+    blue: parseBanList(rawGame.blue_ban),
+  };
+
+  const playerStats: PlayerStat[] = rawStats.map(s => ({
+    id: s.id,
+    playerId: s.player_id,
+    playerName: memberNameMap.get(s.player_id) || '未知选手',
+    teamId: s.team_id,
+    teamName: teamNameMap.get(s.team_id) || '未知队伍',
+    position: s.position as PositionType,
+    championName: s.champion_name,
+    kills: s.kills,
+    deaths: s.deaths,
+    assists: s.assists,
+    kda: `${s.kills}/${s.deaths}/${s.assists}`,
+    cs: s.cs,
+    gold: s.gold,
+    damageDealt: s.damage_dealt,
+    damageTaken: s.damage_taken,
+    visionScore: s.vision_score,
+    wardsPlaced: s.wards_placed,
+    level: s.level,
+    firstBlood: s.first_blood === 1,
+    mvp: s.mvp === 1,
+    playerAvatarUrl: memberAvatarMap.get(s.player_id) || undefined,
+  }));
+
+  // 注入团队总伤害/承伤
+  const blueDamage = playerStats
+    .filter(p => p.teamId === rawGame.blue_team_id)
+    .reduce((sum, p) => sum + p.damageDealt, 0);
+  const blueDamageTaken = playerStats
+    .filter(p => p.teamId === rawGame.blue_team_id)
+    .reduce((sum, p) => sum + p.damageTaken, 0);
+  const redDamage = playerStats
+    .filter(p => p.teamId === rawGame.red_team_id)
+    .reduce((sum, p) => sum + p.damageDealt, 0);
+  const redDamageTaken = playerStats
+    .filter(p => p.teamId === rawGame.red_team_id)
+    .reduce((sum, p) => sum + p.damageTaken, 0);
+
+  return {
+    id: rawGame.id,
+    matchId: rawGame.match_id,
+    gameNumber: rawGame.game_number,
+    winnerTeamId: rawGame.winner_team_id,
+    gameDuration: rawGame.game_duration,
+    gameStartTime: rawGame.game_start_time,
+    videoBvid: rawGame.video_bvid,
+    blueTeam: { ...blueTeam, totalDamage: blueDamage, totalDamageTaken: blueDamageTaken },
+    redTeam: { ...redTeam, totalDamage: redDamage, totalDamageTaken: redDamageTaken },
+    bans,
+    playerStats,
+  };
+}
 
 /**
  * 对战数据详情页面
- * 展示比赛系列赛的详细数据，包括各局对局信息、队伍统计、选手数据等
+ * 使用静态 JSON 数据直接渲染，无需 API 调用
  */
 const MatchDataPage: React.FC = () => {
   const { id: matchId } = useParams<{ id: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
 
-  const [seriesInfo, setSeriesInfo] = useState<MatchSeriesInfo | null>(null);
-  const [gameData, setGameData] = useState<MatchGameData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const prevGameNumberRef = useRef<number>(0);
-  const preloadAdjacentGame = useMatchDataStore(state => state.preloadAdjacentGame);
-
   const currentGameNumber = parseInt(searchParams.get('game') || '1', 10);
 
-  // 管理员鉴权状态：检查本地存储的 Token 是否有效
-  const [isAdmin, setIsAdmin] = useState(false);
+  // 管理员鉴权状态
+  const [isAdmin, setIsAdmin] = React.useState(false);
 
-  useEffect(() => {
+  React.useEffect(() => {
     const token = localStorage.getItem('token');
     setIsAdmin(!!token && isTokenValid(token));
   }, []);
 
-  // 跳转到编辑页面（带安全校验）
-  const handleEditClick = useCallback(() => {
-    if (!matchId || !isAdmin) {
-      console.warn('[MatchDataPage] 未授权访问编辑页面');
-      return;
-    }
+  // 使用 useMemo 计算系列赛信息（依赖 matchId）
+  const seriesInfo = useMemo<MatchSeriesInfo | null>(() => {
+    if (!matchId) return null;
+    return buildSeriesInfo(matchId);
+  }, [matchId]);
 
+  // 使用 useMemo 计算当前局数据（依赖 matchId 和 currentGameNumber）
+  const gameData = useMemo<MatchGameData | null>(() => {
+    if (!matchId) return null;
+    return buildGameData(matchId, currentGameNumber);
+  }, [matchId, currentGameNumber]);
+
+  // 修正 gameNumber：如果当前游戏编号不在有效范围内，跳转到第一个游戏
+  React.useEffect(() => {
+    if (seriesInfo && seriesInfo.games.length > 0) {
+      const validNumbers = seriesInfo.games.map(g => g.gameNumber);
+      if (!validNumbers.includes(currentGameNumber)) {
+        setSearchParams({ game: String(validNumbers[0]) });
+      }
+    }
+  }, [seriesInfo, currentGameNumber, setSearchParams]);
+
+  // 页面加载时初始化英雄数据
+  React.useEffect(() => {
+    initChampionMap();
+  }, []);
+
+  // 跳转到编辑页面
+  const handleEditClick = React.useCallback(() => {
+    if (!matchId || !isAdmin) return;
     const gameNum = currentGameNumber || 1;
     navigate(adminPath(`matches/${matchId}/games/${gameNum}/edit`));
   }, [matchId, currentGameNumber, isAdmin, navigate]);
 
-  // 渲染头部操作区域（仅管理员可见）
   const renderHeaderAction = () => {
     if (!isAdmin) return null;
-
     return (
       <button
         onClick={handleEditClick}
@@ -78,211 +328,24 @@ const MatchDataPage: React.FC = () => {
     );
   };
 
-  /**
-   * 带重试机制的游戏数据加载
-   */
-  const loadGameDataWithRetry = useCallback(async (mId: string, gameNum: number, retries = 3) => {
-    for (let i = 0; i < retries; i++) {
-      try {
-        const data = await getMatchGameData(mId, gameNum);
-        // data 为 null 表示该局未导入数据，直接返回
-        if (data === null) return null;
-        return data;
-      } catch (err) {
-        if (i === retries - 1) throw err;
-        await new Promise(resolve => setTimeout(resolve, 1000));
-      }
-    }
-  }, []);
-
-  /**
-   * 加载系列赛信息
-   */
-  const loadSeriesInfo = useCallback(
-    async (mId: string, gameNum: number) => {
-      const cacheKey = matchDataCache.getMatchSeriesKey(mId);
-      const cached = matchDataCache.get<MatchSeriesInfo>(cacheKey);
-
-      if (cached) {
-        setSeriesInfo(cached);
-        const validGameNumbers = cached.games.map(g => g.gameNumber);
-        if (!validGameNumbers.includes(gameNum)) {
-          const firstValidGame = validGameNumbers[0];
-          if (firstValidGame) {
-            setSearchParams({ game: firstValidGame.toString() });
-          }
-        }
-        const maxGames = Math.max(...validGameNumbers);
-        preloadAdjacentGame(mId, gameNum, maxGames);
-        return;
-      }
-
-      try {
-        const series = await getMatchSeries(mId);
-        setSeriesInfo(series);
-        matchDataCache.set(cacheKey, series);
-
-        const validGameNumbers = series.games.map(g => g.gameNumber);
-        if (!validGameNumbers.includes(gameNum)) {
-          const firstValidGame = validGameNumbers[0];
-          if (firstValidGame) {
-            setSearchParams({ game: firstValidGame.toString() });
-          }
-        }
-
-        const maxGames = Math.max(...validGameNumbers);
-        preloadAdjacentGame(mId, gameNum, maxGames);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : '获取系列赛信息失败');
-        console.error('[MatchDataPage] 系列赛信息加载失败:', err);
-      }
-    },
-    [setSearchParams, preloadAdjacentGame]
-  );
-
-  /**
-   * 加载游戏数据
-   */
-  const loadGameData = useCallback(
-    async (mId: string, gameNum: number) => {
-      const cacheKey = matchDataCache.getGameDataKey(mId, gameNum);
-      const cached = matchDataCache.get<MatchGameData>(cacheKey);
-
-      if (cached) {
-        setGameData(cached);
-        return;
-      }
-
-      try {
-        const data = await loadGameDataWithRetry(mId, gameNum);
-        setGameData(data);
-        // 只有数据存在时才缓存，null 不缓存
-        if (data) {
-          matchDataCache.set(cacheKey, data);
-        }
-      } catch (err) {
-        setError(err instanceof Error ? err.message : '获取游戏数据失败');
-        console.error('[MatchDataPage] 游戏数据加载失败:', err);
-      }
-    },
-    [loadGameDataWithRetry]
-  );
-
-  /**
-   * 重试加载
-   */
-  const handleRetry = useCallback(() => {
-    if (matchId) {
-      setError(null);
-      loadGameData(matchId, currentGameNumber);
-    }
-  }, [matchId, currentGameNumber, loadGameData]);
-
-  // 初始加载数据
-  useEffect(() => {
-    if (!matchId) {
-      setError('缺少比赛ID');
-      setLoading(false);
-      return;
-    }
-
-    const loadData = async () => {
-      setLoading(true);
-      setError(null);
-      // 切换对局时重置雷达图展开状态
-      setExpandedPosition(null);
-
-      try {
-        await Promise.all([
-          loadSeriesInfo(matchId, currentGameNumber),
-          loadGameData(matchId, currentGameNumber),
-        ]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadData();
-  }, [matchId, currentGameNumber, loadSeriesInfo, loadGameData]);
-
-  // 页面加载时初始化英雄数据
-  useEffect(() => {
-    initChampionMap();
-  }, []);
-
-  // 页面浏览追踪
-  useEffect(() => {
-    if (matchId) {
-      trackMatchDataPageView(matchId);
-    }
-  }, [matchId]);
-
-  // 场次切换追踪
-  useEffect(() => {
-    const prevGame = prevGameNumberRef.current;
-
-    if (matchId && prevGame !== 0 && prevGame !== currentGameNumber) {
-      trackGameSwitch(matchId, prevGame, currentGameNumber);
-    }
-
-    prevGameNumberRef.current = currentGameNumber;
-  }, [matchId, currentGameNumber]);
-
-  /**
-   * 切换场次
-   */
-  const handleGameChange = useCallback(
+  const handleGameChange = React.useCallback(
     (gameNumber: number) => {
       setSearchParams({ game: gameNumber.toString() });
     },
     [setSearchParams]
   );
 
-  /**
-   * 返回上一页
-   */
-  const handleBack = useCallback(() => {
+  const handleBack = React.useCallback(() => {
     navigate(-1);
   }, [navigate]);
 
-  const [expandedPosition, setExpandedPosition] = useState<string | null>(null);
+  const [expandedPosition, setExpandedPosition] = React.useState<string | null>(null);
 
-  /**
-   * 切换位置展开状态
-   */
-  const handleTogglePosition = useCallback(
-    (position: string) => {
-      if (gameData && matchId) {
-        const newPosition = expandedPosition === position ? null : position;
-        setExpandedPosition(newPosition);
+  const handleTogglePosition = React.useCallback((position: string) => {
+    setExpandedPosition(prev => (prev === position ? null : position));
+  }, []);
 
-        if (newPosition && gameData.playerStats.length >= 2) {
-          const positionPlayers = gameData.playerStats.filter(p => p.position === position);
-          if (positionPlayers.length === 2) {
-            trackRadarChartExpand(
-              matchId,
-              currentGameNumber,
-              positionPlayers[0].playerName,
-              positionPlayers[1].playerName
-            );
-          }
-        } else if (!newPosition && gameData.playerStats.length >= 2) {
-          trackRadarChartCollapse(
-            matchId,
-            currentGameNumber,
-            gameData.playerStats[0].playerName,
-            gameData.playerStats[1].playerName
-          );
-        }
-      }
-    },
-    [expandedPosition, gameData, matchId, currentGameNumber]
-  );
-
-  /**
-   * 按阵营筛选选手
-   */
-  const getPlayersBySide = useCallback(
+  const getPlayersBySide = React.useCallback(
     (playerStats: PlayerStat[], side: 'blue' | 'red') => {
       return playerStats.filter(p => {
         if (side === 'blue') {
@@ -295,40 +358,35 @@ const MatchDataPage: React.FC = () => {
     [gameData]
   );
 
-  const filteredBluePlayers = useMemo(() => {
+  const filteredBluePlayers = React.useMemo(() => {
     if (!gameData) return [];
     return getPlayersBySide(gameData.playerStats, 'blue');
   }, [gameData, getPlayersBySide]);
 
-  const filteredRedPlayers = useMemo(() => {
+  const filteredRedPlayers = React.useMemo(() => {
     if (!gameData) return [];
     return getPlayersBySide(gameData.playerStats, 'red');
   }, [gameData, getPlayersBySide]);
 
-  const sortedBluePlayers = useMemo(() => {
+  const sortedBluePlayers = React.useMemo(() => {
     return POSITION_ORDER.map(pos => filteredBluePlayers.find(p => p.position === pos)).filter(
       (p): p is PlayerStat => p !== undefined
     );
   }, [filteredBluePlayers]);
 
-  const sortedRedPlayers = useMemo(() => {
+  const sortedRedPlayers = React.useMemo(() => {
     return POSITION_ORDER.map(pos => filteredRedPlayers.find(p => p.position === pos)).filter(
       (p): p is PlayerStat => p !== undefined
     );
   }, [filteredRedPlayers]);
 
-  /**
-   * 渲染主内容区域
-   */
   const renderContent = () => {
     if (!gameData) return null;
 
     return (
       <>
-        {/* 系列赛头部：展示总比分和比赛状态 */}
         <MatchSeriesHeader seriesInfo={seriesInfo} gameData={gameData} />
 
-        {/* 对局切换器 - 位于对战基本信息卡片下方，符合UI设计文档 */}
         <GameSwitcher
           games={seriesInfo?.games || []}
           currentGame={currentGameNumber}
@@ -336,7 +394,6 @@ const MatchDataPage: React.FC = () => {
           format={seriesInfo?.format}
         />
 
-        {/* 队伍数据统计栏 - 包含对局信息（游戏时长、大龙、小龙、防御塔、金币、人头比、ban/pick） */}
         <TeamStatsBar
           blueTeam={gameData.blueTeam}
           redTeam={gameData.redTeam}
@@ -344,7 +401,6 @@ const MatchDataPage: React.FC = () => {
           gameDuration={gameData.gameDuration}
         />
 
-        {/* 选手数据列表 */}
         <PlayerStatsList
           bluePlayers={sortedBluePlayers}
           redPlayers={sortedRedPlayers}
@@ -359,47 +415,21 @@ const MatchDataPage: React.FC = () => {
   };
 
   // 错误状态
-  if (error) {
+  if (!matchId) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-[#0f0f23] to-[#1a1a2e] text-white">
         <MatchDataHeader onBack={handleBack} action={renderHeaderAction()} />
         <div className="flex flex-col items-center justify-center mt-8">
           <AlertCircle className="w-12 h-12 text-red-500 mb-4" />
-          <p className="text-lg mb-2">{error}</p>
+          <p className="text-lg mb-2">缺少比赛ID</p>
           <p className="text-sm text-gray-400 mb-6">数据加载失败</p>
-          <button
-            onClick={handleRetry}
-            disabled={loading}
-            className="flex items-center gap-2 px-6 py-3 bg-[#c49f58] hover:bg-[#b08d4a] text-[#1a1a2e] font-bold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {loading ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                加载中...
-              </>
-            ) : (
-              '刷新重试'
-            )}
-          </button>
         </div>
       </div>
     );
   }
 
-  // 加载中状态
-  if (loading && !seriesInfo) {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-[#0f0f23] to-[#1a1a2e] text-white">
-        <MatchDataHeader onBack={handleBack} action={renderHeaderAction()} />
-        <div className="container mx-auto px-4 py-6">
-          <MatchDataSkeleton />
-        </div>
-      </div>
-    );
-  }
-
-  // 空数据状态
-  if (!loading && !gameData) {
+  // 空数据状态（只有系列赛信息但没有游戏数据）
+  if (!gameData && seriesInfo) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-[#0f0f23] to-[#1a1a2e] text-white">
         <MatchDataHeader
@@ -416,7 +446,21 @@ const MatchDataPage: React.FC = () => {
     );
   }
 
-  // 正常渲染
+  // 未找到比赛
+  if (!seriesInfo && !gameData) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-[#0f0f23] to-[#1a1a2e] text-white">
+        <MatchDataHeader onBack={handleBack} action={renderHeaderAction()} />
+        <div className="flex flex-col items-center justify-center mt-8">
+          <AlertCircle className="w-12 h-12 text-red-500 mb-4" />
+          <p className="text-lg mb-2">未找到比赛数据</p>
+          <p className="text-sm text-gray-400 mb-6">比赛 ID: {matchId}</p>
+        </div>
+      </div>
+    );
+  }
+
+  // 正常渲染（无加载中状态，数据立即可用）
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#0f0f23] to-[#1a1a2e] text-white">
       <MatchDataHeader
@@ -429,15 +473,7 @@ const MatchDataPage: React.FC = () => {
         action={renderHeaderAction()}
       />
 
-      <div className="container mx-auto px-4 py-6">
-        {renderContent()}
-
-        {loading && (
-          <div className="flex justify-center my-8">
-            <Loader2 className="w-6 h-6 animate-spin text-[#c49f58]" />
-          </div>
-        )}
-      </div>
+      <div className="container mx-auto px-4 py-6">{renderContent()}</div>
     </div>
   );
 };

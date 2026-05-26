@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import type { Player } from '@/api/types';
+import type { Player } from '@/types';
 import { PositionType } from '@/types/position';
 import PlayerDetailContent from '@/components/team/PlayerDetailContent';
 

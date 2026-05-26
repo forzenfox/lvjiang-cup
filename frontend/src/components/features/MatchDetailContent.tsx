@@ -2,9 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { Match, Team, MatchStatus } from '@/types';
 import { SWISS_THEME } from '@/constants/swissTheme';
 import { BarChart3, Monitor } from 'lucide-react';
-import { checkMatchDataExists } from '@/api/matchData';
 import { useSpriteUrl } from '@/components/icons/PositionIcons';
 import { useIsMobile } from '@/hooks/useMediaQuery';
+import matchGamesData from '@/data/s2-match-games.json';
 
 export interface MatchDetailContentProps {
   match: Match;
@@ -97,15 +97,12 @@ const MatchDetailContent: React.FC<MatchDetailContentProps> = ({ match, teams })
   useEffect(() => {
     if (match && match.status === 'finished') {
       setCheckingMatchData(true);
-      checkMatchDataExists(match.id)
-        .then(result => {
-          setHasMatchData(result.hasData);
-          setCheckingMatchData(false);
-        })
-        .catch(() => {
-          setHasMatchData(false);
-          setCheckingMatchData(false);
-        });
+      // 直接从静态 JSON 数据中查找该比赛是否有对战数据
+      const hasData = matchGamesData.some(
+        (game: Record<string, unknown>) => game.match_id === match.id
+      );
+      setHasMatchData(hasData);
+      setCheckingMatchData(false);
     } else {
       setHasMatchData(false);
     }

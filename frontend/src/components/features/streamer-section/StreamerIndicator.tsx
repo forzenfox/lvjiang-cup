@@ -1,5 +1,5 @@
 import React from 'react';
-import { type Streamer } from '@/api/types';
+import { type Streamer } from '@/types';
 
 interface StreamerIndicatorProps {
   streamers: Streamer[];

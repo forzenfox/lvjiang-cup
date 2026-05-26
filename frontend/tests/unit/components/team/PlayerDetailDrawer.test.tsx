@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import PlayerDetailDrawer from '@/components/team/PlayerDetailDrawer';
-import type { Player } from '@/api/types';
+import type { Player } from '@/types';
 import { PositionType } from '@/types/position';
 
 const mockPlayer: Player = {

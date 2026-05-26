@@ -1,22 +1,11 @@
-import React, { useEffect, useState, useCallback, useMemo } from 'react';
-import { Users, Loader2, AlertCircle } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { Users } from 'lucide-react';
 import { useHomeData } from '../../context/HomeDataContext';
-import type { Team as ApiTeam, Player } from '../../api/types';
-import { Button } from '../ui/button';
+import type { Player, Team } from '@/types';
 import { PlayerDetailModal } from '../team/PlayerDetailModal';
 import { TeamMemberModal } from '../team/TeamMemberModal';
 import PlayerDetailDrawer from '../team/PlayerDetailDrawer';
-import { getUploadUrl } from '@/utils/upload';
 import type { PositionType } from '@/types/position';
-
-// 本地 Team 类型（与后端数据模型一致）
-interface Team {
-  id: string;
-  name: string;
-  logo: string;
-  battleCry: string;
-  players: Player[];
-}
 
 // 骨架屏组件（正方形卡片样式，队标队名同一区域，图标队名占比更大）
 const TeamCardSkeleton: React.FC = () => (
@@ -32,7 +21,7 @@ const TeamCardSkeleton: React.FC = () => (
 );
 
 // 空数据状态组件
-const EmptyState: React.FC<{ onRetry: () => void }> = ({ onRetry }) => (
+const EmptyState: React.FC = () => (
   <div
     className="col-span-full flex flex-col items-center justify-center py-20"
     data-testid="empty-teams"
@@ -40,35 +29,11 @@ const EmptyState: React.FC<{ onRetry: () => void }> = ({ onRetry }) => (
     <Users className="w-16 h-16 text-gray-500 mb-4" />
     <p className="text-xl text-gray-400 mb-2">暂无战队数据</p>
     <p className="text-sm text-gray-500 mb-6">当前没有可用的战队信息</p>
-    <Button
-      variant="outline"
-      onClick={onRetry}
-      className="border-secondary text-secondary hover:bg-secondary/10"
-    >
-      刷新数据
-    </Button>
-  </div>
-);
-
-// 错误状态组件
-const _ErrorState: React.FC<{ message: string; onRetry: () => void }> = ({ message, onRetry }) => (
-  <div className="col-span-full flex flex-col items-center justify-center py-20">
-    <AlertCircle className="w-16 h-16 text-red-500 mb-4" />
-    <p className="text-xl text-red-400 mb-2">加载失败</p>
-    <p className="text-sm text-gray-400 mb-6">{message}</p>
-    <Button
-      variant="outline"
-      onClick={onRetry}
-      className="border-red-400 text-red-400 hover:bg-red-400/10"
-    >
-      重试
-    </Button>
   </div>
 );
 
 const TeamSection: React.FC = () => {
-  const { teams: apiTeams, isLoading, fetchTeams, refresh } = useHomeData();
-  const loading = isLoading.teams;
+  const { teamsWithMembers } = useHomeData();
 
   // 弹框状态
   const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
@@ -81,88 +46,7 @@ const TeamSection: React.FC = () => {
   // 检测是否为移动端
   const [isMobile, setIsMobile] = useState(false);
 
-  // 将 API Team 转换为本地 Team 格式
-  const convertApiTeamToLocal = useCallback((apiTeam: ApiTeam): Team => {
-    const members = apiTeam.members || [];
-
-    let players: Player[];
-    if (members.length > 0) {
-      players = members.map(apiPlayer => ({
-        id: apiPlayer.id,
-        nickname: apiPlayer.nickname,
-        avatarUrl:
-          apiPlayer.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${apiPlayer.id}`,
-        position: apiPlayer.position,
-        teamId: apiTeam.id,
-        gameId: apiPlayer.gameId,
-        bio: apiPlayer.bio,
-        championPool: apiPlayer.championPool,
-        rating: apiPlayer.rating,
-        isCaptain: apiPlayer.isCaptain,
-        liveUrl: apiPlayer.liveUrl,
-        level: apiPlayer.level,
-        auctionPrice: apiPlayer.auctionPrice,
-      }));
-    } else {
-      const positions: PositionType[] = ['TOP', 'JUNGLE', 'MID', 'ADC', 'SUPPORT'];
-      players = positions.map((position, index) => ({
-        id: `${apiTeam.id}-player-${index}`,
-        nickname: '待补充',
-        avatarUrl: `https://api.dicebear.com/7.x/avataaars/svg?seed=${apiTeam.id}-${index}`,
-        position,
-        teamId: apiTeam.id,
-      }));
-    }
-
-    return {
-      id: apiTeam.id,
-      name: apiTeam.name,
-      logo:
-        getUploadUrl(apiTeam.logo || apiTeam.logoUrl) ||
-        `https://api.dicebear.com/7.x/identicon/svg?seed=${apiTeam.id}`,
-      players,
-      battleCry: apiTeam.battleCry || '暂无参赛宣言',
-    };
-  }, []);
-
-  const teams = useMemo(
-    () => apiTeams.map(convertApiTeamToLocal),
-    [apiTeams, convertApiTeamToLocal]
-  );
-
-  useEffect(() => {
-    fetchTeams();
-  }, [fetchTeams]);
-
-  const handleRetry = useCallback(() => {
-    refresh('teams');
-  }, [refresh]);
-
-  const handleTeamClick = useCallback((team: Team) => {
-    setSelectedTeam(team);
-    setIsTeamModalOpen(true);
-  }, []);
-
-  const handlePlayerClick = useCallback((player: Player) => {
-    setSelectedPlayer(player);
-  }, []);
-
-  const handleCloseModal = useCallback(() => {
-    setIsModalOpen(false);
-    setSelectedPlayer(null);
-  }, []);
-
-  const handleCloseTeamModal = useCallback(() => {
-    setIsTeamModalOpen(false);
-    setSelectedTeam(null);
-    setSelectedPlayer(null);
-  }, []);
-
-  const handleCloseDrawer = useCallback(() => {
-    setSelectedPlayer(null);
-  }, []);
-
-  useEffect(() => {
+  React.useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768);
     };
@@ -171,6 +55,37 @@ const TeamSection: React.FC = () => {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
+  const teams = useMemo(() => {
+    if (teamsWithMembers.length > 0) {
+      return teamsWithMembers;
+    }
+    return [];
+  }, [teamsWithMembers]);
+
+  const handleTeamClick = (team: Team) => {
+    setSelectedTeam(team);
+    setIsTeamModalOpen(true);
+  };
+
+  const handlePlayerClick = (player: Player) => {
+    setSelectedPlayer(player);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedPlayer(null);
+  };
+
+  const handleCloseTeamModal = () => {
+    setIsTeamModalOpen(false);
+    setSelectedTeam(null);
+    setSelectedPlayer(null);
+  };
+
+  const handleCloseDrawer = () => {
+    setSelectedPlayer(null);
+  };
+
   return (
     <section
       id="teams"
@@ -178,15 +93,11 @@ const TeamSection: React.FC = () => {
     >
       <div className="container mx-auto px-4 flex-1 flex flex-col justify-center min-h-0 py-8">
         {/* 加载骨架屏 */}
-        {loading && teams.length === 0 ? (
+        {teams.length === 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 max-w-5xl mx-auto w-full">
             {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16].map(i => (
               <TeamCardSkeleton key={i} />
             ))}
-          </div>
-        ) : !loading && teams.length === 0 ? (
-          <div className="grid grid-cols-1">
-            <EmptyState onRetry={handleRetry} />
           </div>
         ) : (
           /* 正常数据展示（4行4列正方形卡片布局，队标队名占比更大） */
@@ -219,14 +130,6 @@ const TeamSection: React.FC = () => {
                 </div>
               </div>
             ))}
-          </div>
-        )}
-
-        {/* 刷新指示器 */}
-        {loading && teams.length > 0 && (
-          <div className="mt-8 flex items-center justify-center space-x-2 text-gray-400">
-            <Loader2 className="w-4 h-4 animate-spin" />
-            <span className="text-sm">更新中...</span>
           </div>
         )}
 

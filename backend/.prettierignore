@@ -1,8 +1,0 @@
-dist
-node_modules
-*.log
-.env
-.env.*
-coverage
-data/*.db
-data/*.db-*

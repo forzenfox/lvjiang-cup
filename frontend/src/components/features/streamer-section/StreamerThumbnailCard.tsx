@@ -1,5 +1,5 @@
 import React from 'react';
-import { type Streamer, StreamerType } from '@/api/types';
+import { type Streamer } from '@/types';
 
 interface StreamerThumbnailCardProps {
   streamer: Streamer;
@@ -46,12 +46,12 @@ export const StreamerThumbnailCard: React.FC<StreamerThumbnailCardProps> = ({
         <span className="text-white text-sm font-medium truncate block">{streamer.nickname}</span>
       </div>
       <div className="absolute top-3 left-3 flex space-x-2">
-        {streamer.streamerType === StreamerType.INTERNAL && (
+        {streamer.streamerType === 'internal' && (
           <span className="bg-blue-500 text-white px-2 py-0.5 rounded-full text-xs font-bold">
             驴酱
           </span>
         )}
-        {streamer.streamerType === StreamerType.GUEST && (
+        {streamer.streamerType === 'guest' && (
           <span className="bg-purple-500 text-white px-2 py-0.5 rounded-full text-xs font-bold">
             嘉宾
           </span>

@@ -16,6 +16,45 @@ export interface Player {
   isCaptain?: boolean;
   liveUrl?: string;
   level?: PlayerLevel;
+  auctionPrice?: number;
+  sortOrder?: number;
+}
+
+export interface TeamWithMembers {
+  id: string;
+  name: string;
+  logo: string;
+  players: Player[];
+  battleCry: string;
+  logoUrl?: string;
+  description?: string;
+}
+
+export interface Stream {
+  id: number;
+  title: string;
+  url: string;
+  isLive: boolean;
+}
+
+export type StreamerTypeValue = 'internal' | 'guest';
+
+export interface Streamer {
+  id: string;
+  nickname: string;
+  posterUrl: string;
+  bio: string;
+  liveUrl: string;
+  streamerType: StreamerTypeValue;
+  sortOrder: number;
+}
+
+export interface VideoItem {
+  id: string;
+  title: string;
+  bvid: string;
+  page: number;
+  coverUrl: string;
 }
 
 export interface Team {

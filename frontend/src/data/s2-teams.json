@@ -1,0 +1,178 @@
+[
+  {
+    "id": "821083f7-44a1-424e-a6d2-7f1c5b1b36a0",
+    "name": "洞主队",
+    "logo": null,
+    "logo_url": "https://c-yuba.douyucdn.cn/yubavod/b/bLA6KklVK27M/87e661bee442bf1c77286cc994be09bd.png/rs1440",
+    "logo_thumbnail_url": null,
+    "battle_cry": null,
+    "description": null,
+    "created_at": "2026-04-25 04:30:46",
+    "updated_at": "2026-04-27 10:30:33"
+  },
+  {
+    "id": "006ef9b0-4010-4879-83b2-6be4b19daf50",
+    "name": "余小C队",
+    "logo": null,
+    "logo_url": "https://c-yuba.douyucdn.cn/yubavod/b/bLA6KklVK27M/9e7a60012b64b807f01fd378e8a4e17e.png/rs1440",
+    "logo_thumbnail_url": null,
+    "battle_cry": null,
+    "description": null,
+    "created_at": "2026-04-25 04:30:46",
+    "updated_at": "2026-04-27 10:30:33"
+  },
+  {
+    "id": "e9327e65-ded1-42e9-9578-85b790d992c4",
+    "name": "银剑君队",
+    "logo": null,
+    "logo_url": "https://c-yuba.douyucdn.cn/yubavod/b/bLA6KklVK27M/09194f3b673d12f9392593d91cd16f60.png/rs1440",
+    "logo_thumbnail_url": null,
+    "battle_cry": null,
+    "description": null,
+    "created_at": "2026-04-25 04:30:46",
+    "updated_at": "2026-04-27 10:30:33"
+  },
+  {
+    "id": "3d22d778-c3d8-460b-a6c4-4cf64e239dce",
+    "name": "二抛队",
+    "logo": null,
+    "logo_url": "https://c-yuba.douyucdn.cn/yubavod/b/bLA6KklVK27M/af7c0cd6f7029a99795e34827ad91943.png/rs1440",
+    "logo_thumbnail_url": null,
+    "battle_cry": null,
+    "description": null,
+    "created_at": "2026-04-25 04:30:46",
+    "updated_at": "2026-04-27 10:30:33"
+  },
+  {
+    "id": "97f13ff1-c76b-413c-b8e2-bda866d643a7",
+    "name": "小甜椒队",
+    "logo": null,
+    "logo_url": "https://c-yuba.douyucdn.cn/yubavod/b/bLA6KklVK27M/b9681481eb3c0c3f00eb2b42cf9cdab3.png/rs1440",
+    "logo_thumbnail_url": null,
+    "battle_cry": null,
+    "description": null,
+    "created_at": "2026-04-25 04:30:46",
+    "updated_at": "2026-04-27 10:30:33"
+  },
+  {
+    "id": "30bea529-313f-4697-bb7e-191906db2702",
+    "name": "团子队",
+    "logo": null,
+    "logo_url": "https://c-yuba.douyucdn.cn/yubavod/b/bLA6KklVK27M/9c602b3ff91c9ab20b31aa099dcc7e78.png/rs1440",
+    "logo_thumbnail_url": null,
+    "battle_cry": null,
+    "description": null,
+    "created_at": "2026-04-25 04:30:46",
+    "updated_at": "2026-04-27 10:30:33"
+  },
+  {
+    "id": "355425d8-ff2a-4445-a4d5-c3af7e26155b",
+    "name": "柚子队",
+    "logo": null,
+    "logo_url": "https://c-yuba.douyucdn.cn/yubavod/b/bLA6KklVK27M/0234345b430f5b96f2b13d6fc3737e85.png/rs1440",
+    "logo_thumbnail_url": null,
+    "battle_cry": null,
+    "description": null,
+    "created_at": "2026-04-25 04:30:46",
+    "updated_at": "2026-04-27 10:30:33"
+  },
+  {
+    "id": "5d7ed0ad-cf45-4911-a917-198a8d8b75a0",
+    "name": "小唯队",
+    "logo": null,
+    "logo_url": "https://c-yuba.douyucdn.cn/yubavod/b/bLA6KklVK27M/e76d0cb0ea7f1d75e5828434c123c452.png/rs1440",
+    "logo_thumbnail_url": null,
+    "battle_cry": null,
+    "description": null,
+    "created_at": "2026-04-25 04:30:46",
+    "updated_at": "2026-04-27 10:30:33"
+  },
+  {
+    "id": "8cacd8a9-8b35-46f4-973c-922ae1f41b74",
+    "name": "澈心队",
+    "logo": null,
+    "logo_url": "https://c-yuba.douyucdn.cn/yubavod/b/bLA6KklVK27M/1da852378cb5314214b5bbc622294814.png/rs1440",
+    "logo_thumbnail_url": null,
+    "battle_cry": null,
+    "description": null,
+    "created_at": "2026-04-25 04:30:46",
+    "updated_at": "2026-04-27 10:30:33"
+  },
+  {
+    "id": "a31f995c-7122-427c-8d67-0f55e2372260",
+    "name": "辰林队",
+    "logo": null,
+    "logo_url": "https://c-yuba.douyucdn.cn/yubavod/b/bLA6KklVK27M/67899e1fcc76b58490235a4d253e8a60.png/rs1440",
+    "logo_thumbnail_url": null,
+    "battle_cry": null,
+    "description": null,
+    "created_at": "2026-04-25 04:30:46",
+    "updated_at": "2026-04-27 10:30:33"
+  },
+  {
+    "id": "bdb48cd6-0399-4e56-8e3c-bfbd20dfb006",
+    "name": "地球胖队",
+    "logo": null,
+    "logo_url": "https://c-yuba.douyucdn.cn/yubavod/b/bLA6KklVK27M/37433e25d952981a6b804fc2128622a5.png/rs1440",
+    "logo_thumbnail_url": null,
+    "battle_cry": null,
+    "description": null,
+    "created_at": "2026-04-25 04:30:46",
+    "updated_at": "2026-04-27 10:30:33"
+  },
+  {
+    "id": "da0202f8-0389-46fa-9ccf-35ba5a2f513f",
+    "name": "冯雨队",
+    "logo": null,
+    "logo_url": "https://c-yuba.douyucdn.cn/yubavod/b/bLA6KklVK27M/94c0b899087215ca3f526050ae1db38e.png/rs1440",
+    "logo_thumbnail_url": null,
+    "battle_cry": null,
+    "description": null,
+    "created_at": "2026-04-25 04:30:46",
+    "updated_at": "2026-04-27 10:30:33"
+  },
+  {
+    "id": "fc39096c-fd7f-423d-b88d-bf506289fd6e",
+    "name": "小龙虾队",
+    "logo": null,
+    "logo_url": "https://c-yuba.douyucdn.cn/yubavod/b/bLA6KklVK27M/83c3fdc761f81472951d3571a63bdd55.png/rs1440",
+    "logo_thumbnail_url": null,
+    "battle_cry": null,
+    "description": null,
+    "created_at": "2026-04-25 04:30:46",
+    "updated_at": "2026-04-27 10:30:33"
+  },
+  {
+    "id": "1384e3ee-6b2f-4867-a8e5-43d073dd6a8c",
+    "name": "羊哥队",
+    "logo": null,
+    "logo_url": "https://c-yuba.douyucdn.cn/yubavod/b/bLA6KklVK27M/4845ff13d7142f600400914bb21fbb29.png/rs1440",
+    "logo_thumbnail_url": null,
+    "battle_cry": null,
+    "description": null,
+    "created_at": "2026-04-25 04:30:46",
+    "updated_at": "2026-04-27 10:30:33"
+  },
+  {
+    "id": "d2206812-324e-433b-8430-1e462d16ac31",
+    "name": "孙悟空队",
+    "logo": null,
+    "logo_url": "https://c-yuba.douyucdn.cn/yubavod/b/bLA6KklVK27M/d73ad717deaee2a6a352a4717912218f.png/rs1440",
+    "logo_thumbnail_url": null,
+    "battle_cry": null,
+    "description": null,
+    "created_at": "2026-04-25 08:52:41",
+    "updated_at": "2026-04-27 10:30:33"
+  },
+  {
+    "id": "ba1bea41-6d14-426d-92d3-8e925caa14ab",
+    "name": "PIGFF队",
+    "logo": null,
+    "logo_url": "https://c-yuba.douyucdn.cn/yubavod/b/bLA6KklVK27M/4945a4a9ccedd6551fdb1c2bb25e21c7.png/rs1440",
+    "logo_thumbnail_url": null,
+    "battle_cry": null,
+    "description": null,
+    "created_at": "2026-04-25 08:52:41",
+    "updated_at": "2026-04-27 10:30:33"
+  }
+]

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Star, ExternalLink } from 'lucide-react';
-import type { Player } from '@/api/types';
+import type { Player } from '@/types';
 import { PositionType } from '@/types/position';
 import { getChampionIconByEn, getChampionTitleByEn } from '@/utils/championUtils';
 import { getLevelBadgeClasses, getCaptainBadgeClasses } from '@/utils/levelColors';

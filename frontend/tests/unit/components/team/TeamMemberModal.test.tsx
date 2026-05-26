@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { TeamMemberModal } from '@/components/team/TeamMemberModal';
-import type { Team, Player } from '@/api/types';
+import type { Player } from '@/types';
 import type { PositionType } from '@/types/position';
 import { ZIndexLayers } from '@/constants/zIndex';
 
@@ -23,17 +23,19 @@ const mockPlayer2: Player = {
   teamId: 'team-1',
 };
 
-const mockTeam: Team = {
+const mockTeam = {
   id: 'team-1',
   name: 'IG战队',
   logoUrl: 'https://example.com/logo.png',
+  battleCry: '永不言弃',
   members: [mockPlayer1, mockPlayer2],
 };
 
-const mockTeamEmpty: Team = {
+const mockTeamEmpty = {
   id: 'team-2',
   name: '空战队',
   logoUrl: 'https://example.com/logo2.png',
+  battleCry: '坚守初心',
   members: [],
 };
 

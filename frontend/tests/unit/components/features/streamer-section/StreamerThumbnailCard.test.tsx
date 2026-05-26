@@ -1,8 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { StreamerThumbnailCard } from '@/components/features/streamer-section/StreamerThumbnailCard';
-import { StreamerType } from '@/api/types';
-import type { Streamer } from '@/api/types';
+import type { Streamer } from '@/types';
 
 /**
  * StreamerThumbnailCard 组件测试
@@ -16,7 +15,8 @@ describe('StreamerThumbnailCard', () => {
     posterUrl: 'https://example.com/poster.jpg',
     bio: '这是一个测试主播',
     liveUrl: 'https://live.example.com',
-    streamerType: StreamerType.INTERNAL,
+    streamerType: 'internal',
+    sortOrder: 0,
   };
 
   /**
@@ -52,7 +52,7 @@ describe('StreamerThumbnailCard', () => {
   it('shows "嘉宾" badge for guest streamer', () => {
     const guestStreamer: Streamer = {
       ...mockStreamer,
-      streamerType: StreamerType.GUEST,
+      streamerType: 'guest',
     };
     render(<StreamerThumbnailCard streamer={guestStreamer} onClick={vi.fn()} />);
 

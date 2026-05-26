@@ -1,7 +1,7 @@
 import React from 'react';
 import { X } from 'lucide-react';
 import { motion } from 'framer-motion';
-import type { Player } from '@/api/types';
+import type { Player } from '@/types';
 import PlayerDetailContent from './PlayerDetailContent';
 import { ZIndexLayers } from '@/constants/zIndex';
 

@@ -1,8 +1,21 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Search, X, Check } from 'lucide-react';
 import { cn } from '../../lib/utils';
-import { getChampionList, type Champion } from '../../api/champion';
 import { ZIndexLayers } from '../../constants/zIndex';
+import staticChampionMap from '../../data/lol-champion-map.json';
+
+// 英雄信息接口
+interface Champion {
+  id: string;
+  name: string;
+  title: string;
+  tags: string[];
+}
+
+// 从本地 JSON 获取英雄列表
+function getChampionList(): { champions: Record<string, Champion> } {
+  return { champions: staticChampionMap as Record<string, Champion> };
+}
 
 export interface HeroSelectorProps {
   visible: boolean;

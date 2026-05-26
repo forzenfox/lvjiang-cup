@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../ui/card';
 import { Button } from '../../ui/button';
-import { type Streamer, StreamerType } from '@/api/types';
+import { type Streamer } from '@/types';
 
 interface StreamerMainCardProps {
   streamer: Streamer;
@@ -42,12 +42,12 @@ export const StreamerMainCard: React.FC<StreamerMainCardProps> = ({ streamer }) 
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
         <div className="absolute top-4 left-4 flex space-x-2">
-          {streamer.streamerType === StreamerType.INTERNAL && (
+          {streamer.streamerType === 'internal' && (
             <span className="bg-blue-500 text-white px-3 py-1 rounded-full text-sm font-bold shadow-lg">
               驴酱
             </span>
           )}
-          {streamer.streamerType === StreamerType.GUEST && (
+          {streamer.streamerType === 'guest' && (
             <span className="bg-purple-500 text-white px-3 py-1 rounded-full text-sm font-bold shadow-lg">
               嘉宾
             </span>

@@ -3,7 +3,6 @@ import { Loader2, AlertCircle } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger } from '../ui/tabs';
 import { Button } from '../ui/button';
 import { useHomeData } from '@/context/HomeDataContext';
-import { StreamerType } from '@/api/types';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { StreamerMainCard } from './streamer-section/StreamerMainCard';
 import { StreamerThumbnailCard } from './streamer-section/StreamerThumbnailCard';
@@ -23,7 +22,7 @@ const StreamerCardSkeleton: React.FC = () => (
   </div>
 );
 
-const EmptyState: React.FC<{ onRetry: () => void }> = ({ onRetry }) => (
+const EmptyState: React.FC = () => (
   <div className="col-span-full flex flex-col items-center justify-center py-20">
     <div className="w-16 h-16 text-gray-500 mb-4 flex items-center justify-center">
       <svg
@@ -44,28 +43,14 @@ const EmptyState: React.FC<{ onRetry: () => void }> = ({ onRetry }) => (
     </div>
     <p className="text-xl text-gray-400 mb-2">暂无主播数据</p>
     <p className="text-sm text-gray-500 mb-6">当前没有可用的主播信息</p>
-    <Button
-      variant="outline"
-      onClick={onRetry}
-      className="border-secondary text-secondary hover:bg-secondary/10"
-    >
-      刷新数据
-    </Button>
   </div>
 );
 
-const _ErrorState: React.FC<{ message: string; onRetry: () => void }> = ({ message, onRetry }) => (
+const _ErrorState: React.FC<{ message: string }> = ({ message }) => (
   <div className="col-span-full flex flex-col items-center justify-center py-20">
     <AlertCircle className="w-16 h-16 text-red-500 mb-4" />
     <p className="text-xl text-red-400 mb-2">加载失败</p>
     <p className="text-sm text-gray-400 mb-6">{message}</p>
-    <Button
-      variant="outline"
-      onClick={onRetry}
-      className="border-red-400 text-red-400 hover:bg-red-400/10"
-    >
-      重试
-    </Button>
   </div>
 );
 
@@ -76,23 +61,13 @@ const StreamerSection: React.FC<StreamerSectionProps> = () => {
   const isMobile = useMediaQuery('(max-width: 767px)');
   const isPC = useMediaQuery('(min-width: 1024px)');
 
-  const { streamers, isLoading, fetchStreamers, refresh } = useHomeData();
+  const { streamers } = useHomeData();
   const [activeTab, setActiveTab] = useState<'internal' | 'guest'>('internal');
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  const loading = isLoading.streamers;
-
-  useEffect(() => {
-    fetchStreamers();
-  }, [fetchStreamers]);
-
-  const handleRetry = useCallback(() => {
-    refresh('streamers');
-  }, [refresh]);
-
   const filteredStreamers = streamers.filter(streamer => {
-    if (activeTab === 'internal') return streamer.streamerType === StreamerType.INTERNAL;
-    if (activeTab === 'guest') return streamer.streamerType === StreamerType.GUEST;
+    if (activeTab === 'internal') return streamer.streamerType === 'internal';
+    if (activeTab === 'guest') return streamer.streamerType === 'guest';
     return true;
   });
 
@@ -167,12 +142,12 @@ const StreamerSection: React.FC<StreamerSectionProps> = () => {
           </Tabs>
         </div>
 
-        {loading && streamers.length === 0 ? (
+        {streamers.length === 0 ? (
           <div className="max-w-4xl mx-auto w-full">
             <StreamerCardSkeleton />
           </div>
-        ) : !loading && streamers.length === 0 ? (
-          <EmptyState onRetry={handleRetry} />
+        ) : filteredStreamers.length === 0 ? (
+          <EmptyState />
         ) : (
           <div
             className="streamer-carousel"
@@ -247,13 +222,6 @@ const StreamerSection: React.FC<StreamerSectionProps> = () => {
                 onSelect={setCurrentIndex}
               />
             )}
-          </div>
-        )}
-
-        {loading && streamers.length > 0 && (
-          <div className="mt-10 flex items-center justify-center space-x-2 text-gray-400">
-            <Loader2 className="w-4 h-4 animate-spin" />
-            <span className="text-sm">更新中...</span>
           </div>
         )}
       </div>

@@ -2,7 +2,28 @@ import React from 'react';
 import { Match, Team } from '@/types';
 import SwissMatchCard from './SwissMatchCard';
 import { SWISS_THEME } from '@/constants/swissTheme';
-import { getRoundFormat } from '@/pages/admin/swissRoundSlots';
+
+// 根据战绩记录获取轮次中文名称
+function getRoundFormat(record: string): string {
+  const map: Record<string, string> = {
+    '0-0': '首轮',
+    '1-0': '胜者组',
+    '0-1': '败者组',
+    '2-0': '胜者组',
+    '1-1': '中间组',
+    '0-2': '败者组',
+    '2-1': '胜者组',
+    '1-2': '败者组',
+    '3-0': '晋级轮',
+    '0-3': '淘汰轮',
+    '2-2': '决胜轮',
+    '3-1': '晋级轮',
+    '1-3': '淘汰轮',
+    '3-2': '晋级轮',
+    '2-3': '淘汰轮',
+  };
+  return map[record] || record;
+}
 
 interface SwissRoundColumnProps {
   title: string;

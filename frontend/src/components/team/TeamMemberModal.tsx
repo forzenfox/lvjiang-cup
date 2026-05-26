@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { X, Crown } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import type { Team, Player } from '@/api/types';
+import type { Player } from '@/types';
 import {
   TopIcon,
   JungleIcon,
@@ -13,8 +13,17 @@ import { PositionType } from '@/types/position';
 import { ZIndexLayers } from '@/constants/zIndex';
 import { getLevelBadgeClasses } from '@/utils/levelColors';
 
+// 本地战队接口，兼容旧版 ApiTeam 结构
+interface TeamInfo {
+  id: string;
+  name: string;
+  logoUrl?: string;
+  battleCry: string;
+  members: Player[];
+}
+
 export interface TeamMemberModalProps {
-  team: Team;
+  team: TeamInfo;
   isOpen: boolean;
   onClose: () => void;
   onPlayerClick: (player: Player) => void;

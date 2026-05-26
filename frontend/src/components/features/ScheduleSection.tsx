@@ -1,95 +1,15 @@
-import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { useHomeData } from '@/context/HomeDataContext';
-import { useVisibleRefresh } from '@/hooks/useVisibleRefresh';
-import { useIsMobile } from '@/hooks/useMediaQuery';
-import type { Match as ApiMatch, Team as ApiTeam } from '@/api/types';
+import type { Match, Team } from '@/types';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import SwissStage from './SwissStageResponsive';
 import EliminationStage from './EliminationStage';
 import MatchDetailModal from './MatchDetailModal';
 import MatchDetailDrawer from './MatchDetailDrawer';
-import { useAdvancementStore, calculateAdvancement } from '@/store/advancementStore';
-import { PositionType } from '@/types/position';
-import { getUploadUrl } from '@/utils/upload';
 import SwissEmptyState from './swiss/SwissEmptyState';
-import type { Match, Team, EliminationBracket, Player } from '@/types';
-
-const convertApiMatchToLocal = (apiMatch: ApiMatch, teams: Team[]): Match => {
-  const teamA = teams.find(t => t.id === apiMatch.teamAId);
-  const teamB = teams.find(t => t.id === apiMatch.teamBId);
-
-  const stage: Match['stage'] = apiMatch.stage === 'elimination' ? 'elimination' : 'swiss';
-
-  const bracketMap: Record<string, EliminationBracket> = {
-    quarterfinals: 'quarterfinals',
-    semifinals: 'semifinals',
-    finals: 'finals',
-  };
-  const eliminationBracket = apiMatch.eliminationBracket
-    ? bracketMap[apiMatch.eliminationBracket] || undefined
-    : undefined;
-
-  return {
-    id: apiMatch.id,
-    teamAId: apiMatch.teamAId || '',
-    teamBId: apiMatch.teamBId || '',
-    teamA,
-    teamB,
-    scoreA: apiMatch.scoreA || 0,
-    scoreB: apiMatch.scoreB || 0,
-    winnerId: apiMatch.winnerId || null,
-    round: apiMatch.round,
-    status: apiMatch.status,
-    startTime: apiMatch.startTime || '',
-    stage,
-    swissRecord: apiMatch.swissRecord,
-    swissRound: apiMatch.swissRound,
-    boFormat: apiMatch.boFormat,
-    eliminationBracket,
-    eliminationGameNumber: apiMatch.eliminationGameNumber,
-  };
-};
-
-const convertApiTeamToLocal = (apiTeam: ApiTeam): Team => {
-  const apiPlayers = apiTeam.members || apiTeam.players || [];
-
-  const players: Player[] =
-    apiPlayers.length > 0
-      ? apiPlayers.map(apiPlayer => ({
-          id: apiPlayer.id,
-          nickname: apiPlayer.nickname,
-          avatarUrl: apiPlayer.avatarUrl,
-          position: apiPlayer.position,
-          bio: apiPlayer.bio,
-          teamId: apiPlayer.teamId,
-          gameId: apiPlayer.gameId,
-          championPool: apiPlayer.championPool,
-          rating: apiPlayer.rating,
-          isCaptain: apiPlayer.isCaptain,
-          liveUrl: apiPlayer.liveUrl,
-          level: apiPlayer.level,
-        }))
-      : (['TOP', 'JUNGLE', 'MID', 'ADC', 'SUPPORT'] as PositionType[]).map((position, index) => ({
-          id: `${apiTeam.id}-player-${index}`,
-          nickname: '待定',
-          avatarUrl: undefined,
-          position,
-          bio: undefined,
-        }));
-
-  return {
-    id: apiTeam.id,
-    name: apiTeam.name,
-    logo:
-      getUploadUrl(apiTeam.logo || apiTeam.logoUrl) ||
-      `https://api.dicebear.com/7.x/identicon/svg?seed=${apiTeam.id}`,
-    players,
-    battleCry: apiTeam.battleCry || '暂无参赛宣言',
-  };
-};
 
 const ScheduleSkeleton: React.FC = () => (
   <div className="w-full" data-testid="schedule-skeleton">
@@ -107,86 +27,45 @@ const ScheduleSkeleton: React.FC = () => (
   </div>
 );
 
-const ErrorState: React.FC<{ message: string; onRetry: () => void }> = ({ message, onRetry }) => (
+const ErrorState: React.FC<{ message: string }> = ({ message }) => (
   <div className="flex flex-col items-center justify-center py-20" data-testid="schedule-error">
     <AlertCircle className="w-16 h-16 text-red-500 mb-4" />
     <p className="text-xl text-red-400 mb-2">加载失败</p>
     <p className="text-sm text-gray-400 mb-6">{message}</p>
-    <Button
-      variant="outline"
-      onClick={onRetry}
-      className="border-red-400 text-red-400 hover:bg-red-400/10"
-    >
-      重试
-    </Button>
   </div>
 );
 
 const ScheduleSection: React.FC = () => {
-  const {
-    matches: apiMatches,
-    teams: apiTeams,
-    isLoading,
-    fetchMatches,
-    fetchTeams,
-    refresh,
-  } = useHomeData();
-  const loading = isLoading.matches || isLoading.teams;
+  const { matches, teams } = useHomeData();
   const [activeTab, setActiveTab] = useState<string>('swiss');
-  const { advancement, setAdvancement } = useAdvancementStore();
   const [scale, setScale] = useState(1);
-  const contentRef = useRef<HTMLDivElement>(null);
-  const isMobile = useIsMobile();
+  const [isMobile, setIsMobile] = useState(false);
 
   // 对战详情状态
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
 
-  const handleMatchClick = useCallback((match: Match) => {
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  const handleMatchClick = (match: Match) => {
     setSelectedMatch(match);
-  }, []);
+  };
 
-  const handleCloseMatchDetail = useCallback(() => {
+  const handleCloseMatchDetail = () => {
     setSelectedMatch(null);
-  }, []);
+  };
 
-  const convertedTeams = useMemo(
-    () => (apiTeams as ApiTeam[]).map(convertApiTeamToLocal),
-    [apiTeams]
+  const swissMatches = useMemo(() => matches.filter(m => m.stage === 'swiss'), [matches]);
+  const eliminationMatches = useMemo(
+    () => matches.filter(m => m.stage === 'elimination'),
+    [matches]
   );
-
-  const matches = useMemo(() => {
-    const converted = (apiMatches as ApiMatch[]).map(m =>
-      convertApiMatchToLocal(m, convertedTeams)
-    );
-    return converted;
-  }, [apiMatches, convertedTeams]);
-
-  useEffect(() => {
-    fetchMatches();
-    fetchTeams();
-  }, [fetchMatches, fetchTeams]);
-
-  useVisibleRefresh({
-    fetchFn: fetchMatches,
-    intervalMs: 60_000,
-    isVisible: true,
-    enabled: true,
-  });
-
-  useEffect(() => {
-    const swissMatches = matches.filter(m => m.stage === 'swiss');
-    if (swissMatches.length > 0) {
-      const calculated = calculateAdvancement(swissMatches, convertedTeams);
-      setAdvancement(calculated);
-    }
-  }, [matches, convertedTeams, setAdvancement]);
-
-  const handleRetry = useCallback(() => {
-    refresh('matches');
-  }, [refresh]);
-
-  const swissMatches = matches.filter(m => m.stage === 'swiss');
-  const eliminationMatches = matches.filter(m => m.stage === 'elimination');
 
   const handleTabChange = (value: string) => {
     setActiveTab(value);
@@ -206,15 +85,9 @@ const ScheduleSection: React.FC = () => {
         const headerHeight = 98;
         const availableHeight = viewportHeight - headerHeight;
 
-        if (contentRef.current) {
-          const contentHeight = contentRef.current.scrollHeight || 886;
-          const newScale = Math.min(1, availableHeight / contentHeight);
-          setScale(newScale);
-        } else {
-          const contentHeight = 886;
-          const newScale = Math.min(1, availableHeight / contentHeight);
-          setScale(newScale);
-        }
+        const contentHeight = 886;
+        const newScale = Math.min(1, availableHeight / contentHeight);
+        setScale(newScale);
       });
     };
 
@@ -229,13 +102,10 @@ const ScheduleSection: React.FC = () => {
   return (
     <section id="schedule" className="min-h-screen md:h-screen flex flex-col bg-black">
       <div className="max-w-7xl mx-auto px-4 flex-1 flex flex-col justify-center min-h-0 w-full">
-        {loading && matches.length === 0 ? (
+        {matches.length === 0 ? (
           <ScheduleSkeleton />
-        ) : !loading && matches.length === 0 ? (
-          <ErrorState message="获取赛程数据失败" onRetry={handleRetry} />
         ) : (
           <div
-            ref={contentRef}
             style={{
               transform: `scale(${scale})`,
               transformOrigin: 'top center',
@@ -276,8 +146,7 @@ const ScheduleSection: React.FC = () => {
                   ) : (
                     <SwissStage
                       matches={swissMatches}
-                      teams={convertedTeams}
-                      advancement={advancement}
+                      teams={teams}
                       onMatchClick={handleMatchClick}
                     />
                   )}
@@ -296,7 +165,7 @@ const ScheduleSection: React.FC = () => {
                   ) : (
                     <EliminationStage
                       matches={eliminationMatches}
-                      teams={convertedTeams}
+                      teams={teams}
                       onMatchClick={handleMatchClick}
                     />
                   )}
@@ -305,29 +174,18 @@ const ScheduleSection: React.FC = () => {
             </Tabs>
           </div>
         )}
-
-        {loading && matches.length > 0 && (
-          <div className="mt-8 flex items-center justify-center space-x-2 text-gray-400">
-            <Loader2 className="w-4 h-4 animate-spin" />
-            <span className="text-sm">更新中...</span>
-          </div>
-        )}
       </div>
 
       {/* 对战详情：移动端抽屉 / PC端弹框 */}
       {isMobile && selectedMatch && (
-        <MatchDetailDrawer
-          match={selectedMatch}
-          teams={convertedTeams}
-          onClose={handleCloseMatchDetail}
-        />
+        <MatchDetailDrawer match={selectedMatch} teams={teams} onClose={handleCloseMatchDetail} />
       )}
       {!isMobile && selectedMatch && (
         <MatchDetailModal
           visible={!!selectedMatch}
           onClose={handleCloseMatchDetail}
           match={selectedMatch}
-          teams={convertedTeams}
+          teams={teams}
         />
       )}
     </section>

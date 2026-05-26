@@ -1,4 +1,4 @@
-import React, { lazy, Suspense, useEffect } from 'react';
+import React, { lazy, Suspense } from 'react';
 import { Loader2 } from 'lucide-react';
 import Layout from '../components/layout/Layout';
 import { StartBox } from '../components/features/StartBox';
@@ -22,11 +22,7 @@ const SectionSkeleton: React.FC = () => (
 );
 
 const VideoSection: React.FC = () => {
-  const { videos, fetchVideos, isLoading } = useHomeData();
-
-  useEffect(() => {
-    fetchVideos();
-  }, [fetchVideos]);
+  const { videos } = useHomeData();
 
   const videoItems = videos.map(video => ({
     bvid: video.bvid,
@@ -34,7 +30,7 @@ const VideoSection: React.FC = () => {
     cover: video.coverUrl || undefined,
   }));
 
-  if (isLoading.videos && videos.length === 0) {
+  if (videos.length === 0) {
     return (
       <section
         id="videos"

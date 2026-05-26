@@ -1,8 +1,6 @@
-import React, { useState, forwardRef } from 'react';
+import React, { forwardRef } from 'react';
 import { Match, Team, MatchStatus } from '@/types';
 import { ELIMINATION_THEME } from '@/constants/eliminationTheme';
-import MatchEditDialog from '@/pages/admin/components/MatchEditDialog';
-import { useAdvancementStore } from '@/store/advancementStore';
 
 interface EditableBracketMatchCardProps {
   match: Match;
@@ -133,8 +131,6 @@ const formatMatchTime = (startTime: string): string => {
 
 const EditableBracketMatchCard = forwardRef<HTMLDivElement, EditableBracketMatchCardProps>(
   ({ match, teams, onUpdate, allMatches = [] }, ref) => {
-    const [isDialogOpen, setIsDialogOpen] = useState(false);
-    const advancement = useAdvancementStore(state => state.advancement);
 
     const teamA = teams.find(t => t.id === match.teamAId);
     const teamB = teams.find(t => t.id === match.teamBId);
@@ -145,7 +141,7 @@ const EditableBracketMatchCard = forwardRef<HTMLDivElement, EditableBracketMatch
     const hasWinner = isFinished && match.winnerId;
 
     const handleCardClick = () => {
-      setIsDialogOpen(true);
+      // 编辑功能已禁用
     };
 
     const handleSave = (updatedMatch: Match) => {
@@ -154,7 +150,6 @@ const EditableBracketMatchCard = forwardRef<HTMLDivElement, EditableBracketMatch
     };
 
     return (
-      <>
         <div
           ref={ref}
           className="flex flex-col cursor-pointer hover:opacity-90 group"
@@ -213,22 +208,9 @@ const EditableBracketMatchCard = forwardRef<HTMLDivElement, EditableBracketMatch
             <span className="text-xs text-blue-400">点击编辑</span>
           </div>
         </div>
-
-        {/* 比赛编辑弹框 */}
-        <MatchEditDialog
-          match={match}
-          teams={teams}
-          isOpen={isDialogOpen}
-          onClose={() => setIsDialogOpen(false)}
-          onSave={handleSave}
-          advancement={advancement}
-          allMatches={allMatches}
-          currentBracket={match.eliminationBracket}
-        />
-      </>
-    );
-  }
-);
+      );
+    }
+  );
 
 EditableBracketMatchCard.displayName = 'EditableBracketMatchCard';
 

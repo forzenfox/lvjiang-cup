@@ -1,37 +1,30 @@
-import React, { createContext, useContext, useState, useCallback, useRef } from 'react';
-import type { Stream, Team as ApiTeam, Streamer, VideoItem } from '@/api/types';
-import { streamService } from '@/services/streamService';
-import { teamService } from '@/services/teamService';
-import { matchService } from '@/services/matchService';
-import { getVideos } from '@/api/videos';
-import { streamersApi } from '@/api/streamers';
-import { requestCache } from '@/utils/requestCache';
+import React, { createContext, useContext } from 'react';
+import type { Team, Match, Stream, Streamer, VideoItem, Player, TeamWithMembers } from '@/types';
+import { PositionType } from '@/types/position';
+import { getUploadUrl } from '@/utils/upload';
 
 /**
  * 首页统一数据 Context
  *
- * 功能：
- * 1. 按需加载：各模块首次调用 fetch 方法时才请求数据
- * 2. 数据共享：同一数据在页面内只请求一次，通过 Context 共享
- * 3. 智能刷新：refresh 方法强制重新请求指定模块数据
- * 4. 并发安全：多个组件同时调用同一 fetch 方法时，只请求一次
+ * 直接从静态 JSON 文件导入 S2 赛季数据，提供同步的数据访问。
+ * 不再依赖 API 调用，不再有 loading/error 状态。
  */
 
-type LoadingState = Record<'stream' | 'teams' | 'matches' | 'videos' | 'streamers', boolean>;
+// 导入静态 JSON 数据
+import streamData from '@/data/s2-stream.json';
+import teamsData from '@/data/s2-teams.json';
+import teamMembersData from '@/data/s2-team-members.json';
+import matchesData from '@/data/s2-matches.json';
+import videosData from '@/data/s2-videos.json';
+import streamersData from '@/data/s2-streamers.json';
 
 interface HomeDataContextValue {
   stream: Stream | null;
-  teams: ApiTeam[];
-  matches: unknown[];
+  teams: Team[];
+  teamsWithMembers: TeamWithMembers[];
+  matches: Match[];
   videos: VideoItem[];
   streamers: Streamer[];
-  isLoading: LoadingState;
-  fetchStream: () => Promise<void>;
-  fetchTeams: () => Promise<void>;
-  fetchMatches: () => Promise<void>;
-  fetchVideos: () => Promise<void>;
-  fetchStreamers: () => Promise<void>;
-  refresh: (module: string) => Promise<void>;
 }
 
 const HomeDataContext = createContext<HomeDataContextValue | null>(null);
@@ -48,217 +41,232 @@ interface HomeDataProviderProps {
   children: React.ReactNode;
 }
 
+/**
+ * 将 JSON 中的 snake_case 字段转换为 camelCase
+ */
+function convertStream(raw: (typeof streamData)[0]): Stream {
+  return {
+    id: raw.id,
+    title: raw.title,
+    url: raw.url,
+    isLive: raw.is_live === 1,
+  };
+}
+
+interface RawTeam {
+  id: string;
+  name: string;
+  logo: string | null;
+  logo_url: string | null;
+  logo_thumbnail_url: string | null;
+  battle_cry: string | null;
+  description: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+interface RawTeamMember {
+  id: string;
+  user_id: string | null;
+  nickname: string;
+  avatar_url: string;
+  position: string;
+  team_id: string;
+  game_id: string;
+  bio: string | null;
+  champion_pool: string | null;
+  rating: number;
+  is_captain: number;
+  live_url: string | null;
+  sort_order: number | null;
+  level: string;
+  created_at: string;
+  updated_at: string;
+  auction_price: number;
+}
+
+interface RawMatch {
+  id: string;
+  team_a_id: string | null;
+  team_b_id: string | null;
+  score_a: number;
+  score_b: number;
+  winner_id: string | null;
+  round: string;
+  status: string;
+  start_time: string | null;
+  stage: string;
+  swiss_record: string | null;
+  swiss_round: number | null;
+  bo_format: string | null;
+  elimination_bracket: string | null;
+  elimination_game_number: number | null;
+  created_at: string;
+  updated_at: string;
+}
+
+interface RawVideo {
+  id: string;
+  bvid: string;
+  bilibili_title: string;
+  custom_title: string | null;
+  cover_url: string;
+  order: number;
+  status: string;
+  created_at: string;
+  updated_at: string;
+  created_by: string;
+}
+
+interface RawStreamer {
+  id: string;
+  nickname: string;
+  poster_url: string;
+  bio: string;
+  live_url: string;
+  streamer_type: string;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+function convertTeam(raw: RawTeam, members: Player[]): Team {
+  return {
+    id: raw.id,
+    name: raw.name,
+    logo:
+      getUploadUrl(raw.logo || raw.logo_url) ||
+      `https://api.dicebear.com/7.x/identicon/svg?seed=${raw.id}`,
+    players: members,
+    battleCry: raw.battle_cry || '暂无参赛宣言',
+  };
+}
+
+function convertTeamWithMembers(raw: RawTeam, members: Player[]): TeamWithMembers {
+  return {
+    id: raw.id,
+    name: raw.name,
+    logo:
+      getUploadUrl(raw.logo || raw.logo_url) ||
+      `https://api.dicebear.com/7.x/identicon/svg?seed=${raw.id}`,
+    players: members,
+    battleCry: raw.battle_cry || '暂无参赛宣言',
+    logoUrl: raw.logo_url || undefined,
+    description: raw.description || undefined,
+  };
+}
+
+function convertPlayer(raw: RawTeamMember): Player {
+  return {
+    id: raw.id,
+    nickname: raw.nickname,
+    avatarUrl: raw.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${raw.id}`,
+    position: raw.position as PositionType,
+    teamId: raw.team_id,
+    gameId: raw.game_id,
+    bio: raw.bio || undefined,
+    championPool: raw.champion_pool ? JSON.parse(raw.champion_pool) : undefined,
+    rating: raw.rating,
+    isCaptain: raw.is_captain === 1,
+    liveUrl: raw.live_url || undefined,
+    level: raw.level as Player['level'],
+    auctionPrice: raw.auction_price,
+    sortOrder: raw.sort_order ?? undefined,
+  };
+}
+
+function convertMatch(raw: RawMatch, teams: Team[]): Match {
+  const matchStage = raw.stage === 'elimination' ? ('elimination' as const) : ('swiss' as const);
+  const bracketMap: Record<string, Match['eliminationBracket']> = {
+    quarterfinals: 'quarterfinals',
+    semifinals: 'semifinals',
+    finals: 'finals',
+  };
+  const eliminationBracket = raw.elimination_bracket
+    ? bracketMap[raw.elimination_bracket] || undefined
+    : undefined;
+
+  const matchStatus = raw.status as Match['status'];
+
+  return {
+    id: raw.id,
+    teamAId: raw.team_a_id || '',
+    teamBId: raw.team_b_id || '',
+    teamA: teams.find(t => t.id === raw.team_a_id) || undefined,
+    teamB: teams.find(t => t.id === raw.team_b_id) || undefined,
+    scoreA: raw.score_a,
+    scoreB: raw.score_b,
+    winnerId: raw.winner_id || null,
+    round: raw.round,
+    status: matchStatus,
+    startTime: raw.start_time || undefined,
+    stage: matchStage,
+    swissRecord: raw.swiss_record || undefined,
+    swissRound: raw.swiss_round ?? undefined,
+    boFormat: (raw.bo_format as Match['boFormat']) || undefined,
+    eliminationBracket,
+    eliminationGameNumber: raw.elimination_game_number ?? undefined,
+  };
+}
+
+function convertVideo(raw: RawVideo): VideoItem {
+  return {
+    id: raw.id,
+    title: raw.custom_title || raw.bilibili_title,
+    bvid: raw.bvid,
+    page: 1,
+    coverUrl: raw.cover_url,
+  };
+}
+
+function convertStreamer(raw: RawStreamer): Streamer {
+  return {
+    id: raw.id,
+    nickname: raw.nickname,
+    posterUrl: raw.poster_url,
+    bio: raw.bio,
+    liveUrl: raw.live_url,
+    streamerType: raw.streamer_type as Streamer['streamerType'],
+    sortOrder: raw.sort_order,
+  };
+}
+
 export const HomeDataProvider: React.FC<HomeDataProviderProps> = ({ children }) => {
-  const [stream, setStream] = useState<Stream | null>(null);
-  const [teams, setTeams] = useState<ApiTeam[]>([]);
-  const [matches, setMatches] = useState<unknown[]>([]);
-  const [videos, setVideos] = useState<VideoItem[]>([]);
-  const [streamers, setStreamers] = useState<Streamer[]>([]);
-  const [isLoading, setIsLoading] = useState<LoadingState>({
-    stream: false,
-    teams: false,
-    matches: false,
-    videos: false,
-    streamers: false,
-  });
+  const stream = convertStream(streamData[0]);
 
-  // 追踪是否已请求过，避免重复请求
-  const hasFetched = useRef<Record<string, boolean>>({
-    stream: false,
-    teams: false,
-    matches: false,
-    videos: false,
-    streamers: false,
-  });
+  const rawTeams = teamsData as unknown as RawTeam[];
+  const rawMembers = teamMembersData as unknown as RawTeamMember[];
 
-  // 追踪正在进行的请求，防止并发重复
-  const pendingRequests = useRef<Record<string, Promise<void> | null>>({
-    stream: null,
-    teams: null,
-    matches: null,
-    videos: null,
-    streamers: null,
-  });
+  const playersMap = new Map<string, Player[]>();
+  for (const raw of rawMembers) {
+    const existing = playersMap.get(raw.team_id) || [];
+    existing.push(convertPlayer(raw));
+    playersMap.set(raw.team_id, existing);
+  }
 
-  const setLoading = useCallback((key: keyof LoadingState, value: boolean) => {
-    setIsLoading(prev => ({ ...prev, [key]: value }));
-  }, []);
-
-  const fetchStream = useCallback(async () => {
-    if (hasFetched.current.stream) return;
-    if (pendingRequests.current.stream) {
-      await pendingRequests.current.stream;
-      return;
-    }
-
-    setLoading('stream', true);
-    const promise = streamService
-      .get()
-      .then(data => {
-        setStream(data);
-      })
-      .catch(error => {
-        console.error('获取直播数据失败:', error);
-      })
-      .finally(() => {
-        hasFetched.current.stream = true;
-        setLoading('stream', false);
-        pendingRequests.current.stream = null;
-      });
-
-    pendingRequests.current.stream = promise;
-    await promise;
-  }, [setLoading]);
-
-  const fetchTeams = useCallback(async () => {
-    if (hasFetched.current.teams) return;
-    if (pendingRequests.current.teams) {
-      await pendingRequests.current.teams;
-      return;
-    }
-
-    setLoading('teams', true);
-    const promise = teamService
-      .getAll()
-      .then(data => {
-        setTeams(data);
-      })
-      .catch(error => {
-        console.error('获取战队数据失败:', error);
-      })
-      .finally(() => {
-        hasFetched.current.teams = true;
-        setLoading('teams', false);
-        pendingRequests.current.teams = null;
-      });
-
-    pendingRequests.current.teams = promise;
-    await promise;
-  }, [setLoading]);
-
-  const fetchMatches = useCallback(async () => {
-    if (hasFetched.current.matches) return;
-    // 如果请求正在进行中，等待该请求完成
-    if (pendingRequests.current.matches) {
-      await pendingRequests.current.matches;
-      return;
-    }
-
-    setLoading('matches', true);
-    const promise = matchService
-      .getAll()
-      .then(data => {
-        setMatches(data);
-      })
-      .catch(error => {
-        console.error('获取比赛数据失败:', error);
-      })
-      .finally(() => {
-        hasFetched.current.matches = true;
-        setLoading('matches', false);
-        pendingRequests.current.matches = null;
-      });
-
-    pendingRequests.current.matches = promise;
-    await promise;
-  }, [setLoading]);
-
-  const fetchVideos = useCallback(async () => {
-    if (hasFetched.current.videos) return;
-    if (pendingRequests.current.videos) {
-      await pendingRequests.current.videos;
-      return;
-    }
-
-    setLoading('videos', true);
-    const promise = getVideos({ isEnabled: true })
-      .then(data => {
-        const videoList = Array.isArray(data) ? data : data.list || [];
-        const videoItems: VideoItem[] = videoList.map(v => ({
-          id: v.id,
-          title: v.title,
-          bvid: v.bvid,
-          page: 1,
-          coverUrl: v.coverUrl,
-        }));
-        setVideos(videoItems);
-      })
-      .catch(error => {
-        console.error('获取视频数据失败:', error);
-      })
-      .finally(() => {
-        hasFetched.current.videos = true;
-        setLoading('videos', false);
-        pendingRequests.current.videos = null;
-      });
-
-    pendingRequests.current.videos = promise;
-    await promise;
-  }, [setLoading]);
-
-  const fetchStreamers = useCallback(async () => {
-    if (hasFetched.current.streamers) return;
-    if (pendingRequests.current.streamers) {
-      await pendingRequests.current.streamers;
-      return;
-    }
-
-    setLoading('streamers', true);
-    const promise = streamersApi
-      .getAll()
-      .then(data => {
-        setStreamers(data);
-      })
-      .catch(error => {
-        console.error('获取主播数据失败:', error);
-      })
-      .finally(() => {
-        hasFetched.current.streamers = true;
-        setLoading('streamers', false);
-        pendingRequests.current.streamers = null;
-      });
-
-    pendingRequests.current.streamers = promise;
-    await promise;
-  }, [setLoading]);
-
-  const refresh = useCallback(
-    async (module: string) => {
-      hasFetched.current[module] = false;
-      pendingRequests.current[module] = null;
-      requestCache.clear(module);
-
-      const fetchMap: Record<string, () => Promise<void>> = {
-        stream: fetchStream,
-        teams: fetchTeams,
-        matches: fetchMatches,
-        videos: fetchVideos,
-        streamers: fetchStreamers,
-      };
-
-      const fetchFn = fetchMap[module];
-      if (fetchFn) {
-        await fetchFn();
-      }
-    },
-    [fetchStream, fetchTeams, fetchMatches, fetchVideos, fetchStreamers]
+  const teams = rawTeams.map(raw => convertTeam(raw, playersMap.get(raw.id) || []));
+  const teamsWithMembers = rawTeams.map(raw =>
+    convertTeamWithMembers(raw, playersMap.get(raw.id) || [])
   );
+
+  const rawMatches = matchesData as unknown as RawMatch[];
+  const matches = rawMatches.map(raw => convertMatch(raw, teams));
+
+  const rawVideos = videosData as unknown as RawVideo[];
+  const videos = rawVideos.map(convertVideo);
+
+  const rawStreamers = streamersData as unknown as RawStreamer[];
+  const streamers = rawStreamers.map(convertStreamer);
 
   return (
     <HomeDataContext.Provider
       value={{
         stream,
         teams,
+        teamsWithMembers,
         matches,
         videos,
         streamers,
-        isLoading,
-        fetchStream,
-        fetchTeams,
-        fetchMatches,
-        fetchVideos,
-        fetchStreamers,
-        refresh,
       }}
     >
       {children}
