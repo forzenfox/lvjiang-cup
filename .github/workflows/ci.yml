@@ -2,9 +2,23 @@ name: CI
 
 on:
   push:
-    branches: [develop, 'feature/**', 'bugfix/**']
+    branches:
+      - develop
+      - 'feature/**'
+      - 'bugfix/**'
   pull_request:
-    branches: [main, master, develop]
+    branches:
+      - main
+      - master
+      - develop
+    types:
+      - opened
+      - synchronize
+      - reopened
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   # 检测文件变更
