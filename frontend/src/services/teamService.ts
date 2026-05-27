@@ -2,8 +2,7 @@ import * as teamApi from '@/api/teams';
 import * as teamImportApi from '@/api/teams-import';
 import type { Team, CreateTeamRequest, UpdateTeamRequest } from '@/api/types';
 import type { ImportResult, ImportError } from '@/api/teams-import';
-import { requestCache, CACHE_TTL } from '@/utils/requestCache';
-import { matchDataCache } from '@/utils/matchDataCache';
+import { unifiedCache } from '@/utils/unifiedCache';
 
 /**
  * 战队服务状态接口
@@ -109,7 +108,7 @@ export const teamService: TeamService = {
    * @returns 战队列表
    */
   async getAll(): Promise<Team[]> {
-    const cached = requestCache.get<Team[]>('teams', CACHE_TTL.teams);
+    const cached = unifiedCache.get<Team[]>('teams');
     if (cached) {
       setState({ teams: cached, loading: false, error: null });
       return cached;
@@ -120,7 +119,7 @@ export const teamService: TeamService = {
     try {
       const teams = await teamApi.getAll();
 
-      requestCache.set('teams', teams);
+      unifiedCache.set('teams', teams);
       setState({
         teams,
         loading: false,
@@ -171,8 +170,7 @@ export const teamService: TeamService = {
       const team = await teamApi.create(data);
 
       // 清除缓存，确保下次获取时从后端拉取最新数据
-      requestCache.clear('teams');
-      matchDataCache.clear();
+      unifiedCache.clear('teams');
 
       // 更新本地列表
       setState({
@@ -203,8 +201,7 @@ export const teamService: TeamService = {
       const team = await teamApi.update(data);
 
       // 清除缓存，确保下次获取时从后端拉取最新数据
-      requestCache.clear('teams');
-      matchDataCache.clear();
+      unifiedCache.clear('teams');
 
       // 更新本地列表中的战队
       setState({
@@ -230,8 +227,7 @@ export const teamService: TeamService = {
       await teamApi.remove(id);
 
       // 清除缓存，确保下次获取时从后端拉取最新数据
-      requestCache.clear('teams');
-      matchDataCache.clear();
+      unifiedCache.clear('teams');
 
       // 从本地列表中移除
       setState({
@@ -254,8 +250,7 @@ export const teamService: TeamService = {
 
     try {
       const result = await teamImportApi.importTeams(file);
-      requestCache.clear('teams');
-      matchDataCache.clear();
+      unifiedCache.clear('teams');
       setState({ loading: false });
       return result;
     } catch (error) {

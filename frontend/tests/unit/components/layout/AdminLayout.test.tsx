@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import AdminLayout from '@/components/layout/AdminLayout';
+import { unifiedCache } from '@/utils/unifiedCache';
 
 // Mock useAuth
 vi.mock('@/hooks/useAuth', () => ({
@@ -12,18 +13,24 @@ vi.mock('@/hooks/useAuth', () => ({
   }),
 }));
 
-// Mock requestCache - 必须在 vi.mock 工厂函数内定义
-vi.mock('@/utils/requestCache', () => {
+// Mock unifiedCache
+vi.mock('@/utils/unifiedCache', () => {
   const mockDisable = vi.fn();
   const mockEnable = vi.fn();
   const mockIsEnabled = vi.fn().mockReturnValue(true);
 
   return {
-    requestCache: {
+    unifiedCache: {
+      get: vi.fn(),
+      set: vi.fn(),
+      clear: vi.fn(),
+      clearAll: vi.fn(),
+      clearByPrefix: vi.fn(),
       disable: mockDisable,
       enable: mockEnable,
       isEnabled: mockIsEnabled,
     },
+    UnifiedCache: vi.fn(),
     disableFrontendCache: () => mockDisable(),
     enableFrontendCache: () => mockEnable(),
   };
@@ -35,7 +42,6 @@ vi.mock('@/constants/routes', () => ({
 }));
 
 // 导入 mock 后的模块以获取 mock 函数
-const { requestCache } = await import('@/utils/requestCache');
 
 describe('AdminLayout 导航菜单', () => {
   beforeEach(() => {
@@ -136,7 +142,7 @@ describe('AdminLayout 缓存管理', () => {
     );
 
     // 验证 requestCache.disable 被调用（通过 disableFrontendCache 间接调用）
-    expect(requestCache.disable).toHaveBeenCalledTimes(1);
+    expect(unifiedCache.disable).toHaveBeenCalledTimes(1);
   });
 
   it('进入管理后台后前端缓存应该被禁用', () => {
@@ -149,6 +155,6 @@ describe('AdminLayout 缓存管理', () => {
     );
 
     // 验证 requestCache.disable 被调用
-    expect(requestCache.disable).toHaveBeenCalledTimes(1);
+    expect(unifiedCache.disable).toHaveBeenCalledTimes(1);
   });
 });

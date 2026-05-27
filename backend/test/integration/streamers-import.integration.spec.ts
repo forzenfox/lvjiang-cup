@@ -17,6 +17,8 @@ import * as ExcelJS from 'exceljs';
 import * as path from 'path';
 import * as os from 'os';
 import * as fs from 'fs';
+import { TransformInterceptor } from '../../src/common/interceptors/transform.interceptor';
+import { StreamersImportService } from '../../src/modules/streamers/services/streamers-import.service';
 
 describe('StreamersImport Integration', () => {
   let app: INestApplication;
@@ -65,6 +67,7 @@ describe('StreamersImport Integration', () => {
       }),
     );
     app.setGlobalPrefix('api');
+    app.useGlobalInterceptors(new TransformInterceptor());
     await app.init();
 
     databaseService = moduleFixture.get<DatabaseService>(DatabaseService);

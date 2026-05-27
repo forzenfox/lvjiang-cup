@@ -2,7 +2,7 @@ import { streamersApi, type StreamerOrder } from '@/api/streamers';
 import * as streamersImportApi from '@/api/streamers-import';
 import type { Streamer, CreateStreamerRequest, UpdateStreamerRequest } from '@/api/types';
 import type { StreamerImportResult, StreamerImportError } from '@/api/streamers-import';
-import { requestCache, CACHE_TTL } from '@/utils/requestCache';
+import { unifiedCache } from '@/utils/unifiedCache';
 
 /**
  * 主播服务状态接口
@@ -112,7 +112,7 @@ export const streamerService: StreamerService = {
    * @returns 主播列表
    */
   async getAll(): Promise<Streamer[]> {
-    const cached = requestCache.get<Streamer[]>('streamers', CACHE_TTL.streamers);
+    const cached = unifiedCache.get<Streamer[]>('streamers', { memoryTTL: 300000 });
     if (cached) {
       setState({ streamers: cached, loading: false, error: null });
       return cached;
@@ -123,7 +123,7 @@ export const streamerService: StreamerService = {
     try {
       const streamers = await streamersApi.getAll();
 
-      requestCache.set('streamers', streamers);
+      unifiedCache.set('streamers', streamers, { memoryTTL: 300000 });
       setState({
         streamers,
         loading: false,
@@ -174,7 +174,7 @@ export const streamerService: StreamerService = {
       const streamer = await streamersApi.create(data);
 
       // 清除缓存，确保下次获取时从后端拉取最新数据
-      requestCache.clear('streamers');
+      unifiedCache.clear('streamers');
 
       // 更新本地列表
       setState({
@@ -201,7 +201,7 @@ export const streamerService: StreamerService = {
       const streamer = await streamersApi.update(id, data);
 
       // 清除缓存，确保下次获取时从后端拉取最新数据
-      requestCache.clear('streamers');
+      unifiedCache.clear('streamers');
 
       // 更新本地列表中的主播
       setState({
@@ -228,7 +228,7 @@ export const streamerService: StreamerService = {
       await streamersApi.remove(id);
 
       // 清除缓存，确保下次获取时从后端拉取最新数据
-      requestCache.clear('streamers');
+      unifiedCache.clear('streamers');
 
       // 从本地列表中移除
       setState({
@@ -252,7 +252,7 @@ export const streamerService: StreamerService = {
       await streamersApi.updateSort(orders);
 
       // 清除缓存，确保下次获取时从后端拉取最新数据
-      requestCache.clear('streamers');
+      unifiedCache.clear('streamers');
 
       setState({ loading: false });
     } catch (error) {
@@ -272,7 +272,7 @@ export const streamerService: StreamerService = {
       const result = await streamersImportApi.importStreamers(file);
 
       // 清除缓存，确保下次获取时从后端拉取最新数据
-      requestCache.clear('streamers');
+      unifiedCache.clear('streamers');
 
       setState({ loading: false });
 

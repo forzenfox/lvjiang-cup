@@ -1,6 +1,6 @@
 import * as streamApi from '@/api/streams';
 import type { Stream, UpdateStreamRequest } from '@/api/types';
-import { requestCache, CACHE_TTL } from '@/utils/requestCache';
+import { unifiedCache } from '@/utils/unifiedCache';
 
 /**
  * 直播服务状态接口
@@ -99,7 +99,7 @@ export const streamService: StreamService = {
    */
   async get(id?: string): Promise<Stream> {
     const cacheKey = id ? `stream_${id}` : 'stream_current';
-    const cached = requestCache.get<Stream>(cacheKey, CACHE_TTL.stream);
+    const cached = unifiedCache.get<Stream>(cacheKey, { memoryTTL: 15000 });
     if (cached) {
       setState({ currentStream: cached, loading: false, error: null });
       return cached;
@@ -110,7 +110,7 @@ export const streamService: StreamService = {
     try {
       const stream = await streamApi.get(id);
 
-      requestCache.set(cacheKey, stream);
+      unifiedCache.set(cacheKey, stream, { memoryTTL: 15000 });
       setState({
         currentStream: stream,
         loading: false,
@@ -169,7 +169,7 @@ export const streamService: StreamService = {
       const stream = await streamApi.update(data);
 
       // 清除缓存，确保下次获取时从后端拉取最新数据
-      requestCache.clear('stream_current');
+      unifiedCache.clear('stream_current');
 
       // 更新本地列表中的直播
       setState({

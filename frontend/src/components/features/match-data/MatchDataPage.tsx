@@ -15,7 +15,7 @@ import {
   trackRadarChartExpand,
   trackRadarChartCollapse,
 } from '@/utils/tracking';
-import { matchDataCache } from '@/utils/matchDataCache';
+import { unifiedCache } from '@/utils/unifiedCache';
 import MatchDataSkeleton from './MatchDataSkeleton';
 import MatchDataEmptyState from './MatchDataEmptyState';
 import { initChampionMap } from '@/utils/championUtils';
@@ -100,8 +100,8 @@ const MatchDataPage: React.FC = () => {
    */
   const loadSeriesInfo = useCallback(
     async (mId: string, gameNum: number) => {
-      const cacheKey = matchDataCache.getMatchSeriesKey(mId);
-      const cached = matchDataCache.get<MatchSeriesInfo>(cacheKey);
+      const cacheKey = `matchSeries_${mId}`;
+      const cached = unifiedCache.get<MatchSeriesInfo>(cacheKey);
 
       if (cached) {
         setSeriesInfo(cached);
@@ -120,7 +120,7 @@ const MatchDataPage: React.FC = () => {
       try {
         const series = await getMatchSeries(mId);
         setSeriesInfo(series);
-        matchDataCache.set(cacheKey, series);
+        unifiedCache.set(cacheKey, series);
 
         const validGameNumbers = series.games.map(g => g.gameNumber);
         if (!validGameNumbers.includes(gameNum)) {
@@ -145,8 +145,8 @@ const MatchDataPage: React.FC = () => {
    */
   const loadGameData = useCallback(
     async (mId: string, gameNum: number) => {
-      const cacheKey = matchDataCache.getGameDataKey(mId, gameNum);
-      const cached = matchDataCache.get<MatchGameData>(cacheKey);
+      const cacheKey = `matchGame_${mId}_${gameNum}`;
+      const cached = unifiedCache.get<MatchGameData>(cacheKey);
 
       if (cached) {
         setGameData(cached);
@@ -158,7 +158,7 @@ const MatchDataPage: React.FC = () => {
         setGameData(data);
         // 只有数据存在时才缓存，null 不缓存
         if (data) {
-          matchDataCache.set(cacheKey, data);
+          unifiedCache.set(cacheKey, data);
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : '获取游戏数据失败');

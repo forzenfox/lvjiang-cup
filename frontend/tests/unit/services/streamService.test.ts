@@ -1,7 +1,7 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+﻿import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { streamService } from '@/services/streamService';
 import * as streamApi from '@/api/streams';
-import { requestCache } from '@/utils/requestCache';
+import { unifiedCache } from '@/utils/unifiedCache';
 
 vi.mock('@/api/streams', () => ({
   get: vi.fn(),
@@ -9,13 +9,20 @@ vi.mock('@/api/streams', () => ({
   update: vi.fn(),
 }));
 
-vi.mock('@/utils/requestCache', () => ({
-  requestCache: {
+vi.mock('@/utils/unifiedCache', () => ({
+  unifiedCache: {
     get: vi.fn(),
     set: vi.fn(),
     clear: vi.fn(),
+    clearAll: vi.fn(),
+    clearByPrefix: vi.fn(),
+    disable: vi.fn(),
+    enable: vi.fn(),
+    isEnabled: vi.fn(),
   },
-  CACHE_TTL: { stream: 60000 },
+  UnifiedCache: vi.fn(),
+  disableFrontendCache: vi.fn(),
+  enableFrontendCache: vi.fn(),
 }));
 
 const mockStream = {
@@ -42,7 +49,7 @@ describe('streamService 缓存清除测试', () => {
         isLive: true,
       });
 
-      expect(requestCache.clear).toHaveBeenCalledWith('stream_current');
+      expect(unifiedCache.clear).toHaveBeenCalledWith('stream_current');
     });
 
     it('更新直播失败时，不应该清除缓存', async () => {
@@ -57,24 +64,26 @@ describe('streamService 缓存清除测试', () => {
         })
       ).rejects.toThrow('更新失败');
 
-      expect(requestCache.clear).not.toHaveBeenCalled();
+      expect(unifiedCache.clear).not.toHaveBeenCalled();
     });
   });
 
   describe('get() 缓存行为', () => {
     it('没有缓存时，应该调用 API 并设置缓存', async () => {
-      (requestCache.get as ReturnType<typeof vi.fn>).mockReturnValue(null);
+      (unifiedCache.get as ReturnType<typeof vi.fn>).mockReturnValue(null);
       (streamApi.get as ReturnType<typeof vi.fn>).mockResolvedValue(mockStream);
 
       const result = await streamService.get();
 
       expect(streamApi.get).toHaveBeenCalled();
-      expect(requestCache.set).toHaveBeenCalledWith('stream_current', mockStream);
+      expect(unifiedCache.set).toHaveBeenCalledWith('stream_current', mockStream, {
+        memoryTTL: 15000,
+      });
       expect(result).toEqual(mockStream);
     });
 
     it('有缓存时，应该直接返回缓存数据而不请求 API', async () => {
-      (requestCache.get as ReturnType<typeof vi.fn>).mockReturnValue(mockStream);
+      (unifiedCache.get as ReturnType<typeof vi.fn>).mockReturnValue(mockStream);
 
       const result = await streamService.get();
 

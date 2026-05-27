@@ -7,11 +7,15 @@ on:
         description: '部署 S1'
         type: boolean
         default: true
+      deploy_s2:
+        description: '部署 S2'
+        type: boolean
+        default: true
 
 jobs:
   # ── Job 1: 构建 S1 ──
   build-s1:
-    if: ${{ github.event_name == 'push' || inputs.deploy_s1 }}
+    if: ${{ github.ref == 'refs/heads/release/static' && inputs.deploy_s1 }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -33,9 +37,33 @@ jobs:
           name: season-s1
           path: dist/s1
 
-  # ── Job 2: 汇总并部署 ──
+  # ── Job 2: 构建 S2 ──
+  build-s2:
+    if: ${{ github.ref == 'refs/heads/release/static' && inputs.deploy_s2 }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: release/s2
+          path: release-s2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: release-s2/package-lock.json
+      - run: |
+          cd release-s2
+          npm ci
+          npm run build
+      - run: mkdir -p dist/s2 && cp -r release-s2/dist/* dist/s2/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: season-s2
+          path: dist/s2
+
+  # ── Job 3: 汇总并部署 ──
   assemble-and-deploy:
-    needs: [build-s1]
+    needs: [build-s1, build-s2]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout release/static (for _redirects, _headers, and index.html)
@@ -48,6 +76,12 @@ jobs:
         with:
           name: season-s1
           path: dist/s1
+
+      - name: Download S2 build
+        uses: actions/download-artifact@v4
+        with:
+          name: season-s2
+          path: dist/s2
 
       - name: Copy _redirects and _headers
         run: |

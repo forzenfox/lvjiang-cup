@@ -1,7 +1,7 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+﻿import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { matchDataService, subscribeToMatchDataService } from '@/services/matchDataService';
 import * as matchDataApi from '@/api/matchData';
-import { requestCache } from '@/utils/requestCache';
+import { unifiedCache } from '@/utils/unifiedCache';
 
 vi.mock('@/api/matchData', () => ({
   checkMatchDataExists: vi.fn(),
@@ -14,13 +14,20 @@ vi.mock('@/api/matchData', () => ({
   downloadMatchDataErrorReport: vi.fn(),
 }));
 
-vi.mock('@/utils/requestCache', () => ({
-  requestCache: {
+vi.mock('@/utils/unifiedCache', () => ({
+  unifiedCache: {
     get: vi.fn(),
     set: vi.fn(),
     clear: vi.fn(),
+    clearAll: vi.fn(),
+    clearByPrefix: vi.fn(),
+    disable: vi.fn(),
+    enable: vi.fn(),
+    isEnabled: vi.fn(),
   },
-  CACHE_TTL: { matches: 60000 },
+  UnifiedCache: vi.fn(),
+  disableFrontendCache: vi.fn(),
+  enableFrontendCache: vi.fn(),
 }));
 
 const mockMatchId = 'match-1';
@@ -76,18 +83,18 @@ describe('matchDataService 缓存行为测试', () => {
 
   describe('getSeries() 缓存行为', () => {
     it('没有缓存时，应该调用 API 并设置缓存', async () => {
-      (requestCache.get as ReturnType<typeof vi.fn>).mockReturnValue(null);
+      (unifiedCache.get as ReturnType<typeof vi.fn>).mockReturnValue(null);
       (matchDataApi.getMatchSeries as ReturnType<typeof vi.fn>).mockResolvedValue(mockSeries);
 
       const result = await matchDataService.getSeries(mockMatchId);
 
       expect(matchDataApi.getMatchSeries).toHaveBeenCalledWith(mockMatchId);
-      expect(requestCache.set).toHaveBeenCalledWith(`matchSeries_${mockMatchId}`, mockSeries);
+      expect(unifiedCache.set).toHaveBeenCalledWith(`matchSeries_${mockMatchId}`, mockSeries);
       expect(result).toEqual(mockSeries);
     });
 
     it('有缓存时，应该直接返回缓存数据而不请求 API', async () => {
-      (requestCache.get as ReturnType<typeof vi.fn>).mockReturnValue(mockSeries);
+      (unifiedCache.get as ReturnType<typeof vi.fn>).mockReturnValue(mockSeries);
 
       const result = await matchDataService.getSeries(mockMatchId);
 
@@ -98,18 +105,18 @@ describe('matchDataService 缓存行为测试', () => {
 
   describe('getGameData() 缓存行为', () => {
     it('没有缓存时，应该调用 API 并设置缓存', async () => {
-      (requestCache.get as ReturnType<typeof vi.fn>).mockReturnValue(null);
+      (unifiedCache.get as ReturnType<typeof vi.fn>).mockReturnValue(null);
       (matchDataApi.getMatchGameData as ReturnType<typeof vi.fn>).mockResolvedValue(mockGameData);
 
       const result = await matchDataService.getGameData(mockMatchId, 1);
 
       expect(matchDataApi.getMatchGameData).toHaveBeenCalledWith(mockMatchId, 1);
-      expect(requestCache.set).toHaveBeenCalledWith(`matchGame_${mockMatchId}_1`, mockGameData);
+      expect(unifiedCache.set).toHaveBeenCalledWith(`matchGame_${mockMatchId}_1`, mockGameData);
       expect(result).toEqual(mockGameData);
     });
 
     it('有缓存时，应该直接返回缓存数据而不请求 API', async () => {
-      (requestCache.get as ReturnType<typeof vi.fn>).mockReturnValue(mockGameData);
+      (unifiedCache.get as ReturnType<typeof vi.fn>).mockReturnValue(mockGameData);
 
       const result = await matchDataService.getGameData(mockMatchId, 1);
 
@@ -132,10 +139,8 @@ describe('matchDataService 缓存行为测试', () => {
 
       await matchDataService.importMatchData(mockMatchId, mockFile);
 
-      expect(requestCache.clear).toHaveBeenCalledWith(`matchSeries_${mockMatchId}`);
-      for (let i = 1; i <= 10; i++) {
-        expect(requestCache.clear).toHaveBeenCalledWith(`matchGame_${mockMatchId}_${i}`);
-      }
+      expect(unifiedCache.clearByPrefix).toHaveBeenCalledWith(`matchSeries_${mockMatchId}`);
+      expect(unifiedCache.clearByPrefix).toHaveBeenCalledWith(`matchGame_${mockMatchId}_`);
     });
 
     it('导入失败时，不应该清除缓存', async () => {
@@ -150,7 +155,7 @@ describe('matchDataService 缓存行为测试', () => {
         '导入失败'
       );
 
-      expect(requestCache.clear).not.toHaveBeenCalled();
+      expect(unifiedCache.clearByPrefix).not.toHaveBeenCalled();
     });
   });
 
@@ -163,8 +168,8 @@ describe('matchDataService 缓存行为测试', () => {
 
       await matchDataService.updateGameData(mockMatchId, 1, { winnerTeamId: 'team-2' });
 
-      expect(requestCache.clear).toHaveBeenCalledWith(`matchSeries_${mockMatchId}`);
-      expect(requestCache.clear).toHaveBeenCalledWith(`matchGame_${mockMatchId}_1`);
+      expect(unifiedCache.clearByPrefix).toHaveBeenCalledWith(`matchSeries_${mockMatchId}`);
+      expect(unifiedCache.clearByPrefix).toHaveBeenCalledWith(`matchGame_${mockMatchId}_`);
     });
 
     it('更新失败时，不应该清除缓存', async () => {
@@ -174,7 +179,7 @@ describe('matchDataService 缓存行为测试', () => {
 
       await expect(matchDataService.updateGameData(mockMatchId, 1, {})).rejects.toThrow('更新失败');
 
-      expect(requestCache.clear).not.toHaveBeenCalled();
+      expect(unifiedCache.clearByPrefix).not.toHaveBeenCalled();
     });
   });
 
@@ -187,8 +192,8 @@ describe('matchDataService 缓存行为测试', () => {
 
       await matchDataService.deleteGameData(mockMatchId, 1);
 
-      expect(requestCache.clear).toHaveBeenCalledWith(`matchSeries_${mockMatchId}`);
-      expect(requestCache.clear).toHaveBeenCalledWith(`matchGame_${mockMatchId}_1`);
+      expect(unifiedCache.clearByPrefix).toHaveBeenCalledWith(`matchSeries_${mockMatchId}`);
+      expect(unifiedCache.clearByPrefix).toHaveBeenCalledWith(`matchGame_${mockMatchId}_`);
     });
 
     it('删除失败时，不应该清除缓存', async () => {
@@ -198,7 +203,7 @@ describe('matchDataService 缓存行为测试', () => {
 
       await expect(matchDataService.deleteGameData(mockMatchId, 1)).rejects.toThrow('删除失败');
 
-      expect(requestCache.clear).not.toHaveBeenCalled();
+      expect(unifiedCache.clearByPrefix).not.toHaveBeenCalled();
     });
   });
 

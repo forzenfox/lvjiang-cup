@@ -1,8 +1,8 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+﻿import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { streamerService } from '@/services/streamerService';
 import { streamersApi } from '@/api/streamers';
 import * as streamersImportApi from '@/api/streamers-import';
-import { requestCache } from '@/utils/requestCache';
+import { unifiedCache } from '@/utils/unifiedCache';
 import { StreamerType } from '@/api/types';
 
 vi.mock('@/api/streamers', () => ({
@@ -22,13 +22,20 @@ vi.mock('@/api/streamers-import', () => ({
   downloadStreamerErrorReport: vi.fn(),
 }));
 
-vi.mock('@/utils/requestCache', () => ({
-  requestCache: {
+vi.mock('@/utils/unifiedCache', () => ({
+  unifiedCache: {
     get: vi.fn(),
     set: vi.fn(),
     clear: vi.fn(),
+    clearAll: vi.fn(),
+    clearByPrefix: vi.fn(),
+    disable: vi.fn(),
+    enable: vi.fn(),
+    isEnabled: vi.fn(),
   },
-  CACHE_TTL: { streamers: 300000 },
+  UnifiedCache: vi.fn(),
+  disableFrontendCache: vi.fn(),
+  enableFrontendCache: vi.fn(),
 }));
 
 const mockStreamer = {
@@ -49,18 +56,20 @@ describe('streamerService 缓存清除测试', () => {
 
   describe('getAll() 缓存行为', () => {
     it('没有缓存时，应该调用 API 并设置缓存', async () => {
-      (requestCache.get as ReturnType<typeof vi.fn>).mockReturnValue(null);
+      (unifiedCache.get as ReturnType<typeof vi.fn>).mockReturnValue(null);
       (streamersApi.getAll as ReturnType<typeof vi.fn>).mockResolvedValue([mockStreamer]);
 
       const result = await streamerService.getAll();
 
       expect(streamersApi.getAll).toHaveBeenCalled();
-      expect(requestCache.set).toHaveBeenCalledWith('streamers', [mockStreamer]);
+      expect(unifiedCache.set).toHaveBeenCalledWith('streamers', [mockStreamer], {
+        memoryTTL: 300000,
+      });
       expect(result).toEqual([mockStreamer]);
     });
 
     it('有缓存时，应该直接返回缓存数据而不请求 API', async () => {
-      (requestCache.get as ReturnType<typeof vi.fn>).mockReturnValue([mockStreamer]);
+      (unifiedCache.get as ReturnType<typeof vi.fn>).mockReturnValue([mockStreamer]);
 
       const result = await streamerService.getAll();
 
@@ -81,7 +90,7 @@ describe('streamerService 缓存清除测试', () => {
         streamerType: StreamerType.INTERNAL,
       });
 
-      expect(requestCache.clear).toHaveBeenCalledWith('streamers');
+      expect(unifiedCache.clear).toHaveBeenCalledWith('streamers');
     });
 
     it('创建主播失败时，不应该清除缓存', async () => {
@@ -97,7 +106,7 @@ describe('streamerService 缓存清除测试', () => {
         })
       ).rejects.toThrow('创建失败');
 
-      expect(requestCache.clear).not.toHaveBeenCalled();
+      expect(unifiedCache.clear).not.toHaveBeenCalled();
     });
   });
 
@@ -109,7 +118,7 @@ describe('streamerService 缓存清除测试', () => {
         nickname: '更新后的名称',
       });
 
-      expect(requestCache.clear).toHaveBeenCalledWith('streamers');
+      expect(unifiedCache.clear).toHaveBeenCalledWith('streamers');
     });
 
     it('更新主播失败时，不应该清除缓存', async () => {
@@ -119,7 +128,7 @@ describe('streamerService 缓存清除测试', () => {
         '更新失败'
       );
 
-      expect(requestCache.clear).not.toHaveBeenCalled();
+      expect(unifiedCache.clear).not.toHaveBeenCalled();
     });
   });
 
@@ -129,7 +138,7 @@ describe('streamerService 缓存清除测试', () => {
 
       await streamerService.remove('streamer-1');
 
-      expect(requestCache.clear).toHaveBeenCalledWith('streamers');
+      expect(unifiedCache.clear).toHaveBeenCalledWith('streamers');
     });
 
     it('删除主播失败时，不应该清除缓存', async () => {
@@ -137,7 +146,7 @@ describe('streamerService 缓存清除测试', () => {
 
       await expect(streamerService.remove('streamer-1')).rejects.toThrow('删除失败');
 
-      expect(requestCache.clear).not.toHaveBeenCalled();
+      expect(unifiedCache.clear).not.toHaveBeenCalled();
     });
   });
 
@@ -150,7 +159,7 @@ describe('streamerService 缓存清除测试', () => {
         { id: 'streamer-2', sortOrder: 1 },
       ]);
 
-      expect(requestCache.clear).toHaveBeenCalledWith('streamers');
+      expect(unifiedCache.clear).toHaveBeenCalledWith('streamers');
     });
 
     it('更新排序失败时，不应该清除缓存', async () => {
@@ -162,7 +171,7 @@ describe('streamerService 缓存清除测试', () => {
         streamerService.updateSort([{ id: 'streamer-1', sortOrder: 2 }])
       ).rejects.toThrow('排序更新失败');
 
-      expect(requestCache.clear).not.toHaveBeenCalled();
+      expect(unifiedCache.clear).not.toHaveBeenCalled();
     });
   });
 
@@ -184,7 +193,7 @@ describe('streamerService 缓存清除测试', () => {
       const result = await streamerService.importStreamers(mockFile);
 
       expect(streamersImportApi.importStreamers).toHaveBeenCalledWith(mockFile);
-      expect(requestCache.clear).toHaveBeenCalledWith('streamers');
+      expect(unifiedCache.clear).toHaveBeenCalledWith('streamers');
       expect(result).toEqual(mockImportResult);
     });
 
@@ -198,7 +207,7 @@ describe('streamerService 缓存清除测试', () => {
 
       await expect(streamerService.importStreamers(mockFile)).rejects.toThrow('导入失败');
 
-      expect(requestCache.clear).not.toHaveBeenCalled();
+      expect(unifiedCache.clear).not.toHaveBeenCalled();
     });
   });
 });
