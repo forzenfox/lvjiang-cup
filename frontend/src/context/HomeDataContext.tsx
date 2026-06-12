@@ -215,7 +215,7 @@ function convertVideo(raw: RawVideo): VideoItem {
     title: raw.custom_title || raw.bilibili_title,
     bvid: raw.bvid,
     page: 1,
-    coverUrl: raw.cover_url,
+    coverUrl: `/s2/images/video-covers/${raw.cover_url}`,
   };
 }
 

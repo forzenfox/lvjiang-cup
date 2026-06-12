@@ -320,7 +320,7 @@ const MatchDetailContent: React.FC<MatchDetailContentProps> = ({ match, teams })
       {/* 对战数据按钮（仅PC端显示） */}
       {hasMatchData && !checkingMatchData && !isMobile && (
         <button
-          onClick={() => window.open(`/match/${match.id}/games`, '_blank')}
+          onClick={() => window.open(`/s2/match/${match.id}/games`, '_blank')}
           className="w-full h-11 mt-4 flex items-center justify-center gap-2
                      bg-gradient-to-r from-yellow-400 to-yellow-600
                      text-[#1E3A8A] font-bold text-base rounded-lg

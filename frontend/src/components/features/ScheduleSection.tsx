@@ -1,15 +1,13 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Loader2, AlertCircle } from 'lucide-react';
 import { useHomeData } from '@/context/HomeDataContext';
-import type { Match, Team } from '@/types';
+import type { Match } from '@/types';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
 import SwissStage from './SwissStageResponsive';
 import EliminationStage from './EliminationStage';
 import MatchDetailModal from './MatchDetailModal';
 import MatchDetailDrawer from './MatchDetailDrawer';
-import SwissEmptyState from './swiss/SwissEmptyState';
+import { useAdvancementStore, calculateAdvancement } from '@/store/advancementStore';
 
 const ScheduleSkeleton: React.FC = () => (
   <div className="w-full" data-testid="schedule-skeleton">
@@ -27,16 +25,9 @@ const ScheduleSkeleton: React.FC = () => (
   </div>
 );
 
-const ErrorState: React.FC<{ message: string }> = ({ message }) => (
-  <div className="flex flex-col items-center justify-center py-20" data-testid="schedule-error">
-    <AlertCircle className="w-16 h-16 text-red-500 mb-4" />
-    <p className="text-xl text-red-400 mb-2">加载失败</p>
-    <p className="text-sm text-gray-400 mb-6">{message}</p>
-  </div>
-);
-
 const ScheduleSection: React.FC = () => {
   const { matches, teams } = useHomeData();
+  const { advancement, setAdvancement } = useAdvancementStore();
   const [activeTab, setActiveTab] = useState<string>('swiss');
   const [scale, setScale] = useState(1);
   const [isMobile, setIsMobile] = useState(false);
@@ -52,6 +43,14 @@ const ScheduleSection: React.FC = () => {
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
+
+  // 动态计算晋级名单
+  useEffect(() => {
+    if (matches.length > 0) {
+      const calculated = calculateAdvancement(matches, teams);
+      setAdvancement(calculated);
+    }
+  }, [matches, teams, setAdvancement]);
 
   const handleMatchClick = (match: Match) => {
     setSelectedMatch(match);
@@ -147,6 +146,7 @@ const ScheduleSection: React.FC = () => {
                     <SwissStage
                       matches={swissMatches}
                       teams={teams}
+                      advancement={advancement}
                       onMatchClick={handleMatchClick}
                     />
                   )}
