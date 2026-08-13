@@ -201,12 +201,9 @@ describe('VideosService', () => {
     it('应该创建新视频', async () => {
       mockCacheService.get.mockReturnValue(undefined);
       mockDatabaseService.get
-        .mockResolvedValueOnce({ count: 5 }) // for count check
-        .mockResolvedValueOnce(null) // for existing bvid check
-        .mockImplementation((_sql: string) => {
-          // For findById after creation - return mockVideoRow for any ID
-          return Promise.resolve(mockVideoRow);
-        });
+        .mockResolvedValueOnce(null) // existing bvid check
+        .mockResolvedValueOnce({ maxOrder: 0 }) // MAX order
+        .mockResolvedValue(mockVideoRow); // findById after creation
       mockDatabaseService.run.mockResolvedValue({ lastID: 6 });
 
       await service.create(createDto);
@@ -220,29 +217,34 @@ describe('VideosService', () => {
 
     it('应该检测重复bvid+page', async () => {
       mockCacheService.get.mockReturnValue(undefined);
-      mockDatabaseService.get
-        .mockResolvedValueOnce({ count: 5 })
-        .mockResolvedValueOnce(mockVideoRow);
+      mockDatabaseService.get.mockResolvedValueOnce(mockVideoRow); // existing bvid check returns existing
 
       await expect(service.create(createDto)).rejects.toThrow(BadRequestException);
     });
 
-    it('应该检测启用数量限制（最多10个）', async () => {
-      mockDatabaseService.get.mockResolvedValueOnce({ count: 10 });
+    it('应该允许创建超过10个视频（无数量上限）', async () => {
+      mockCacheService.get.mockReturnValue(undefined);
+      mockDatabaseService.get
+        .mockResolvedValueOnce(null) // existing bvid check
+        .mockResolvedValueOnce({ maxOrder: 14 }) // MAX order
+        .mockResolvedValue(mockVideoRow); // findById after creation
+      mockDatabaseService.run.mockResolvedValue({ lastID: 16 });
 
-      await expect(service.create(createDto)).rejects.toThrow(BadRequestException);
+      await expect(service.create(createDto)).resolves.toBeDefined();
+      expect(mockDatabaseService.run).toHaveBeenCalledWith(
+        expect.stringContaining('INSERT INTO videos'),
+        expect.arrayContaining(['BV1234567890']),
+      );
     });
 
     it('应该使用默认order值0', async () => {
       const dtoWithoutOrder = { url: 'https://www.bilibili.com/video/BV1234567890' };
       mockCacheService.get.mockReturnValue(undefined);
       mockDatabaseService.get
-        .mockResolvedValueOnce({ count: 5 })
-        .mockResolvedValueOnce(null)
-        .mockImplementation((_sql: string) => {
-          return Promise.resolve(mockVideoRow);
-        });
-      mockDatabaseService.run.mockResolvedValue({ lastID: 6 });
+        .mockResolvedValueOnce(null) // existing bvid check
+        .mockResolvedValueOnce(null) // MAX order (no existing videos)
+        .mockResolvedValue(mockVideoRow); // findById after creation
+      mockDatabaseService.run.mockResolvedValue({ lastID: 1 });
 
       await service.create(dtoWithoutOrder as any);
 

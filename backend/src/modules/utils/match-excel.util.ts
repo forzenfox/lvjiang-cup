@@ -504,8 +504,9 @@ export function validatePlayerStats(data: PlayerStatsData, rowIndex: number): Va
   if (data.damageTaken < 0) {
     errors.push(`第${rowIndex}行: 承伤不能为负数`);
   }
-  if (data.level < 1 || data.level > 18) {
-    errors.push(`第${rowIndex}行: 等级必须在1-18之间`);
+  const maxLevel = data.position === 'TOP' ? 20 : 18;
+  if (data.level < 1 || data.level > maxLevel) {
+    errors.push(`第${rowIndex}行: 等级必须在1-${maxLevel}之间`);
   }
   if (data.visionScore < 0) {
     errors.push(`第${rowIndex}行: 视野得分不能为负数`);

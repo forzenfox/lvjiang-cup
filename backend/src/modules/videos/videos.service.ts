@@ -46,7 +46,6 @@ interface BilibiliMeta {
 @Injectable()
 export class VideosService extends BaseCachedService<Video, string> {
   private readonly videoLogger = new Logger(VideosService.name);
-  private readonly MAX_VIDEOS = 10;
   private readonly BILIBILI_API_BASE = 'https://api.bilibili.com/x/web-interface/view';
 
   constructor(databaseService: DatabaseService, cacheService: CacheService) {
@@ -336,13 +335,6 @@ export class VideosService extends BaseCachedService<Video, string> {
 
     if (!this.validateBvid(bvid)) {
       throw new BadRequestException('无效的B站视频BV号');
-    }
-
-    const countResult = await this.databaseService.get<{ count: number }>(
-      'SELECT COUNT(*) as count FROM videos',
-    );
-    if (countResult && countResult.count >= this.MAX_VIDEOS) {
-      throw new BadRequestException(`最多只能添加${this.MAX_VIDEOS}个视频`);
     }
 
     const existing = await this.databaseService.get<any>('SELECT * FROM videos WHERE bvid = ?', [

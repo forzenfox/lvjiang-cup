@@ -735,8 +735,8 @@ describe('match-excel.util', () => {
       expect(result.errors[0]).toContain('位置必须是 TOP/JUNGLE/MID/ADC/SUPPORT 之一');
     });
 
-    it('应该拒绝超出范围的等级', () => {
-      const invalidData = {
+    it('应允许上单位置等级为20', () => {
+      const data = {
         side: 'red',
         position: 'TOP',
         nickname: 'Bin',
@@ -755,9 +755,59 @@ describe('match-excel.util', () => {
         wardsCleared: 12,
       };
 
+      const result = validatePlayerStats(data, 7);
+      expect(result.valid).toBe(true);
+      expect(result.errors).toHaveLength(0);
+    });
+
+    it('应拒绝上单位置超出20的等级', () => {
+      const invalidData = {
+        side: 'red',
+        position: 'TOP',
+        nickname: 'Bin',
+        championName: 'Gwen',
+        championNameRaw: '格温',
+        kills: 2,
+        deaths: 2,
+        assists: 11,
+        cs: 349,
+        gold: 17315,
+        damageDealt: 28500,
+        damageTaken: 32000,
+        level: 21,
+        visionScore: 45,
+        wardsPlaced: 12,
+        wardsCleared: 12,
+      };
+
       const result = validatePlayerStats(invalidData, 7);
       expect(result.valid).toBe(false);
-      expect(result.errors[0]).toContain('等级必须在1-18之间');
+      expect(result.errors).toContain('第7行: 等级必须在1-20之间');
+    });
+
+    it('应拒绝非上单位置超出18的等级', () => {
+      const invalidData = {
+        side: 'red',
+        position: 'JUNGLE',
+        nickname: 'Xun',
+        championName: 'LeeSin',
+        championNameRaw: '盲僧',
+        kills: 2,
+        deaths: 2,
+        assists: 11,
+        cs: 349,
+        gold: 17315,
+        damageDealt: 28500,
+        damageTaken: 32000,
+        level: 19,
+        visionScore: 45,
+        wardsPlaced: 12,
+        wardsCleared: 12,
+      };
+
+      const result = validatePlayerStats(invalidData, 7);
+      expect(result.valid).toBe(false);
+      expect(result.errors).toContain('第7行: 等级必须在1-18之间');
     });
   });
 
