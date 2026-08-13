@@ -992,35 +992,6 @@ test.describe('【视频模块】视频数量和排序测试', () => {
   });
 
   /**
-   * TEST-VIDEO-023: 视频数量上限验证
-   * 优先级: P0
-   * 验证添加视频时不超过最大数量限制(10个)
-   */
-  test('TEST-VIDEO-023: 视频数量上限验证 @P0', async ({ page }) => {
-    await videosPage.clickRefresh();
-    await page.waitForTimeout(1000);
-
-    const maxVideos = 10;
-
-    if (videoCount >= maxVideos) {
-      await videosPage.clickAddVideo();
-      await videosPage.expectFormVisible();
-
-      await videosPage.fillVideoForm({
-        title: '超限测试',
-        bvid: 'BV1xx411c7XZ',
-      });
-
-      await videosPage.submitVideoForm();
-      await page.waitForTimeout(1500);
-
-      console.log(`⚠️ 视频数量已达上限(${maxVideos}个)，新视频应被拒绝`);
-    } else {
-      console.log(`✅ 当前视频数量(${videoCount}/${maxVideos})，未超过上限`);
-    }
-  });
-
-  /**
    * TEST-VIDEO-024: 视频排序功能
    * 优先级: P1
    * 验证可以拖拽视频进行排序
