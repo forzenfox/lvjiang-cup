@@ -2,8 +2,18 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import SwissRoundTabs from '@/components/features/swiss/SwissRoundTabs';
 
+// 默认配置（16 队 3 胜 3 败）的轮次标签数据（由视图模型列结构推导）
+const defaultRounds = [
+  { round: 1, label: '第一轮' },
+  { round: 2, label: '第二轮' },
+  { round: 3, label: '第三轮' },
+  { round: 4, label: '第四轮' },
+  { round: 5, label: '第五轮' },
+];
+
 describe('SwissRoundTabs', () => {
   const defaultProps = {
+    rounds: defaultRounds,
     selectedRound: 1,
     onRoundChange: vi.fn(),
   };
@@ -117,5 +127,26 @@ describe('SwissRoundTabs', () => {
     buttons.forEach(button => {
       expect(button.classList.toString()).toContain('min-h-[44px]');
     });
+  });
+
+  it('动态轮次数据（8 队 2 胜制 3 轮）：最终结果标签的 round 应为 4', () => {
+    const threeRounds = [
+      { round: 1, label: '第一轮' },
+      { round: 2, label: '第二轮' },
+      { round: 3, label: '第三轮' },
+    ];
+    render(
+      <SwissRoundTabs
+        rounds={threeRounds}
+        selectedRound={4}
+        onRoundChange={vi.fn()}
+        showFinalResult
+      />
+    );
+
+    // 最终结果标签 round = 3 + 1 = 4，选中态应为 true
+    const finalResultTab = screen.getByTestId('swiss-round-tabs-tab-4');
+    expect(finalResultTab).toHaveAttribute('data-selected', 'true');
+    expect(screen.getByText('最终结果')).toBeInTheDocument();
   });
 });

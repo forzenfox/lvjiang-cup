@@ -2,11 +2,15 @@ import React, { useMemo, useState, useEffect, useRef, useCallback } from 'react'
 import { Match, Team } from '@/types';
 import SwissRecordSection from './SwissRecordSection';
 import { SWISS_THEME } from '@/constants/swissTheme';
-import { SWISS_COLUMNS, type SwissColumnConfig } from '@/constants/swissTreeConfig';
+import type { SwissColumnConfig, SwissViewConfig } from '@/lib/format';
 
 interface SwissRoundTreeProps {
   matches: Match[];
   teams: Team[];
+  /** 轮次列视图模型（来自 buildSwissColumns，由父组件按生效配置推导） */
+  columns: SwissColumnConfig[];
+  /** BO1/BO3 快捷视图配置（来自 getSwissViewConfig） */
+  viewConfig: SwissViewConfig;
   activeTab: 'bo1' | 'bo3';
   onTabChange: (tab: 'bo1' | 'bo3') => void;
   advancement?: {
@@ -22,6 +26,8 @@ interface SwissRoundTreeProps {
 const SwissRoundTree: React.FC<SwissRoundTreeProps> = ({
   matches,
   teams,
+  columns,
+  viewConfig,
   activeTab,
   onTabChange,
   advancement,
@@ -42,10 +48,6 @@ const SwissRoundTree: React.FC<SwissRoundTreeProps> = ({
 
   // 滚动容器引用 - 用于计算卡片的相对位置
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-
-  // BO1/BO3 战绩分组定义
-  const bo1Records = ['0-0', '1-0', '0-1', '1-1'];
-  const bo3Records = ['2-0', '0-2', '2-1', '1-2', '2-2'];
 
   // 按战绩分组比赛
   const matchesByRecord = useMemo(() => {
@@ -89,17 +91,18 @@ const SwissRoundTree: React.FC<SwissRoundTreeProps> = ({
   // 容器宽度
   const visibleWidth = fixedColumnCount * columnWidth + (fixedColumnCount - 1) * columnGap;
 
-  // 计算滑动偏移量
-  // BO1: 显示第1-4列 (索引0-3)，偏移0
-  // BO3: 显示第3-6列 (索引2-5)，需要向左滑动2列的宽度
-  const slideOffset = activeTab === 'bo1' ? 0 : -2 * (columnWidth + columnGap);
+  // 计算滑动偏移量（基于视图模型列数推导"滑动 4 列视窗"）
+  // BO1: 从第 1 列起的 4 列视窗，偏移 0
+  // BO3: 最后 4 列视窗，需向左滑动 max(0, N-4) 列宽度（N 为总列数）
+  const slideOffset =
+    activeTab === 'bo1' ? 0 : -Math.max(0, columns.length - 4) * (columnWidth + columnGap);
 
-  // 判断战绩分组是否应该高亮
+  // 判断战绩分组是否应该高亮（高亮记录来自视图模型 viewConfig）
   const shouldHighlightRecord = (record: string): boolean => {
     if (activeTab === 'bo1') {
-      return bo1Records.includes(record);
+      return viewConfig.bo1.records.includes(record);
     }
-    return bo3Records.includes(record);
+    return viewConfig.bo3.records.includes(record);
   };
 
   // 处理比赛卡片位置变化（静态连线不再需要动态位置计算）
@@ -242,7 +245,7 @@ const SwissRoundTree: React.FC<SwissRoundTreeProps> = ({
         />
       </div>
 
-      {/* 赛程区域 - 6列容器，带滑动动画 */}
+      {/* 赛程区域 - 动态列容器，带滑动动画 */}
       <div
         ref={scrollContainerRef}
         className="overflow-hidden mx-auto relative"
@@ -252,18 +255,18 @@ const SwissRoundTree: React.FC<SwissRoundTreeProps> = ({
         }}
         data-testid={`${testId}-content`}
       >
-        {/* 6列容器，通过transform实现滑动 */}
+        {/* 全列容器，通过transform实现滑动 */}
         <div
           className="flex transition-transform relative"
           style={{
             transform: `translateX(${slideOffset}px)`,
-            width: `${6 * columnWidth + 5 * columnGap}px`,
+            width: `${columns.length * columnWidth + (columns.length - 1) * columnGap}px`,
             gap: `${columnGap}px`,
             transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
             zIndex: 2,
           }}
         >
-          {SWISS_COLUMNS.map(renderColumn)}
+          {columns.map(renderColumn)}
         </div>
       </div>
     </div>

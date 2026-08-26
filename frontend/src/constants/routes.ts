@@ -17,3 +17,8 @@ export const ADMIN_PREFIX = import.meta.env.VITE_ADMIN_ROUTE_PREFIX || 'admin';
 export function adminPath(path: string): string {
   return `/${ADMIN_PREFIX}/${path}`;
 }
+
+/**
+ * 管理后台 - 赛制配置页路径
+ */
+export const FORMAT_CONFIG = adminPath('format-config');

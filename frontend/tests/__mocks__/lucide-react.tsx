@@ -67,3 +67,4 @@ export const Lock = MockIcon;
 export const LayoutDashboard = MockIcon;
 export const LogOut = MockIcon;
 export const Home = MockIcon;
+export const SlidersHorizontal = MockIcon;

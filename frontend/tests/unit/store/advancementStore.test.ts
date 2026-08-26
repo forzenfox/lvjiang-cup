@@ -1,6 +1,9 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { useAdvancementStore, calculateAdvancement } from '@/store/advancementStore';
 
+// 本文件用例均基于现状默认赛制（3 胜晋级 / 3 败淘汰）
+const defaultRules = { winThreshold: 3, lossThreshold: 3 };
+
 const cleanup = () => {
   localStorage.clear();
   const store = useAdvancementStore.getState();
@@ -126,7 +129,7 @@ describe('calculateAdvancement', () => {
 
       const teams = [{ id: 'team1' }, { id: 'team2' }, { id: 'team3' }, { id: 'team4' }];
 
-      const result = calculateAdvancement(matches, teams);
+      const result = calculateAdvancement(matches, teams, defaultRules);
 
       expect(result.top8).toContain('team1');
       expect(result.rankings[0]).toEqual({ teamId: 'team1', record: '3-0', rank: 1 });
@@ -159,7 +162,7 @@ describe('calculateAdvancement', () => {
 
       const teams = [{ id: 'team1' }, { id: 'team2' }, { id: 'team3' }, { id: 'team4' }];
 
-      const result = calculateAdvancement(matches, teams);
+      const result = calculateAdvancement(matches, teams, defaultRules);
 
       expect(result.eliminated).toContain('team1');
       expect(result.rankings[0]).toEqual({ teamId: 'team1', record: '0-3', rank: 1 });
@@ -205,7 +208,7 @@ describe('calculateAdvancement', () => {
         { id: 'team5' },
       ];
 
-      const result = calculateAdvancement(matches, teams);
+      const result = calculateAdvancement(matches, teams, defaultRules);
 
       expect(result.top8).toContain('team1');
       expect(result.rankings.find(r => r.teamId === 'team1')?.record).toBe('3-1');
@@ -251,7 +254,7 @@ describe('calculateAdvancement', () => {
         { id: 'team5' },
       ];
 
-      const result = calculateAdvancement(matches, teams);
+      const result = calculateAdvancement(matches, teams, defaultRules);
 
       expect(result.eliminated).toContain('team1');
       expect(result.rankings.find(r => r.teamId === 'team1')?.record).toBe('1-3');
@@ -305,7 +308,7 @@ describe('calculateAdvancement', () => {
         { id: 'team6' },
       ];
 
-      const result = calculateAdvancement(matches, teams);
+      const result = calculateAdvancement(matches, teams, defaultRules);
 
       expect(result.top8).toContain('team1');
       expect(result.rankings.find(r => r.teamId === 'team1')?.record).toBe('3-2');
@@ -359,7 +362,7 @@ describe('calculateAdvancement', () => {
         { id: 'team6' },
       ];
 
-      const result = calculateAdvancement(matches, teams);
+      const result = calculateAdvancement(matches, teams, defaultRules);
 
       expect(result.eliminated).toContain('team1');
       expect(result.rankings.find(r => r.teamId === 'team1')?.record).toBe('2-3');
@@ -460,7 +463,7 @@ describe('calculateAdvancement', () => {
 
       const teams = Array.from({ length: 9 }, (_, i) => ({ id: `team${i + 1}` }));
 
-      const result = calculateAdvancement(matches, teams);
+      const result = calculateAdvancement(matches, teams, defaultRules);
 
       const rankings = result.rankings.filter(r => result.top8.includes(r.teamId));
       expect(rankings[0].record).toBe('3-0');
@@ -564,7 +567,7 @@ describe('calculateAdvancement', () => {
 
       const teams = Array.from({ length: 8 }, (_, i) => ({ id: `team${i + 1}` }));
 
-      const result = calculateAdvancement(matches, teams);
+      const result = calculateAdvancement(matches, teams, defaultRules);
 
       const eliminatedRankings = result.rankings.filter(r => result.eliminated.includes(r.teamId));
       expect(eliminatedRankings[0].record).toBe('0-3');
@@ -617,7 +620,7 @@ describe('calculateAdvancement', () => {
         { id: 'team5' },
       ];
 
-      const result = calculateAdvancement(matches, teams);
+      const result = calculateAdvancement(matches, teams, defaultRules);
 
       expect(result.top8).toContain('team1');
       const team1Record = result.rankings.find(r => r.teamId === 'team1');
@@ -658,7 +661,7 @@ describe('calculateAdvancement', () => {
         { id: 'team5' },
       ];
 
-      const result = calculateAdvancement(matches, teams);
+      const result = calculateAdvancement(matches, teams, defaultRules);
 
       const team1Record = result.rankings.find(r => r.teamId === 'team1');
       expect(team1Record?.record).toBe('3-0');
@@ -704,7 +707,7 @@ describe('calculateAdvancement', () => {
         { id: 'team5' },
       ];
 
-      const result = calculateAdvancement(matches, teams);
+      const result = calculateAdvancement(matches, teams, defaultRules);
 
       expect(result.top8).not.toContain('team1');
       expect(result.eliminated).not.toContain('team1');
@@ -714,7 +717,7 @@ describe('calculateAdvancement', () => {
       const matches: any[] = [];
       const teams = [{ id: 'team1' }, { id: 'team2' }];
 
-      const result = calculateAdvancement(matches, teams);
+      const result = calculateAdvancement(matches, teams, defaultRules);
 
       expect(result.top8).toEqual([]);
       expect(result.eliminated).toEqual([]);

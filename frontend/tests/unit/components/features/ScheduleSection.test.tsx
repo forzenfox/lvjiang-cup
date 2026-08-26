@@ -37,6 +37,20 @@ vi.mock('@/services/teamService', () => ({
   teamService: { getAll: vi.fn() },
 }));
 
+// 生效配置服务：返回内置默认配置（含 source/id；工厂内动态导入避免提升引用问题）
+vi.mock('@/services/formatService', async () => {
+  const { BUILTIN_DEFAULT_FORMAT } = await import('@/lib/format');
+  return {
+    formatService: {
+      getActiveFormat: vi.fn().mockResolvedValue({
+        source: 'builtin' as const,
+        id: null,
+        config: BUILTIN_DEFAULT_FORMAT,
+      }),
+    },
+  };
+});
+
 vi.mock('@/store/advancementStore', () => ({
   useAdvancementStore: () => ({ advancement: null, setAdvancement: vi.fn() }),
   calculateAdvancement: vi.fn().mockReturnValue(null),
@@ -144,7 +158,8 @@ describe('ScheduleSection', () => {
     mockHomeData.matches = [{ id: 'm1', stage: 'swiss' }];
     render(<ScheduleSection />);
 
-    const swissStage = screen.getByTestId('swiss-stage');
+    // 等待生效配置到达后瑞士轮视图渲染
+    const swissStage = await screen.findByTestId('swiss-stage');
     fireEvent.click(swissStage);
 
     await waitFor(() => {
@@ -156,7 +171,8 @@ describe('ScheduleSection', () => {
     mockHomeData.matches = [{ id: 'm1', stage: 'swiss' }];
     render(<ScheduleSection />);
 
-    const swissStage = screen.getByTestId('swiss-stage');
+    // 等待生效配置到达后瑞士轮视图渲染
+    const swissStage = await screen.findByTestId('swiss-stage');
     fireEvent.click(swissStage);
 
     await waitFor(() => {
@@ -179,7 +195,16 @@ describe('ScheduleSection', () => {
     render(<ScheduleSection />);
 
     // 验证 EliminationStage 组件被渲染（在 DOM 中存在，即使 tab 隐藏）
-    const eliminationContent = screen.getByTestId('elimination-content');
+    const eliminationContent = await screen.findByTestId('elimination-content');
     expect(eliminationContent).toBeInTheDocument();
+  });
+
+  it('挂载时获取生效赛制配置（getActiveFormat）', async () => {
+    const { formatService } = await import('@/services/formatService');
+    render(<ScheduleSection />);
+
+    await waitFor(() => {
+      expect(formatService.getActiveFormat).toHaveBeenCalledTimes(1);
+    });
   });
 });

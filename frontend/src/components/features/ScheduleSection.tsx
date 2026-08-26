@@ -15,13 +15,19 @@ import { useAdvancementStore, calculateAdvancement } from '@/store/advancementSt
 import { PositionType } from '@/types/position';
 import { getUploadUrl } from '@/utils/upload';
 import SwissEmptyState from './swiss/SwissEmptyState';
-import { BUILTIN_DEFAULT_FORMAT, type SwissStageConfig } from '@/lib/format';
+import { formatService, type ResolvedActiveFormat } from '@/services/formatService';
+import {
+  buildSwissColumns,
+  getSwissViewConfig,
+  buildEliminationStages,
+  BUILTIN_DEFAULT_FORMAT,
+  type SwissColumnConfig,
+  type SwissStageConfig,
+  type EliminationStageConfig,
+  type SwissViewConfig,
+  type EliminationViewModel,
+} from '@/lib/format';
 import type { Match, Team, EliminationBracket, Player } from '@/types';
-
-// 内置默认配置的瑞士轮晋级/淘汰阈值（临时接线：后续波次改为从生效配置接口获取）
-const defaultSwissStage = BUILTIN_DEFAULT_FORMAT.stages.find(
-  (stage): stage is SwissStageConfig => stage.type === 'swiss'
-);
 
 const convertApiMatchToLocal = (apiMatch: ApiMatch, teams: Team[]): Match => {
   const teamA = teams.find(t => t.id === apiMatch.teamAId);
@@ -137,7 +143,9 @@ const ScheduleSection: React.FC = () => {
     fetchTeams,
     refresh,
   } = useHomeData();
-  const loading = isLoading.matches || isLoading.teams;
+  // 生效赛制配置（挂载时获取一次，不随 useVisibleRefresh 刷新）
+  const [activeFormat, setActiveFormat] = useState<ResolvedActiveFormat | null>(null);
+  const loading = isLoading.matches || isLoading.teams || activeFormat === null;
   const [activeTab, setActiveTab] = useState<string>('swiss');
   const { advancement, setAdvancement } = useAdvancementStore();
   const [scale, setScale] = useState(1);
@@ -168,6 +176,18 @@ const ScheduleSection: React.FC = () => {
   }, [apiMatches, convertedTeams]);
 
   useEffect(() => {
+    // 生效配置与比赛/队伍数据并行获取（配置低频变更，仅挂载时拉取）
+    formatService
+      .getActiveFormat()
+      .then(setActiveFormat)
+      .catch(() => {
+        // getActiveFormat 内部已兜底内置默认配置，此处仅防御异常态
+        setActiveFormat({
+          source: 'builtin',
+          id: null,
+          config: BUILTIN_DEFAULT_FORMAT,
+        });
+      });
     fetchMatches();
     fetchTeams();
   }, [fetchMatches, fetchTeams]);
@@ -179,16 +199,46 @@ const ScheduleSection: React.FC = () => {
     enabled: true,
   });
 
+  // 从生效配置中定位瑞士轮/淘汰赛赛段
+  const swissStage = useMemo(
+    () =>
+      activeFormat?.config.stages.find(
+        (stage): stage is SwissStageConfig => stage.type === 'swiss'
+      ),
+    [activeFormat]
+  );
+  const eliminationStage = useMemo(
+    () =>
+      activeFormat?.config.stages.find(
+        (stage): stage is EliminationStageConfig => stage.type === 'elimination'
+      ),
+    [activeFormat]
+  );
+
+  // 视图模型推导：瑞士轮列结构、BO 快捷视图、淘汰赛层级
+  const swissColumns: SwissColumnConfig[] = useMemo(
+    () => (swissStage ? buildSwissColumns(swissStage) : []),
+    [swissStage]
+  );
+  const viewConfig: SwissViewConfig | undefined = useMemo(
+    () => (swissStage ? getSwissViewConfig(swissColumns, swissStage) : undefined),
+    [swissColumns, swissStage]
+  );
+  const eliminationVm: EliminationViewModel | undefined = useMemo(
+    () => (eliminationStage ? buildEliminationStages(eliminationStage) : undefined),
+    [eliminationStage]
+  );
+
   useEffect(() => {
     const swissMatches = matches.filter(m => m.stage === 'swiss');
-    if (swissMatches.length > 0) {
+    if (swissMatches.length > 0 && swissStage) {
       const calculated = calculateAdvancement(swissMatches, convertedTeams, {
-        winThreshold: defaultSwissStage?.winThreshold ?? 3,
-        lossThreshold: defaultSwissStage?.lossThreshold ?? 3,
+        winThreshold: swissStage.winThreshold,
+        lossThreshold: swissStage.lossThreshold,
       });
       setAdvancement(calculated);
     }
-  }, [matches, convertedTeams, setAdvancement]);
+  }, [matches, convertedTeams, setAdvancement, swissStage]);
 
   const handleRetry = useCallback(() => {
     refresh('matches');
@@ -280,12 +330,14 @@ const ScheduleSection: React.FC = () => {
                   transition={{ duration: 0.3 }}
                   data-testid="swiss-stage-display"
                 >
-                  {swissMatches.length === 0 ? (
+                  {swissMatches.length === 0 || !swissStage || !viewConfig ? (
                     <SwissEmptyState message="暂无赛程信息，赛程信息将在比赛开始前公布" />
                   ) : (
                     <SwissStage
                       matches={swissMatches}
                       teams={convertedTeams}
+                      columns={swissColumns}
+                      viewConfig={viewConfig}
                       advancement={advancement}
                       onMatchClick={handleMatchClick}
                     />
@@ -300,12 +352,13 @@ const ScheduleSection: React.FC = () => {
                   transition={{ duration: 0.3 }}
                   data-testid="elimination-stage-display"
                 >
-                  {eliminationMatches.length === 0 ? (
+                  {eliminationMatches.length === 0 || !eliminationVm ? (
                     <SwissEmptyState message="暂无淘汰赛信息" />
                   ) : (
                     <EliminationStage
                       matches={eliminationMatches}
                       teams={convertedTeams}
+                      viewModel={eliminationVm}
                       onMatchClick={handleMatchClick}
                     />
                   )}

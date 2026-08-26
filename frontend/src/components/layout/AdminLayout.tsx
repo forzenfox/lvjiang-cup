@@ -11,6 +11,7 @@ import {
   User,
   Video,
   Trophy,
+  SlidersHorizontal,
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { Button } from '../ui/button';
@@ -66,6 +67,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
     { path: adminPath('streamers'), label: '主播管理', icon: User },
     { path: adminPath('videos'), label: '视频管理', icon: Video },
     { path: adminPath('teams'), label: '战队管理', icon: Users },
+    { path: adminPath('format-config'), label: '赛制配置', icon: SlidersHorizontal },
     { path: adminPath('schedule'), label: '赛程管理', icon: Calendar },
     { path: adminPath('matches'), label: '对战数据', icon: Trophy },
   ];

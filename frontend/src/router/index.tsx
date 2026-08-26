@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import { createBrowserRouter, type RouteObject } from 'react-router-dom';
 import Home from '../pages/Home';
 import AdminLogin from '../pages/admin/Login';
@@ -12,7 +12,10 @@ import ProtectedRoute from '../components/layout/ProtectedRoute';
 import MatchDataList from '../pages/admin/MatchDataList';
 import MatchDataManagement from '../pages/admin/MatchDataManagement';
 import MatchDataEditPage from '../components/features/match-data/MatchDataEditPage';
-import { adminPath } from '../constants/routes';
+import { adminPath, FORMAT_CONFIG } from '../constants/routes';
+
+// 赛制配置页（懒加载，按需拆分代码体积）
+const AdminFormatConfig = lazy(() => import('../pages/admin/FormatConfig'));
 
 /**
  * 路由配置
@@ -59,6 +62,22 @@ export const routes: RouteObject[] = [
     element: (
       <ProtectedRoute>
         <AdminSchedule />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: FORMAT_CONFIG,
+    element: (
+      <ProtectedRoute>
+        <Suspense
+          fallback={
+            <div className="min-h-screen bg-gray-900 flex items-center justify-center text-gray-400">
+              加载中...
+            </div>
+          }
+        >
+          <AdminFormatConfig />
+        </Suspense>
       </ProtectedRoute>
     ),
   },

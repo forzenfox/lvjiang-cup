@@ -1,8 +1,17 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { ChevronRight } from 'lucide-react';
-import { SWISS_STAGE_CONFIG } from '@/constants/swissStageConfig';
+
+/** 轮次标签项（由视图模型列结构推导：轮次号 + 列名） */
+export interface SwissRoundTabItem {
+  /** 轮次号（与视图模型列 id 对应） */
+  round: number;
+  /** 轮次显示名，如"第一轮"、"最终结果" */
+  label: string;
+}
 
 interface SwissRoundTabsProps {
+  /** 轮次标签数据（来自视图模型列结构，父组件传入） */
+  rounds: SwissRoundTabItem[];
   selectedRound: number;
   onRoundChange: (round: number) => void;
   className?: string;
@@ -14,19 +23,19 @@ interface SwissRoundTabsProps {
 }
 
 const SwissRoundTabs: React.FC<SwissRoundTabsProps> = ({
+  rounds,
   selectedRound,
   onRoundChange,
   className = '',
   'data-testid': testId = 'swiss-round-tabs',
   showFinalResult = false,
 }) => {
-  const rounds = SWISS_STAGE_CONFIG.rounds;
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [canScrollRight, setCanScrollRight] = useState(false);
 
-  // 移动端显示6个标签：前5轮 + 最终结果
+  // 移动端标签：轮次 + 最终结果（最终结果列 id = 轮次数 + 1）
   const tabs = showFinalResult
-    ? [...rounds, { round: 6, label: '最终结果', records: [], boFormat: 'BO3' as const }]
+    ? [...rounds, { round: rounds.length + 1, label: '最终结果' }]
     : rounds;
 
   // 检测是否可以向右滚动

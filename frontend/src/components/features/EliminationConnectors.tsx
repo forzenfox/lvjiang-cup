@@ -1,13 +1,11 @@
 import React from 'react';
-import {
-  ELIMINATION_CONNECTORS,
-  CARD_WIDTH,
-  CARD_HEIGHT,
-  CARD_TIME_HEIGHT,
-} from './eliminationConstants';
+import type { EliminationConnector } from '@/lib/format';
+import { CARD_WIDTH, CARD_HEIGHT, CARD_TIME_HEIGHT } from './eliminationConstants';
 import { ELIMINATION_THEME } from '@/constants/eliminationTheme';
 
 interface EliminationConnectorsProps {
+  /** 连接线列表（来自淘汰赛视图模型 vm.connectors） */
+  connectors: EliminationConnector[];
   cardWidth?: number;
   cardHeight?: number;
   positions?: Record<string, { x: number; y: number }>;
@@ -15,6 +13,7 @@ interface EliminationConnectorsProps {
 }
 
 const EliminationConnectors: React.FC<EliminationConnectorsProps> = ({
+  connectors,
   cardWidth = CARD_WIDTH,
   cardHeight = CARD_HEIGHT,
   positions,
@@ -25,7 +24,7 @@ const EliminationConnectors: React.FC<EliminationConnectorsProps> = ({
 
   return (
     <>
-      {ELIMINATION_CONNECTORS.map((conn, index) => {
+      {connectors.map((conn, index) => {
         // 从传入的positions获取位置，如果没有则使用计算后的位置
         const fromPos = effectivePositions?.[conn.from] || { x: 0, y: 0 };
         const toPos = effectivePositions?.[conn.to] || { x: 0, y: 0 };

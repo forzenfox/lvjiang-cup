@@ -2,6 +2,8 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import EliminationStage from '@/components/features/EliminationStage';
+import { buildEliminationStages, BUILTIN_DEFAULT_FORMAT } from '@/lib/format';
+import type { EliminationStageConfig, EliminationViewModel } from '@/lib/format';
 import type { Match, Team } from '@/types';
 
 const mockTeams: Team[] = [
@@ -12,6 +14,10 @@ const mockTeams: Team[] = [
   { id: 'team5', name: 'PLG', logo: '/logo5.png', players: [], battleCry: '测试队伍5' },
   { id: 'team6', name: '69', logo: '/logo6.png', players: [], battleCry: '测试队伍6' },
 ];
+
+// 默认配置（8 队）淘汰赛视图模型
+const defaultElimStage = BUILTIN_DEFAULT_FORMAT.stages[1] as EliminationStageConfig;
+const defaultViewModel: EliminationViewModel = buildEliminationStages(defaultElimStage);
 
 const createMockMatch = (
   gameNum: number,
@@ -48,7 +54,7 @@ describe('EliminationStage 组件', () => {
 
     render(
       <MemoryRouter>
-        <EliminationStage matches={mockMatches} teams={mockTeams} />
+        <EliminationStage matches={mockMatches} teams={mockTeams} viewModel={defaultViewModel} />
       </MemoryRouter>
     );
 
@@ -69,13 +75,13 @@ describe('EliminationStage 组件', () => {
 
     const { container } = render(
       <MemoryRouter>
-        <EliminationStage matches={mockMatches} teams={mockTeams} />
+        <EliminationStage matches={mockMatches} teams={mockTeams} viewModel={defaultViewModel} />
       </MemoryRouter>
     );
 
     // 验证存在连接线元素（使用CSS实现的实线）
     const connectors = container.querySelectorAll('.elimination-connector');
-    expect(connectors.length).toBeGreaterThan(0);
+    expect(connectors.length).toBe(defaultViewModel.connectors.length);
 
     // 验证没有虚线SVG路径
     const dashedPaths = container.querySelectorAll('path[stroke-dasharray]');
@@ -87,7 +93,7 @@ describe('EliminationStage 组件', () => {
 
     render(
       <MemoryRouter>
-        <EliminationStage matches={mockMatches} teams={mockTeams} />
+        <EliminationStage matches={mockMatches} teams={mockTeams} viewModel={defaultViewModel} />
       </MemoryRouter>
     );
 
@@ -110,7 +116,7 @@ describe('EliminationStage 组件', () => {
 
     const { container } = render(
       <MemoryRouter>
-        <EliminationStage matches={mockMatches} teams={mockTeams} />
+        <EliminationStage matches={mockMatches} teams={mockTeams} viewModel={defaultViewModel} />
       </MemoryRouter>
     );
 
@@ -124,7 +130,7 @@ describe('EliminationStage 组件', () => {
 
     render(
       <MemoryRouter>
-        <EliminationStage matches={mockMatches} teams={mockTeams} />
+        <EliminationStage matches={mockMatches} teams={mockTeams} viewModel={defaultViewModel} />
       </MemoryRouter>
     );
 
@@ -138,7 +144,7 @@ describe('EliminationStage 组件', () => {
 
     const { container } = render(
       <MemoryRouter>
-        <EliminationStage matches={mockMatches} teams={mockTeams} />
+        <EliminationStage matches={mockMatches} teams={mockTeams} viewModel={defaultViewModel} />
       </MemoryRouter>
     );
 
@@ -156,7 +162,7 @@ describe('EliminationStage 组件', () => {
 
     render(
       <MemoryRouter>
-        <EliminationStage matches={mockMatches} teams={mockTeams} />
+        <EliminationStage matches={mockMatches} teams={mockTeams} viewModel={defaultViewModel} />
       </MemoryRouter>
     );
 
@@ -179,7 +185,7 @@ describe('EliminationStage 组件', () => {
 
     render(
       <MemoryRouter>
-        <EliminationStage matches={mockMatches} teams={mockTeams} />
+        <EliminationStage matches={mockMatches} teams={mockTeams} viewModel={defaultViewModel} />
       </MemoryRouter>
     );
 
@@ -193,7 +199,7 @@ describe('EliminationStage 组件', () => {
 
     render(
       <MemoryRouter>
-        <EliminationStage matches={mockMatches} teams={mockTeams} />
+        <EliminationStage matches={mockMatches} teams={mockTeams} viewModel={defaultViewModel} />
       </MemoryRouter>
     );
 
@@ -216,6 +222,7 @@ describe('EliminationStage 组件', () => {
           <EliminationStage
             matches={mockMatches}
             teams={mockTeams}
+            viewModel={defaultViewModel}
             editable={true}
             onMatchUpdate={mockOnUpdate}
           />
@@ -232,7 +239,12 @@ describe('EliminationStage 组件', () => {
 
       const { container } = render(
         <MemoryRouter>
-          <EliminationStage matches={mockMatches} teams={mockTeams} editable={false} />
+          <EliminationStage
+            matches={mockMatches}
+            teams={mockTeams}
+            viewModel={defaultViewModel}
+            editable={false}
+          />
         </MemoryRouter>
       );
 
@@ -247,7 +259,12 @@ describe('EliminationStage 组件', () => {
 
       const { container } = render(
         <MemoryRouter>
-          <EliminationStage matches={mockMatches} teams={mockTeams} editable={true} />
+          <EliminationStage
+            matches={mockMatches}
+            teams={mockTeams}
+            viewModel={defaultViewModel}
+            editable={true}
+          />
         </MemoryRouter>
       );
 
@@ -257,7 +274,7 @@ describe('EliminationStage 组件', () => {
     });
   });
 
-  describe('三列布局', () => {
+  describe('三列布局（默认 8 队配置回归）', () => {
     it('应该渲染7场比赛（4QF + 2SF + 1F）', () => {
       const mockMatches: Match[] = [
         createMockMatch(1, 'team1', 'team2', 3, 2),
@@ -271,11 +288,11 @@ describe('EliminationStage 组件', () => {
 
       const { container } = render(
         <MemoryRouter>
-          <EliminationStage matches={mockMatches} teams={mockTeams} />
+          <EliminationStage matches={mockMatches} teams={mockTeams} viewModel={defaultViewModel} />
         </MemoryRouter>
       );
 
-      // 验证所有比赛槽位都存在
+      // 验证所有比赛槽位都存在（与旧固定三级结构一致的 testid）
       expect(container.querySelector('[data-testid="elimination-match-qf1"]')).toBeInTheDocument();
       expect(container.querySelector('[data-testid="elimination-match-qf2"]')).toBeInTheDocument();
       expect(container.querySelector('[data-testid="elimination-match-qf3"]')).toBeInTheDocument();
@@ -290,7 +307,7 @@ describe('EliminationStage 组件', () => {
 
       render(
         <MemoryRouter>
-          <EliminationStage matches={mockMatches} teams={mockTeams} />
+          <EliminationStage matches={mockMatches} teams={mockTeams} viewModel={defaultViewModel} />
         </MemoryRouter>
       );
 
@@ -302,6 +319,79 @@ describe('EliminationStage 组件', () => {
       expect(qfLabel).toBeInTheDocument();
       expect(sfLabel).toBeInTheDocument();
       expect(fLabel).toBeInTheDocument();
+    });
+
+    it('卡片 testid 应与旧固定三级结构一致（quarterfinals/semifinals/finals）', () => {
+      const mockMatches: Match[] = [createMockMatch(1, 'team1', 'team2', 3, 2)];
+
+      const { container } = render(
+        <MemoryRouter>
+          <EliminationStage matches={mockMatches} teams={mockTeams} viewModel={defaultViewModel} />
+        </MemoryRouter>
+      );
+
+      expect(
+        container.querySelector('[data-testid="elim-match-card-quarterfinals-1"]')
+      ).toBeInTheDocument();
+      expect(
+        container.querySelector('[data-testid="elim-match-card-semifinals-1"]')
+      ).toBeInTheDocument();
+      expect(
+        container.querySelector('[data-testid="elim-match-card-finals-1"]')
+      ).toBeInTheDocument();
+    });
+  });
+
+  describe('动态层级渲染（4 队 2 层级配置）', () => {
+    const fourTeamStage: EliminationStageConfig = {
+      type: 'elimination',
+      name: '淘汰赛',
+      teamCount: 4,
+      advanceToStage: null,
+      roundNames: ['半决赛', '决赛'],
+      boFormat: 'BO3',
+    };
+    const fourTeamViewModel = buildEliminationStages(fourTeamStage);
+
+    it('应该渲染 2 个阶段标签（半决赛/决赛）', () => {
+      render(
+        <MemoryRouter>
+          <EliminationStage matches={[]} teams={mockTeams} viewModel={fourTeamViewModel} />
+        </MemoryRouter>
+      );
+
+      expect(screen.getByText('半决赛')).toBeInTheDocument();
+      expect(screen.getByText('决赛')).toBeInTheDocument();
+      expect(screen.queryByText('四分之一决赛')).not.toBeInTheDocument();
+    });
+
+    it('应该渲染 3 张比赛卡（含占位）', () => {
+      const { container } = render(
+        <MemoryRouter>
+          <EliminationStage matches={[]} teams={mockTeams} viewModel={fourTeamViewModel} />
+        </MemoryRouter>
+      );
+
+      // 2 场半决赛 + 1 场决赛 = 3 个比赛槽位（均为占位卡，显示"待定"）
+      const matchSlots = container.querySelectorAll('[data-testid^="elimination-match-"]');
+      expect(matchSlots.length).toBe(3);
+      expect(screen.getAllByText('待定').length).toBeGreaterThan(0);
+    });
+
+    it('真实比赛数据应按 gameNumber 映射到对应槽位', () => {
+      const mockMatches: Match[] = [
+        createMockMatch(1, 'team1', 'team2', 3, 1),
+        createMockMatch(3, 'team1', 'team3', 2, 0),
+      ];
+
+      render(
+        <MemoryRouter>
+          <EliminationStage matches={mockMatches} teams={mockTeams} viewModel={fourTeamViewModel} />
+        </MemoryRouter>
+      );
+
+      // gameNumber 1 → 半决赛第 1 场；gameNumber 3 → 决赛
+      expect(screen.getAllByText('驴酱').length).toBeGreaterThanOrEqual(2);
     });
   });
 });

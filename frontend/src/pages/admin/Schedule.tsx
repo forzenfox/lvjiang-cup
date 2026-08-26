@@ -14,12 +14,18 @@ import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { initSlots } from '@/api/admin';
 import { getUploadUrl } from '@/utils/upload';
-import { BUILTIN_DEFAULT_FORMAT, type SwissStageConfig } from '@/lib/format';
-
-// 内置默认配置的瑞士轮晋级/淘汰阈值（临时接线：后续波次改为从生效配置接口获取）
-const defaultSwissStage = BUILTIN_DEFAULT_FORMAT.stages.find(
-  (stage): stage is SwissStageConfig => stage.type === 'swiss'
-);
+import { formatService } from '@/services/formatService';
+import {
+  buildSwissColumns,
+  buildEliminationStages,
+  countStageSlots,
+  type FormatConfig,
+  type SwissStageConfig,
+  type EliminationStageConfig,
+  type SwissColumnConfig,
+  type EliminationViewModel,
+  type StageSlotCounts,
+} from '@/lib/format';
 
 // 将前端 Match 转换为 API UpdateMatchRequest
 const toUpdateMatchRequest = (match: Match): UpdateMatchRequest => ({
@@ -82,13 +88,11 @@ const AdminSchedule: React.FC = () => {
   const [initSlotsLoading, setInitSlotsLoading] = useState(false);
   const [showInitConfirm, setShowInitConfirm] = useState(false);
 
+  // 生效赛制配置（挂载时获取，含内置默认兜底）
+  const [activeFormatConfig, setActiveFormatConfig] = useState<FormatConfig | null>(null);
+
   const advancement = useAdvancementStore(state => state.advancement);
   const setAdvancement = useAdvancementStore(state => state.setAdvancement);
-
-  useEffect(() => {
-    loadData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   const loadData = async () => {
     setLoading(true);
@@ -116,15 +120,6 @@ const AdminSchedule: React.FC = () => {
 
       setMatches(mappedMatches);
       setTeams(mappedTeams as Team[]);
-
-      const swissMatches = mappedMatches.filter(m => m.stage === 'swiss');
-      if (swissMatches.length > 0) {
-        const calculated = calculateAdvancement(swissMatches, mappedTeams as Team[], {
-          winThreshold: defaultSwissStage?.winThreshold ?? 3,
-          lossThreshold: defaultSwissStage?.lossThreshold ?? 3,
-        });
-        setAdvancement(calculated);
-      }
     } catch (error) {
       console.error('Failed to load data:', error);
       toast.error('数据加载失败');
@@ -132,6 +127,51 @@ const AdminSchedule: React.FC = () => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    // 生效配置与比赛/队伍数据并行获取
+    formatService
+      .getActiveFormat()
+      .then(resolved => setActiveFormatConfig(resolved.config))
+      .catch(() => {
+        // getActiveFormat 内部已兜底内置默认配置，此处仅防御异常态
+        setActiveFormatConfig(null);
+      });
+    loadData();
+  }, []);
+
+  // 从生效配置定位赛段与视图模型
+  const swissStage = activeFormatConfig?.stages.find(
+    (stage): stage is SwissStageConfig => stage.type === 'swiss'
+  );
+  const eliminationStage = activeFormatConfig?.stages.find(
+    (stage): stage is EliminationStageConfig => stage.type === 'elimination'
+  );
+  const swissColumns: SwissColumnConfig[] = swissStage ? buildSwissColumns(swissStage) : [];
+  const eliminationVm: EliminationViewModel | undefined = eliminationStage
+    ? buildEliminationStages(eliminationStage)
+    : undefined;
+
+  // 槽位数量推导（用于确认框文案）
+  const slotCounts: StageSlotCounts = activeFormatConfig
+    ? countStageSlots(activeFormatConfig)
+    : { swiss: 0, elimination: 0, total: 0 };
+
+  // 淘汰赛晋级名额（瑞士轮"前 N 名晋级"按淘汰赛 teamCount 推导）
+  const promotionTeamCount = eliminationStage?.teamCount ?? 0;
+
+  // 晋级/淘汰计算（阈值来自生效配置；matches 与配置均就绪后触发）
+  useEffect(() => {
+    const swissMatches = matches.filter(m => m.stage === 'swiss');
+    if (swissMatches.length > 0 && swissStage) {
+      const calculated = calculateAdvancement(swissMatches, teams, {
+        winThreshold: swissStage.winThreshold,
+        lossThreshold: swissStage.lossThreshold,
+      });
+      setAdvancement(calculated);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [matches, teams, swissStage]);
 
   const handleMatchUpdate = async (updatedMatch: Match) => {
     setLoading(true);
@@ -204,7 +244,9 @@ const AdminSchedule: React.FC = () => {
     setInitSlotsLoading(true);
     try {
       const result = await initSlots();
-      toast.success(`比赛槽位初始化成功！共创建 ${result.count} 场比赛`);
+      toast.success(
+        `比赛槽位初始化成功！新建 ${result.created} 场（已存在跳过 ${result.skipped} 场，共 ${result.total} 场）`
+      );
       await loadData();
     } catch (error) {
       console.error('Failed to init slots:', error);
@@ -223,7 +265,7 @@ const AdminSchedule: React.FC = () => {
       <ConfirmDialog
         isOpen={showInitConfirm}
         title="初始化比赛槽位"
-        message="确定要初始化比赛槽位吗？这将创建瑞士轮 32 场和淘汰赛 7 场比赛槽位。如果槽位已存在，则不会重复创建。"
+        message={`确定要初始化比赛槽位吗？这将按当前生效配置创建瑞士轮 ${slotCounts.swiss} 场和淘汰赛 ${slotCounts.elimination} 场比赛槽位。如果槽位已存在，则不会重复创建。`}
         confirmText="确定初始化"
         cancelText="取消"
         onConfirm={confirmInitSlots}
@@ -319,12 +361,15 @@ const AdminSchedule: React.FC = () => {
                 ) : (
                   <>
                     <div className="mb-4 text-sm text-gray-400" data-testid="advancement-status">
-                      晋级状态：前8名晋级淘汰赛 · {advancement?.top8?.length ?? 0} 队已晋级 ·{' '}
+                      晋级状态：前{promotionTeamCount}名晋级淘汰赛 ·{' '}
+                      {advancement?.top8?.length ?? 0} 队已晋级 ·{' '}
                       {advancement?.eliminated?.length ?? 0} 队已淘汰
                     </div>
                     <SwissStageVisualEditor
                       matches={swissMatches}
                       teams={teams}
+                      columns={swissColumns}
+                      stage={swissStage}
                       advancement={advancement}
                       onMatchUpdate={handleMatchUpdate}
                       onMatchCreate={handleMatchCreate}
@@ -338,7 +383,7 @@ const AdminSchedule: React.FC = () => {
                   <div className="text-center py-12 text-gray-500">
                     <p>请先添加战队数据</p>
                   </div>
-                ) : eliminationMatches.length === 0 ? (
+                ) : eliminationMatches.length === 0 || !eliminationVm ? (
                   <div className="text-center py-12">
                     <div className="text-gray-400">
                       <Trophy className="w-16 h-16 mx-auto mb-4 opacity-50" />
@@ -352,6 +397,7 @@ const AdminSchedule: React.FC = () => {
                   <EliminationStage
                     matches={eliminationMatches}
                     teams={teams}
+                    viewModel={eliminationVm}
                     editable={true}
                     onMatchUpdate={handleMatchUpdate}
                   />

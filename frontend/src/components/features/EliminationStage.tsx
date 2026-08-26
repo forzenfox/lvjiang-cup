@@ -8,38 +8,56 @@ import {
   BOARD_MIN_WIDTH,
   CARD_WIDTH,
   calculateEliminationPositions,
-  ELIMINATION_STAGES,
   createPlaceholderMatch,
-  GAME_NUMBER_TO_STAGE,
 } from './eliminationConstants';
 import { ELIMINATION_THEME } from '@/constants/eliminationTheme';
+import type { EliminationGame, EliminationViewModel } from '@/lib/format';
 
 interface EliminationStageProps {
   matches: Match[];
   teams: Team[];
+  /** 淘汰赛视图模型（来自 buildEliminationStages，由父组件按生效配置推导） */
+  viewModel: EliminationViewModel;
   editable?: boolean;
   onMatchUpdate?: (match: Match) => void;
   onMatchClick?: (match: Match) => void;
 }
 
-// 淘汰赛比赛编号到真实ID的映射（8队单败：4QF + 2SF + 1F）
-const GAME_NUMBER_TO_ID: Record<number, string> = {
-  1: 'elim-qf-1',
-  2: 'elim-qf-2',
-  3: 'elim-qf-3',
-  4: 'elim-qf-4',
-  5: 'elim-sf-1',
-  6: 'elim-sf-2',
-  7: 'elim-f-1',
+/**
+ * 推导比赛槽位 wrapper 的 data-testid（如 elimination-match-qf1）
+ * levels <= 3 时保持与旧固定三级结构一致的 qf/sf/f 命名（决赛无序号，E2E 兼容）；
+ * 更多层级时改用 r{level}-{index} 命名避免短 key 重复。
+ */
+const matchSlotTestId = (game: EliminationGame, levels: number): string => {
+  if (levels > 3) {
+    return `elimination-match-r${game.level}-${game.indexInLevel}`;
+  }
+  if (game.level === levels - 1) {
+    return 'elimination-match-f';
+  }
+  const shortKey = game.level === 0 ? 'qf' : 'sf';
+  return `elimination-match-${shortKey}${game.indexInLevel}`;
+};
+
+/**
+ * 根据层级推导阶段全称（用于卡片 data-testid，如 elim-match-card-quarterfinals-1）
+ * 末级为 finals、倒数第二级为 semifinals、其余为 quarterfinals
+ */
+const stageBracketName = (level: number, levels: number): string => {
+  if (level === levels - 1) return 'finals';
+  if (level === levels - 2) return 'semifinals';
+  return 'quarterfinals';
 };
 
 const EliminationStage: React.FC<EliminationStageProps> = ({
   matches,
   teams,
+  viewModel,
   editable = false,
   onMatchUpdate,
   onMatchClick,
 }) => {
+  const { levels, stages, games, connectors } = viewModel;
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerWidth, setContainerWidth] = useState(1200);
 
@@ -57,47 +75,32 @@ const EliminationStage: React.FC<EliminationStageProps> = ({
     return () => window.removeEventListener('resize', updateWidth);
   }, []);
 
-  // 根据容器宽度计算位置
+  // 根据容器宽度与视图模型层级计算位置
   const positions = useMemo(() => {
-    return calculateEliminationPositions(containerWidth);
-  }, [containerWidth]);
+    return calculateEliminationPositions(
+      containerWidth,
+      levels,
+      stages.map(stage => stage.matchCount)
+    );
+  }, [containerWidth, levels, stages]);
 
   // 计算阶段标签的位置（与卡片左对齐）
   const getStageLabelX = (colIndex: number) => {
-    const colWidth = containerWidth / 3;
+    const colWidth = containerWidth / levels;
     return colIndex * colWidth + (colWidth - CARD_WIDTH) / 2;
   };
 
   const getMatch = (gameNum: number) => matches.find(m => m.eliminationGameNumber === gameNum);
 
-  const renderMatch = (match: Match | undefined, gameNum?: number) => {
-    let displayMatch: Match;
-    if (match) {
-      displayMatch = match;
-    } else if (editable && gameNum && GAME_NUMBER_TO_ID[gameNum]) {
-      displayMatch = {
-        ...createPlaceholderMatch(gameNum),
-        id: GAME_NUMBER_TO_ID[gameNum],
-      };
-    } else {
-      displayMatch = createPlaceholderMatch(gameNum);
-    }
+  // 渲染单场比赛卡片：优先真实比赛数据，缺失时生成占位（仅用于展示，保存需真实 match id）
+  const renderMatch = (game: EliminationGame) => {
+    const match = getMatch(game.gameNumber);
+    const displayMatch: Match = match ?? createPlaceholderMatch(game.gameNumber);
 
-    const stageInfo = gameNum ? GAME_NUMBER_TO_STAGE[gameNum] : null;
-    const testId = stageInfo
-      ? `elim-match-card-${stageInfo.stage}-${stageInfo.index}`
-      : 'bracket-match';
+    const bracket = stageBracketName(game.level, levels);
+    const testId = `elim-match-card-${bracket}-${game.indexInLevel}`;
 
-    // 根据游戏编号获取正确的位置
-    let gameKey: string;
-    if (gameNum && gameNum <= 4) {
-      gameKey = `qf${gameNum}`;
-    } else if (gameNum && gameNum <= 6) {
-      gameKey = `sf${gameNum - 4}`;
-    } else {
-      gameKey = 'f';
-    }
-    const gamePos = positions[gameKey as keyof typeof positions] || positions['qf1'];
+    const gamePos = positions[game.key] || { x: 0, y: 0 };
 
     return (
       <div
@@ -144,10 +147,14 @@ const EliminationStage: React.FC<EliminationStageProps> = ({
         data-testid="elimination-bracket"
       >
         {/* 连接线层 */}
-        <EliminationConnectors positions={positions} containerWidth={containerWidth} />
+        <EliminationConnectors
+          connectors={connectors}
+          positions={positions}
+          containerWidth={containerWidth}
+        />
 
         {/* 阶段标签 - 官方UI风格：宽度与卡片一致，顶部对齐 */}
-        {ELIMINATION_STAGES.map(stage => (
+        {stages.map(stage => (
           <div
             key={stage.key}
             className="absolute text-sm font-medium text-center flex items-center justify-center"
@@ -165,18 +172,12 @@ const EliminationStage: React.FC<EliminationStageProps> = ({
           </div>
         ))}
 
-        {/* 四分之一决赛 */}
-        <div data-testid="elimination-match-qf1">{renderMatch(getMatch(1), 1)}</div>
-        <div data-testid="elimination-match-qf2">{renderMatch(getMatch(2), 2)}</div>
-        <div data-testid="elimination-match-qf3">{renderMatch(getMatch(3), 3)}</div>
-        <div data-testid="elimination-match-qf4">{renderMatch(getMatch(4), 4)}</div>
-
-        {/* 半决赛 */}
-        <div data-testid="elimination-match-sf1">{renderMatch(getMatch(5), 5)}</div>
-        <div data-testid="elimination-match-sf2">{renderMatch(getMatch(6), 6)}</div>
-
-        {/* 决赛 */}
-        <div data-testid="elimination-match-f">{renderMatch(getMatch(7), 7)}</div>
+        {/* 比赛卡片：按视图模型逐场渲染 */}
+        {games.map(game => (
+          <div key={game.key} data-testid={matchSlotTestId(game, levels)}>
+            {renderMatch(game)}
+          </div>
+        ))}
       </div>
     </div>
   );

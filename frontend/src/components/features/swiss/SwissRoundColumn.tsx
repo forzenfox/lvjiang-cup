@@ -2,7 +2,6 @@ import React from 'react';
 import { Match, Team } from '@/types';
 import SwissMatchCard from './SwissMatchCard';
 import { SWISS_THEME } from '@/constants/swissTheme';
-import { getRoundFormat } from '@/pages/admin/swissRoundSlots';
 
 interface SwissRoundColumnProps {
   title: string;
@@ -60,14 +59,16 @@ const SwissRoundColumn: React.FC<SwissRoundColumnProps> = ({
           >
             {record}
           </span>
-          <span
-            style={{
-              color: SWISS_THEME.titleText,
-              fontSize: `${SWISS_THEME.titleFontSize}px`,
-            }}
-          >
-            {getRoundFormat(record)}
-          </span>
+          {matches[0]?.boFormat && (
+            <span
+              style={{
+                color: SWISS_THEME.titleText,
+                fontSize: `${SWISS_THEME.titleFontSize}px`,
+              }}
+            >
+              {matches[0].boFormat}
+            </span>
+          )}
         </div>
       </div>
 

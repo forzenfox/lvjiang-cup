@@ -1,6 +1,8 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import SwissStageMobile from '@/components/features/swiss/SwissStageMobile';
+import { buildSwissColumns, BUILTIN_DEFAULT_FORMAT } from '@/lib/format';
+import type { SwissStageConfig } from '@/lib/format';
 import type { Match, Team } from '@/types';
 
 const mockTeams: Team[] = [
@@ -9,6 +11,10 @@ const mockTeams: Team[] = [
   { id: 'team3', name: '狗酱', logo: '/logo3.png', players: [], battleCry: '' },
   { id: 'team4', name: '猫酱', logo: '/logo4.png', players: [], battleCry: '' },
 ];
+
+// 默认配置（16 队 3 胜 3 败）的视图模型列结构
+const defaultSwissStage = BUILTIN_DEFAULT_FORMAT.stages[0] as SwissStageConfig;
+const defaultColumns = buildSwissColumns(defaultSwissStage);
 
 const createMockMatch = (overrides: Partial<Match> = {}): Match => ({
   id: 'match1',
@@ -31,6 +37,7 @@ describe('SwissStageMobile', () => {
   const defaultProps = {
     matches: [createMockMatch()],
     teams: mockTeams,
+    columns: defaultColumns,
   };
 
   it('应渲染 SwissRoundTabs 组件', () => {
@@ -60,7 +67,7 @@ describe('SwissStageMobile', () => {
       createMockMatch({ id: 'm1', swissRound: 3, swissRecord: '2-0' }),
       createMockMatch({ id: 'm2', swissRound: 3, swissRecord: '0-2' }),
     ];
-    render(<SwissStageMobile matches={matches} teams={mockTeams} />);
+    render(<SwissStageMobile matches={matches} teams={mockTeams} columns={defaultColumns} />);
 
     const thirdRoundTab = screen.getByText('第三轮');
     fireEvent.click(thirdRoundTab);
@@ -74,7 +81,7 @@ describe('SwissStageMobile', () => {
       createMockMatch({ id: 'm1', swissRound: 4, swissRecord: '2-1' }),
       createMockMatch({ id: 'm2', swissRound: 4, swissRecord: '1-2' }),
     ];
-    render(<SwissStageMobile matches={matches} teams={mockTeams} />);
+    render(<SwissStageMobile matches={matches} teams={mockTeams} columns={defaultColumns} />);
 
     const fourthRoundTab = screen.getByText('第四轮');
     fireEvent.click(fourthRoundTab);
@@ -85,7 +92,7 @@ describe('SwissStageMobile', () => {
 
   it('第五轮应显示 2-2 分组标题', () => {
     const matches = [createMockMatch({ id: 'm1', swissRound: 5, swissRecord: '2-2' })];
-    render(<SwissStageMobile matches={matches} teams={mockTeams} />);
+    render(<SwissStageMobile matches={matches} teams={mockTeams} columns={defaultColumns} />);
 
     const fifthRoundTab = screen.getByText('第五轮');
     fireEvent.click(fifthRoundTab);
@@ -93,7 +100,7 @@ describe('SwissStageMobile', () => {
     expect(screen.getByText('第五轮 2-2')).toBeInTheDocument();
   });
 
-  it('第六轮（最终结果）应渲染 SwissFinalResultMobile', () => {
+  it('最终结果标签（round = 6）应渲染 SwissFinalResultMobile', () => {
     const advancement = {
       top8: ['team1', 'team2'],
       eliminated: ['team3', 'team4'],
@@ -146,10 +153,32 @@ describe('SwissStageMobile', () => {
       createMockMatch({ id: 'm1', swissRound: 1, swissRecord: '0-0' }),
       createMockMatch({ id: 'm2', swissRound: 1, swissRecord: '0-0' }),
     ];
-    render(<SwissStageMobile matches={matches} teams={mockTeams} />);
+    render(<SwissStageMobile matches={matches} teams={mockTeams} columns={defaultColumns} />);
 
     // 使用精确匹配，避免匹配到最终结果页面的 row 元素
     const matchCards = screen.getAllByTestId(/^swiss-stage-mobile-match-\d+$/);
     expect(matchCards.length).toBe(2);
+  });
+
+  it('动态列结构（8 队 2 胜制）：仅渲染 3 个轮次标签 + 最终结果', () => {
+    const eightTeamStage: SwissStageConfig = {
+      type: 'swiss',
+      name: '瑞士轮',
+      teamCount: 8,
+      winThreshold: 2,
+      lossThreshold: 2,
+      boRule: 'auto',
+      advanceToStage: 1,
+    };
+    const eightTeamColumns = buildSwissColumns(eightTeamStage);
+
+    render(<SwissStageMobile matches={[]} teams={mockTeams} columns={eightTeamColumns} />);
+
+    expect(screen.getByText('第一轮')).toBeInTheDocument();
+    expect(screen.getByText('第二轮')).toBeInTheDocument();
+    expect(screen.getByText('第三轮')).toBeInTheDocument();
+    expect(screen.getByText('最终结果')).toBeInTheDocument();
+    expect(screen.queryByText('第四轮')).not.toBeInTheDocument();
+    expect(screen.queryByText('第五轮')).not.toBeInTheDocument();
   });
 });

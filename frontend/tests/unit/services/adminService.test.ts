@@ -1,4 +1,4 @@
-﻿import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { adminService, subscribeToAdminService } from '@/services/adminService';
 import * as adminApi from '@/api/admin';
 import { unifiedCache } from '@/utils/unifiedCache';
@@ -33,7 +33,9 @@ describe('adminService', () => {
     it('初始化比赛槽位成功后，应该清除 matches 缓存', async () => {
       (adminApi.initSlots as ReturnType<typeof vi.fn>).mockResolvedValue({
         message: '初始化成功',
-        count: 10,
+        created: 10,
+        skipped: 0,
+        total: 10,
       });
 
       await adminService.initSlots();
@@ -105,7 +107,9 @@ describe('adminService', () => {
 
       (adminApi.initSlots as ReturnType<typeof vi.fn>).mockResolvedValue({
         message: '初始化成功',
-        count: 10,
+        created: 10,
+        skipped: 0,
+        total: 10,
       });
 
       await adminService.initSlots();

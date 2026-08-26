@@ -1,10 +1,15 @@
 import React, { useState } from 'react';
 import { Match, Team } from '@/types';
 import SwissRoundTree from './SwissRoundTree';
+import type { SwissColumnConfig, SwissViewConfig } from '@/lib/format';
 
 interface SwissStagePCProps {
   matches: Match[];
   teams: Team[];
+  /** 轮次列视图模型（来自 buildSwissColumns，由父组件按生效配置推导） */
+  columns: SwissColumnConfig[];
+  /** BO1/BO3 快捷视图配置（来自 getSwissViewConfig） */
+  viewConfig: SwissViewConfig;
   advancement?: {
     top8: string[];
     eliminated: string[];
@@ -18,6 +23,8 @@ interface SwissStagePCProps {
 const SwissStagePC: React.FC<SwissStagePCProps> = ({
   matches,
   teams,
+  columns,
+  viewConfig,
   advancement,
   onMatchClick,
   className = '',
@@ -30,6 +37,8 @@ const SwissStagePC: React.FC<SwissStagePCProps> = ({
       <SwissRoundTree
         matches={matches}
         teams={teams}
+        columns={columns}
+        viewConfig={viewConfig}
         activeTab={activeTab}
         onTabChange={setActiveTab}
         advancement={advancement}

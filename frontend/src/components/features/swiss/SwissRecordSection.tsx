@@ -3,7 +3,7 @@ import { Match, Team } from '@/types';
 import SwissMatchCard from './SwissMatchCard';
 import SwissTeamLogo from './SwissTeamLogo';
 import { SWISS_THEME } from '@/constants/swissTheme';
-import { type SwissRecordConfig } from '@/constants/swissTreeConfig';
+import { type SwissRecordConfig } from '@/lib/format';
 
 interface SwissRecordSectionProps {
   config: SwissRecordConfig;

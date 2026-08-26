@@ -1,4 +1,5 @@
 import * as adminApi from '@/api/admin';
+import type { InitSlotsResult } from '@/api/admin';
 import { unifiedCache } from '@/utils/unifiedCache';
 
 /**
@@ -15,8 +16,8 @@ export interface AdminServiceState {
  * 管理服务接口
  */
 interface AdminService {
-  /** 初始化比赛槽位 */
-  initSlots: () => Promise<{ message: string; count: number }>;
+  /** 初始化比赛槽位（按生效配置生成） */
+  initSlots: () => Promise<InitSlotsResult>;
   /** 获取服务状态 */
   getState: () => AdminServiceState;
   /** 清除错误 */
@@ -68,10 +69,10 @@ function handleError(error: unknown, defaultMessage: string): never {
  */
 export const adminService: AdminService = {
   /**
-   * 初始化比赛槽位
-   * @returns 初始化结果
+   * 初始化比赛槽位（按生效配置生成）
+   * @returns 初始化结果（created/skipped/total）
    */
-  async initSlots(): Promise<{ message: string; count: number }> {
+  async initSlots(): Promise<InitSlotsResult> {
     setState({ loading: true, error: null });
 
     try {
