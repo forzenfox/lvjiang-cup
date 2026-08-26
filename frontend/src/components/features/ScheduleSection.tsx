@@ -15,7 +15,13 @@ import { useAdvancementStore, calculateAdvancement } from '@/store/advancementSt
 import { PositionType } from '@/types/position';
 import { getUploadUrl } from '@/utils/upload';
 import SwissEmptyState from './swiss/SwissEmptyState';
+import { BUILTIN_DEFAULT_FORMAT, type SwissStageConfig } from '@/lib/format';
 import type { Match, Team, EliminationBracket, Player } from '@/types';
+
+// 内置默认配置的瑞士轮晋级/淘汰阈值（临时接线：后续波次改为从生效配置接口获取）
+const defaultSwissStage = BUILTIN_DEFAULT_FORMAT.stages.find(
+  (stage): stage is SwissStageConfig => stage.type === 'swiss'
+);
 
 const convertApiMatchToLocal = (apiMatch: ApiMatch, teams: Team[]): Match => {
   const teamA = teams.find(t => t.id === apiMatch.teamAId);
@@ -176,7 +182,10 @@ const ScheduleSection: React.FC = () => {
   useEffect(() => {
     const swissMatches = matches.filter(m => m.stage === 'swiss');
     if (swissMatches.length > 0) {
-      const calculated = calculateAdvancement(swissMatches, convertedTeams);
+      const calculated = calculateAdvancement(swissMatches, convertedTeams, {
+        winThreshold: defaultSwissStage?.winThreshold ?? 3,
+        lossThreshold: defaultSwissStage?.lossThreshold ?? 3,
+      });
       setAdvancement(calculated);
     }
   }, [matches, convertedTeams, setAdvancement]);

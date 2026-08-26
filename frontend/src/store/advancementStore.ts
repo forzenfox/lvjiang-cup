@@ -52,14 +52,23 @@ interface TeamRecord {
   losses: number;
 }
 
+/** 晋级/淘汰判定阈值（来自生效赛制配置，PRD 2.2.6） */
+export interface AdvancementRules {
+  /** 晋级阈值：胜场达到该值即晋级 */
+  winThreshold: number;
+  /** 淘汰阈值：败场达到该值即淘汰 */
+  lossThreshold: number;
+}
+
 /**
  * 根据比赛结果自动计算晋级名单
- * 赛制规则：
- * - 达到3胜即晋级（3-0, 3-1, 3-2）
- * - 达到3败即淘汰（0-3, 1-3, 2-3）
+ * 赛制规则（阈值参数化，来自赛制配置）：
+ * - 胜场达到 rules.winThreshold 即晋级（如 3 胜制下的 3-0, 3-1, 3-2）
+ * - 败场达到 rules.lossThreshold 即淘汰（如 3 胜制下的 0-3, 1-3, 2-3）
  *
  * @param matches - 所有比赛数组
  * @param teams - 所有队伍数组
+ * @param rules - 晋级/淘汰阈值（必填，调用方需从生效赛制配置显式传入）
  * @returns 晋级结果（top8和eliminated）
  */
 export function calculateAdvancement(
@@ -70,7 +79,8 @@ export function calculateAdvancement(
     teamAId?: string;
     teamBId?: string;
   }[],
-  teams: { id: string }[]
+  teams: { id: string }[],
+  rules: AdvancementRules
 ): SwissAdvancementResult {
   const teamRecords = new Map<string, { wins: number; losses: number }>();
 
@@ -101,14 +111,14 @@ export function calculateAdvancement(
       }
     });
 
-  // 分类：晋级（3胜）和淘汰（3败）
+  // 分类：晋级（胜场达到 winThreshold）和淘汰（败场达到 lossThreshold）
   const advanced: TeamRecord[] = [];
   const eliminated: TeamRecord[] = [];
 
   teamRecords.forEach((record, teamId) => {
-    if (record.wins === 3) {
+    if (record.wins >= rules.winThreshold) {
       advanced.push({ teamId, ...record });
-    } else if (record.losses === 3) {
+    } else if (record.losses >= rules.lossThreshold) {
       eliminated.push({ teamId, ...record });
     }
   });

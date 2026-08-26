@@ -4,6 +4,9 @@ import { CacheService } from '../../cache/cache.service';
 import { BaseCachedService } from '../../common/services/base-cached.service';
 import { UpdateMatchDto, MatchStatus } from './dto/update-match.dto';
 import { Team } from '../teams/teams.service';
+import { FormatsService } from '../formats/formats.service';
+import { FormatConfig } from '../formats/format.types';
+import { generateAllSlots } from '../formats/generators/generator.registry';
 
 export interface Match {
   id: string;
@@ -23,13 +26,26 @@ export interface Match {
   boFormat?: 'BO1' | 'BO3' | 'BO5';
   eliminationBracket?: 'quarterfinals' | 'semifinals' | 'finals';
   eliminationGameNumber?: number;
+  /** 归属赛制配置 id（NULL=内置默认配置） */
+  formatId?: string | null;
+}
+
+/** generateSlots 返回的统计结果 */
+export interface GenerateSlotsResult {
+  created: number;
+  skipped: number;
+  total: number;
 }
 
 @Injectable()
 export class MatchesService extends BaseCachedService<Match, string> {
   private readonly matchLogger = new Logger(MatchesService.name);
 
-  constructor(databaseService: DatabaseService, cacheService: CacheService) {
+  constructor(
+    databaseService: DatabaseService,
+    cacheService: CacheService,
+    private readonly formatsService: FormatsService,
+  ) {
     super(databaseService, cacheService, 'MatchesService');
   }
 
@@ -64,6 +80,7 @@ export class MatchesService extends BaseCachedService<Match, string> {
       boFormat: match.bo_format,
       eliminationBracket: match.elimination_bracket,
       eliminationGameNumber: match.elimination_game_number,
+      formatId: match.format_id,
     }));
   }
 
@@ -105,25 +122,64 @@ export class MatchesService extends BaseCachedService<Match, string> {
       boFormat: match.bo_format,
       eliminationBracket: match.elimination_bracket,
       eliminationGameNumber: match.elimination_game_number,
+      formatId: match.format_id,
     };
   }
 
-  async findAll(stage?: string): Promise<Match[]> {
+  /**
+   * 查询比赛列表（可按 stage 与 formatId 过滤）
+   * formatId 省略时按生效配置解析查询 scope：
+   * - 无激活配置（builtin）→ 过滤 format_id IS NULL（内置默认配置槽位）
+   * - 存在激活配置 → 过滤 format_id = 激活配置 id
+   * 显式传 formatId 时直接按该 id 过滤
+   */
+  async findAll(stage?: string, formatId?: string): Promise<Match[]> {
+    // 解析查询 scope
+    let scope: string | null;
+    if (formatId !== undefined && formatId !== null && formatId !== '') {
+      scope = formatId;
+    } else {
+      const active = await this.formatsService.getActiveFormat();
+      scope = active.source === 'config' ? active.id : null;
+    }
+
+    // 缓存变体键含 scope（builtin 沿用原键 matches:all 保持兼容）
+    const scopeKey =
+      scope === null ? this.getAllCacheKey() : `${this.getAllCacheKey()}:fmt:${scope}`;
+
     if (stage) {
-      // 如果有 stage 参数，需要特殊处理缓存键
-      const cacheKey = `${this.getAllCacheKey()}:${stage}`;
+      // stage 过滤叠加 scope 缓存变体
+      const cacheKey = `${scopeKey}:${stage}`;
       const cached = this.cacheService.get<Match[]>(cacheKey);
       if (cached) {
         return cached;
       }
 
-      const allMatches = await this.getOrSetAll();
+      const allMatches = await this.getOrSetAllForScope(scope, scopeKey);
       const filtered = allMatches.filter((match) => match.stage === stage);
       this.cacheService.set(cacheKey, filtered);
       return filtered;
     }
 
-    return this.getOrSetAll();
+    return this.getOrSetAllForScope(scope, scopeKey);
+  }
+
+  /** 按 scope 获取（或设置）缓存的全量比赛：内存过滤 format_id 归属 */
+  private async getOrSetAllForScope(scope: string | null, scopeKey: string): Promise<Match[]> {
+    const cached = this.cacheService.get<Match[]>(scopeKey);
+    if (cached) {
+      return cached;
+    }
+
+    const data = await this.findAllFromDb();
+    // formatId 为 null 或 undefined（旧行无该列值）均归属内置默认配置
+    const filtered = data.filter((match) =>
+      scope === null
+        ? match.formatId === null || match.formatId === undefined
+        : match.formatId === scope,
+    );
+    this.cacheService.set(scopeKey, filtered);
+    return filtered;
   }
 
   async findOne(id: string): Promise<Match> {
@@ -269,394 +325,110 @@ export class MatchesService extends BaseCachedService<Match, string> {
     return this.findOne(id);
   }
 
-  // 初始化比赛槽位
-  async initSlots(): Promise<void> {
-    const result = await this.databaseService.get<{ count: number }>(
-      'SELECT COUNT(*) as count FROM matches',
+  /**
+   * 按赛制配置生成比赛槽位（替代原硬编码 initSlots）
+   *
+   * 幂等策略（自然键缺口补齐）：
+   * - 瑞士轮按 (swiss_round, swiss_record) 统计 scope 内现有数量，与推导期望比对只补差额
+   * - 淘汰赛按 elimination_game_number 比对补差额
+   * - 已存在行绝不 UPDATE/DELETE（保护赛果）
+   *
+   * 新增槽位 id 规则：
+   * - builtin scope（format_id=NULL）：生成器默认 id（swiss-r{轮}-{序号} / elim-r{级}-{序号}）
+   * - 显式配置 scope：id 加前缀 `{formatId}::{生成器id}`，保证不同配置互不冲突
+   */
+  async generateSlots(formatId?: string): Promise<GenerateSlotsResult> {
+    // 解析生成 scope 与配置
+    let scope: string | null;
+    let config: FormatConfig;
+    if (formatId !== undefined && formatId !== null && formatId !== '') {
+      const record = await this.formatsService.findById(formatId);
+      if (!record) {
+        throw new NotFoundException(`Format config with id ${formatId} not found`);
+      }
+      scope = formatId;
+      config = record.config;
+    } else {
+      const active = await this.formatsService.getActiveFormat();
+      scope = active.source === 'config' ? active.id : null;
+      config = active.config;
+    }
+
+    // 推导期望槽位清单
+    const slots = generateAllSlots(config);
+    const total = slots.length;
+
+    // 查询 scope 内现有槽位（自然键 + id），用于缺口比对
+    const existingRows = await this.databaseService.all<any>(
+      scope === null
+        ? 'SELECT id, stage, swiss_round, swiss_record, elimination_game_number FROM matches WHERE format_id IS NULL'
+        : 'SELECT id, stage, swiss_round, swiss_record, elimination_game_number FROM matches WHERE format_id = ?',
+      scope === null ? [] : [scope],
     );
 
-    if (result.count > 0) {
-      this.matchLogger.log('Match slots already initialized');
-      return;
+    // 自然键 → 现有数量（瑞士轮按轮次+战绩组；淘汰赛按连续场次编号）
+    const existingCount = new Map<string, number>();
+    const existingIds = new Set<string>();
+    for (const row of existingRows) {
+      existingIds.add(row.id);
+      const key =
+        row.stage === 'swiss'
+          ? `swiss:${row.swiss_round}:${row.swiss_record}`
+          : `elim:${row.elimination_game_number}`;
+      existingCount.set(key, (existingCount.get(key) || 0) + 1);
     }
 
-    // 瑞士轮槽位（36场）- 16队5轮赛制，参照LOL S赛规则
-    const swissSlots = [
-      // 第一轮：0-0，8场 BO1
-      {
-        id: 'swiss-r1-1',
-        round: 'Round 1',
-        stage: 'swiss',
-        swissRecord: '0-0',
-        swissRound: 1,
-        boFormat: 'BO1',
-      },
-      {
-        id: 'swiss-r1-2',
-        round: 'Round 1',
-        stage: 'swiss',
-        swissRecord: '0-0',
-        swissRound: 1,
-        boFormat: 'BO1',
-      },
-      {
-        id: 'swiss-r1-3',
-        round: 'Round 1',
-        stage: 'swiss',
-        swissRecord: '0-0',
-        swissRound: 1,
-        boFormat: 'BO1',
-      },
-      {
-        id: 'swiss-r1-4',
-        round: 'Round 1',
-        stage: 'swiss',
-        swissRecord: '0-0',
-        swissRound: 1,
-        boFormat: 'BO1',
-      },
-      {
-        id: 'swiss-r1-5',
-        round: 'Round 1',
-        stage: 'swiss',
-        swissRecord: '0-0',
-        swissRound: 1,
-        boFormat: 'BO1',
-      },
-      {
-        id: 'swiss-r1-6',
-        round: 'Round 1',
-        stage: 'swiss',
-        swissRecord: '0-0',
-        swissRound: 1,
-        boFormat: 'BO1',
-      },
-      {
-        id: 'swiss-r1-7',
-        round: 'Round 1',
-        stage: 'swiss',
-        swissRecord: '0-0',
-        swissRound: 1,
-        boFormat: 'BO1',
-      },
-      {
-        id: 'swiss-r1-8',
-        round: 'Round 1',
-        stage: 'swiss',
-        swissRecord: '0-0',
-        swissRound: 1,
-        boFormat: 'BO1',
-      },
-      // 第二轮：1-0，4场 BO1（胜者组）
-      {
-        id: 'swiss-r2-h1',
-        round: 'Round 2 High',
-        stage: 'swiss',
-        swissRecord: '1-0',
-        swissRound: 2,
-        boFormat: 'BO1',
-      },
-      {
-        id: 'swiss-r2-h2',
-        round: 'Round 2 High',
-        stage: 'swiss',
-        swissRecord: '1-0',
-        swissRound: 2,
-        boFormat: 'BO1',
-      },
-      {
-        id: 'swiss-r2-h3',
-        round: 'Round 2 High',
-        stage: 'swiss',
-        swissRecord: '1-0',
-        swissRound: 2,
-        boFormat: 'BO1',
-      },
-      {
-        id: 'swiss-r2-h4',
-        round: 'Round 2 High',
-        stage: 'swiss',
-        swissRecord: '1-0',
-        swissRound: 2,
-        boFormat: 'BO1',
-      },
-      // 第二轮：0-1，4场 BO1（败者组）
-      {
-        id: 'swiss-r2-l1',
-        round: 'Round 2 Low',
-        stage: 'swiss',
-        swissRecord: '0-1',
-        swissRound: 2,
-        boFormat: 'BO1',
-      },
-      {
-        id: 'swiss-r2-l2',
-        round: 'Round 2 Low',
-        stage: 'swiss',
-        swissRecord: '0-1',
-        swissRound: 2,
-        boFormat: 'BO1',
-      },
-      {
-        id: 'swiss-r2-l3',
-        round: 'Round 2 Low',
-        stage: 'swiss',
-        swissRecord: '0-1',
-        swissRound: 2,
-        boFormat: 'BO1',
-      },
-      {
-        id: 'swiss-r2-l4',
-        round: 'Round 2 Low',
-        stage: 'swiss',
-        swissRecord: '0-1',
-        swissRound: 2,
-        boFormat: 'BO1',
-      },
-      // 第三轮：2-0，2场 BO3
-      {
-        id: 'swiss-r3-h1',
-        round: 'Round 3 High',
-        stage: 'swiss',
-        swissRecord: '2-0',
-        swissRound: 3,
-        boFormat: 'BO3',
-      },
-      {
-        id: 'swiss-r3-h2',
-        round: 'Round 3 High',
-        stage: 'swiss',
-        swissRecord: '2-0',
-        swissRound: 3,
-        boFormat: 'BO3',
-      },
-      // 第三轮：1-1，4场 BO1（混合组）
-      {
-        id: 'swiss-r3-m1',
-        round: 'Round 3 Mid',
-        stage: 'swiss',
-        swissRecord: '1-1',
-        swissRound: 3,
-        boFormat: 'BO1',
-      },
-      {
-        id: 'swiss-r3-m2',
-        round: 'Round 3 Mid',
-        stage: 'swiss',
-        swissRecord: '1-1',
-        swissRound: 3,
-        boFormat: 'BO1',
-      },
-      {
-        id: 'swiss-r3-m3',
-        round: 'Round 3 Mid',
-        stage: 'swiss',
-        swissRecord: '1-1',
-        swissRound: 3,
-        boFormat: 'BO1',
-      },
-      {
-        id: 'swiss-r3-m4',
-        round: 'Round 3 Mid',
-        stage: 'swiss',
-        swissRecord: '1-1',
-        swissRound: 3,
-        boFormat: 'BO1',
-      },
-      // 第三轮：0-2，2场 BO3
-      {
-        id: 'swiss-r3-l1',
-        round: 'Round 3 Low',
-        stage: 'swiss',
-        swissRecord: '0-2',
-        swissRound: 3,
-        boFormat: 'BO3',
-      },
-      {
-        id: 'swiss-r3-l2',
-        round: 'Round 3 Low',
-        stage: 'swiss',
-        swissRecord: '0-2',
-        swissRound: 3,
-        boFormat: 'BO3',
-      },
-      // 第四轮：2-1，3场 BO3
-      {
-        id: 'swiss-r4-mh1',
-        round: 'Round 4 Mid-High',
-        stage: 'swiss',
-        swissRecord: '2-1',
-        swissRound: 4,
-        boFormat: 'BO3',
-      },
-      {
-        id: 'swiss-r4-mh2',
-        round: 'Round 4 Mid-High',
-        stage: 'swiss',
-        swissRecord: '2-1',
-        swissRound: 4,
-        boFormat: 'BO3',
-      },
-      {
-        id: 'swiss-r4-mh3',
-        round: 'Round 4 Mid-High',
-        stage: 'swiss',
-        swissRecord: '2-1',
-        swissRound: 4,
-        boFormat: 'BO3',
-      },
-      // 第四轮：1-2，3场 BO3
-      {
-        id: 'swiss-r4-ml1',
-        round: 'Round 4 Mid-Low',
-        stage: 'swiss',
-        swissRecord: '1-2',
-        swissRound: 4,
-        boFormat: 'BO3',
-      },
-      {
-        id: 'swiss-r4-ml2',
-        round: 'Round 4 Mid-Low',
-        stage: 'swiss',
-        swissRecord: '1-2',
-        swissRound: 4,
-        boFormat: 'BO3',
-      },
-      {
-        id: 'swiss-r4-ml3',
-        round: 'Round 4 Mid-Low',
-        stage: 'swiss',
-        swissRecord: '1-2',
-        swissRound: 4,
-        boFormat: 'BO3',
-      },
-      // 第五轮：2-2，3场 BO3（决出最后晋级名额）
-      {
-        id: 'swiss-r5-1',
-        round: 'Round 5',
-        stage: 'swiss',
-        swissRecord: '2-2',
-        swissRound: 5,
-        boFormat: 'BO3',
-      },
-      {
-        id: 'swiss-r5-2',
-        round: 'Round 5',
-        stage: 'swiss',
-        swissRecord: '2-2',
-        swissRound: 5,
-        boFormat: 'BO3',
-      },
-      {
-        id: 'swiss-r5-3',
-        round: 'Round 5',
-        stage: 'swiss',
-        swissRecord: '2-2',
-        swissRound: 5,
-        boFormat: 'BO3',
-      },
-    ];
+    let created = 0;
+    let skipped = 0;
+    const seenCount = new Map<string, number>();
 
-    // 淘汰赛槽位（7场）- 8队单败赛制
-    const eliminationSlots = [
-      // 四分之一决赛（4场）
-      {
-        id: 'elim-qf-1',
-        round: '四分之一决赛',
-        stage: 'elimination',
-        eliminationBracket: 'quarterfinals',
-        eliminationGameNumber: 1,
-        boFormat: 'BO5',
-      },
-      {
-        id: 'elim-qf-2',
-        round: '四分之一决赛',
-        stage: 'elimination',
-        eliminationBracket: 'quarterfinals',
-        eliminationGameNumber: 2,
-        boFormat: 'BO5',
-      },
-      {
-        id: 'elim-qf-3',
-        round: '四分之一决赛',
-        stage: 'elimination',
-        eliminationBracket: 'quarterfinals',
-        eliminationGameNumber: 3,
-        boFormat: 'BO5',
-      },
-      {
-        id: 'elim-qf-4',
-        round: '四分之一决赛',
-        stage: 'elimination',
-        eliminationBracket: 'quarterfinals',
-        eliminationGameNumber: 4,
-        boFormat: 'BO5',
-      },
-      // 半决赛（2场）
-      {
-        id: 'elim-sf-1',
-        round: '半决赛',
-        stage: 'elimination',
-        eliminationBracket: 'semifinals',
-        eliminationGameNumber: 5,
-        boFormat: 'BO5',
-      },
-      {
-        id: 'elim-sf-2',
-        round: '半决赛',
-        stage: 'elimination',
-        eliminationBracket: 'semifinals',
-        eliminationGameNumber: 6,
-        boFormat: 'BO5',
-      },
-      // 决赛（1场）
-      {
-        id: 'elim-f-1',
-        round: '决赛',
-        stage: 'elimination',
-        eliminationBracket: 'finals',
-        eliminationGameNumber: 7,
-        boFormat: 'BO5',
-      },
-    ];
+    for (const slot of slots) {
+      const key =
+        slot.stage === 'swiss'
+          ? `swiss:${slot.swissRound}:${slot.swissRecord}`
+          : `elim:${slot.eliminationGameNumber}`;
+      const seen = (seenCount.get(key) || 0) + 1;
+      seenCount.set(key, seen);
 
-    // 插入瑞士轮槽位
-    for (const slot of swissSlots) {
+      // 该自然键的"前 existingCount 个"槽位视为已存在 → 跳过（不触碰）
+      if (seen <= (existingCount.get(key) || 0)) {
+        skipped += 1;
+        continue;
+      }
+
+      // 新增槽位 id：builtin 用生成器默认 id；显式配置加前缀
+      const slotId = scope === null ? slot.id : `${scope}::${slot.id}`;
+      // id 已被占用 → 跳过（绝不覆盖）
+      if (existingIds.has(slotId)) {
+        skipped += 1;
+        continue;
+      }
+
       await this.databaseService.run(
-        `INSERT INTO matches (id, round, stage, status, swiss_record, swiss_round, bo_format, elimination_bracket, elimination_game_number) VALUES (?, ?, ?, 'upcoming', ?, ?, ?, ?, ?)`,
+        `INSERT INTO matches (id, round, stage, status, format_id, swiss_record, swiss_round, bo_format, elimination_bracket, elimination_game_number) VALUES (?, ?, ?, 'upcoming', ?, ?, ?, ?, ?, ?)`,
         [
-          slot.id,
+          slotId,
           slot.round,
           slot.stage,
-          slot.swissRecord,
-          slot.swissRound,
+          scope,
+          slot.swissRecord ?? null,
+          slot.swissRound ?? null,
           slot.boFormat,
-          null,
-          null,
+          slot.eliminationBracket ?? null,
+          slot.eliminationGameNumber ?? null,
         ],
       );
+      existingIds.add(slotId);
+      created += 1;
     }
 
-    // 插入淘汰赛槽位
-    for (const slot of eliminationSlots) {
-      await this.databaseService.run(
-        `INSERT INTO matches (id, round, stage, status, swiss_record, swiss_round, bo_format, elimination_bracket, elimination_game_number) VALUES (?, ?, ?, 'upcoming', ?, ?, ?, ?, ?)`,
-        [
-          slot.id,
-          slot.round,
-          slot.stage,
-          null,
-          null,
-          slot.boFormat,
-          slot.eliminationBracket,
-          slot.eliminationGameNumber,
-        ],
-      );
-    }
+    this.matchLogger.log(
+      `Generated match slots: created=${created}, skipped=${skipped}, total=${total} (scope=${scope ?? 'builtin'})`,
+    );
 
-    this.matchLogger.log(`Initialized ${swissSlots.length + eliminationSlots.length} match slots`);
+    // 生成后清缓存（含 scope 变体键）
+    this.cacheService.flush();
 
-    // 清除缓存
-    this.clearAllCache();
+    return { created, skipped, total };
   }
 }

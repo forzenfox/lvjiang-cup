@@ -14,6 +14,12 @@ import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { initSlots } from '@/api/admin';
 import { getUploadUrl } from '@/utils/upload';
+import { BUILTIN_DEFAULT_FORMAT, type SwissStageConfig } from '@/lib/format';
+
+// 内置默认配置的瑞士轮晋级/淘汰阈值（临时接线：后续波次改为从生效配置接口获取）
+const defaultSwissStage = BUILTIN_DEFAULT_FORMAT.stages.find(
+  (stage): stage is SwissStageConfig => stage.type === 'swiss'
+);
 
 // 将前端 Match 转换为 API UpdateMatchRequest
 const toUpdateMatchRequest = (match: Match): UpdateMatchRequest => ({
@@ -113,7 +119,10 @@ const AdminSchedule: React.FC = () => {
 
       const swissMatches = mappedMatches.filter(m => m.stage === 'swiss');
       if (swissMatches.length > 0) {
-        const calculated = calculateAdvancement(swissMatches, mappedTeams as Team[]);
+        const calculated = calculateAdvancement(swissMatches, mappedTeams as Team[], {
+          winThreshold: defaultSwissStage?.winThreshold ?? 3,
+          lossThreshold: defaultSwissStage?.lossThreshold ?? 3,
+        });
         setAdvancement(calculated);
       }
     } catch (error) {

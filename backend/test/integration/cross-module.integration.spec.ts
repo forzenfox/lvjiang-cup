@@ -4,6 +4,8 @@ import { MatchesService } from '../../src/modules/matches/matches.service';
 import { StreamsService } from '../../src/modules/streams/streams.service';
 import { DatabaseService } from '../../src/database/database.service';
 import { CacheService } from '../../src/cache/cache.service';
+import { FormatsService } from '../../src/modules/formats/formats.service';
+import { BUILTIN_DEFAULT_FORMAT } from '../../src/modules/formats/format.types';
 import { ConfigService } from '@nestjs/config';
 
 describe('Cross-Module Integration Tests', () => {
@@ -22,6 +24,18 @@ describe('Cross-Module Integration Tests', () => {
         StreamsService,
         DatabaseService,
         CacheService,
+        {
+          // 生效配置固定为内置默认（本测试文件不涉及配置切换）
+          provide: FormatsService,
+          useValue: {
+            getActiveFormat: jest.fn().mockResolvedValue({
+              source: 'builtin',
+              id: null,
+              config: BUILTIN_DEFAULT_FORMAT,
+            }),
+            findById: jest.fn(),
+          },
+        },
         {
           provide: ConfigService,
           useValue: {

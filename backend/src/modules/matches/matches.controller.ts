@@ -12,8 +12,16 @@ export class MatchesController {
   @Get('matches')
   @ApiOperation({ summary: '获取所有比赛列表' })
   @ApiQuery({ name: 'stage', required: false, description: '按阶段筛选 (swiss/elimination)' })
-  async findAll(@Query('stage') stage?: string): Promise<Match[]> {
-    return this.matchesService.findAll(stage);
+  @ApiQuery({
+    name: 'formatId',
+    required: false,
+    description: '按赛制配置筛选（省略时按当前生效配置过滤）',
+  })
+  async findAll(
+    @Query('stage') stage?: string,
+    @Query('formatId') formatId?: string,
+  ): Promise<Match[]> {
+    return this.matchesService.findAll(stage, formatId);
   }
 
   @Get('matches/:id')

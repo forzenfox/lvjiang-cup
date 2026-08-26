@@ -407,14 +407,48 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
 
     await run(this.db, `CREATE UNIQUE INDEX IF NOT EXISTS idx_file_hash ON file_hashes(hash)`);
 
+    // format_configs 表（赛制配置）
+    await run(
+      this.db,
+      `
+      CREATE TABLE IF NOT EXISTS format_configs (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        config_json TEXT NOT NULL,
+        is_active INTEGER DEFAULT 0,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `,
+    );
+
     // 初始化 stream_info 的默认数据
     await this.initDefaultData();
 
     // 执行数据迁移
     await this.migrateAuctionPrice();
     await this.migrateVideoBvid();
+    await this.migrateMatchFormatId();
 
     this.logger.log('Database tables initialized');
+  }
+
+  /**
+   * 迁移赛制配置归属字段（为 matches 表添加 format_id 列）
+   * NULL = 归属内置默认配置（迁移前遗留槽位，零回填）
+   */
+  private async migrateMatchFormatId() {
+    try {
+      const columns = await this.all<any>(`PRAGMA table_info(matches)`);
+      const hasColumn = columns.some((col: any) => col.name === 'format_id');
+
+      if (!hasColumn) {
+        await this.run(`ALTER TABLE matches ADD COLUMN format_id TEXT`);
+        this.logger.log('已添加 matches.format_id 字段');
+      }
+    } catch (error) {
+      this.logger.error('添加 matches.format_id 字段失败:', error.message);
+    }
   }
 
   /**

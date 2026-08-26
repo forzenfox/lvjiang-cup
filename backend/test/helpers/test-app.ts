@@ -92,14 +92,14 @@ export async function createTestApp(options: CreateTestAppOptions = {}): Promise
   app.useGlobalInterceptors(new TransformInterceptor());
   await app.init();
 
-  // 初始化比赛槽位（如果需要）
+  // 初始化比赛槽位（如果需要，按生效配置生成）
   if (initMatchSlots) {
     const { MatchesService } = await import('../../src/modules/matches/matches.service');
     const matchesService =
       moduleFixture.get<import('../../src/modules/matches/matches.service').MatchesService>(
         MatchesService,
       );
-    await matchesService.initSlots();
+    await matchesService.generateSlots();
   }
 
   // 自动登录获取 token

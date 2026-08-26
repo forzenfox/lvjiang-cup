@@ -2,8 +2,10 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { MatchesService } from '../../src/modules/matches/matches.service';
 import { DatabaseService } from '../../src/database/database.service';
 import { CacheService } from '../../src/cache/cache.service';
+import { FormatsService } from '../../src/modules/formats/formats.service';
 import { NotFoundException } from '@nestjs/common';
 import { MatchStatus } from '../../src/modules/matches/dto/update-match.dto';
+import { BUILTIN_DEFAULT_FORMAT } from '../../src/modules/formats/format.types';
 
 describe('MatchesService', () => {
   let service: MatchesService;
@@ -20,6 +22,12 @@ describe('MatchesService', () => {
     get: jest.fn(),
     set: jest.fn(),
     del: jest.fn(),
+    flush: jest.fn(),
+  };
+
+  const mockFormatsService = {
+    getActiveFormat: jest.fn(),
+    findById: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -34,6 +42,10 @@ describe('MatchesService', () => {
           provide: CacheService,
           useValue: mockCacheService,
         },
+        {
+          provide: FormatsService,
+          useValue: mockFormatsService,
+        },
       ],
     }).compile();
 
@@ -42,6 +54,12 @@ describe('MatchesService', () => {
     cacheService = module.get<CacheService>(CacheService);
 
     jest.clearAllMocks();
+    // 默认生效配置为内置默认（保持旧用例行为兼容：scope=null → format_id IS NULL）
+    mockFormatsService.getActiveFormat.mockResolvedValue({
+      source: 'builtin',
+      id: null,
+      config: BUILTIN_DEFAULT_FORMAT,
+    });
   });
 
   afterEach(() => {
@@ -293,30 +311,65 @@ describe('MatchesService', () => {
     });
   });
 
-  describe('initSlots', () => {
-    it('should initialize 36 swiss stage slots', async () => {
-      mockDatabaseService.get.mockResolvedValue({ count: 0 });
+  describe('generateSlots', () => {
+    it('首次生成应创建 40 个槽位（33 瑞士轮 + 7 淘汰赛）', async () => {
+      mockDatabaseService.all.mockResolvedValue([]);
       mockDatabaseService.run.mockResolvedValue({ changes: 1, lastID: 1 });
 
-      await service.initSlots();
+      const result = await service.generateSlots();
 
       // 验证插入了33个瑞士轮槽位 + 7个淘汰赛槽位 = 40次调用
       expect(mockDatabaseService.run).toHaveBeenCalledTimes(40);
+      expect(result).toEqual({ created: 40, skipped: 0, total: 40 });
     });
 
-    it('should not initialize if slots already exist', async () => {
-      mockDatabaseService.get.mockResolvedValue({ count: 10 });
+    it('槽位已存在时应零新增（幂等）', async () => {
+      // 现有槽位自然键齐全（33 瑞士轮 + 7 淘汰赛）
+      const existingRows: any[] = [];
+      const swissDistribution: Array<[number, string, number]> = [
+        [1, '0-0', 8],
+        [2, '1-0', 4],
+        [2, '0-1', 4],
+        [3, '2-0', 2],
+        [3, '1-1', 4],
+        [3, '0-2', 2],
+        [4, '2-1', 3],
+        [4, '1-2', 3],
+        [5, '2-2', 3],
+      ];
+      for (const [round, record, count] of swissDistribution) {
+        for (let i = 0; i < count; i++) {
+          existingRows.push({
+            id: `swiss-r${round}-${record}-${i}`,
+            stage: 'swiss',
+            swiss_round: round,
+            swiss_record: record,
+            elimination_game_number: null,
+          });
+        }
+      }
+      for (let n = 1; n <= 7; n++) {
+        existingRows.push({
+          id: `elim-game-${n}`,
+          stage: 'elimination',
+          swiss_round: null,
+          swiss_record: null,
+          elimination_game_number: n,
+        });
+      }
+      mockDatabaseService.all.mockResolvedValue(existingRows);
 
-      await service.initSlots();
+      const result = await service.generateSlots();
 
       expect(mockDatabaseService.run).not.toHaveBeenCalled();
+      expect(result).toEqual({ created: 0, skipped: 40, total: 40 });
     });
 
     it('should create swiss round 5 slots', async () => {
-      mockDatabaseService.get.mockResolvedValue({ count: 0 });
+      mockDatabaseService.all.mockResolvedValue([]);
       mockDatabaseService.run.mockResolvedValue({ changes: 1, lastID: 1 });
 
-      await service.initSlots();
+      await service.generateSlots();
 
       // 验证第5轮的槽位被创建
       const calls = mockDatabaseService.run.mock.calls;
@@ -326,13 +379,13 @@ describe('MatchesService', () => {
       expect(round5Calls.length).toBe(3);
     });
 
-    it('should clear cache after initialization', async () => {
-      mockDatabaseService.get.mockResolvedValue({ count: 0 });
+    it('should clear cache after generation', async () => {
+      mockDatabaseService.all.mockResolvedValue([]);
       mockDatabaseService.run.mockResolvedValue({ changes: 1, lastID: 1 });
 
-      await service.initSlots();
+      await service.generateSlots();
 
-      expect(mockCacheService.del).toHaveBeenCalledWith('matches:all');
+      expect(mockCacheService.flush).toHaveBeenCalled();
     });
   });
 

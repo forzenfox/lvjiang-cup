@@ -73,7 +73,7 @@ describe('MatchesController', () => {
 
       // Assert
       expect(result).toEqual(mockMatches);
-      expect(mockMatchesService.findAll).toHaveBeenCalledWith(undefined);
+      expect(mockMatchesService.findAll).toHaveBeenCalledWith(undefined, undefined);
     });
 
     it('应该按阶段筛选返回比赛列表', async () => {
@@ -95,7 +95,7 @@ describe('MatchesController', () => {
 
       // Assert
       expect(result).toEqual(mockSwissMatches);
-      expect(mockMatchesService.findAll).toHaveBeenCalledWith('swiss');
+      expect(mockMatchesService.findAll).toHaveBeenCalledWith('swiss', undefined);
     });
 
     it('应该使用默认分页值', async () => {
@@ -110,6 +110,17 @@ describe('MatchesController', () => {
 
       // Assert
       expect(result).toEqual(mockMatches);
+    });
+
+    it('应该将 formatId 查询参数透传给 service', async () => {
+      // Arrange
+      mockMatchesService.findAll.mockResolvedValue([]);
+
+      // Act
+      await controller.findAll('swiss', 'fmt-123');
+
+      // Assert
+      expect(mockMatchesService.findAll).toHaveBeenCalledWith('swiss', 'fmt-123');
     });
   });
 

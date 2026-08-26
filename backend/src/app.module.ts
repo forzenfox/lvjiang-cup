@@ -13,6 +13,7 @@ import { AdminModule } from './modules/admin/admin.module';
 import { UploadModule } from './modules/upload/upload.module';
 import { MatchDataModule } from './modules/match-data/match-data.module';
 import { TrackingModule } from './modules/tracking/tracking.module';
+import { FormatsModule } from './modules/formats/formats.module';
 import appConfig from './config/app.config';
 import { getUploadBaseDir } from './common/utils/path.util';
 
@@ -31,6 +32,7 @@ import { getUploadBaseDir } from './common/utils/path.util';
     DatabaseModule,
     CacheModule,
     TeamsModule,
+    FormatsModule,
     MatchesModule,
     StreamsModule,
     StreamersModule,

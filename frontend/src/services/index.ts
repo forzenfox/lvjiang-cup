@@ -43,6 +43,10 @@ export type { MatchDataServiceState } from './matchDataService';
 export { advancementService, subscribeToAdvancementService } from './advancementService';
 export type { AdvancementServiceState } from './advancementService';
 
+// 赛制配置数据服务
+export { formatService, clearActiveFormatCache } from './formatService';
+export type { ResolvedActiveFormat } from './formatService';
+
 // 管理后台数据服务
 export { adminService, subscribeToAdminService } from './adminService';
 export type { AdminServiceState } from './adminService';

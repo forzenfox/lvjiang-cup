@@ -32,6 +32,19 @@ export {
   clearScores as clearMatchScores,
 } from './matches';
 
+// 赛制配置 API
+export {
+  default as formatApi,
+  getActive as getActiveFormat,
+  listFormats,
+  createFormat,
+  updateFormat,
+  deleteFormat,
+  activateFormat,
+  deactivateFormat,
+  generateSlots,
+} from './format';
+
 // 直播 API
 export {
   default as streamsApi,

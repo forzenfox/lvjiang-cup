@@ -3,16 +3,16 @@ import { AdminController } from '../../src/modules/admin/admin.controller';
 import { MatchesService } from '../../src/modules/matches/matches.service';
 import { DatabaseService } from '../../src/database/database.service';
 import { CacheService } from '../../src/cache/cache.service';
+import { FormatsService } from '../../src/modules/formats/formats.service';
 import { JwtAuthGuard } from '../../src/modules/auth/guards/jwt-auth.guard';
 
 describe('AdminController', () => {
   let controller: AdminController;
   let databaseService: DatabaseService;
   let cacheService: CacheService;
-  let _matchesService: MatchesService;
 
   const mockMatchesService = {
-    initSlots: jest.fn(),
+    generateSlots: jest.fn(),
   };
 
   const mockDatabaseService = {
@@ -23,6 +23,10 @@ describe('AdminController', () => {
 
   const mockCacheService = {
     flush: jest.fn(),
+  };
+
+  const mockFormatsService = {
+    getActiveFormat: jest.fn(),
   };
 
   // 模拟认证守卫
@@ -48,6 +52,10 @@ describe('AdminController', () => {
           provide: CacheService,
           useValue: mockCacheService,
         },
+        {
+          provide: FormatsService,
+          useValue: mockFormatsService,
+        },
       ],
     })
       .overrideGuard(JwtAuthGuard)
@@ -55,7 +63,6 @@ describe('AdminController', () => {
       .compile();
 
     controller = module.get<AdminController>(AdminController);
-    _matchesService = module.get<MatchesService>(MatchesService);
     databaseService = module.get<DatabaseService>(DatabaseService);
     cacheService = module.get<CacheService>(CacheService);
   });
@@ -64,11 +71,14 @@ describe('AdminController', () => {
     jest.clearAllMocks();
   });
 
-  describe('POST /admin/init-slots - 初始化比赛槽位', () => {
-    it('应该初始化比赛槽位并返回成功消息', async () => {
+  describe('POST /admin/init-slots - 初始化比赛槽位（按生效配置生成）', () => {
+    it('应该按生效配置生成槽位并返回 created/skipped/total', async () => {
       // Arrange
-      mockMatchesService.initSlots.mockResolvedValue(undefined);
-      mockDatabaseService.get.mockResolvedValue({ count: 16 });
+      mockMatchesService.generateSlots.mockResolvedValue({
+        created: 40,
+        skipped: 0,
+        total: 40,
+      });
 
       // Act
       const result = await controller.initSlots();
@@ -76,18 +86,58 @@ describe('AdminController', () => {
       // Assert
       expect(result).toEqual({
         message: 'Match slots initialized successfully',
-        count: 16,
+        created: 40,
+        skipped: 0,
+        total: 40,
       });
-      expect(mockMatchesService.initSlots).toHaveBeenCalled();
-      expect(mockDatabaseService.get).toHaveBeenCalledWith('SELECT COUNT(*) as count FROM matches');
+      expect(mockMatchesService.generateSlots).toHaveBeenCalledWith();
     });
 
-    it('应该在初始化失败时抛出错误', async () => {
+    it('应该在生成失败时抛出错误', async () => {
       // Arrange
-      mockMatchesService.initSlots.mockRejectedValue(new Error('Initialization failed'));
+      mockMatchesService.generateSlots.mockRejectedValue(new Error('Initialization failed'));
 
       // Act & Assert
       await expect(controller.initSlots()).rejects.toThrow('Initialization failed');
+    });
+  });
+
+  describe('POST /admin/slots/generate - 按赛制配置生成槽位', () => {
+    it('应该调用 generateSlots 并返回统计结果', async () => {
+      // Arrange
+      mockMatchesService.generateSlots.mockResolvedValue({
+        created: 13,
+        skipped: 0,
+        total: 13,
+      });
+
+      // Act
+      const result = await controller.generateSlots({ formatId: 'fmt-123' });
+
+      // Assert
+      expect(mockMatchesService.generateSlots).toHaveBeenCalledWith('fmt-123');
+      expect(result).toEqual({
+        message: 'Match slots generated successfully',
+        created: 13,
+        skipped: 0,
+        total: 13,
+      });
+    });
+
+    it('应该在未传 formatId 时按生效配置生成', async () => {
+      // Arrange
+      mockMatchesService.generateSlots.mockResolvedValue({
+        created: 40,
+        skipped: 0,
+        total: 40,
+      });
+
+      // Act
+      const result = await controller.generateSlots({});
+
+      // Assert
+      expect(mockMatchesService.generateSlots).toHaveBeenCalledWith(undefined);
+      expect(result.created).toBe(40);
     });
   });
 
