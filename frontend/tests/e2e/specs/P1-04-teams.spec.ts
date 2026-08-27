@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { DashboardPage, TeamsPage, HomePage } from '../pages';
 import { testTeam, longNameTeam, testTeamBeta } from '../fixtures/teams.fixture';
+import { cleanCacheByTag, TestCleanTags } from '../utils/test-data-cleaner';
 
 /**
  * 战队管理测试用例
@@ -103,6 +104,34 @@ test.describe('【第二阶段-4】战队增删改功能测试', () => {
   let dashboardPage: DashboardPage;
   let teamsPage: TeamsPage;
   let homePage: HomePage;
+
+  // 预先保证存在战队种子数据，避免 TEST-106/TEST-107 因缺少战队而找不到目标
+  // 注：beforeAll 不能使用 page/context 夹具，这里用 browser 自建一个带登录态的上下文
+  test.beforeAll(async ({ browser }) => {
+    const context = await browser.newContext({
+      baseURL: 'http://localhost:5173',
+      storageState: './tests/e2e/.auth/auth.json',
+    });
+    const page = await context.newPage();
+    const dash = new DashboardPage(page);
+    const teams = new TeamsPage(page);
+
+    await page.goto('/admin/dashboard');
+    await dash.expectPageLoaded();
+
+    // 清理 localStorage 中可能过期的战队缓存，避免旧数据干扰
+    await cleanCacheByTag(page, TestCleanTags.TEAMS);
+
+    await dash.navigateToTeams();
+    await teams.expectPageLoaded();
+
+    const count = await teams.getTeamCount();
+    if (count === 0) {
+      // 没有种子数据时通过 loadMockData 写入包含 testTeam(驴酱) 的 16 支战队
+      await teams.loadMockData();
+    }
+    await context.close();
+  });
 
   test.beforeEach(async ({ page }) => {
     dashboardPage = new DashboardPage(page);

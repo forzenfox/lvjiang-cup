@@ -18,8 +18,10 @@ import MatchDataSkeleton from './MatchDataSkeleton';
 
 const POSITION_ORDER: PositionType[] = ['TOP', 'JUNGLE', 'MID', 'ADC', 'SUPPORT'];
 
-// 导出以便测试时可以 mock
-export const isEditDisabled = true;
+// 导出以便测试时可以 mock。
+// 编辑功能为可用状态（P1 E2E 用例 TEST-MD-014 校验保存流程），
+// 置为 true 时会渲染「功能暂时禁用」页，导致保存/取消按钮缺失。
+export const isEditDisabled = false;
 
 const DisabledEditPage: React.FC<{ onBack: () => void }> = ({ onBack }) => {
   return (

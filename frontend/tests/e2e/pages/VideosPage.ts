@@ -106,14 +106,23 @@ export class VideosPage extends BasePage {
     if (data.bvid) {
       await this.bvidInput.fill(data.bvid);
     }
-    if (data.page !== undefined) {
+    // 新版 VideoForm 仅包含「B站视频链接」与「自定义标题」两个输入框，
+    // 无页码/封面URL/排序号输入框；对已不存在的字段做存在性保护，
+    // 避免对不存在元素 fill 等待到默认 actionTimeout(15s) 而超时。
+    if (data.page !== undefined && (await this.pageInput.isVisible().catch(() => false))) {
       await this.pageInput.fill(data.page.toString());
+    } else if (data.page !== undefined) {
+      console.log('⚠️ 视频表单无页码输入框，跳过 page 字段');
     }
-    if (data.coverUrl) {
+    if (data.coverUrl && (await this.coverUrlInput.isVisible().catch(() => false))) {
       await this.coverUrlInput.fill(data.coverUrl);
+    } else if (data.coverUrl) {
+      console.log('⚠️ 视频表单无封面URL输入框，跳过 coverUrl 字段');
     }
-    if (data.order !== undefined) {
+    if (data.order !== undefined && (await this.orderInput.isVisible().catch(() => false))) {
       await this.orderInput.fill(data.order.toString());
+    } else if (data.order !== undefined) {
+      console.log('⚠️ 视频表单无排序号输入框，跳过 order 字段');
     }
   }
 

@@ -18,26 +18,8 @@ test.describe('【P2】对战数据展示 - 雷达图交互', () => {
   test('TEST-MD-008: 点击选手行展开雷达图 @P2', async ({ page }) => {
     const fixture = createMatchDataFixture({ boFormat: 'BO1' as const });
     const seriesGames = [{ gameNumber: 1, winner: 'red', duration: '32:45', status: 1 }];
-    const playerStats = Array(10)
-      .fill(null)
-      .map((_, i) => ({
-        id: i + 1,
-        side: i < 5 ? 'red' : ('blue' as 'red' | 'blue'),
-        position: ['TOP', 'JUNGLE', 'MID', 'ADC', 'SUPPORT'][i % 5],
-        nickname: `Player${i + 1}`,
-        championName: '英雄',
-        kills: i + 1,
-        deaths: 2,
-        assists: 5,
-        cs: 200 + i * 20,
-        gold: 10000 + i * 1000,
-        damageDealt: 15000 + i * 2000,
-        damageTaken: 20000 - i * 1000,
-        level: 15,
-        visionScore: 30 + i * 5,
-        wardsPlaced: 5 + i,
-        mvp: i === 2,
-      }));
+    // 选手行按阵营渲染依赖 teamId，需使用扩展格式（含 teamId/playerId）
+    const playerStats = createDefaultPlayerStats(fixture, { useExtendedFormat: true });
 
     await page.route('**/api/matches/*/games/check', async route => {
       await route.fulfill({

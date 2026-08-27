@@ -89,7 +89,7 @@ test.describe('【P1】鸣谢模块 Marquee 滚动测试', () => {
 
     // 鼠标悬停到容器上
     await homePage.marqueeContainer.hover();
-    await page.waitForTimeout(300);
+    await homePage.page.waitForTimeout(300);
 
     // 获取悬停后的动画状态
     const hoverPlayState = await marqueeContent.evaluate(
@@ -181,13 +181,14 @@ test.describe('【P2】鸣谢模块响应式测试', () => {
 
     // 获取内容宽度来计算预期时长
     const contentWidth = await marqueeContent.evaluate(el => el.scrollWidth / 2);
-    const expectedDuration = contentWidth / 130; // 桌面端速度 130px/s
+    // 与 useMarqueeDuration 一致：固定速度换算后再取 Math.max(..., 15) 下限
+    const expectedDuration = Math.max(contentWidth / 130, 15); // 桌面端速度 130px/s
 
     console.log(
       `✅ 桌面端内容宽度: ${contentWidth}px, 预期时长: ${expectedDuration.toFixed(1)}s, 实际时长: ${durationValue}s`
     );
 
-    // 验证时长与预期值接近（允许 10% 误差）
+    // 验证时长与预期值接近
     expect(durationValue).toBeCloseTo(expectedDuration, 0);
   });
 
@@ -213,13 +214,14 @@ test.describe('【P2】鸣谢模块响应式测试', () => {
 
     // 获取内容宽度来计算预期时长
     const contentWidth = await marqueeContent.evaluate(el => el.scrollWidth / 2);
-    const expectedDuration = contentWidth / 80; // 移动端速度 80px/s
+    // 与 useMarqueeDuration 一致：固定速度换算后再取 Math.max(..., 15) 下限
+    const expectedDuration = Math.max(contentWidth / 80, 15); // 移动端速度 80px/s
 
     console.log(
       `✅ 移动端内容宽度: ${contentWidth}px, 预期时长: ${expectedDuration.toFixed(1)}s, 实际时长: ${durationValue}s`
     );
 
-    // 验证时长与预期值接近（允许 10% 误差）
+    // 验证时长与预期值接近
     expect(durationValue).toBeCloseTo(expectedDuration, 0);
   });
 
@@ -242,9 +244,10 @@ test.describe('【P2】鸣谢模块响应式测试', () => {
     );
     const desktopDuration = parseFloat(desktopDurationStr);
     const desktopContentWidth = await desktopMarqueeContent.evaluate(el => el.scrollWidth / 2);
-    const desktopSpeed = desktopContentWidth / desktopDuration;
+    // 桌面端速度 130px/s，且与 useMarqueeDuration 一致取下限 15s
+    const desktopExpected = Math.max(desktopContentWidth / 130, 15);
 
-    console.log(`✅ 桌面端速度: ${desktopSpeed.toFixed(2)}px/s`);
+    console.log(`✅ 桌面端时长: ${desktopDuration}s, 预期: ${desktopExpected.toFixed(2)}s`);
 
     // 切换到移动端
     await page.setViewportSize({ width: 375, height: 667 });
@@ -259,12 +262,13 @@ test.describe('【P2】鸣谢模块响应式测试', () => {
     );
     const mobileDuration = parseFloat(mobileDurationStr);
     const mobileContentWidth = await mobileMarqueeContent.evaluate(el => el.scrollWidth / 2);
-    const mobileSpeed = mobileContentWidth / mobileDuration;
+    // 移动端速度 80px/s，且与 useMarqueeDuration 一致取下限 15s
+    const mobileExpected = Math.max(mobileContentWidth / 80, 15);
 
-    console.log(`✅ 移动端速度: ${mobileSpeed.toFixed(2)}px/s`);
+    console.log(`✅ 移动端时长: ${mobileDuration}s, 预期: ${mobileExpected.toFixed(2)}s`);
 
-    // 验证速度接近预期值（允许 10% 误差）
-    expect(desktopSpeed).toBeCloseTo(130, 0);
-    expect(mobileSpeed).toBeCloseTo(80, 0);
+    // 验证两种视口下的动画时长与固定速度（含最小时长下限）换算结果一致
+    expect(desktopDuration).toBeCloseTo(desktopExpected, 0);
+    expect(mobileDuration).toBeCloseTo(mobileExpected, 0);
   });
 });

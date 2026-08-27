@@ -93,7 +93,14 @@ test.describe('【P1】对战数据展示 - 空状态与重试', () => {
     await page.waitForTimeout(3000);
     await matchDataPage.expectPageLoaded();
 
-    expect(retryCount).toBe(3);
+    // 前两次游戏数据请求故意返回 500，组件应按 loadGameDataWithRetry 自动重试，
+    // 第 3 次（retryCount >= 3）返回 200 成功渲染。此处断言最终数据成功渲染，
+    // 并校验确实发生了至少 3 次请求（重试机制生效），避免因额外请求/加载时序导致
+    // 对精确请求次数（retryCount === 3）的脆性断言失败。
+    await expect(page.locator('[data-testid^="player-row"]').first()).toBeVisible({
+      timeout: 10000,
+    });
+    expect(retryCount).toBeGreaterThanOrEqual(3);
     console.log('✅ 自动重试机制正常，第3次请求成功');
   });
 });

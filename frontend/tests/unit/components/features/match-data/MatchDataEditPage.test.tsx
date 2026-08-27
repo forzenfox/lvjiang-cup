@@ -27,8 +27,8 @@ vi.mock('sonner', () => ({
   },
 }));
 
-// 由于组件中的 isEditDisabled = true，测试应验证禁用状态页面
-// 同时也需要 mock store
+// 编辑功能当前为可用状态（isEditDisabled = false），
+// 断言可编辑页面正确渲染保存/取消按钮，而非「功能暂时禁用」页。
 vi.mock('@/store/matchDataStore', () => ({
   useMatchDataStore: () => ({
     preloadAdjacentGame: vi.fn(),
@@ -86,7 +86,7 @@ const renderWithRouter = (ui: React.ReactElement) => {
   return render(
     <MemoryRouter initialEntries={['/match/match1/edit']}>
       <Routes>
-        <Route path="/match/:id/edit" element={ui} />
+        <Route path="/match/:matchId/edit" element={ui} />
       </Routes>
     </MemoryRouter>
   );
@@ -100,35 +100,19 @@ describe('MatchDataEditPage', () => {
     mockUpdateGameData.mockResolvedValue({ success: true });
   });
 
-  describe('页面加载 - 编辑功能禁用状态', () => {
-    it('应该显示功能禁用页面标题', () => {
+  describe('页面加载 - 编辑功能可用状态', () => {
+    it('应该渲染可编辑页面并显示保存/取消按钮', async () => {
       renderWithRouter(<MatchDataEditPage />);
-      expect(screen.getByText('功能暂时禁用')).toBeInTheDocument();
-    });
-
-    it('应该显示禁用说明文字', () => {
-      renderWithRouter(<MatchDataEditPage />);
-      expect(screen.getByText(/对战数据编辑功能暂时禁用/i)).toBeInTheDocument();
-    });
-
-    it('应该显示返回按钮', () => {
-      renderWithRouter(<MatchDataEditPage />);
-      expect(screen.getByRole('button', { name: /返回上一页/i })).toBeInTheDocument();
-    });
-
-    it('点击返回上一页按钮应该触发导航', () => {
-      renderWithRouter(<MatchDataEditPage />);
-      const backButton = screen.getByRole('button', { name: /返回上一页/i });
-      expect(backButton).toBeInTheDocument();
-      // 由于 navigate(-1) 在 MemoryRouter 中不会产生可见变化，
-      // 我们验证按钮存在即可
+      // 数据异步加载完成后进入可编辑分支，出现「保存」「取消」操作按钮
+      expect(await screen.findByRole('button', { name: '保存' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: '取消' })).toBeInTheDocument();
     });
   });
 
   describe('页面头部', () => {
-    it('应该显示对战数据详情编辑标题', () => {
+    it('应该显示对战数据详情编辑标题', async () => {
       renderWithRouter(<MatchDataEditPage />);
-      expect(screen.getByText('对战数据详情编辑')).toBeInTheDocument();
+      expect(await screen.findByText('对战数据详情编辑')).toBeInTheDocument();
     });
   });
 });

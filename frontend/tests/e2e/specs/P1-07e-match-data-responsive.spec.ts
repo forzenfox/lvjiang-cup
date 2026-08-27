@@ -4,7 +4,7 @@ import {
   createMatchDataFixture,
   createSeriesResponse,
   createGameResponse,
-  createFilledPlayerStats,
+  createDefaultPlayerStats,
 } from '../fixtures/factory';
 
 async function setupResponsiveMocks(page: any, fixture: any) {
@@ -30,7 +30,10 @@ async function setupResponsiveMocks(page: any, fixture: any) {
     await route.fulfill({
       status: 200,
       body: JSON.stringify(
-        createGameResponse(1, fixture, { playerStats: createFilledPlayerStats(10, fixture) })
+        createGameResponse(1, fixture, {
+          // 选手行按阵营渲染依赖 teamId，需使用扩展格式
+          playerStats: createDefaultPlayerStats(fixture, { useExtendedFormat: true }),
+        })
       ),
     });
   });
@@ -57,7 +60,7 @@ test.describe('【P2】对战数据展示 - 响应式布局', () => {
       fullPage: true,
     });
 
-    const playerStats = page.locator('[data-testid="player-stats-list"], [class*="player"]');
+    const playerStats = page.locator('[data-testid^="player-row"]');
     const statsVisible = await playerStats
       .first()
       .isVisible()

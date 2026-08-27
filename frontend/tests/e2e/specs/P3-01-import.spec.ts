@@ -3,8 +3,27 @@ import { DashboardPage, TeamsPage } from '../pages';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
+import { fileURLToPath } from 'url';
 
-const TEST_TEAM_NAME = '导入测试战队';
+// 测试文件以 ESM 运行，__dirname 需由 import.meta.url 推导
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+// 从 test-import-data.json 读取首支被导入战队名。
+// fixtures/test-import.xlsx 由 scripts/generate-test-excel.cjs 依据该配置生成，
+// 内容为真实的 16 支战队（驴酱/IC/...），并不含 '导入测试战队'。
+// 若硬编码该名称，TEST-1405 的 hasTeam 覆盖断言将必然失败。
+const TEST_TEAM_NAME = (() => {
+  try {
+    const configPath = path.join(__dirname, '..', 'config', 'test-import-data.json');
+    const data = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
+    if (Array.isArray(data) && data.length > 0 && data[0].teamName) {
+      return data[0].teamName as string;
+    }
+  } catch {
+    /* 配置读取失败时回退默认名 */
+  }
+  return '导入测试战队';
+})();
 
 function getFixtureExcelPath(): string {
   return path.join(__dirname, '..', 'fixtures', 'test-import.xlsx');
@@ -137,15 +156,37 @@ test.describe('【导入功能】战队批量导入测试', () => {
     const importButton = page.locator('button:has-text("开始导入")');
     await importButton.click();
 
-    await page.waitForTimeout(3000);
+    // 等待导入结果弹窗（ImportResultDialog，标题「导入结果」）出现，
+    // 再判断成功/部分成功文案，避免直接轮询 text 文案受渲染时序影响。
+    await page
+      .locator('[role="dialog"]:has-text("导入结果")')
+      .waitFor({ state: 'visible', timeout: 15000 })
+      .catch(() => {});
+
+    const resultDialogVisible = await page
+      .locator('[role="dialog"]:has-text("导入结果")')
+      .isVisible()
+      .catch(() => false);
+
+    if (!resultDialogVisible) {
+      // 诊断：导入未走到结果弹窗，可能是 ImportDialog 内校验/请求错误
+      const dialogError = await page
+        .locator('[role="dialog"] .text-red-400')
+        .first()
+        .textContent()
+        .catch(() => '');
+      console.log(`⚠️ 导入结果弹窗未出现，导入对话框内错误信息: ${dialogError || '(无)'}`);
+    }
 
     const successVisible = await page
       .locator('text=导入成功')
-      .isVisible({ timeout: 10000 })
+      .first()
+      .isVisible({ timeout: 5000 })
       .catch(() => false);
     const partialVisible = await page
       .locator('text=部分成功')
-      .isVisible({ timeout: 10000 })
+      .first()
+      .isVisible({ timeout: 5000 })
       .catch(() => false);
 
     expect(successVisible || partialVisible).toBeTruthy();
@@ -230,11 +271,30 @@ test.describe('【导入功能】战队批量导入测试', () => {
     const importButton = page.locator('button:has-text("开始导入")');
     await importButton.click();
 
-    await page.waitForTimeout(3000);
+    // 等待导入结果弹窗（ImportResultDialog，标题「导入结果」）出现
+    await page
+      .locator('[role="dialog"]:has-text("导入结果")')
+      .waitFor({ state: 'visible', timeout: 15000 })
+      .catch(() => {});
+
+    const resultDialogVisible = await page
+      .locator('[role="dialog"]:has-text("导入结果")')
+      .isVisible()
+      .catch(() => false);
+
+    if (!resultDialogVisible) {
+      const dialogError = await page
+        .locator('[role="dialog"] .text-red-400')
+        .first()
+        .textContent()
+        .catch(() => '');
+      console.log(`⚠️ 导入结果弹窗未出现，导入对话框内错误信息: ${dialogError || '(无)'}`);
+    }
 
     const successVisible = await page
       .locator('text=导入成功')
-      .isVisible({ timeout: 10000 })
+      .first()
+      .isVisible({ timeout: 5000 })
       .catch(() => false);
     expect(successVisible).toBeTruthy();
     console.log('✅ 首次导入成功');

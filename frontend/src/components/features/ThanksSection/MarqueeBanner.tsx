@@ -60,7 +60,7 @@ export const MarqueeBanner: React.FC<MarqueeBannerProps> = ({ sponsors }) => {
   }
 
   const marqueeContent = (
-    <div ref={contentRef} className="flex items-center gap-12 md:gap-16 px-6 md:px-8">
+    <div className="flex items-center gap-12 md:gap-16 px-6 md:px-8">
       {sponsors.map(sponsor => (
         <span
           key={sponsor.id}
@@ -111,8 +111,9 @@ export const MarqueeBanner: React.FC<MarqueeBannerProps> = ({ sponsors }) => {
           }}
         />
 
-        {/* 从右往左循环滚动的内容容器 */}
+        {/* 从右往左循环滚动的内容容器（含两份内容，useMarqueeDuration 按 scrollWidth/2 换算单份宽度） */}
         <div
+          ref={contentRef}
           data-testid="marquee-content"
           className={`flex items-center gap-0 will-change-transform h-full ${inViewport && !isPaused ? 'animate-marquee-rtl' : 'animate-marquee-rtl-paused'}`}
           style={{

@@ -238,7 +238,8 @@ test.describe('【P1】ErrorBoundary 错误边界测试', () => {
    */
   test('TEST-ERROR-01: 错误边界显示 @P1', async ({ page }) => {
     await homePage.goto();
-    await homePage.expectPageLoaded();
+    // 首页正常加载（goto 已退出 StartBox 封面并激活懒加载）
+    await expect(homePage.heroTitle).toBeVisible({ timeout: 10000 });
 
     const errorComponent = page.locator(
       '[data-testid="error-boundary"], .error-boundary, text=出错了'
@@ -260,10 +261,12 @@ test.describe('【P1】ErrorBoundary 错误边界测试', () => {
    */
   test('TEST-ERROR-02: 页面刷新恢复 @P2', async ({ page }) => {
     await homePage.goto();
-    await homePage.expectPageLoaded();
+    await expect(homePage.heroTitle).toBeVisible({ timeout: 10000 });
 
     await page.reload();
-    await homePage.expectPageLoaded();
+    // reload 后 StartBox 封面会重新出现，验证首页仍能恢复正常渲染
+    await expect(page).toHaveTitle(/驴酱杯/);
+    await expect(homePage.heroTitle).toBeVisible({ timeout: 10000 });
 
     console.log('✅ 刷新后页面恢复正常');
   });
@@ -283,7 +286,9 @@ test.describe('【P2】选手详情组件测试', () => {
    * 验证点击选手显示详情
    */
   test('TEST-PLAYER-01: 选手详情弹窗 @P1', async ({ page }) => {
-    await homePage.scrollToTeams();
+    // 首页 goto 已退出 StartBox 封面并激活懒加载，直接滚动到参赛战队区（section#teams）
+    await page.locator('#teams').scrollIntoViewIfNeeded();
+    await page.waitForTimeout(500);
 
     const playerAvatar = page.locator('[data-testid="player-avatar"]').first();
     const hasPlayer = await playerAvatar.isVisible().catch(() => false);
@@ -310,7 +315,9 @@ test.describe('【P2】选手详情组件测试', () => {
    * 验证选手位置图标正确显示
    */
   test('TEST-PLAYER-02: 选手位置图标 @P2', async ({ page }) => {
-    await homePage.scrollToTeams();
+    // 首页 goto 已退出 StartBox 封面并激活懒加载，直接滚动到参赛战队区（section#teams）
+    await page.locator('#teams').scrollIntoViewIfNeeded();
+    await page.waitForTimeout(500);
 
     const positionIcons = page.locator('[data-testid="position-icon"]');
     const count = await positionIcons.count();

@@ -1,5 +1,6 @@
 import { Page, Locator, expect } from '@playwright/test';
 import { BasePage } from './BasePage';
+import { dismissStartBox, activateLazySections, prepareHome } from '../utils/test-helpers';
 
 /**
  * 首页 - Page Object
@@ -37,26 +38,25 @@ export class HomePage extends BasePage {
     this.heroTitle = page.getByRole('heading', { name: /驴酱杯/ });
     this.heroSubtitle = page.getByText('驴酱公会终极对决');
     this.liveButton = page.getByRole('button', { name: /观看直播/ });
+    // Layout 已移除页面内的管理后台链接（改用快捷键 Ctrl+Shift+A），故不在此断言
     this.adminLink = page.getByRole('link', { name: /管理/ });
 
-    // 战队区域
-    this.teamsSection = page
-      .locator('section')
-      .filter({ has: page.getByRole('heading', { name: '参赛战队' }) });
-    this.teamsTitle = page.getByRole('heading', { name: '参赛战队' });
+    // 战队区域（TeamSection 渲染为 <section id="teams">，无「参赛战队」标题）
+    this.teamsSection = page.locator('#teams');
+    this.teamsTitle = page.locator('#teams [data-testid="teams-grid"]').first();
     this.teamCards = page.getByTestId('team-card');
-    this.noTeamsMessage = page.getByText(/暂无战队|还没有战队/);
+    this.noTeamsMessage = page.getByText(/暂无战队/);
 
-    // 赛程区域
+    // 赛程区域（ScheduleSection 渲染为 <section id="schedule">，无「赛程安排」标题）
     this.scheduleSection = page.locator('#schedule');
-    this.scheduleTitle = page.getByRole('heading', { name: '赛程安排' });
+    this.scheduleTitle = page.locator('#schedule [data-testid="schedule-tabs"]').first();
     this.swissTab = page.getByTestId('home-swiss-tab');
     this.eliminationTab = page.getByTestId('home-elimination-tab');
-    this.noScheduleMessage = page.getByText(/暂无.*赛程|还没有.*赛程/);
+    this.noScheduleMessage = page.getByText(/暂无赛程|暂无.*赛程信息/);
 
-    // 鸣谢区域
+    // 鸣谢区域（ThanksSection 渲染为 <section id="thanks">，标题为 thanks-section-title）
     this.thanksSection = page.locator('#thanks');
-    this.thanksTitle = page.getByRole('heading', { name: '特别鸣谢' });
+    this.thanksTitle = page.getByTestId('thanks-section-title');
     this.marqueeContainer = page.getByTestId('marquee-container');
     this.marqueeContent = page.getByTestId('marquee-content');
   }
@@ -67,16 +67,29 @@ export class HomePage extends BasePage {
   async goto() {
     await super.goto('/');
     await this.waitForLoad();
+    // 退出 StartBox 全屏封面，避免遮挡后续交互
+    await prepareHome(this.page);
   }
 
   /**
    * 验证首页加载成功
+   * 先退出 StartBox 封面并滚动激活懒加载区块，避免封面遮挡 / 区块未渲染导致断言失败
    */
   async expectPageLoaded() {
+    await prepareHome(this.page);
     // 使用更宽松的定位器和更长的超时时间
     await expect(this.page.locator('text=驴酱杯').first()).toBeVisible({ timeout: 10000 });
-    await expect(this.page.locator('text=参赛战队').first()).toBeVisible({ timeout: 10000 });
-    await expect(this.page.locator('text=赛程安排').first()).toBeVisible({ timeout: 10000 });
+    await expect(this.page.locator('#teams')).toBeVisible({ timeout: 10000 });
+    await expect(this.page.locator('#schedule')).toBeVisible({ timeout: 10000 });
+    // 回到顶部，保持视口初始状态
+    await this.page.evaluate(() => window.scrollTo(0, 0));
+  }
+
+  /**
+   * 退出首页 StartBox 全屏封面（供首页交互前调用）
+   */
+  async dismissCover() {
+    await prepareHome(this.page);
   }
 
   /**
@@ -173,8 +186,10 @@ export class HomePage extends BasePage {
    * 滚动到战队区域
    */
   async scrollToTeams(): Promise<void> {
-    // 滚动到参赛战队标题
-    await this.page.getByRole('heading', { name: '参赛战队' }).scrollIntoViewIfNeeded();
+    // 先退出封面，避免遮罩拦截
+    await this.dismissCover();
+    // 滚动到战队区域
+    await this.page.locator('#teams').scrollIntoViewIfNeeded();
     // 等待一下确保内容加载
     await this.page.waitForTimeout(500);
   }
@@ -183,8 +198,10 @@ export class HomePage extends BasePage {
    * 滚动到赛程区域
    */
   async scrollToSchedule(): Promise<void> {
-    // 滚动到赛程安排标题
-    await this.page.getByRole('heading', { name: '赛程安排' }).scrollIntoViewIfNeeded();
+    // 先退出封面，避免遮罩拦截
+    await this.dismissCover();
+    // 滚动到赛程区域
+    await this.page.locator('#schedule').scrollIntoViewIfNeeded();
     // 等待一下确保内容加载
     await this.page.waitForTimeout(500);
   }
@@ -193,8 +210,10 @@ export class HomePage extends BasePage {
    * 滚动到鸣谢区域
    */
   async scrollToThanks(): Promise<void> {
-    // 滚动到特别鸣谢标题
-    await this.page.getByRole('heading', { name: '特别鸣谢' }).scrollIntoViewIfNeeded();
+    // 先退出封面，避免遮罩拦截
+    await this.dismissCover();
+    // 滚动到鸣谢区域
+    await this.page.locator('#thanks').scrollIntoViewIfNeeded();
     // 等待一下确保内容加载
     await this.page.waitForTimeout(500);
   }

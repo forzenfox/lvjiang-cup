@@ -49,10 +49,7 @@ export default defineConfig({
   // 注：testMatch 不控制执行顺序，执行顺序由文件名决定
 
   // 测试报告配置
-  reporter: [
-    ['list'],
-    ['junit', { outputFile: './tests/e2e/report/results.xml' }],
-  ],
+  reporter: [['list'], ['junit', { outputFile: './tests/e2e/report/results.xml' }]],
 
   // 全局测试配置
   use: {
@@ -79,11 +76,20 @@ export default defineConfig({
   },
 
   // 浏览器项目配置 - 仅支持 Edge
+  //
+  // ⚠️ 登录态分组说明：
+  // 需要【未登录态】或【自行登录】的套件必须放入 msedge-login 项目（不带 storageState），
+  // 否则 msedge 项目的全局登录态会让 `input#username` 定位不到登录表单、
+  // 或让「未授权访问应重定向」类断言失配。
+  // 这些套件：P1-01-login（登录/退出/未授权）、P2-03-concurrent（自行登录）、P4-01-security（自行登录）。
   projects: [
-    // 项目1：登录测试（不使用 storageState，因为需要测试登录功能本身）
     {
       name: 'msedge-login',
-      testMatch: ['**/01-login.spec.ts', '**/09-concurrent.spec.ts'],
+      testMatch: [
+        '**/P1-01-login.spec.ts',
+        '**/P2-03-concurrent.spec.ts',
+        '**/P4-01-security.spec.ts',
+      ],
       use: {
         ...devices['Desktop Edge'],
         channel: 'msedge',
@@ -93,7 +99,11 @@ export default defineConfig({
     // 项目2：其他所有测试（使用全局登录状态）
     {
       name: 'msedge',
-      testIgnore: ['**/01-login.spec.ts', '**/09-concurrent.spec.ts'],
+      testIgnore: [
+        '**/P1-01-login.spec.ts',
+        '**/P2-03-concurrent.spec.ts',
+        '**/P4-01-security.spec.ts',
+      ],
       use: {
         ...devices['Desktop Edge'],
         channel: 'msedge',

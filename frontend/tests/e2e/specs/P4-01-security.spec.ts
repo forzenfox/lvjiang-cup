@@ -64,16 +64,16 @@ test.describe('【安全测试】XSS 注入防护', () => {
       await page.reload();
       await teamsPage.expectPageLoaded();
 
-      const hasAlertDialog = await page.evaluate(() => {
-        const dialogs = document.querySelectorAll('script, img[src="x"], svg[onload]');
-        return dialogs.length > 0;
-      });
+      // 检测 XSS 是否真正被执行：不应有包含该 payload 的 <script>，也不应出现由
+      // payload 注入出的 on* 事件监听元素（页面自身的 <script> 属正常脚本，需排除）。
+      const hasAlertDialog = await page.evaluate(payload => {
+        const scripts = Array.from(document.querySelectorAll('script'));
+        const scriptInjected = scripts.some(s => (s.textContent || '').includes(payload));
+        const attrInjected = !!document.querySelector('[onerror], [onload], [onclick], [src="x"]');
+        return scriptInjected || attrInjected;
+      }, payload);
 
       expect(hasAlertDialog).toBe(false);
-
-      const pageText = await page.locator('body').innerText();
-      expect(pageText).not.toContain('<script>');
-      expect(pageText).not.toContain('javascript:');
 
       console.log(`✅ XSS payload 未执行: ${payload.substring(0, 30)}...`);
     }
@@ -134,10 +134,12 @@ test.describe('【安全测试】SQL 注入防护', () => {
         await page.reload();
         await teamsPage.expectPageLoaded();
 
+        // SQL 注入 payload 会被安全地作为普通文本存储/展示；此处验证未触发送数据库错误
         const pageText = await page.locator('body').innerText();
-        expect(pageText).not.toContain('DROP TABLE');
-        expect(pageText).not.toContain('SELECT *');
-        expect(pageText).not.toContain('UNION SELECT');
+        expect(pageText).not.toContain('SQLITE');
+        expect(pageText).not.toContain('SqliteError');
+        expect(pageText).not.toContain('数据库错误');
+        expect(pageText).not.toContain('加载失败');
       }
 
       console.log(`✅ SQL 注入 payload 被安全处理: ${payload.substring(0, 30)}...`);
@@ -332,10 +334,13 @@ test.describe('【安全测试】未授权访问防护', () => {
    * 验证未登录状态下访问 /admin/teams 应重定向到登录页
    */
   test('TEST-SEC-06: 未授权访问受保护页面 @P0', async ({ page }) => {
+    // 先访问一次真实页面以获得可用 origin，避免在 about:blank 上访问 localStorage 触发 SecurityError
+    await page.goto('/');
     await page.evaluate(() => {
       localStorage.clear();
       sessionStorage.clear();
     });
+    await page.context().clearCookies();
 
     await page.goto('/admin/teams');
 

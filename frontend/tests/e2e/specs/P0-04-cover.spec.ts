@@ -30,6 +30,9 @@ test.describe('网页封面 (P0)', () => {
 });
 
 test.describe('网页封面 - 移动端 (P0)', () => {
+  // 移动端触摸测试需要启用 hasTouch，否则 page.touchscreen / TouchEvent 不可用
+  test.use({ hasTouch: true });
+
   test('移动端布局正确', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 667 });
     await page.goto('/');
@@ -44,7 +47,32 @@ test.describe('网页封面 - 移动端 (P0)', () => {
 
     await expect(page.locator('.start-box-cover')).toBeVisible();
 
-    await page.touchscreen.tap(200, 400);
+    // 模拟移动端单指向上滑动（touchstart + 上移的 touchmove），
+    // 触发 StartBox 的触摸退出逻辑（window touchstart/touchmove 监听）
+    await page.evaluate(() => {
+      const target = window as unknown as EventTarget;
+      const start = new Touch({ identifier: 1, target, clientX: 187, clientY: 500 });
+      const moved = new Touch({ identifier: 1, target, clientX: 187, clientY: 260 });
+      window.dispatchEvent(
+        new TouchEvent('touchstart', {
+          bubbles: true,
+          touches: [start],
+          targetTouches: [start],
+          changedTouches: [start],
+        })
+      );
+      window.dispatchEvent(
+        new TouchEvent('touchmove', {
+          bubbles: true,
+          touches: [moved],
+          targetTouches: [moved],
+          changedTouches: [moved],
+        })
+      );
+    });
+
+    // 等待退出动画结束（ANIMATION_CONFIG.exitDuration ≈ 900ms）
+    await page.waitForTimeout(1200);
 
     const coverElement = page.locator('.start-box-cover');
     await expect(coverElement).not.toBeVisible();

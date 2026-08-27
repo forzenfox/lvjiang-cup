@@ -53,12 +53,12 @@ test.describe('【P1】视频管理 - 完整功能测试', () => {
     await videosPage.clickAddVideo();
     await videosPage.expectFormVisible();
 
+    // 注意：真实 VideoForm 仅含「B站视频链接(url)」与「自定义标题(customTitle)」两个输入框，
+    // 不存在 page / coverUrl / order 等字段。此处只需填充 bvid(url) 与 title(customTitle)，
+    // 否则会因定位不到不存在的输入框而 fill 超时。
     await videosPage.fillVideoForm({
       title: 'E2E测试视频',
       bvid: 'BV1GJ411x7h7',
-      page: 1,
-      coverUrl: 'https://picsum.photos/seed/video-cover/400/225',
-      order: 1,
     });
 
     await videosPage.submitVideoForm();

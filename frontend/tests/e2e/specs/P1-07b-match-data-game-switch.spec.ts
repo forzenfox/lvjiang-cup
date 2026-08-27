@@ -18,9 +18,9 @@ test.describe('【P1】对战数据展示 - 对局切换功能', () => {
   test('TEST-MD-004: BO3 对局切换器显示 @P1', async ({ page }) => {
     const fixture = createMatchDataFixture({ boFormat: 'BO3' as const });
     const seriesGames = [
-      { gameNumber: 1, winner: 'red', duration: '32:45', status: 1 },
-      { gameNumber: 2, winner: 'blue', duration: '28:10', status: 1 },
-      { gameNumber: 3, winner: 'red', duration: '35:20', status: 1 },
+      { gameNumber: 1, winnerTeamId: 'team-a', duration: '32:45', status: 1, hasData: true },
+      { gameNumber: 2, winnerTeamId: 'team-b', duration: '28:10', status: 1, hasData: true },
+      { gameNumber: 3, winnerTeamId: 'team-a', duration: '35:20', status: 1, hasData: true },
     ];
 
     await page.route('**/api/matches/*/games/check', async route => {
@@ -49,8 +49,9 @@ test.describe('【P1】对战数据展示 - 对局切换功能', () => {
     await matchDataPage.goto(fixture.matchId);
     await matchDataPage.expectPageLoaded();
 
+    // 实际前端对局切换按钮使用中文数字标签（如「第一场」「第二场」），无 data-testid
     const switcher = page.locator(
-      '[data-testid="game-switcher"], [class*="game-switcher"], button:has-text("第1局")'
+      'button:has-text("第一场"), button:has-text("第二场"), button:has-text("第三场")'
     );
     const switcherVisible = await switcher
       .first()
@@ -58,9 +59,7 @@ test.describe('【P1】对战数据展示 - 对局切换功能', () => {
       .catch(() => false);
     expect(switcherVisible).toBe(true);
 
-    const game1Btn = page
-      .locator('button:has-text("第1局"), [data-testid="game-button-1"]')
-      .first();
+    const game1Btn = page.locator('button:has-text("第一场")').first();
     await expect(game1Btn).toBeVisible();
     console.log('✅ BO3 对局切换器正确显示');
   });
@@ -68,9 +67,9 @@ test.describe('【P1】对战数据展示 - 对局切换功能', () => {
   test('TEST-MD-005: 点击切换对局 @P1', async ({ page }) => {
     const fixture = createMatchDataFixture({ boFormat: 'BO3' as const });
     const seriesGames = [
-      { gameNumber: 1, winner: 'red', duration: '32:45', status: 1 },
-      { gameNumber: 2, winner: 'blue', duration: '28:10', status: 1 },
-      { gameNumber: 3, winner: 'red', duration: '35:20', status: 1 },
+      { gameNumber: 1, winnerTeamId: 'team-a', duration: '32:45', status: 1, hasData: true },
+      { gameNumber: 2, winnerTeamId: 'team-b', duration: '28:10', status: 1, hasData: true },
+      { gameNumber: 3, winnerTeamId: 'team-a', duration: '35:20', status: 1, hasData: true },
     ];
 
     await page.route('**/api/matches/*/games/check', async route => {
@@ -105,7 +104,7 @@ test.describe('【P1】对战数据展示 - 对局切换功能', () => {
     await matchDataPage.expectPageLoaded();
     await expect(page).toHaveURL(/\/match\/.*\/games(\?game=1)?$/);
 
-    const game2Btn = page.locator('button:has-text("第2局")').first();
+    const game2Btn = page.locator('button:has-text("第二场")').first();
     await game2Btn.click();
     await page.waitForTimeout(500);
     await expect(page).toHaveURL(/\?game=2/);
