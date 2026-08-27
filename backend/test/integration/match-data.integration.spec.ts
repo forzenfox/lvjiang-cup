@@ -55,6 +55,12 @@ describe('MatchData Integration Tests', () => {
 
   beforeEach(async () => {
     await cleanupTables();
+
+    // 生产 schema 对 match_games.winner_team_id / matches.team_a_id|team_b_id 有外键约束，
+    // 需先写入测试战队，保证夹具数据符合真实约束
+    await databaseService.run('INSERT INTO teams (id, name) VALUES (?, ?)', ['team_a', 'Team A']);
+    await databaseService.run('INSERT INTO teams (id, name) VALUES (?, ?)', ['team_b', 'Team B']);
+
     cacheService.flush.mockClear();
     cacheService.get.mockClear();
     cacheService.set.mockClear();
@@ -233,8 +239,8 @@ describe('MatchData Integration Tests', () => {
       cacheService.get.mockReturnValue(null);
 
       await databaseService.run(
-        'INSERT INTO matches (id, round, stage, team_a_id, team_b_id, score_a, score_b) VALUES (?, ?, ?, ?, ?, ?, ?)',
-        ['match_1', 'Round 1', 'swiss', 'team_a', 'team_b', 2, 1],
+        'INSERT INTO matches (id, round, stage, team_a_id, team_b_id, score_a, score_b, bo_format) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+        ['match_1', 'Round 1', 'swiss', 'team_a', 'team_b', 2, 1, 'BO3'],
       );
 
       await databaseService.run(
@@ -265,14 +271,16 @@ describe('MatchData Integration Tests', () => {
       cacheService.get.mockReturnValue(null);
 
       await databaseService.run(
-        'INSERT INTO matches (id, round, stage, team_a_id, team_b_id) VALUES (?, ?, ?, ?, ?)',
-        ['match_2', 'Round 2', 'swiss', 'team_a', 'team_b'],
+        'INSERT INTO matches (id, round, stage, team_a_id, team_b_id, bo_format) VALUES (?, ?, ?, ?, ?, ?)',
+        ['match_2', 'Round 2', 'swiss', 'team_a', 'team_b', 'BO3'],
       );
 
       const result = await matchDataService.getMatchSeries('match_2');
 
       expect(result.matchId).toBe('match_2');
-      expect(result.games).toHaveLength(0);
+      // 服务端按赛制补齐空槽：BO3 无任何导入时返回 3 个空槽位（hasData=false）
+      expect(result.games).toHaveLength(3);
+      expect(result.games.every((g: any) => g.hasData === false)).toBe(true);
     });
   });
 
@@ -283,8 +291,6 @@ describe('MatchData Integration Tests', () => {
         'Round 1',
         'swiss',
       ]);
-
-      await databaseService.run('INSERT INTO teams (id, name) VALUES (?, ?)', ['team_a', 'Team A']);
 
       await databaseService.run(
         'INSERT INTO match_games (match_id, game_number, winner_team_id) VALUES (?, ?, ?)',
@@ -327,8 +333,8 @@ describe('MatchData Integration Tests', () => {
       cacheService.get.mockReturnValue(null);
 
       await databaseService.run(
-        'INSERT INTO matches (id, round, stage, team_a_id, team_b_id) VALUES (?, ?, ?, ?, ?)',
-        ['match_lifecycle', 'Finals', 'playoffs', 'team_a', 'team_b'],
+        'INSERT INTO matches (id, round, stage, team_a_id, team_b_id, bo_format) VALUES (?, ?, ?, ?, ?, ?)',
+        ['match_lifecycle', 'Finals', 'elimination', 'team_a', 'team_b', 'BO3'],
       );
 
       await databaseService.run(
@@ -342,19 +348,25 @@ describe('MatchData Integration Tests', () => {
       );
 
       await databaseService.run(
-        'UPDATE matches SET score_a = 2, score_b = 0, status = ? WHERE id = ?',
+        'INSERT INTO match_games (match_id, game_number, winner_team_id, game_duration) VALUES (?, ?, ?, ?)',
+        ['match_lifecycle', 3, 'team_a', '29:45'],
+      );
+
+      await databaseService.run(
+        'UPDATE matches SET score_a = 3, score_b = 0, status = ? WHERE id = ?',
         ['finished', 'match_lifecycle'],
       );
 
       const seriesData = await matchDataService.getMatchSeries('match_lifecycle');
 
       expect(seriesData.matchId).toBe('match_lifecycle');
-      expect(seriesData.games).toHaveLength(2);
+      // 按赛制补齐：BO3 展示全部 3 个槽位，且本次已填满 3 局
+      expect(seriesData.games).toHaveLength(3);
       expect(seriesData.games.every((g: any) => g.hasData === true)).toBe(true);
 
       const dataExists = await matchDataService.checkMatchDataExists('match_lifecycle');
       expect(dataExists.hasData).toBe(true);
-      expect(dataExists.gameCount).toBe(2);
+      expect(dataExists.gameCount).toBe(3);
     });
 
     it('应该验证比赛数据删除后的状态', async () => {
@@ -584,9 +596,6 @@ describe('MatchData Integration Tests', () => {
         'INSERT INTO matches (id, round, stage, team_a_id, team_b_id, bo_format, status) VALUES (?, ?, ?, ?, ?, ?, ?)',
         ['match_parse_error', 'Round 1', 'swiss', 'team_a', 'team_b', 'BO3', 'finished'],
       );
-
-      await databaseService.run('INSERT INTO teams (id, name) VALUES (?, ?)', ['team_a', 'Team A']);
-      await databaseService.run('INSERT INTO teams (id, name) VALUES (?, ?)', ['team_b', 'Team B']);
 
       // 模拟文件对象
       const mockFile = {

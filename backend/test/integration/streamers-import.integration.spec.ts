@@ -96,7 +96,8 @@ describe('StreamersImport Integration', () => {
       .post('/api/admin/auth/login')
       .send({ username: 'admin', password: 'admin123' });
 
-    authToken = loginResponse.body.access_token;
+    // 登录响应经 TransformInterceptor 包装为 { data: { access_token } }
+    authToken = loginResponse.body.data.access_token;
   });
 
   afterAll(async () => {

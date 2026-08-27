@@ -38,10 +38,12 @@ async function ensureTestTeams(page: any, teamsPage: TeamsPage) {
 test.describe('【P0】瑞士轮编辑器 - 基础功能测试', () => {
   let dashboardPage: DashboardPage;
   let swissEditorPage: SwissStageEditorPage;
+  let teamsPage: TeamsPage;
 
   test.beforeEach(async ({ page }) => {
     dashboardPage = new DashboardPage(page);
     swissEditorPage = new SwissStageEditorPage(page);
+    teamsPage = new TeamsPage(page);
 
     await page.goto('/admin/dashboard');
     await dashboardPage.expectPageLoaded();

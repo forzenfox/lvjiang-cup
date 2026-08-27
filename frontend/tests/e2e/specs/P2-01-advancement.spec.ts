@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { DashboardPage, SchedulePage, TeamsPage, HomePage } from '../pages';
+import { testTeam, testTeamBeta } from '../fixtures/teams.fixture';
 
 /**
  * 晋级名单管理测试用例
@@ -22,6 +23,25 @@ async function ensureTeamsExist(page: any, teamsPage: TeamsPage) {
   if (!hasTeamB) {
     await teamsPage.addNewTeam(testTeamBeta);
     await page.waitForTimeout(1000);
+  }
+}
+
+/**
+ * 确保后端存在瑞士轮/淘汰赛槽位。
+ * 首页赛程组件仅在 matches.length > 0 时渲染瑞士轮 Tab（home-swiss-tab），
+ * 因此用例在跳转首页前需初始化比赛槽位，从 localStorage 读取 JWT 调用 init-slots 接口。
+ */
+async function ensureMatchSlotsExist(page: any): Promise<void> {
+  const backendUrl = process.env.BACKEND_URL || 'http://localhost:3000';
+  const token = await page.evaluate(() => localStorage.getItem('token'));
+  const res = await page.request.post(`${backendUrl}/api/admin/init-slots`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (res.ok()) {
+    const data = await res.json();
+    console.log(`✅ 初始化比赛槽位: created=${data.data?.created} skipped=${data.data?.skipped}`);
+  } else {
+    console.warn(`⚠️ init-slots 失败: ${res.status()}`);
   }
 }
 
@@ -176,12 +196,13 @@ test.describe('【第四阶段-1】瑞士轮晋级名单管理测试', () => {
     const swissEditor = page.getByTestId('swiss-stage');
     await swissEditor.isVisible().catch(() => false);
 
+    await ensureMatchSlotsExist(page);
     await homePage.goto();
     await page.waitForTimeout(1000);
 
     const swissTab = page.getByTestId('home-swiss-tab');
 
-    await swissTab.click();
+    await swissTab.click({ force: true });
     await page.waitForTimeout(500);
 
     const homeSwissStage = page.getByTestId('swiss-stage-display');
@@ -227,12 +248,13 @@ test.describe('【第四阶段-2】晋级名单同步验证测试', () => {
     const swissEditor = page.getByTestId('swiss-stage');
     await swissEditor.isVisible().catch(() => false);
 
+    await ensureMatchSlotsExist(page);
     await homePage.goto();
     await page.waitForTimeout(1000);
 
     const swissTab = page.getByTestId('home-swiss-tab');
 
-    await swissTab.click();
+    await swissTab.click({ force: true });
     await page.waitForTimeout(500);
 
     const swissStageDisplay = page.getByTestId('swiss-stage-display');
